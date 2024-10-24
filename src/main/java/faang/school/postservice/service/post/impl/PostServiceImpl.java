@@ -2,6 +2,8 @@ package faang.school.postservice.service.post.impl;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.event.PostViewEvent;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.request.PostCreationRequest;
 import faang.school.postservice.dto.post.request.PostUpdatingRequest;
@@ -15,8 +17,8 @@ import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.post.PostCreator;
 import faang.school.postservice.publisher.MessagePublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.service.post.PostContentVerifier;
+import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.service.post.impl.filter.PostFilter;
 import faang.school.postservice.service.post.impl.filter.PublishedPostFilter;
 import faang.school.postservice.service.post.impl.filter.UnPublishedPostFilter;
@@ -27,6 +29,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +50,8 @@ public class PostServiceImpl implements PostService {
     private final ProjectServiceClient projectClient;
     private final PostContentVerifier postContentVerifier;
     private final MessagePublisher<Long> banUserPublisher;
+    private final MessagePublisher<PostViewEvent> postViewEventPublisher;
+    private final UserContext userContext;
 
     @Setter
     @Value("${post.moderator.post-batch-size}")
@@ -138,6 +143,10 @@ public class PostServiceImpl implements PostService {
     public PostDto getPostById(Long id) {
         Post post = getPost(id);
         log.debug("Found post: {}", post.getId());
+        PostViewEvent event = postMapper.toPostViewEvent(post);
+        event.setViewerId(userContext.getUserId());
+        event.setTimestamp(LocalDateTime.now());
+        postViewEventPublisher.publish(event);
         return postMapper.toPostDto(post);
     }
 
