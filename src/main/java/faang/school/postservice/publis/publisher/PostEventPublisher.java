@@ -28,11 +28,12 @@ public class PostEventPublisher {
         String postEventChannelName = redisProperties.getPostEventChannelName();
         try {
             valueAsString = objectMapper.writeValueAsString(postEventDto);
+            redisTemplate.convertAndSend(postEventChannelName, valueAsString);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
-        redisTemplate.convertAndSend(postEventChannelName, valueAsString);
+
         log.info("Sending message to broker: {}", postEventDto);
     }
 }
