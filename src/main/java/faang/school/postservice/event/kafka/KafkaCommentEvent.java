@@ -2,9 +2,11 @@ package faang.school.postservice.event.kafka;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class KafkaCommentEvent {
+public class KafkaCommentEvent implements Serializable {
     private long id;
-    private long authorId;
     private long postId;
+    private long authorId;
 }

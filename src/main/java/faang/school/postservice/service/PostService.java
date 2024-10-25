@@ -102,25 +102,46 @@ public class PostService {
         PostDto postDtoForReturns = postMapper.toDto(post);
         elasticsearchService.indexPost(postDtoForReturns);
 
-        PostCache postCache = new PostCache(post.getId(), postDtoForReturns, postTtl);
-        postCacheRepository.save(postCache);
-
-        UserDto authorDto = userServiceClient.getUser(userContext.getUserId());
-        UserCache userCache = new UserCache(authorDto.getId(), authorDto, userTtl);
-        userCacheRepository.save(userCache);
-
-        List<Long> userFollowers = userServiceClient.getUserFollowers(authorDto.getId())
-                .stream().map(UserDto::getId).toList();
+        long userId = userContext.getUserId();
+        cachePost(post);
+        List<Long> userFollowerIds = userServiceClient.getUserFollowers(userId)
+                .stream()
+                .map(UserDto::getId).toList();
+        List<Long> userSubscribedAuthors = userServiceClient.getUserSubscribedAuthors(userId)
+                .stream()
+                .map(UserDto::getId).toList();
+        cacheUser(userId, userFollowerIds, userSubscribedAuthors);
 
         KafkaPostEvent kafkaPostEvent = KafkaPostEvent.builder()
                 .postId(post.getId())
-                .authorId(authorDto.getId())
-                .subscribersId(userFollowers)
+                .subscribersId(userFollowerIds)
                 .build();
         kafkaPostEventProducer.sendMessage(kafkaPostEvent);
 
         return postDtoForReturns;
     }
+
+    private void cachePost(Post post) {
+        PostCache postCache = PostCache.builder()
+                .authorId(post.getAuthorId())
+                .content(post.getContent())
+                .likeCount(post.getLikes().size())
+                .ttl(postTtl)
+                .build();
+        postCacheRepository.save(postCache);
+    }
+
+    private void cacheUser(Long userId, List<Long> userFollowerIds, List<Long> userSubscribedAuthors) {
+        UserDto authorDto = userServiceClient.getUser(userId);
+        UserCache userCache = UserCache.builder()
+                .id(authorDto.getId())
+                .userFollowers(userFollowerIds)
+                .userSubscribedAuthors(userSubscribedAuthors)
+                .ttl(userTtl)
+                .build();
+        userCacheRepository.save(userCache);
+    }
+
 
     @Transactional
     public PostDto updatePost(PostDto postDto) {
@@ -259,7 +280,6 @@ public class PostService {
 
     private void sendToRedisPublisher(long userId, long postId) {
         KafkaPostEvent event = KafkaPostEvent.builder()
-                .authorId(userId)
                 .postId(postId)
                 .build();
         postEventPublisher.publish(event);

@@ -140,7 +140,6 @@ public class PostServiceTest {
         );
 
         postDto = new PostDto();
-        post = new Post();
         Post draftPost1 = Post.builder()
                 .id(1L)
                 .content("Draft 1")
@@ -224,6 +223,7 @@ public class PostServiceTest {
                 .projectId(null)
                 .content("New post")
                 .hashtags(hashtags)
+                .likes(new ArrayList<>())
                 .build();
 
         draftPostDtos = Arrays.asList(draftPostDto1, draftPostDto2);

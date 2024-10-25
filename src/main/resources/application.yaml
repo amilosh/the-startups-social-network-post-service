@@ -37,8 +37,15 @@ spring:
       cache:
         post:
           ttl: 86400
+          key: "post-cache:%d"
+          likes-lock: "post-likes-lock:%d"
+          views-lock: "post-views-lock:%d"
         user:
           ttl: 86400
+        user-posts:
+          feed:
+            key: "user-%d-posts"
+          max-size: 500
 
     elasticsearch:
       rest:
@@ -78,15 +85,17 @@ spring:
     max-image-quantity: 10
 
   kafka:
+    bootstrap-servers: localhost:9092
+
     consumer:
-      bootstrap-servers: localhost:9092
       group-id: postGroup
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+      post-batch: 1000
+
     producer:
-      bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringDeserializer
       value-serializer: org.apache.kafka.common.serialization.StringDeserializer
 
@@ -104,6 +113,8 @@ spring:
         name: comments
         partitions: 8
 
+feed:
+  batch: 20
 
 server:
   port: 8081

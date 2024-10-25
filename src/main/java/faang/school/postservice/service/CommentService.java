@@ -67,7 +67,12 @@ public class CommentService {
         publishCommentAchievementEvent(commentDto);
 
         UserDto userDto = userServiceClient.getUser(userContext.getUserId());
-        UserCache userCache = new UserCache(userDto.getId(), userDto, userTtl);
+        UserCache userCache = UserCache.builder()
+                .id(userDto.getId())
+                .username(userDto.getUsername())
+                .userSubscribedAuthors(userDto.getPostAuthors())
+                .ttl(userTtl)
+                .build();
         userCacheRepository.save(userCache);
 
         KafkaCommentEvent kafkaCommentEvent = commentMapper.toKafkaEvent(comment);
