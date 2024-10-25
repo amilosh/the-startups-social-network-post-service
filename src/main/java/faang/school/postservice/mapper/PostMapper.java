@@ -1,5 +1,6 @@
 package faang.school.postservice.mapper;
 
+import faang.school.postservice.cache.entity.PostCache;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.model.Post;
@@ -11,7 +12,8 @@ import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface PostMapper {
     @Mapping(source = "hashtags", target = "hashtagNames", qualifiedByName = "hashtagToHashtagName")
     PostDto toDto(Post post);
@@ -21,6 +23,10 @@ public interface PostMapper {
     PostDto toDto(Post post, @Context PostContextMapper context);
 
     List<PostDto> toDto(List<Post> posts);
+
+    PostDto toDto(PostCache postCache);
+
+
 
     @Named("hashtagToHashtagName")
     default String hashtagToHashtagName(Hashtag hashtag) {

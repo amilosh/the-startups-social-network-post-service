@@ -170,7 +170,13 @@ public class LikeServiceTest {
     @Test
     public void testAddLikeToPostWhenValid() {
         KafkaPostLikeEvent kafkaPostLikeEvent = new KafkaPostLikeEvent();
-        UserDto userDto = new UserDto(1L, "name", "email@google.com", "", true);
+        UserDto userDto = UserDto.builder()
+                .id(1L)
+                .username("name")
+                .email("email@google.com")
+                .phone("")
+                .isActive(true)
+                .build();
         post.setAuthorId(1L);
 
         when(postService.getPost(likeDtoPost.getPostId())).thenReturn(post);
@@ -215,7 +221,13 @@ public class LikeServiceTest {
     @Test
     public void testAddLikeToCommentWhenValid() {
         Like like = new Like();
-        UserDto userDto = new UserDto(1L, "name", "email@google.com", "", true);
+        UserDto userDto = UserDto.builder()
+                .id(1L)
+                .username("name")
+                .email("email@google.com")
+                .phone("")
+                .isActive(true)
+                .build();
 
         when(commentService.getComment(likeDtoComment.getCommentId())).thenReturn(comment);
         when(userServiceClient.getUser(likeDtoComment.getUserId())).thenReturn(userDto);
