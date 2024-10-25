@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 class LikeEventPublisherTest {
 
     @InjectMocks
-    private LikeEventPublisher publisher;
+    private LikeMessagePublisher publisher;
 
     @Mock
     private RedisTemplate<String, String> redisTemplate;

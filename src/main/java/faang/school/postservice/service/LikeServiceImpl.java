@@ -10,7 +10,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.publisher.LikeMessagePublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -38,7 +38,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeRepository likeRepository;
     private final UserServiceClient client;
     private final UserServiceClient userServiceClient;
-    private final LikeEventPublisher likeEventPublisher;
+    private final LikeMessagePublisher likeMessagePublisher;
 
     @Override
     public void addLikeToPost(@Valid LikeDto likeDto, long postId) {
@@ -194,7 +194,7 @@ public class LikeServiceImpl implements LikeService {
                 .authorPostId(post.getId())
                 .createdAt(LocalDateTime.now())
                 .build();
-        likeEventPublisher.publish(likeEvent);
+        likeMessagePublisher.publish(likeEvent);
         log.info("Like event published to topic, event: {}", likeEvent);
     }
 }

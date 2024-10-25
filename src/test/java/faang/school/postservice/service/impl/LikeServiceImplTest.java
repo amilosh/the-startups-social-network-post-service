@@ -9,7 +9,7 @@ import faang.school.postservice.mapper.LikeMapperImpl;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.publisher.LikeMessagePublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -54,7 +54,7 @@ class LikeServiceImplTest {
     private UserServiceClient userServiceClient;
 
     @Mock
-    private LikeEventPublisher likeEventPublisher;
+    private LikeMessagePublisher likeMessagePublisher;
 
     private List<Like> likes1;
     private List<Like> likes2;
@@ -125,12 +125,12 @@ class LikeServiceImplTest {
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(likeMapperImpl.toLike(likeDto)).thenReturn(like1);
-        doNothing().when(likeEventPublisher).publish(any(LikeEvent.class));
+        doNothing().when(likeMessagePublisher).publish(any(LikeEvent.class));
         when(likeRepository.save(any(Like.class))).thenReturn(like1);
 
         likeService.addLikeToPost(likeDto, postId);
 
-        verify(likeEventPublisher, times(1)).publish(any(LikeEvent.class));
+        verify(likeMessagePublisher, times(1)).publish(any(LikeEvent.class));
         verify(likeRepository, times(1)).save(like1);
         verify(userServiceClient, times(1)).getUser(like1.getUserId());
         verify(postRepository, times(1)).findById(postId);

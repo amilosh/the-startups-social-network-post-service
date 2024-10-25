@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class LikeEventPublisher implements MessagePublisher {
+public class LikeMessagePublisher implements MessagePublisher {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final LikeEventTopic topic;
