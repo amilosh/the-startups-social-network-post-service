@@ -13,11 +13,14 @@ public class RedisProperties {
     @Value("${spring.data.redis.host}")
     private String host;
 
-    @Value("${spring.data.redis.channels.user_ban_channel.name}")
+    @Value("${spring.data.redis.channels.user-ban-channel.name}")
     private String userBanChannelName;
 
-    @Value("${spring.data.redis.channels.comment_channel.name}")
+    @Value("${spring.data.redis.channels.comment-channel.name}")
     private String commentEventChannelName;
+
+    @Value("${spring.data.redis.channels.post-like-channel.name}")
+    private String PostLikeEventChannelName;
 
     @Value("${spring.data.redis.channels.post_channel.name}")
     private String postEventChannelName;
