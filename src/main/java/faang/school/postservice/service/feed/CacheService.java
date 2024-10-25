@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -124,12 +125,15 @@ public class CacheService {
     }
 
     public Map<Long, UserDto> fetchUsers(Set<Long> userIds) {
-        Map<Long, UserDto> userMap = userIds.stream()
+        List<UserDto> userDtos = redisUserRepository.multiGet(userIds);
+
+        Map<Long, UserDto> userMap = userDtos.stream()
                 .collect(Collectors.toMap(
-                        authorId -> authorId,
-                        redisUserRepository::get,
-                        (existing, replacement) -> existing
+                        UserDto::getId,
+                        Function.identity()
                 ));
+
+        userIds.forEach(userId -> userMap.putIfAbsent(userId, null));
 
         processMissingUsers(userMap);
 
@@ -175,7 +179,7 @@ public class CacheService {
     }
 
     private Optional<PostDto> getPostFromCache(Long postId) {
-        return Optional.ofNullable(redisPostRepository.getPost(postId));
+        return redisPostRepository.getPost(postId);
     }
 
     private void updatePostCounters(PostDto postDto) {

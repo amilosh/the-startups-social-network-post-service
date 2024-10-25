@@ -53,7 +53,7 @@ public class CacheTransactionalService {
 
     @Transactional
     public Map<Long, List<CommentDto>> getCommentsFromDB(Set<Long> postIds) {
-        List<Comment> comments = commentRepository.findLastsByPostId(postIds, showLastComments);
+        List<Comment> comments = commentRepository.findLatestByPostId(postIds, showLastComments);
 
         return comments.stream()
                 .collect(Collectors.groupingBy(

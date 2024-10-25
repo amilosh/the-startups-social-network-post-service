@@ -21,6 +21,7 @@ public interface CommentMapper {
     Comment toEntity(CommentDto commentDto);
 
     CommentDto fromFeedCommentEventToDto(FeedCommentEvent event);
+    FeedCommentEvent fromDtoToFeedCommentEvent(CommentDto dto);
 
     @Named("mapLikesToLikeIds")
     default List<Long> mapLikesToLikeIds(List<Like> likes) {

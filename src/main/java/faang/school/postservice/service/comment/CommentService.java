@@ -42,8 +42,7 @@ public class CommentService {
         commentValidator.findPostById(postId);
         Comment savedComment = commentRepository.save(commentMapper.toEntity(commentDto));
 
-        feedEventService.createAndSendFeedCommentEvent(new FeedCommentEvent(
-                commentDto.getId(), commentDto.getPostId(), commentDto.getAuthorId(), commentDto.getContent()));
+        feedEventService.createAndSendFeedCommentEvent(commentMapper.fromDtoToFeedCommentEvent(commentDto));
         cacheService.addUserToCache(savedComment.getAuthorId());
 
         return commentMapper.toDto(savedComment);

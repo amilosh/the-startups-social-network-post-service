@@ -23,5 +23,5 @@ public interface CommentRepository extends CrudRepository<Comment, Long> {
             "  WHERE c.post_id IN (:postIds) AND c.deleted = false" +
             ") sub " +
             "WHERE sub.rn <= :limit", nativeQuery = true)
-    List<Comment> findLastsByPostId(Set<Long> postIds, int limit);
+    List<Comment> findLatestByPostId(Set<Long> postIds, int limit);
 }

@@ -41,7 +41,7 @@ public class FeedHeaterTransactionalService {
                 .map(PostDto::getId)
                 .collect(Collectors.toSet());
 
-        List<Comment> comments = commentRepository.findLastsByPostId(postIds, showLastComments);
+        List<Comment> comments = commentRepository.findLatestByPostId(postIds, showLastComments);
 
         return cacheComments(comments).stream()
                 .collect(Collectors.groupingBy(CommentDto::getPostId));

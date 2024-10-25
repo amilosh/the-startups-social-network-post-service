@@ -160,6 +160,9 @@ feign:
       default:
         retryer:
           enabled: true
+          period: 1000
+          maxPeriod: 2000
+          maxAttempts: 3
 
 #springdoc:
 #  api-docs:

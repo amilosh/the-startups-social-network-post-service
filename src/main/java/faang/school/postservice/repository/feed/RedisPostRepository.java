@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -19,6 +20,7 @@ import java.util.Set;
 public class RedisPostRepository {
     private static final String POST_KEY_PREFIX = "post:";
     private static final String COMMENT_KEY_SUFFIX = ":comments";
+    private static final String COMMENT_HASH_SUFFIX = ":commentHash";
     private static final String LIKE_KEY_SUFFIX = ":likes";
     private static final String COMMENT_COUNT_SUFFIX = ":commentCount";
     private final RedisTemplate<String, Object> cacheRedisTemplate;
@@ -34,9 +36,10 @@ public class RedisPostRepository {
         cacheRedisTemplate.opsForValue().set(key, postDto, Duration.ofSeconds(ttl));
     }
 
-    public PostDto getPost(Long postId) {
+    public Optional<PostDto> getPost(Long postId) {
         String key = POST_KEY_PREFIX + postId;
-        return (PostDto) cacheRedisTemplate.opsForValue().get(key);
+        PostDto postDto = (PostDto) cacheRedisTemplate.opsForValue().get(key);
+        return Optional.ofNullable(postDto);
     }
 
     public void deletePost(Long postId) {
@@ -45,45 +48,48 @@ public class RedisPostRepository {
     }
 
     public void addComment(Long postId, CommentDto commentDto) {
-        String key = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
+        String zsetKey = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
+        String hashKey = POST_KEY_PREFIX + postId + COMMENT_HASH_SUFFIX;
 
         double score = commentDto.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        cacheRedisTemplate.opsForZSet().add(key,commentDto, score);
-        cacheRedisTemplate.opsForZSet().removeRange(key, 0, -showLastComments - 1);
-        cacheRedisTemplate.expire(key, Duration.ofSeconds(ttl));
+        cacheRedisTemplate.opsForZSet().add(zsetKey,commentDto.getId(), score);
+        cacheRedisTemplate.opsForHash().put(hashKey, commentDto.getId().toString(), commentDto);
+        cacheRedisTemplate.opsForZSet().removeRange(zsetKey, 0, -showLastComments - 1);
+        cacheRedisTemplate.expire(zsetKey, Duration.ofSeconds(ttl));
+        cacheRedisTemplate.expire(hashKey, Duration.ofSeconds(ttl));
     }
 
     public List<CommentDto> getComments(Long postId) {
-        String key = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
-        Set<Object> comments = cacheRedisTemplate.opsForZSet().reverseRange(key, 0, -1);
-        if (comments == null || comments.isEmpty()) {
+        String zsetKey = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
+        String hashKey = POST_KEY_PREFIX + postId + COMMENT_HASH_SUFFIX;
+
+        Set<Object> commentIds = cacheRedisTemplate.opsForZSet().reverseRange(zsetKey, 0, -1);
+        if (commentIds == null || commentIds.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return comments.stream()
+        List<Object> commentDtos = cacheRedisTemplate.opsForHash().multiGet(hashKey, commentIds);
+
+        return commentDtos.stream()
+                .filter(Objects::nonNull)
                 .map(CommentDto.class::cast)
                 .toList();
     }
 
     public void deleteComments(long postId) {
-        String key = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
-        cacheRedisTemplate.delete(key);
+        String zsetKey = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
+        String hashKey = POST_KEY_PREFIX + postId + COMMENT_HASH_SUFFIX;
+        cacheRedisTemplate.delete(zsetKey);
+        cacheRedisTemplate.delete(hashKey);
     }
 
     public void deleteComment(Long postId, Long commentId) {
-        String key = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
-        List<CommentDto> comments = getComments(postId);
+        String zsetKey = POST_KEY_PREFIX + postId + COMMENT_KEY_SUFFIX;
+        String hashKey = POST_KEY_PREFIX + postId + COMMENT_HASH_SUFFIX;
 
-        boolean removed = comments.removeIf(comment -> Objects.equals(comment.getId(), commentId));
-
-        if (removed) {
-            cacheRedisTemplate.delete(key);
-            for (int i = comments.size() - 1; i >= 0; i--) {
-                addComment(postId, comments.get(i));
-            }
-            cacheRedisTemplate.expire(key, Duration.ofSeconds(ttl));
-        }
+        cacheRedisTemplate.opsForZSet().remove(zsetKey, commentId);
+        cacheRedisTemplate.opsForHash().delete(hashKey, commentId.toString());
     }
 
 
