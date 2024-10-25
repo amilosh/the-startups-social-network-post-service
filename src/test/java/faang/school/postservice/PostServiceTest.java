@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -31,6 +32,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -48,6 +50,7 @@ public class PostServiceTest {
 
     @Mock
     private YandexSpeller yandexSpeller;
+
 
     @InjectMocks
     PostService postService;
@@ -198,6 +201,25 @@ public class PostServiceTest {
         assertFalse(result.isEmpty());
         assertEquals(1L, result.get(0).getProjectId());
         verify(postRepository, times(1)).findPublishedByProjectId(post.getProjectId());
+    }
+
+    @Test
+    public void testPublishScheduledPosts() {
+        Post post1 = new Post();
+        post1.setPublished(false);
+        Post post2 = new Post();
+        post2.setPublished(false);
+        List<Post> posts = List.of(post1, post2);
+
+        postService.publishScheduledPosts(posts);
+
+        assertTrue(post1.isPublished());
+        assertNotNull(post1.getPublishedAt());
+
+        assertTrue(post2.isPublished());
+        assertNotNull(post2.getPublishedAt());
+
+        verify(postRepository, times(1)).saveAll(anyList());
     }
 
     @Test
