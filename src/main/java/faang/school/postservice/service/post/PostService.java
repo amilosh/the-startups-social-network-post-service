@@ -246,23 +246,21 @@ public class PostService {
         log.info("Images successfully deleted");
     }
 
-    @Async("postExecutorPool")
-    @Transactional
-    public void processReadyToPublishPosts(Integer postPublishBatchSize) {
-        log.info("Загрузка постов для публикации");
-        List<Post> posts = postRepository.findReadyToPublishSkipLocked(postPublishBatchSize);
-        log.info("Загружено {} постов для публикации", posts.size());
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        posts.forEach(post -> {
-            post.setPublishedAt(currentDateTime);
-            post.setPublished(true);
-            postRepository.save(post);
-        });
-        log.info("Посты опубликованы");
+    @Transactional(readOnly = true)
+    public List<Long> getReadyToPublishIds() {
+        return postRepository.findReadyToPublishIds();
     }
 
-    @Transactional(readOnly = true)
-    public int getReadyToPublish() {
-        return postRepository.findReadyToPublishCount();
+    @Async("postExecutorPool")
+    @Transactional
+    public void processReadyToPublishPosts(List<Long> postIds) {
+        List<Post> postList = postRepository.findPostsByIds(postIds);
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        postList.forEach(post -> {
+            post.setPublishedAt(currentDateTime);
+            post.setPublished(true);
+        });
+        postRepository.saveAll(postList);
+        log.info("Posts was published by scheduling: {}", postIds);
     }
 }

@@ -2,10 +2,10 @@ package faang.school.postservice.repository;
 
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
-import feign.Param;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,22 +37,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p.authorId FROM Post p WHERE p.verificationStatus = :status GROUP BY p.authorId HAVING COUNT(*) > 5")
     List<Long> findAllUsersBorBan(VerificationPostStatus status);
 
-    @Query(
-            value = """
-                    select * 
-                    from post p 
-                    where p.published is false 
-                    and p.deleted is false
-                    and p.scheduled_at <= current_timestamp
-                    for update skip locked limit :limit
-                    """,
-            nativeQuery = true
-    )
-    List<Post> findReadyToPublishSkipLocked(Integer limit);
-
-    @Query("select count(p) from Post p where p.published = false AND p.deleted = false AND p.scheduledAt <= CURRENT_TIMESTAMP")
-    int findReadyToPublishCount();
-
     @Query(nativeQuery = true, value = """
             SELECT * FROM post
             WHERE hash_tags @> CAST(:hashTag AS jsonb)
@@ -78,4 +62,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             OFFSET :offset
             """)
     List<Post> findInRangeByHashTagByDate(@Param("hashTag") String hashTag, @Param("offset") int offset, @Param("limit") int limit);
+
+    @Query(
+            value = """
+                    select id
+                    from post
+                    where published is false
+                    	and deleted is false
+                    	and scheduled_at <= CURRENT_TIMESTAMP
+                    """,
+            nativeQuery = true)
+    List<Long> findReadyToPublishIds();
+
+    @Query(value = "select * from post where id in (:ids)", nativeQuery = true)
+    List<Post> findPostsByIds(@Param("ids") List<Long> ids);
 }

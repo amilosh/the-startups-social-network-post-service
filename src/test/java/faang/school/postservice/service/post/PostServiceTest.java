@@ -26,6 +26,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -98,6 +99,8 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostCacheService postCacheService;
+    @Captor
+    private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks
     private PostService postService;
 
@@ -585,20 +588,16 @@ public class PostServiceTest {
     }
 
     @Test
-    void testGetReadyToPublish() {
-        int readyToPublishPostsCount = 2;
-        when(postRepository.findReadyToPublishCount()).thenReturn(readyToPublishPostsCount);
+    public void testProcessReadyToPublishPosts() {
+        List<Long> postIds = List.of(1L, 2L);
+        Post post1 = Post.builder().id(1L).content("1").published(false).build();
+        Post post2 = Post.builder().id(2L).content("2").published(false).build();
+        List<Post> postSublist = List.of(post1, post2);
 
-        var result = postService.getReadyToPublish();
+        when(postRepository.findPostsByIds(postIds)).thenReturn(postSublist);
+        postService.processReadyToPublishPosts(postIds);
+        verify(postRepository).saveAll(postListCaptor.capture());
 
-        verify(postRepository).findReadyToPublishCount();
-        assertEquals(readyToPublishPostsCount, result);
-    }
-
-    @Test
-    void testProcessReadyToPublishPosts() {
-        int postPublishBatchSize = 10;
-        postService.processReadyToPublishPosts(postPublishBatchSize);
-        verify(postRepository).findReadyToPublishSkipLocked(postPublishBatchSize);
+        postListCaptor.getValue().forEach(post -> assertTrue(post.isPublished()));
     }
 }

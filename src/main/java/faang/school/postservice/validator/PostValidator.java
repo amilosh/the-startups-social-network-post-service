@@ -52,10 +52,6 @@ public class PostValidator {
         if (authorId == null && projectId == null) {
             throw new ValidationException("AuthorId or projectId must be filled in");
         }
-
-        if (authorId != null && projectId != null) {
-            throw new ValidationException("Specify either authorId or projectId to create a post");
-        }
     }
 
     public void validateImagesToUpload(Long postId, List<MultipartFile> images) {
