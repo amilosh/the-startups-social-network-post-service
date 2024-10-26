@@ -1,7 +1,6 @@
 package faang.school.postservice.publisher.comment;
 
 import faang.school.postservice.config.redis.RedisTopicsFactory;
-import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.dto.comment.CommentNotificationEvent;
 import faang.school.postservice.publisher.AbstractEventsPublisher;
 import org.springframework.beans.factory.annotation.Value;

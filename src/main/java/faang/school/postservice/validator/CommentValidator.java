@@ -15,7 +15,7 @@ public class CommentValidator {
 
     public void validateCreate(Long postId, Comment comment) {
         validatePost(postId);
-        userValidator.validateUserExists(comment.getAuthorId());
+//        userValidator.validateUserExists(comment.getAuthorId());
     }
 
     public void validateCommentAuthorId(Long userId, Comment comment) {

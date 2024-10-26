@@ -10,8 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-@Service
+
 @RequiredArgsConstructor
+@Service
 public class CommentEventService {
     private final PostService postService;
     private final RedisCommentEventPublisher commentEventPublisher;

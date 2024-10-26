@@ -8,8 +8,9 @@ import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
+
 @RequiredArgsConstructor
+@Service
 public class CommentNotificationEventService {
     private final PostService postService;
     private final RedisCommentNotificationEventPublisher commentNotificationEventPublisher;

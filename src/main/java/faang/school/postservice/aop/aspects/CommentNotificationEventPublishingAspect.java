@@ -9,13 +9,13 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 @Aspect
-@Component
 @RequiredArgsConstructor
+@Component
 public class CommentNotificationEventPublishingAspect {
     private final CommentNotificationEventService commentNotificationEventService;
 
     @AfterReturning(
-            pointcut = "@annotation(faang.school.postservice.annotations.PublishEvent)",
+            pointcut = "@annotation(faang.school.postservice.annotations.PublishCommentNotificationEvent)",
             returning = "savedComment"
     )
     public void publishCommentNotificationEventAdvice(JoinPoint joinPoint, Object savedComment) {

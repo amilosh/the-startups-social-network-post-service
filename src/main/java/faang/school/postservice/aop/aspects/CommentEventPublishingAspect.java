@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 
 
 @Aspect
-@Component
 @RequiredArgsConstructor
+@Component
 public class CommentEventPublishingAspect {
     private final CommentEventService commentEventService;
 
     @AfterReturning(
-            pointcut = "@annotation(faang.school.postservice.annotations.PublishEvent)",
+            pointcut = "@annotation(faang.school.postservice.annotations.PublishCommentEvent)",
             returning = "savedComment"
     )
     public void publishCommentEventAdvice(JoinPoint joinPoint, Object savedComment) {
