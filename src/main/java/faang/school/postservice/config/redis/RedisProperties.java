@@ -21,4 +21,7 @@ public class RedisProperties {
 
     @Value("${spring.data.redis.channels.post-like-channel.name}")
     private String PostLikeEventChannelName;
+
+    @Value("${spring.data.redis.channels.post_channel.name}")
+    private String postEventChannelName;
 }
