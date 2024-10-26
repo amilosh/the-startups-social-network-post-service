@@ -9,7 +9,7 @@ import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.feed.CacheService;
 import faang.school.postservice.service.feed.FeedEventService;
 import faang.school.postservice.validator.comment.CommentValidator;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,19 +20,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final CommentValidator commentValidator;
     private final ModerationDictionary moderationDictionary;
-    @Qualifier("moderation-thread-pool")
     private final ExecutorService moderationExecutor;
     private final FeedEventService feedEventService;
     private final CacheService cacheService;
+
+    @Autowired
+    public CommentService(
+            CommentRepository commentRepository,
+            CommentMapper commentMapper,
+            CommentValidator commentValidator,
+            ModerationDictionary moderationDictionary,
+            @Qualifier("moderation-thread-pool") ExecutorService moderationExecutor,
+            FeedEventService feedEventService,
+            CacheService cacheService) {
+        this.commentRepository = commentRepository;
+        this.commentMapper = commentMapper;
+        this.commentValidator = commentValidator;
+        this.moderationDictionary = moderationDictionary;
+        this.moderationExecutor = moderationExecutor;
+        this.feedEventService = feedEventService;
+        this.cacheService = cacheService;
+    }
 
     @Value("${comment.batchSize}")
     private int batchSize;

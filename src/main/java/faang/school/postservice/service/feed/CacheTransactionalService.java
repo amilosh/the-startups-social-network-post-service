@@ -8,6 +8,8 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.feed.RedisFeedRepository;
+import faang.school.postservice.repository.feed.RedisPostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +26,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CacheTransactionalService {
-    private final CacheService cacheService;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final RedisPostRepository redisPostRepository;
+    private final RedisFeedRepository redisFeedRepository;
 
-    @Value("${data.redis.cache.feed.showLastComments}")
+    @Value("${spring.data.redis.cache.feed.showLastComments}")
     private int showLastComments;
     @Transactional
     public List<PostDto> getPostDtosFromDB(List<Long> postsIds) {
@@ -42,7 +45,7 @@ public class CacheTransactionalService {
                 .filter(post -> {
                     if (post.isDeleted()) {
                         log.info("Post with ID {} was found in DB but it was deleted", post.getId());
-                        cacheService.handlePostDeletion(post.getId());
+                        handlePostDeletion(post.getId());
                         return false;
                     }
                     return true;
@@ -51,6 +54,13 @@ public class CacheTransactionalService {
                 .toList();
     }
 
+    public void handlePostDeletion(Long postId) {
+        redisPostRepository.deletePost(postId);
+        redisPostRepository.deleteComments(postId);
+        redisPostRepository.deleteCommentCounter(postId);
+        redisPostRepository.deleteLikeCounter(postId);
+        redisFeedRepository.deletePostFromAllFeeds(postId);
+    }
     @Transactional
     public Map<Long, List<CommentDto>> getCommentsFromDB(Set<Long> postIds) {
         List<Comment> comments = commentRepository.findLatestByPostId(postIds, showLastComments);

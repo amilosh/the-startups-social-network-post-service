@@ -1,18 +1,16 @@
 package faang.school.postservice.config.kafka;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
-@Component
 @ConfigurationProperties(prefix = "spring.data.kafka")
-public class KafkaTopicProperties {
-    private List<Topic> topics;
-    @Value("${spring.data.kafka.bootstrap-servers}")
+public class KafkaProperties {
+    private Map<String, Topic> topics;
     private String bootstrapServers;
 
     @Data

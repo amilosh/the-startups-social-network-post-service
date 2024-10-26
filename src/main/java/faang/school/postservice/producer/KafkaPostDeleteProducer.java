@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class KafkaPostDeleteProducer extends AbstractEventProducer<FeedPostDeleteEvent> {
     public KafkaPostDeleteProducer(KafkaTemplate<String, Object> kafkaTemplate,
-                                   @Value("${spring.data.kafka.topics.post-delete.name}") String topic) {
+                                   @Value("${spring.data.kafka.topics.delete-post.name}") String topic) {
         super(kafkaTemplate, topic);
     }
 }

@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 public class FeedService {
     private final RedisFeedRepository redisFeedRepository;
     private final CacheService cacheService;
+    private final CacheTransactionalService cacheTransactionalService;
     private final FeedTransactionalService feedTransactionalService;
 
     @Value("${spring.data.redis.cache.feed.pageSize}")
@@ -37,7 +38,7 @@ public class FeedService {
     }
 
     public void handlePostDeletion(Long postId) {
-        cacheService.handlePostDeletion(postId);
+        cacheTransactionalService.handlePostDeletion(postId);
         redisFeedRepository.deletePostFromAllFeeds(postId);
     }
 

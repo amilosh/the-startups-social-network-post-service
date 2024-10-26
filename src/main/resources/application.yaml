@@ -40,7 +40,9 @@ spring:
           user: 86400
 
     kafka:
-      bootstrap-servers: kafka:9092
+      bootstrap-servers: localhost:9092
+      admin:
+        fail-fast: true
       topics:
         post:
           name: post
@@ -134,14 +136,11 @@ like:
   userBatchSize: 100
 
 user-service:
-  host: localhost
-  port: 8080
+  url: http://localhost:8080/api
 project-service:
-  host: localhost
-  port: 8082
+  url: http://localhost:8082
 payment-service:
-  host: localhost
-  port: 9080
+  url: http://localhost:9080/api
 
 feed:
   kafka:
@@ -151,8 +150,8 @@ feed:
     queue_capacity: 50
 
 feed-heater:
-  pageSize:
-  postLimit:
+  pageSize: 20
+  postLimit: 100
 
 feign:
   client:

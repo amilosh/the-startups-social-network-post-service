@@ -5,10 +5,12 @@ import faang.school.postservice.dto.publishable.fornewsfeed.FeedPostEvent;
 import faang.school.postservice.service.feed.FeedService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@DependsOn("kafkaAdmin")
 @RequiredArgsConstructor
 @Slf4j
 public class KafkaPostConsumer {
@@ -29,7 +31,7 @@ public class KafkaPostConsumer {
     }
 
     @KafkaListener(
-            topics = "${spring.data.kafka.topics.post-delete.name}",
+            topics = "${spring.data.kafka.topics.delete-post.name}",
             groupId = "${spring.data.kafka.consumer.groups.post}"
     )
     public void consumeDelete(FeedPostDeleteEvent deleteEvent) {

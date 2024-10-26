@@ -1,6 +1,7 @@
 package faang.school.postservice.config.kafka;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -22,31 +23,35 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-@EnableConfigurationProperties(KafkaTopicProperties.class)
+@EnableConfigurationProperties(KafkaProperties.class)
 @RequiredArgsConstructor
+@Slf4j
 public class KafkaConfig {
-    private final KafkaTopicProperties topicProperties;
+    private final KafkaProperties kafkaProperties;
 
     @Bean
-    public KafkaAdmin admin() {
+    public KafkaAdmin kafkaAdmin() {
         Map<String, Object> config = new HashMap<>();
-        config.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, topicProperties.getBootstrapServers());
-        return new KafkaAdmin(config);
+        config.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+        KafkaAdmin admin = new KafkaAdmin(config);
+        admin.setFatalIfBrokerNotAvailable(true);
+        return admin;
     }
 
     @Bean
-    public List<NewTopic> topics() {
+    public KafkaAdmin.NewTopics topics() {
         List<NewTopic> topics = new ArrayList<>();
-        for (KafkaTopicProperties.Topic topic : topicProperties.getTopics()) {
+        for (KafkaProperties.Topic topic : kafkaProperties.getTopics().values()) {
+            log.info("Creating topic: {}", topic.getName());
             topics.add(new NewTopic(topic.getName(), topic.getPartitions(), topic.getReplicas()));
         }
-        return topics;
+        return new KafkaAdmin.NewTopics(topics.toArray(new NewTopic[0]));
     }
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, topicProperties.getBootstrapServers());
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return new DefaultKafkaProducerFactory<>(configProps);

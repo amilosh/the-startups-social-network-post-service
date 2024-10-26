@@ -30,7 +30,7 @@ public class FeedHeaterTransactionalService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
 
-    @Value("${data.redis.cache.feed.showLastComments}")
+    @Value("${spring.data.redis.cache.feed.showLastComments}")
     private int showLastComments;
     @Value("${feed-heater.postLimit}")
     private int postLimit;

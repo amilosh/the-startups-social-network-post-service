@@ -5,10 +5,12 @@ import faang.school.postservice.dto.publishable.fornewsfeed.FeedCommentEvent;
 import faang.school.postservice.service.feed.CacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@DependsOn("kafkaAdmin")
 @RequiredArgsConstructor
 @Slf4j
 public class KafkaCommentConsumer {

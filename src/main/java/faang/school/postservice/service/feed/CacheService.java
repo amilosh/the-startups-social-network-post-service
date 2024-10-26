@@ -35,7 +35,7 @@ public class CacheService {
     private final UserServiceClient userServiceClient;
     private final CacheTransactionalService cacheTransactionalService;
 
-    @Value("${data.redis.cache.feed.showLastComments}")
+    @Value("${spring.data.redis.cache.feed.showLastComments}")
     private int showLastComments;
 
     public void savePost(PostDto postDto) {
@@ -66,14 +66,6 @@ public class CacheService {
     @Async("feedExecutor")
     public void saveComments(Long postId, List<CommentDto> commentDtos) {
         commentDtos.forEach(commentDto -> redisPostRepository.addComment(postId, commentDto));
-    }
-
-    public void handlePostDeletion(Long postId) {
-        redisPostRepository.deletePost(postId);
-        redisPostRepository.deleteComments(postId);
-        redisPostRepository.deleteCommentCounter(postId);
-        redisPostRepository.deleteLikeCounter(postId);
-        redisFeedRepository.deletePostFromAllFeeds(postId);
     }
 
     public void deleteComment(Long postId, Long commentId) {
@@ -210,7 +202,7 @@ public class CacheService {
         Set<Long> actualIds = actualPosts.stream().map(PostDto::getId).collect(Collectors.toSet());
         List<Long> missingIds = findMissingIds(actualIds, expectedIds);
         missingIds.forEach(id -> {
-            handlePostDeletion(id);
+            cacheTransactionalService.handlePostDeletion(id);
             redisFeedRepository.deletePostFromAllFeeds(id);
         });
     }
