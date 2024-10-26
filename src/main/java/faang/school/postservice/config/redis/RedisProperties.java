@@ -22,7 +22,6 @@ public class RedisProperties {
         private Channel likePostChannel;
         private Channel newCommentChannel;
         private Channel commentChannel;
-        private Channel likeEventsChannel;
 
         @Getter
         @Setter
