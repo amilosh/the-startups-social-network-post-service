@@ -48,7 +48,7 @@ public class PostServiceImplTest {
     @Test
     void testBanAuthorsWithUnverifiedPostsMoreThan_NoAuthorsToBan() {
         int banPostLimit = 5;
-        List<Long> authorIdsToBan = Arrays.asList();
+        List<Long> authorIdsToBan = List.of();
 
         when(postRepository.findAuthorIdsToBan(banPostLimit)).thenReturn(authorIdsToBan);
 
@@ -68,14 +68,11 @@ public class PostServiceImplTest {
         doNothing().when(banUserPublisher).publish(1L);
         doThrow(new RuntimeException("Redis error")).when(banUserPublisher).publish(2L);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            postService.banAuthorsWithUnverifiedPostsMoreThan(banPostLimit);
-        });
-
-        assertEquals("Redis error", exception.getMessage());
+        postService.banAuthorsWithUnverifiedPostsMoreThan(banPostLimit);
 
         verify(banUserPublisher, times(1)).publish(1L);
         verify(banUserPublisher, times(1)).publish(2L);
+        verifyNoMoreInteractions(banUserPublisher);
     }
 
     @Test
