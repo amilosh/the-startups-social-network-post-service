@@ -1,9 +1,11 @@
 package faang.school.postservice.service.post;
 
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.publisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,13 +16,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Тесты для PostService")
@@ -41,25 +52,65 @@ public class PostServiceTest {
     @Mock
     private PostMapper postMapper;
 
+    @Mock
+    private PostViewEventPublisher postViewEventPublisher;
+
+    @Mock
+    private UserContext userContext;
+
+    @Mock
+    private List<Post> posts;
+
     @BeforeEach
     public void setup() {
         post = new Post();
-        post.setId(1L);
+        post.setId(ID);
         post.setContent("Test content");
         post.setAuthorId(authorId);
         post.setProjectId(projectId);
         post.setLikes(Collections.emptyList());
+        post.setPublishedAt(LocalDateTime.now());
 
         postResponseDto = new PostResponseDto(post.getId(),
                 post.getContent(),
                 post.getAuthorId(),
                 post.getProjectId(),
-                0);
+                0,
+                post.getPublishedAt());
     }
 
     @Nested
     @DisplayName("Позитивные тесты")
     class PositiveTests {
+
+        @Test
+        @DisplayName("When post exists then return post response dto")
+        void whenPostIdIsPositiveAndExistsThenReturnPostResponseDto() {
+            userContext.setUserId(ID);
+            when(postRepository.findById(ID))
+                    .thenReturn(Optional.of(post));
+            when(postMapper.toResponseDto(eq(post), anyInt()))
+                    .thenReturn(postResponseDto);
+
+            postService.getPost(ID);
+
+            verify(postRepository).findById(ID);
+            verify(postMapper).toResponseDto(eq(post), anyInt());
+            verify(postViewEventPublisher).publish(argThat(event ->
+                    event.getPostId() == ID &&
+                            event.getAuthorId().equals(ID)));
+        }
+
+        @Test
+        @DisplayName("When get all posts not published then success")
+        public void whenGetAllPostsNotPublishedThenSuccess() {
+            when(postRepository.findReadyToPublish()).thenReturn(posts);
+
+            List<Post> postList = postService.getAllPostsNotPublished();
+
+            assertEquals(postList, posts);
+            verify(postRepository, atLeastOnce()).findReadyToPublish();
+        }
 
         @Test
         @DisplayName("Должен вернуть посты автора с количеством лайков")
@@ -81,9 +132,11 @@ public class PostServiceTest {
         void whenFindByIdThenSuccess() {
             when(postRepository.findById(ID)).thenReturn(Optional.of(post));
 
-            postService.findById(ID);
+            Post existedPost = postService.findById(ID);
 
-            assertEquals(1L, ID);
+            assertNotNull(existedPost);
+            assertEquals(post.getId(), existedPost.getId());
+            verify(postRepository).findById(ID);
         }
 
         @Test
@@ -108,36 +161,46 @@ public class PostServiceTest {
             verify(postRepository).findByProjectIdWithLikes(projectId);
             verify(postMapper).toResponseDto(post, 0);
         }
+    }
 
-        @Nested
-        @DisplayName("Негативные тесты")
-        class NegativeTests {
+    @Nested
+    @DisplayName("Негативные тесты")
+    class NegativeTests {
 
-            @Test
-            @DisplayName("Должен вернуть пустой список, если у автора нет постов")
-            void shouldReturnEmptyListIfNoPostsForAuthor() {
-                when(postRepository.findByAuthorIdWithLikes(authorId)).thenReturn(Collections.emptyList());
+        @Test
+        @DisplayName("Должен вернуть пустой список, если у автора нет постов")
+        void shouldReturnEmptyListIfNoPostsForAuthor() {
+            when(postRepository.findByAuthorIdWithLikes(authorId)).thenReturn(Collections.emptyList());
 
-                List<PostResponseDto> result = postService.getPostsByAuthorWithLikes(authorId);
+            List<PostResponseDto> result = postService.getPostsByAuthorWithLikes(authorId);
 
-                assertEquals(0, result.size());
+            assertEquals(0, result.size());
 
-                verify(postRepository).findByAuthorIdWithLikes(authorId);
-                verify(postMapper, never()).toResponseDto(any(), anyInt());
-            }
+            verify(postRepository).findByAuthorIdWithLikes(authorId);
+            verify(postMapper, never()).toResponseDto(any(), anyInt());
+        }
 
-            @Test
-            @DisplayName("Должен вернуть пустой список, если у проекта нет постов")
-            void shouldReturnEmptyListIfNoPostsForProject() {
-                when(postRepository.findByProjectIdWithLikes(projectId)).thenReturn(Collections.emptyList());
+        @Test
+        @DisplayName("Должен вернуть пустой список, если у проекта нет постов")
+        void shouldReturnEmptyListIfNoPostsForProject() {
+            when(postRepository.findByProjectIdWithLikes(projectId)).thenReturn(Collections.emptyList());
 
-                List<PostResponseDto> result = postService.getPostsByProjectWithLikes(projectId);
+            List<PostResponseDto> result = postService.getPostsByProjectWithLikes(projectId);
 
-                assertEquals(0, result.size());
+            assertEquals(0, result.size());
 
-                verify(postRepository).findByProjectIdWithLikes(projectId);
-                verify(postMapper, never()).toResponseDto(any(), anyInt());
-            }
+            verify(postRepository).findByProjectIdWithLikes(projectId);
+            verify(postMapper, never()).toResponseDto(any(), anyInt());
+        }
+
+        @Test
+        @DisplayName("When post not exists then throw Exception")
+        void whenPostNotExistsThenThrowException() {
+            when(postRepository.findById(ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(EntityNotFoundException.class,
+                    () -> postService.getPost(ID));
         }
     }
 }

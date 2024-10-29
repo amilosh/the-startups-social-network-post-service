@@ -14,10 +14,31 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfiguration {
 
     private final RedisProperties redisProperties;
+    private final ObjectMapper objectMapper;
 
     @Bean
-    ChannelTopic likePostTopic() {
+    public ChannelTopic likePostEventTopic() {
         return new ChannelTopic(redisProperties.getChannels().getLikePostChannel().getName());
+    }
+
+    @Bean
+    public ChannelTopic postViewEventTopic() {
+        return new ChannelTopic(redisProperties.getChannels().getPostViewChannel().getName());
+    }
+
+    @Bean
+    public ChannelTopic commentEventChannel() {
+        return new ChannelTopic(redisProperties.getChannels().getCommentChannel().getName());
+    }
+
+    @Bean
+    public ChannelTopic achievementEventTopic() {
+        return new ChannelTopic(redisProperties.getChannels().getLikePostChannel().getName());
+    }
+
+    @Bean
+    public ChannelTopic publishedCommentEventTopic() {
+        return new ChannelTopic(redisProperties.getChannels().getNewCommentChannel().getName());
     }
 
     @Bean
@@ -26,17 +47,16 @@ public class RedisConfiguration {
     }
 
     @Bean
+    JedisConnectionFactory jedisConnectionFactory() {
+        return new JedisConnectionFactory();
+    }
+
+    @Bean
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         return template;
-    }
-
-    @Bean
-    JedisConnectionFactory jedisConnectionFactory() {
-        return new JedisConnectionFactory();
     }
 }
