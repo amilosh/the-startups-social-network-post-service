@@ -27,17 +27,3 @@ public class AuthorBanner {
                 .forEach(userBanMessagePublisher::publish);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
