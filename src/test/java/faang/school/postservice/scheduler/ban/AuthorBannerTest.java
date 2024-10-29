@@ -31,7 +31,7 @@ public class AuthorBannerTest {
     @Test
     @DisplayName("Should publish UserBanEvent for authors with unverified posts exceeding the limit")
     void shouldPublishUserBanEvents() {
-        when(postService.findAuthorsWithUnverifiedPosts(anyInt()))
+        when(postService.findAuthorsWithUnverifiedPosts(anyInt(), any()))
                 .thenReturn(AUTHORS_WITH_UNVERIFIED_POSTS);
 
         authorBanner.publishUsersBanMessage();

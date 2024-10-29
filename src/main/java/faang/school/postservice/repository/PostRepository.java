@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -32,9 +33,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(nativeQuery = true, value = """
         SELECT author_id 
         FROM post p
-        WHERE p.verified = false AND p.verified_date IS NOT NULL
+        WHERE p.verified = false  AND p.verified_date IS NOT NULL AND p.verified_date >= :fromDate
         GROUP BY p.author_id
         HAVING COUNT(*) >= :limit
         """)
-    List<Long> findAuthorsWithUnverifiedPosts(int limit);
+    List<Long> findAuthorsWithUnverifiedPosts(int limit, LocalDate fromDate);
 }

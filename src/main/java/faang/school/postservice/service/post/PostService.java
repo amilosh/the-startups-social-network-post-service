@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -70,8 +71,8 @@ public class PostService {
                 .toList();
     }
 
-    public List<Long> findAuthorsWithUnverifiedPosts(int limit) {
-        return postRepository.findAuthorsWithUnverifiedPosts(limit);
+    public List<Long> findAuthorsWithUnverifiedPosts(int limit, LocalDate fromDate) {
+        return postRepository.findAuthorsWithUnverifiedPosts(limit, fromDate);
     }
 
     @Async("executor")
