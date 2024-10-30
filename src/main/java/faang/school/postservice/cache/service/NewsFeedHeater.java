@@ -1,8 +1,8 @@
 package faang.school.postservice.cache.service;
 
-import faang.school.postservice.cache.model.NewsFeedRedis;
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheableNewsFeed;
+import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.kafka.event.heater.HeaterNewsFeedEvent;
 import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
@@ -24,7 +24,7 @@ public class NewsFeedHeater {
     private final UserServiceClient userServiceClient;
     private final KafkaProducer kafkaProducer;
     private final PostService postService;
-    private final PostRedisService postRedisService;
+    private final CacheablePostService cacheablePostService;
     private final NewsFeedService newsFeedService;
 
     @Value("${news-feed.heater.batch-size}")
@@ -37,10 +37,10 @@ public class NewsFeedHeater {
     private String heaterPostsTopic;
 
     public void heat() {
-        List<UserRedis> usersRedis = userServiceClient.getActiveUsersRedis();
-        splitAndSendUsersEvents(usersRedis);
+        List<CacheableUser> cacheableUsers = userServiceClient.getActiveCacheableUsers();
+        splitAndSendUsersEvents(cacheableUsers);
 
-        List<NewsFeedRedis> newsFeeds = newsFeedService.getNewsFeedsForUsers(usersRedis);
+        List<CacheableNewsFeed> newsFeeds = newsFeedService.getNewsFeedsForUsers(cacheableUsers);
         splitAndSendNewsFeedsEvents(newsFeeds);
 
         List<Long> postIds = getUniquePostIds(newsFeeds);
@@ -48,25 +48,25 @@ public class NewsFeedHeater {
     }
 
     public void saveAllPosts(List<Long> postIds) {
-        List<PostRedis> postsRedis = postService.findAllByIdsWithLikes(postIds);
-        postRedisService.setCommentsFromDB(postsRedis);
-        postRedisService.saveAll(postsRedis);
+        List<CacheablePost> cacheablePosts = postService.findAllByIdsWithLikes(postIds);
+        cacheablePostService.setCommentsFromDB(cacheablePosts);
+        cacheablePostService.saveAll(cacheablePosts);
     }
 
-    private List<Long> getUniquePostIds(List<NewsFeedRedis> newsFeeds) {
+    private List<Long> getUniquePostIds(List<CacheableNewsFeed> newsFeeds) {
         return newsFeeds.stream()
-                .flatMap(newsFeedRedis -> newsFeedRedis.getPostIds().stream())
+                .flatMap(newsFeed -> newsFeed.getPostIds().stream())
                 .distinct()
                 .toList();
     }
 
-    private void splitAndSendNewsFeedsEvents(List<NewsFeedRedis> newsFeeds) {
-        List<List<NewsFeedRedis>> splitNewsFeeds = ListSplitter.split(newsFeeds, batchSize);
+    private void splitAndSendNewsFeedsEvents(List<CacheableNewsFeed> newsFeeds) {
+        List<List<CacheableNewsFeed>> splitNewsFeeds = ListSplitter.split(newsFeeds, batchSize);
         splitNewsFeeds.forEach(list -> kafkaProducer.send(heaterNewsFeedsTopic, new HeaterNewsFeedEvent(list)));
     }
 
-    private void splitAndSendUsersEvents(List<UserRedis> usersRedis) {
-        List<List<UserRedis>> splitUsers = ListSplitter.split(usersRedis, batchSize);
+    private void splitAndSendUsersEvents(List<CacheableUser> cacheableUsers) {
+        List<List<CacheableUser>> splitUsers = ListSplitter.split(cacheableUsers, batchSize);
         splitUsers.forEach(list -> kafkaProducer.send(heaterUsersTopic, new HeaterUsersEvent(list)));
     }
 

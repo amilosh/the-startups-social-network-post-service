@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper;
 
-import faang.school.postservice.cache.model.CommentRedis;
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheableComment;
+import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.kafka.event.comment.CommentAddedEvent;
 import faang.school.postservice.model.Comment;
@@ -26,7 +26,7 @@ class CommentMapperTest {
     private CommentDto dto;
     private Comment comment;
     private CommentAddedEvent commentAddedEvent;
-    private CommentRedis commentRedis;
+    private CacheableComment cacheableComment;
 
     @BeforeEach
     public void setUp() {
@@ -61,10 +61,10 @@ class CommentMapperTest {
                 .postId(comment.getPost().getId())
                 .build();
 
-        commentRedis = CommentRedis.builder()
+        cacheableComment = CacheableComment.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .author(UserRedis.builder()
+                .author(CacheableUser.builder()
                         .id(comment.getAuthorId())
                         .build())
                 .postId(comment.getPost().getId())
@@ -95,32 +95,32 @@ class CommentMapperTest {
     }
 
     @Test
-    void testToRedisFromCommentAddedEvent() {
-        CommentRedis actual = mapper.toRedis(commentAddedEvent);
-        assertEquals(commentRedis, actual);
+    void testToCacheableFromCommentAddedEvent() {
+        CacheableComment actual = mapper.toCacheable(commentAddedEvent);
+        assertEquals(cacheableComment, actual);
     }
 
     @Test
-    void testToRedisFromComment() {
-        CommentRedis actual = mapper.toRedis(comment);
-        assertEquals(commentRedis, actual);
+    void testToCacheableFromComment() {
+        CacheableComment actual = mapper.toCacheable(comment);
+        assertEquals(cacheableComment, actual);
     }
 
     @Test
-    void testToRedisTreeSetFromComments() {
-        Set<CommentRedis> expected = new TreeSet<>(Set.of(commentRedis));
+    void testToCacheableTreeSetFromComments() {
+        Set<CacheableComment> expected = new TreeSet<>(Set.of(cacheableComment));
         List<Comment> comments = List.of(comment);
 
-        Set<CommentRedis> actual = mapper.toRedisTreeSet(comments);
+        Set<CacheableComment> actual = mapper.toCacheableTreeSet(comments);
 
         assertEquals(expected, actual);
     }
     @Test
-    void testToCommentRedisListFromComments() {
-        List<CommentRedis> expected = new LinkedList<>(List.of(commentRedis));
+    void testToCacheableCommentListFromComments() {
+        List<CacheableComment> expected = new LinkedList<>(List.of(cacheableComment));
         List<Comment> comments = List.of(comment);
 
-        List<CommentRedis> actual = mapper.toRedis(comments);
+        List<CacheableComment> actual = mapper.toCacheable(comments);
 
         assertEquals(expected, actual);
     }

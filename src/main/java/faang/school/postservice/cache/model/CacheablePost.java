@@ -16,18 +16,18 @@ import java.util.TreeSet;
 @NoArgsConstructor
 @RedisHash("Post")
 @Builder
-public class PostRedis implements Serializable, Comparable<PostRedis> {
+public class CacheablePost implements Serializable, Comparable<CacheablePost> {
     @Id
     private Long id;
     private String content;
-    private UserRedis author;
-    private TreeSet<CommentRedis> comments;
+    private CacheableUser author;
+    private TreeSet<CacheableComment> comments;
     private LocalDateTime publishedAt;
     private long likesCount;
     private long views;
 
     @Override
-    public int compareTo(PostRedis other) {
+    public int compareTo(CacheablePost other) {
         return other.id.compareTo(this.id);
     }
 }

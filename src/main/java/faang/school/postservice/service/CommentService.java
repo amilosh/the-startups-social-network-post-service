@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.cache.model.CacheableComment;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.dto.UserDto;
@@ -7,10 +8,9 @@ import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.cache.model.CommentRedis;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.cache.service.UserRedisService;
+import faang.school.postservice.cache.service.CacheableUserService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserServiceClient userServiceClient;
     private final KafkaProducer kafkaProducer;
-    private final UserRedisService userRedisService;
+    private final CacheableUserService cacheableUserService;
 
     @Value("${spring.kafka.topic.comment.added}")
     private String commentAddedTopic;
@@ -81,16 +81,16 @@ public class CommentService {
         return mapper.toDto(commentForDelete);
     }
 
-    public TreeSet<CommentRedis> findLastBatchByPostId(int batchSize, Long postId) {
-        return mapper.toRedisTreeSet(commentRepository.findLastBatchByPostId(batchSize, postId));
+    public TreeSet<CacheableComment> findLastBatchByPostId(int batchSize, Long postId) {
+        return mapper.toCacheableTreeSet(commentRepository.findLastBatchByPostId(batchSize, postId));
     }
 
-    public List<CommentRedis> findLastBatchByPostIds(int batchSize, List<Long> postIds) {
-        return mapper.toRedis(commentRepository.findLastBatchByPostIds(batchSize, postIds));
+    public List<CacheableComment> findLastBatchByPostIds(int batchSize, List<Long> postIds) {
+        return mapper.toCacheable(commentRepository.findLastBatchByPostIds(batchSize, postIds));
     }
 
     private void saveUserToCache(UserDto userDto) {
-        userRedisService.save(userDto);
+        cacheableUserService.save(userDto);
     }
 
     private List<CommentDto> getListCommentDto(List<Comment> comments) {

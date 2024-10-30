@@ -1,9 +1,9 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
-import faang.school.postservice.cache.service.PostRedisService;
-import faang.school.postservice.cache.service.UserRedisService;
+import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.model.CacheableUser;
+import faang.school.postservice.cache.service.CacheablePostService;
+import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.dto.UserDto;
@@ -59,9 +59,9 @@ public class PostServiceTest {
     @MockBean
     private PostRepository postRepository;
     @MockBean
-    private PostRedisService postRedisService;
+    private CacheablePostService cacheablePostService;
     @MockBean
-    private UserRedisService userRedisService;
+    private CacheableUserService cacheableUserService;
     @MockBean
     private UserServiceClient userServiceClient;
     @MockBean
@@ -174,8 +174,8 @@ public class PostServiceTest {
         assertEquals(entity.getId(), capturedPost.getId());
         assertTrue(capturedPost.isPublished());
         assertTrue(Duration.between(currentTime, capturedPost.getPublishedAt()).toSeconds() < 1);
-        verify(postRedisService, times(1)).save(entity);
-        verify(userRedisService, times(1)).save(userDto);
+        verify(cacheablePostService, times(1)).save(entity);
+        verify(cacheableUserService, times(1)).save(userDto);
         verify(kafkaProducer, times(1)).send(postPublishedTopic, event);
         assertEquals(dto, actual);
     }
@@ -212,7 +212,7 @@ public class PostServiceTest {
 
         verify(postRepository, times(1)).save(updatedEntity);
         verify(validator, times(1)).validateBeforeUpdate(dto, updatedEntity);
-        verify(postRedisService, times(1)).updateIfExists(updatedEntity);
+        verify(cacheablePostService, times(1)).updateIfExists(updatedEntity);
         assertEquals(dto, actual);
     }
 
@@ -257,7 +257,7 @@ public class PostServiceTest {
         verify(postRepository, times(1)).save(postCaptor.capture());
         Post capturedEntity = postCaptor.getValue();
         assertEquals(deletedEntity, capturedEntity);
-        verify(postRedisService, times(1)).deleteIfExists(postId);
+        verify(cacheablePostService, times(1)).deleteIfExists(postId);
         assertEquals(expected, actual);
     }
 
@@ -287,17 +287,17 @@ public class PostServiceTest {
                 Post.builder().id(1L).build(),
                 Post.builder().id(2L).build()
         );
-        List<PostRedis> postsRedis = List.of(
-                PostRedis.builder().id(1L).build(),
-                PostRedis.builder().id(2L).build()
+        List<CacheablePost> cacheablePosts = List.of(
+                CacheablePost.builder().id(1L).build(),
+                CacheablePost.builder().id(2L).build()
         );
         when(postRepository.findAllByIdsWithLikes(ids)).thenReturn(posts);
-        when(mapper.toRedis(posts)).thenReturn(postsRedis);
+        when(mapper.toCacheable(posts)).thenReturn(cacheablePosts);
 
-        List<PostRedis> actual = postService.findAllByIdsWithLikes(ids);
+        List<CacheablePost> actual = postService.findAllByIdsWithLikes(ids);
 
         verify(postRepository, times(1)).findAllByIdsWithLikes(ids);
-        assertEquals(postsRedis, actual);
+        assertEquals(cacheablePosts, actual);
     }
 
     @Test
@@ -309,27 +309,27 @@ public class PostServiceTest {
                 Post.builder().id(2L).authorId(1L).build(),
                 Post.builder().id(3L).authorId(2L).build()
         );
-        List<PostRedis> postsRedis = List.of(
-                PostRedis.builder()
+        List<CacheablePost> cacheablePosts = List.of(
+                CacheablePost.builder()
                         .id(1L)
-                        .author(UserRedis.builder().id(1L).build())
+                        .author(CacheableUser.builder().id(1L).build())
                         .build(),
-                PostRedis.builder()
+                CacheablePost.builder()
                         .id(2L)
-                        .author(UserRedis.builder().id(1L).build())
+                        .author(CacheableUser.builder().id(1L).build())
                         .build(),
-                PostRedis.builder()
+                CacheablePost.builder()
                         .id(3L)
-                        .author(UserRedis.builder().id(2L).build())
+                        .author(CacheableUser.builder().id(2L).build())
                         .build()
         );
         when(postRepository.findByAuthors(authorIds, postsCount)).thenReturn(posts);
-        when(mapper.toRedis(posts)).thenReturn(postsRedis);
+        when(mapper.toCacheable(posts)).thenReturn(cacheablePosts);
 
-        List<PostRedis> actual = postService.findByAuthors(authorIds, postsCount);
+        List<CacheablePost> actual = postService.findByAuthors(authorIds, postsCount);
 
         verify(postRepository, times(1)).findByAuthors(authorIds, postsCount);
-        assertEquals(postsRedis, actual);
+        assertEquals(cacheablePosts, actual);
     }
 
     @Test
@@ -342,27 +342,27 @@ public class PostServiceTest {
                 Post.builder().id(2L).authorId(1L).build(),
                 Post.builder().id(3L).authorId(2L).build()
         );
-        List<PostRedis> postsRedis = List.of(
-                PostRedis.builder()
+        List<CacheablePost> cacheablePosts = List.of(
+                CacheablePost.builder()
                         .id(1L)
-                        .author(UserRedis.builder().id(1L).build())
+                        .author(CacheableUser.builder().id(1L).build())
                         .build(),
-                PostRedis.builder()
+                CacheablePost.builder()
                         .id(2L)
-                        .author(UserRedis.builder().id(1L).build())
+                        .author(CacheableUser.builder().id(1L).build())
                         .build(),
-                PostRedis.builder()
+                CacheablePost.builder()
                         .id(3L)
-                        .author(UserRedis.builder().id(2L).build())
+                        .author(CacheableUser.builder().id(2L).build())
                         .build()
         );
         when(postRepository.findByAuthorsBeforeId(authorIds, lastPostId, postsCount)).thenReturn(posts);
-        when(mapper.toRedis(posts)).thenReturn(postsRedis);
+        when(mapper.toCacheable(posts)).thenReturn(cacheablePosts);
 
-        List<PostRedis> actual = postService.findByAuthorsBeforeId(authorIds, lastPostId, postsCount);
+        List<CacheablePost> actual = postService.findByAuthorsBeforeId(authorIds, lastPostId, postsCount);
 
         verify(postRepository, times(1)).findByAuthorsBeforeId(authorIds, lastPostId, postsCount);
-        assertEquals(postsRedis, actual);
+        assertEquals(cacheablePosts, actual);
     }
 
     @Test

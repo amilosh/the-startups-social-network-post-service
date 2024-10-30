@@ -1,6 +1,6 @@
 package faang.school.postservice.kafka.event.heater;
 
-import faang.school.postservice.cache.model.NewsFeedRedis;
+import faang.school.postservice.cache.model.CacheableNewsFeed;
 import faang.school.postservice.kafka.event.Event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,5 +14,5 @@ import java.util.List;
 @Getter
 @ToString
 public class HeaterNewsFeedEvent extends Event {
-    private List<NewsFeedRedis> newsFeeds;
+    private List<CacheableNewsFeed> newsFeeds;
 }

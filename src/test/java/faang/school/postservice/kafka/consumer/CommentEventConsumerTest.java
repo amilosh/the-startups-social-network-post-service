@@ -1,8 +1,8 @@
 package faang.school.postservice.kafka.consumer;
 
-import faang.school.postservice.cache.model.CommentRedis;
-import faang.school.postservice.cache.model.UserRedis;
-import faang.school.postservice.cache.service.PostRedisService;
+import faang.school.postservice.cache.model.CacheableComment;
+import faang.school.postservice.cache.model.CacheableUser;
+import faang.school.postservice.cache.service.CacheablePostService;
 import faang.school.postservice.kafka.event.comment.CommentAddedEvent;
 import faang.school.postservice.mapper.CommentMapper;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class CommentEventConsumerTest {
     @InjectMocks
     private CommentEventConsumer commentEventConsumer;
     @Mock
-    private PostRedisService postRedisService;
+    private CacheablePostService cacheablePostService;
     @Mock
     private CommentMapper commentMapper;
     @Mock
@@ -29,23 +29,23 @@ class CommentEventConsumerTest {
 
     @Test
     void testCommentAddedEvent() {
-        CommentRedis commentRedis = CommentRedis.builder()
+        CacheableComment cacheableComment = CacheableComment.builder()
                 .id(2L)
                 .content("content")
-                .author(UserRedis.builder().id(12L).build())
+                .author(CacheableUser.builder().id(12L).build())
                 .postId(24L)
                 .build();
         CommentAddedEvent event = CommentAddedEvent.builder()
-                .commentId(commentRedis.getId())
-                .content(commentRedis.getContent())
-                .authorId(commentRedis.getAuthor().getId())
-                .postId(commentRedis.getPostId())
+                .commentId(cacheableComment.getId())
+                .content(cacheableComment.getContent())
+                .authorId(cacheableComment.getAuthor().getId())
+                .postId(cacheableComment.getPostId())
                 .build();
-        when(commentMapper.toRedis(event)).thenReturn(commentRedis);
+        when(commentMapper.toCacheable(event)).thenReturn(cacheableComment);
 
         commentEventConsumer.consume(event, acknowledgment);
 
-        verify(postRedisService, times(1)).addCommentConcurrent(commentRedis);
+        verify(cacheablePostService, times(1)).addCommentConcurrent(cacheableComment);
         verify(acknowledgment).acknowledge();
     }
 }

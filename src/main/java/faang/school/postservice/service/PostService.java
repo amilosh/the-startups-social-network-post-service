@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.cache.model.CacheablePost;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.dto.UserDto;
@@ -11,10 +12,9 @@ import faang.school.postservice.filter.post.PostFilter;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.cache.model.PostRedis;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.cache.service.PostRedisService;
-import faang.school.postservice.cache.service.UserRedisService;
+import faang.school.postservice.cache.service.CacheablePostService;
+import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +30,8 @@ import java.util.List;
 @Slf4j
 public class PostService {
     private final PostRepository postRepository;
-    private final PostRedisService postRedisService;
-    private final UserRedisService userRedisService;
+    private final CacheablePostService cacheablePostService;
+    private final CacheableUserService cacheableUserService;
     private final UserServiceClient userServiceClient;
     private final PostValidator validator;
     private final PostMapper mapper;
@@ -63,8 +63,8 @@ public class PostService {
         Post publishedPost = postRepository.save(entity);
 
         UserDto userDto = userServiceClient.getUser(publishedPost.getAuthorId());
-        postRedisService.save(publishedPost);
-        userRedisService.save(userDto);
+        cacheablePostService.save(publishedPost);
+        cacheableUserService.save(userDto);
         sendPostPublishedEvent(publishedPost, userDto);
         log.info("Published post by id {}", postId);
 
@@ -79,7 +79,7 @@ public class PostService {
         entity.setContent(dto.getContent());
 
         Post updatedEntity = postRepository.save(entity);
-        postRedisService.updateIfExists(updatedEntity);
+        cacheablePostService.updateIfExists(updatedEntity);
         log.info("Updated post by id {}", updatedEntity.getId());
 
         return mapper.toDto(updatedEntity);
@@ -94,7 +94,7 @@ public class PostService {
         entity.setDeleted(true);
 
         Post deletedEntity = postRepository.save(entity);
-        postRedisService.deleteIfExists(postId);
+        cacheablePostService.deleteIfExists(postId);
         log.info("Deleted post by id {}", deletedEntity.getId());
 
         return mapper.toDto(deletedEntity);
@@ -108,16 +108,16 @@ public class PostService {
         return mapper.toDto(post);
     }
 
-    public List<PostRedis> findAllByIdsWithLikes(List<Long> ids) {
-        return mapper.toRedis(postRepository.findAllByIdsWithLikes(ids));
+    public List<CacheablePost> findAllByIdsWithLikes(List<Long> ids) {
+        return mapper.toCacheable(postRepository.findAllByIdsWithLikes(ids));
     }
 
-    public List<PostRedis> findByAuthors(List<Long> authorIds, int postsCount) {
-        return mapper.toRedis(postRepository.findByAuthors(authorIds, postsCount));
+    public List<CacheablePost> findByAuthors(List<Long> authorIds, int postsCount) {
+        return mapper.toCacheable(postRepository.findByAuthors(authorIds, postsCount));
     }
 
-    public List<PostRedis> findByAuthorsBeforeId(List<Long> authorIds, Long lastPostId, int postsCount) {
-        return mapper.toRedis(postRepository.findByAuthorsBeforeId(authorIds, lastPostId, postsCount));
+    public List<CacheablePost> findByAuthorsBeforeId(List<Long> authorIds, Long lastPostId, int postsCount) {
+        return mapper.toCacheable(postRepository.findByAuthorsBeforeId(authorIds, lastPostId, postsCount));
     }
 
     public List<PostDto> getFilteredPosts(PostFilterDto filters) {

@@ -1,7 +1,7 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.cache.model.CommentRedis;
-import faang.school.postservice.cache.service.UserRedisService;
+import faang.school.postservice.cache.model.CacheableComment;
+import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.dto.UserDto;
@@ -68,7 +68,7 @@ class CommentServiceTest {
     @MockBean
     private UserServiceClient userServiceClient;
     @MockBean
-    private UserRedisService userRedisService;
+    private CacheableUserService cacheableUserService;
     @Autowired
     private CommentService service;
 
@@ -163,7 +163,7 @@ class CommentServiceTest {
         CommentDto actual = service.addComment(post.getId(), commentDto);
         //Assert
         verify(commentRepository,times(1)).save(comment);
-        verify(userRedisService, times(1)).save(userDto);
+        verify(cacheableUserService, times(1)).save(userDto);
         verify(kafkaProducer, times(1)).send(commentAddedTopic, event);
         verify(mapper, times(1)).toDto(Mockito.any());
         assertEquals(commentDto, actual);
@@ -233,30 +233,30 @@ class CommentServiceTest {
     @Test
     public void testFindLastBatchByPostId() {
         List<Comment> comments = List.of(comment);
-        CommentRedis commentRedis = CommentRedis.builder().id(comment.getId()).build();
-        TreeSet<CommentRedis> redisComments = new TreeSet<>(Set.of(commentRedis));
+        CacheableComment cacheableComment = CacheableComment.builder().id(comment.getId()).build();
+        TreeSet<CacheableComment> cacheableComments = new TreeSet<>(Set.of(cacheableComment));
         when(commentRepository.findLastBatchByPostId(batchSize, post.getId())).thenReturn(comments);
-        when(mapper.toRedisTreeSet(comments)).thenReturn(redisComments);
+        when(mapper.toCacheableTreeSet(comments)).thenReturn(cacheableComments);
 
-        TreeSet<CommentRedis> actual = service.findLastBatchByPostId(batchSize, post.getId());
+        TreeSet<CacheableComment> actual = service.findLastBatchByPostId(batchSize, post.getId());
 
         verify(commentRepository, times(1)).findLastBatchByPostId(batchSize, post.getId());
-        verify(mapper, times(1)).toRedisTreeSet(comments);
-        assertEquals(redisComments, actual);
+        verify(mapper, times(1)).toCacheableTreeSet(comments);
+        assertEquals(cacheableComments, actual);
     }
 
     @Test
     void testFindLastBatchByPostIds() {
         List<Long> postIds = List.of(post.getId());
         List<Comment> comments = post.getComments();
-        List<CommentRedis> redisComments = List.of(CommentRedis.builder().id(comment.getId()).build());
+        List<CacheableComment> cacheableComments = List.of(CacheableComment.builder().id(comment.getId()).build());
         when(commentRepository.findLastBatchByPostIds(batchSize, postIds)).thenReturn(comments);
-        when(mapper.toRedis(comments)).thenReturn(redisComments);
+        when(mapper.toCacheable(comments)).thenReturn(cacheableComments);
 
-        List<CommentRedis> actual = service.findLastBatchByPostIds(batchSize, postIds);
+        List<CacheableComment> actual = service.findLastBatchByPostIds(batchSize, postIds);
 
         verify(commentRepository, times(1)).findLastBatchByPostIds(batchSize, postIds);
-        verify(mapper, times(1)).toRedis(comments);
-        assertEquals(redisComments, actual);
+        verify(mapper, times(1)).toCacheable(comments);
+        assertEquals(cacheableComments, actual);
     }
 }

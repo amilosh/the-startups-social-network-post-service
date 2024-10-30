@@ -1,10 +1,10 @@
 package faang.school.postservice.mapper;
 
+import faang.school.postservice.cache.model.CacheablePost;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheableUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -25,9 +25,9 @@ public interface PostMapper {
     @Mapping(target = "comments", ignore = true)
     @Mapping(source = "likes", target = "likesCount", qualifiedByName = "likesToLikesCount")
     @Mapping(source = "authorId", target = "author", qualifiedByName = "authorIdToAuthor")
-    PostRedis toRedis(Post entity);
+    CacheablePost toCacheable(Post entity);
 
-    List<PostRedis> toRedis(List<Post> entities);
+    List<CacheablePost> toCacheable(List<Post> entities);
 
     @Named("likesToLikesCount")
     default long likesToLikesCount(List<Like> likes) {
@@ -38,10 +38,10 @@ public interface PostMapper {
     }
 
     @Named("authorIdToAuthor")
-    default UserRedis authorIdToAuthor(Long authorId) {
+    default CacheableUser authorIdToAuthor(Long authorId) {
         if (authorId == null) {
             return null;
         }
-        return new UserRedis(authorId, null);
+        return new CacheableUser(authorId, null);
     }
 }

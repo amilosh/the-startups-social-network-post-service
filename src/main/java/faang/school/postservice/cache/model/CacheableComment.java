@@ -7,14 +7,14 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder
-public class CommentRedis implements Comparable<CommentRedis> {
+public class CacheableComment implements Comparable<CacheableComment> {
     private Long id;
     private String content;
-    private UserRedis author;
+    private CacheableUser author;
     private Long postId;
 
     @Override
-    public int compareTo(CommentRedis other) {
+    public int compareTo(CacheableComment other) {
         return other.id.compareTo(this.id);
     }
 }

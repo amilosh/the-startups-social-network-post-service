@@ -1,6 +1,6 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.cache.model.PostRedis;
+import faang.school.postservice.cache.model.CacheablePost;
 import faang.school.postservice.cache.service.NewsFeedService;
 import faang.school.postservice.cache.service.NewsFeedHeater;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,8 @@ public class NewsFeedController {
     private final NewsFeedHeater newsFeedHeater;
 
     @GetMapping
-    public TreeSet<PostRedis> getPosts(@RequestHeader("x-user-id") Long userId,
-                                       @RequestParam(required = false) Long lastPostId) {
+    public TreeSet<CacheablePost> getPosts(@RequestHeader("x-user-id") Long userId,
+                                           @RequestParam(required = false) Long lastPostId) {
         return newsFeedService.getNewsFeed(userId, lastPostId);
     }
 

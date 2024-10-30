@@ -1,8 +1,8 @@
 package faang.school.postservice.cache.service;
 
-import faang.school.postservice.cache.model.NewsFeedRedis;
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheableNewsFeed;
+import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.kafka.event.heater.HeaterNewsFeedEvent;
 import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
@@ -40,7 +40,7 @@ class NewsFeedHeaterTest {
     @MockBean
     private PostService postService;
     @MockBean
-    private PostRedisService postRedisService;
+    private CacheablePostService cacheablePostService;
     @MockBean
     private NewsFeedService newsFeedService;
 
@@ -53,36 +53,36 @@ class NewsFeedHeaterTest {
     @Value("${spring.kafka.topic.heater.posts}")
     private String heaterPostsTopic;
 
-    List<UserRedis> usersRedis;
-    List<List<UserRedis>> splitUsers;
-    List<NewsFeedRedis> newsFeeds;
-    List<List<NewsFeedRedis>> splitNewsFeeds;
+    List<CacheableUser> cacheableUsers;
+    List<List<CacheableUser>> splitUsers;
+    List<CacheableNewsFeed> newsFeeds;
+    List<List<CacheableNewsFeed>> splitNewsFeeds;
     List<Long> postIds;
     List<List<Long>> splitPostIds;
-    List<PostRedis> posts;
+    List<CacheablePost> posts;
     @BeforeEach
     void setUp() {
-        usersRedis = new ArrayList<>();
+        cacheableUsers = new ArrayList<>();
         for (long i = 0; i < 10; i++) {
-            usersRedis.add(new UserRedis(i, "username" + i));
+            cacheableUsers.add(new CacheableUser(i, "username" + i));
         }
-        splitUsers = ListSplitter.split(usersRedis, batchSize);
+        splitUsers = ListSplitter.split(cacheableUsers, batchSize);
 
         newsFeeds = new ArrayList<>();
         postIds = List.of(3L, 2L, 1L);
-        usersRedis.forEach(user -> newsFeeds.add(new NewsFeedRedis(user.getId(), postIds)));
+        cacheableUsers.forEach(user -> newsFeeds.add(new CacheableNewsFeed(user.getId(), postIds)));
         splitNewsFeeds = ListSplitter.split(newsFeeds, batchSize);
 
         splitPostIds = ListSplitter.split(postIds, batchSize);
 
         posts = new ArrayList<>();
-        postIds.forEach(id -> posts.add(PostRedis.builder().id(id).build()));
+        postIds.forEach(id -> posts.add(CacheablePost.builder().id(id).build()));
     }
 
     @Test
     void testHeatPartWithUsers() {
-        when(userServiceClient.getActiveUsersRedis()).thenReturn(usersRedis);
-        when(newsFeedService.getNewsFeedsForUsers(usersRedis)).thenReturn(newsFeeds);
+        when(userServiceClient.getActiveCacheableUsers()).thenReturn(cacheableUsers);
+        when(newsFeedService.getNewsFeedsForUsers(cacheableUsers)).thenReturn(newsFeeds);
 
         newsFeedHeater.heat();
 
@@ -101,7 +101,7 @@ class NewsFeedHeaterTest {
         newsFeedHeater.saveAllPosts(postIds);
 
         verify(postService, times(1)).findAllByIdsWithLikes(postIds);
-        verify(postRedisService, times(1)).setCommentsFromDB(posts);
-        verify(postRedisService, times(1)).saveAll(posts);
+        verify(cacheablePostService, times(1)).setCommentsFromDB(posts);
+        verify(cacheablePostService, times(1)).saveAll(posts);
     }
 }

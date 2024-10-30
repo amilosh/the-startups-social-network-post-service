@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.RedisHash;
 @NoArgsConstructor
 @Data
 @Builder
-public class UserRedis {
+public class CacheableUser {
     @Id
     private Long id;
     private String username;

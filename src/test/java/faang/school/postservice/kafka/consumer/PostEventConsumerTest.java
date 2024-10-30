@@ -1,7 +1,7 @@
 package faang.school.postservice.kafka.consumer;
 
 import faang.school.postservice.cache.service.NewsFeedService;
-import faang.school.postservice.cache.service.PostRedisService;
+import faang.school.postservice.cache.service.CacheablePostService;
 import faang.school.postservice.kafka.event.post.PostPublishedEvent;
 import faang.school.postservice.kafka.event.post.PostViewedEvent;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ class PostEventConsumerTest {
     @Mock
     private NewsFeedService newsFeedService;
     @Mock
-    private PostRedisService postRedisService;
+    private CacheablePostService cacheablePostService;
     @Mock
     private Acknowledgment acknowledgment;
 
@@ -50,7 +50,7 @@ class PostEventConsumerTest {
 
         postEventConsumer.consume(event, acknowledgment);
 
-        verify(postRedisService, times(1)).updateViewsConcurrent(postId, views);
+        verify(cacheablePostService, times(1)).updateViewsConcurrent(postId, views);
         verify(acknowledgment, times(1)).acknowledge();
     }
 }

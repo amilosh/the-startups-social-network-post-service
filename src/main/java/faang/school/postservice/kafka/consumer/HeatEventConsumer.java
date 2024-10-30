@@ -1,7 +1,7 @@
 package faang.school.postservice.kafka.consumer;
 
 import faang.school.postservice.cache.service.NewsFeedService;
-import faang.school.postservice.cache.service.UserRedisService;
+import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.kafka.event.heater.HeaterNewsFeedEvent;
 import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
 import faang.school.postservice.kafka.event.heater.HeaterUsersEvent;
@@ -19,13 +19,13 @@ import org.springframework.stereotype.Component;
 public class HeatEventConsumer {
     private final NewsFeedHeater newsFeedHeater;
     private final NewsFeedService newsFeedService;
-    private final UserRedisService userRedisService;
+    private final CacheableUserService cacheableUserService;
 
     @Async
     @KafkaListener(topics = "${spring.kafka.topic.heater.users}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(HeaterUsersEvent event, Acknowledgment ack) {
         log.info("Received {}", event.toString());
-        userRedisService.saveAll(event.getUsers());
+        cacheableUserService.saveAll(event.getUsers());
         ack.acknowledge();
     }
 

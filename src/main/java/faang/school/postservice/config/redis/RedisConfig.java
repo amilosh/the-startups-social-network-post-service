@@ -1,7 +1,7 @@
 package faang.school.postservice.config.redis;
 
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.model.CacheableUser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,8 +68,8 @@ public class RedisConfig {
         public @NonNull KeyspaceSettings getKeyspaceSettings(@NonNull Class<?> type) {
             long secondsInHour = 3600L;
 
-            KeyspaceSettings keyspacePostSettings = new KeyspaceSettings(PostRedis.class, "Post");
-            KeyspaceSettings keyspaceUserSettings = new KeyspaceSettings(UserRedis.class, "User");
+            KeyspaceSettings keyspacePostSettings = new KeyspaceSettings(CacheablePost.class, "Post");
+            KeyspaceSettings keyspaceUserSettings = new KeyspaceSettings(CacheableUser.class, "User");
             keyspacePostSettings.setTimeToLive(postTtlHours * secondsInHour);
             keyspaceUserSettings.setTimeToLive(userTtlHours * secondsInHour);
 

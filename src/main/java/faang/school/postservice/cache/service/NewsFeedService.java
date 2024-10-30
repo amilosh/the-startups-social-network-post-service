@@ -1,9 +1,9 @@
 package faang.school.postservice.cache.service;
 
-import faang.school.postservice.cache.model.NewsFeedRedis;
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
-import faang.school.postservice.cache.repository.NewsFeedRedisRepository;
+import faang.school.postservice.cache.model.CacheableNewsFeed;
+import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.model.CacheableUser;
+import faang.school.postservice.cache.repository.CacheableNewsFeedRepository;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,8 @@ import java.util.TreeSet;
 public class NewsFeedService {
     private final UserServiceClient userServiceClient;
     private final PostService postService;
-    private final PostRedisService postRedisService;
-    private final NewsFeedRedisRepository newsFeedRedisRepository;
+    private final CacheablePostService cacheablePostService;
+    private final CacheableNewsFeedRepository cacheableNewsFeedRepository;
     private final RedisConcurrentExecutor concurrentExecutor;
 
     @Value("${news-feed.batch-size}")
@@ -32,27 +32,27 @@ public class NewsFeedService {
     @Value("${spring.data.redis.cache.news-feed.prefix}")
     private String newsFeedPrefix;
 
-    public TreeSet<PostRedis> getNewsFeed(Long userId, Long lastPostId) {
+    public TreeSet<CacheablePost> getNewsFeed(Long userId, Long lastPostId) {
         log.info("Getting news feed for user {}", userId);
         String key = generateKey(userId);
-        List<Long> postIds = newsFeedRedisRepository.getSortedPostIds(key);
+        List<Long> postIds = cacheableNewsFeedRepository.getSortedPostIds(key);
         if (postIds.isEmpty()) {
-            TreeSet<PostRedis> postsFromDB = getPostsFromDB(userId, lastPostId, batchSize);
+            TreeSet<CacheablePost> postsFromDB = getPostsFromDB(userId, lastPostId, batchSize);
             if (postsFromDB.isEmpty()) {
                 return postsFromDB;
             }
-            postRedisService.setAuthors(postsFromDB);
+            cacheablePostService.setAuthors(postsFromDB);
             return postsFromDB;
         }
         List<Long> resultPostIds = getResultPostIds(lastPostId, postIds);
-        TreeSet<PostRedis> result = new TreeSet<>(postRedisService.getAllByIds(resultPostIds));
+        TreeSet<CacheablePost> result = new TreeSet<>(cacheablePostService.getAllByIds(resultPostIds));
         if (result.size() < resultPostIds.size()) {
             addExpiredPosts(resultPostIds, result);
         }
         if (result.size() < batchSize) {
             addExtraPostsFromDB(userId, result);
         }
-        postRedisService.setAuthors(result);
+        cacheablePostService.setAuthors(result);
         return result;
     }
 
@@ -63,45 +63,45 @@ public class NewsFeedService {
 
     public void addPost(Long followerId, Long postId) {
         String key = generateKey(followerId);
-        newsFeedRedisRepository.addPostId(key, postId);
+        cacheableNewsFeedRepository.addPostId(key, postId);
 
-        while (newsFeedRedisRepository.getSize(key) > newsFeedMaxSize) {
+        while (cacheableNewsFeedRepository.getSize(key) > newsFeedMaxSize) {
             log.info("Removing excess post from {}", key);
-            newsFeedRedisRepository.removeLastPostId(key);
+            cacheableNewsFeedRepository.removeLastPostId(key);
         }
     }
 
-    public void saveAllNewsFeeds(List<NewsFeedRedis> newsFeeds) {
+    public void saveAllNewsFeeds(List<CacheableNewsFeed> newsFeeds) {
         newsFeeds.forEach(newsFeed -> {
             String key = generateKey(newsFeed.getFollowerId());
-            newsFeedRedisRepository.addAll(key, newsFeed.getPostIds());
+            cacheableNewsFeedRepository.addAll(key, newsFeed.getPostIds());
         });
     }
 
-    public List<NewsFeedRedis> getNewsFeedsForUsers(List<UserRedis> usersRedis) {
-        return usersRedis.parallelStream()
+    public List<CacheableNewsFeed> getNewsFeedsForUsers(List<CacheableUser> cacheableUsers) {
+        return cacheableUsers.parallelStream()
                 .map(user -> {
                     List<Long> postIds = postService.findPostIdsByFollowerId(user.getId(), newsFeedMaxSize);
-                    return new NewsFeedRedis(user.getId(), postIds);
+                    return new CacheableNewsFeed(user.getId(), postIds);
                 })
                 .filter(newsFeed -> !newsFeed.getPostIds().isEmpty())
                 .toList();
     }
 
-    private TreeSet<PostRedis> getPostsFromDB(Long userId, Long lastPostId, int postsCount) {
+    private TreeSet<CacheablePost> getPostsFromDB(Long userId, Long lastPostId, int postsCount) {
         log.info("Getting posts from DB");
         List<Long> followeeIds = userServiceClient.getUser(userId).getFolloweesIds();
-        List<PostRedis> postsRedis;
+        List<CacheablePost> cacheablePosts;
         if (lastPostId == null) {
-            postsRedis = postService.findByAuthors(followeeIds, postsCount);
+            cacheablePosts = postService.findByAuthors(followeeIds, postsCount);
         } else {
-            postsRedis = postService.findByAuthorsBeforeId(followeeIds, lastPostId, postsCount);
+            cacheablePosts = postService.findByAuthorsBeforeId(followeeIds, lastPostId, postsCount);
         }
-        if (postsRedis.isEmpty()) {
+        if (cacheablePosts.isEmpty()) {
             return new TreeSet<>();
         }
-        postRedisService.setCommentsFromDB(postsRedis);
-        return new TreeSet<>(postsRedis);
+        cacheablePostService.setCommentsFromDB(cacheablePosts);
+        return new TreeSet<>(cacheablePosts);
     }
 
     private List<Long> getResultPostIds(Long lastPostId, List<Long> postIds) {
@@ -118,21 +118,21 @@ public class NewsFeedService {
         return list.subList(startIndex, endIndex);
     }
 
-    private void addExpiredPosts(List<Long> redisPostIds, TreeSet<PostRedis> result) {
+    private void addExpiredPosts(List<Long> cacheablePostIds, TreeSet<CacheablePost> result) {
         log.info("Adding posts, that were not found in cache");
 
         List<Long> resultIds = result.stream()
-                .map(PostRedis::getId)
+                .map(CacheablePost::getId)
                 .toList();
-        List<Long> expiredPostIds = new ArrayList<>(redisPostIds);
+        List<Long> expiredPostIds = new ArrayList<>(cacheablePostIds);
         expiredPostIds.removeAll(resultIds);
 
-        List<PostRedis> postsRedis = postService.findAllByIdsWithLikes(expiredPostIds);
-        postRedisService.setCommentsFromDB(postsRedis);
-        result.addAll(postsRedis);
+        List<CacheablePost> cacheablePosts = postService.findAllByIdsWithLikes(expiredPostIds);
+        cacheablePostService.setCommentsFromDB(cacheablePosts);
+        result.addAll(cacheablePosts);
     }
 
-    private void addExtraPostsFromDB(Long userId, TreeSet<PostRedis> result) {
+    private void addExtraPostsFromDB(Long userId, TreeSet<CacheablePost> result) {
         log.info("Getting extra posts from DB for user {} because feed size is {}", userId, result.size());
         Long lastPostId = result.last().getId();
         int postsCount = batchSize - result.size();

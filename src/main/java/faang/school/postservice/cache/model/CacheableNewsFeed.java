@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class NewsFeedRedis {
+public class CacheableNewsFeed {
     private Long followerId;
     private List<Long> postIds;
 }

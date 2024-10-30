@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper;
 
-import faang.school.postservice.cache.model.PostRedis;
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Comment;
@@ -22,7 +22,7 @@ public class PostMapperTest {
     private PostMapper mapper;
     private Post entity;
     private PostDto dto;
-    private PostRedis postRedis;
+    private CacheablePost cacheablePost;
 
     @BeforeEach
     void setUp() {
@@ -30,10 +30,10 @@ public class PostMapperTest {
         List<Optional> optionals = getOptionals();
         entity = (Post) optionals.get(0).get();
         dto = (PostDto) optionals.get(1).get();
-        postRedis = PostRedis.builder()
+        cacheablePost = CacheablePost.builder()
                 .id(entity.getId())
                 .content(entity.getContent())
-                .author(UserRedis.builder()
+                .author(CacheableUser.builder()
                         .id(entity.getAuthorId())
                         .build())
                 .publishedAt(entity.getPublishedAt())
@@ -69,18 +69,18 @@ public class PostMapperTest {
     }
 
     @Test
-    void toRedisFromEntity() {
-        PostRedis actual = mapper.toRedis(entity);
+    void toCacheableFromEntity() {
+        CacheablePost actual = mapper.toCacheable(entity);
 
-        assertEquals(postRedis, actual);
+        assertEquals(cacheablePost, actual);
     }
 
     @Test
-    void toRedisListFromEntityList() {
-        List<PostRedis> expected = List.of(postRedis);
+    void toCacheableListFromEntityList() {
+        List<CacheablePost> expected = List.of(cacheablePost);
         List<Post> posts = List.of(entity);
 
-        List<PostRedis> actual = mapper.toRedis(posts);
+        List<CacheablePost> actual = mapper.toCacheable(posts);
 
         assertEquals(expected, actual);
     }

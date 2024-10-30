@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class NewsFeedRedisRepository {
+public class CacheableNewsFeedRepository {
     private final RedisTemplate<String, Object> redisTemplate;
 
     public void addPostId(String key, Long postId) {

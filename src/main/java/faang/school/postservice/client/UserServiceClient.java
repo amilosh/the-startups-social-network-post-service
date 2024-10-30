@@ -1,6 +1,6 @@
 package faang.school.postservice.client;
 
-import faang.school.postservice.cache.model.UserRedis;
+import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.dto.filter.UserFilterDto;
 import faang.school.postservice.dto.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -22,7 +22,7 @@ public interface UserServiceClient {
     List<UserDto> getUsersByIds(@RequestParam List<Long> ids);
 
     @GetMapping("/api/user/all_active")
-    List<UserRedis> getActiveUsersRedis();
+    List<CacheableUser> getActiveCacheableUsers();
 
     @PutMapping("/api/user/{userId}/deactivate")
     UserDto deactivatesUserProfile(@PathVariable Long userId);

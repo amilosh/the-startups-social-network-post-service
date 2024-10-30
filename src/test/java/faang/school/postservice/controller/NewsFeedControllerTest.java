@@ -1,6 +1,6 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.cache.model.PostRedis;
+import faang.school.postservice.cache.model.CacheablePost;
 import faang.school.postservice.cache.service.NewsFeedHeater;
 import faang.school.postservice.cache.service.NewsFeedService;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,17 +42,17 @@ class NewsFeedControllerTest {
     void testGetPosts() throws Exception {
         Long userId = 1L;
         Long lastPostId = 150L;
-        PostRedis firstPost = PostRedis.builder()
+        CacheablePost firstPost = CacheablePost.builder()
                 .id(22L)
                 .content("content 1")
                 .likesCount(111L)
                 .build();
-        PostRedis secondPost = PostRedis.builder()
+        CacheablePost secondPost = CacheablePost.builder()
                 .id(102L)
                 .content("content 2")
                 .likesCount(10L)
                 .build();
-        TreeSet<PostRedis> posts = new TreeSet<>(Set.of(firstPost, secondPost));
+        TreeSet<CacheablePost> posts = new TreeSet<>(Set.of(firstPost, secondPost));
 
         when(newsFeedService.getNewsFeed(userId, lastPostId)).thenReturn(posts);
 
