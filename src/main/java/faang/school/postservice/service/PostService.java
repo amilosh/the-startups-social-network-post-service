@@ -1,24 +1,24 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.cache.model.CacheablePost;
+import faang.school.postservice.cache.service.CacheablePostService;
+import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.dto.UserDto;
-import faang.school.postservice.kafka.event.post.PostPublishedEvent;
-import faang.school.postservice.kafka.event.post.PostViewedEvent;
 import faang.school.postservice.dto.filter.PostFilterDto;
 import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.filter.post.PostFilter;
+import faang.school.postservice.kafka.KafkaTopicProperties;
+import faang.school.postservice.kafka.event.post.PostPublishedEvent;
+import faang.school.postservice.kafka.event.post.PostViewedEvent;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.cache.service.CacheablePostService;
-import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,10 +37,7 @@ public class PostService {
     private final PostMapper mapper;
     private final List<PostFilter> postFilters;
     private final KafkaProducer kafkaProducer;
-    @Value("${spring.kafka.topic.post.published}")
-    private String postPublishedTopic;
-    @Value("${spring.kafka.topic.post.viewed}")
-    private String postViewedTopic;
+    private final KafkaTopicProperties topicProperties;
 
     public PostDto create(PostDto dto) {
         validator.validateBeforeCreate(dto);
@@ -142,11 +139,11 @@ public class PostService {
 
     private void sendPostPublishedEvent(Post post, UserDto userDto) {
         PostPublishedEvent event = new PostPublishedEvent(post.getId(), userDto.getFollowersIds());
-        kafkaProducer.send(postPublishedTopic, event);
+        kafkaProducer.send(topicProperties.getPostPublishedTopic(), event);
     }
 
     private void sendPostViewedEvent(Long id, long views) {
         PostViewedEvent event = new PostViewedEvent(id, views);
-        kafkaProducer.send(postViewedTopic, event);
+        kafkaProducer.send(topicProperties.getPostViewedTopic(), event);
     }
 }

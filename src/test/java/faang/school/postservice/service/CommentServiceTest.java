@@ -5,6 +5,7 @@ import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.dto.UserDto;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.kafka.event.comment.CommentAddedEvent;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.mapper.CommentMapper;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -69,6 +71,8 @@ class CommentServiceTest {
     private UserServiceClient userServiceClient;
     @MockBean
     private CacheableUserService cacheableUserService;
+    @SpyBean
+    private KafkaTopicProperties kafkaTopicProperties;
     @Autowired
     private CommentService service;
 

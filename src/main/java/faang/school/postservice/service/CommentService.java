@@ -1,20 +1,20 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.cache.model.CacheableComment;
+import faang.school.postservice.cache.service.CacheableUserService;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.dto.UserDto;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.cache.service.CacheableUserService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -39,9 +39,7 @@ public class CommentService {
     private final UserServiceClient userServiceClient;
     private final KafkaProducer kafkaProducer;
     private final CacheableUserService cacheableUserService;
-
-    @Value("${spring.kafka.topic.comment.added}")
-    private String commentAddedTopic;
+    private final KafkaTopicProperties topicProperties;
 
     public CommentDto addComment(Long postId, CommentDto dto) {
         Post post = getPost(postId);
@@ -57,7 +55,7 @@ public class CommentService {
         Comment savedComment = commentRepository.save(comment);
         log.info("comment with id:{} created.", savedComment.getId());
         saveUserToCache(userDto);
-        kafkaProducer.send(commentAddedTopic, mapper.toCommentEvent(savedComment));
+        kafkaProducer.send(topicProperties.getCommentAddedTopic(), mapper.toCommentEvent(savedComment));
         return mapper.toDto(savedComment);
     }
 

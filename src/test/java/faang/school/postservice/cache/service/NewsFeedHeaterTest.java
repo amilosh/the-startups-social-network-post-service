@@ -4,6 +4,7 @@ import faang.school.postservice.cache.model.CacheableNewsFeed;
 import faang.school.postservice.cache.model.CacheablePost;
 import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.kafka.event.heater.HeaterNewsFeedEvent;
 import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
 import faang.school.postservice.kafka.event.heater.HeaterUsersEvent;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,8 @@ class NewsFeedHeaterTest {
     private CacheablePostService cacheablePostService;
     @MockBean
     private NewsFeedService newsFeedService;
+    @SpyBean
+    private KafkaTopicProperties kafkaTopicProperties;
 
     @Value("${news-feed.heater.batch-size}")
     private int batchSize;

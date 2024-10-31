@@ -4,6 +4,7 @@ import faang.school.postservice.cache.model.CacheableNewsFeed;
 import faang.school.postservice.cache.model.CacheablePost;
 import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.kafka.event.heater.HeaterNewsFeedEvent;
 import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
 import faang.school.postservice.kafka.event.heater.HeaterUsersEvent;
@@ -26,15 +27,10 @@ public class NewsFeedHeater {
     private final PostService postService;
     private final CacheablePostService cacheablePostService;
     private final NewsFeedService newsFeedService;
+    private final KafkaTopicProperties topicProperties;
 
     @Value("${news-feed.heater.batch-size}")
     private int batchSize;
-    @Value("${spring.kafka.topic.heater.users}")
-    private String heaterUsersTopic;
-    @Value("${spring.kafka.topic.heater.news-feeds}")
-    private String heaterNewsFeedsTopic;
-    @Value("${spring.kafka.topic.heater.posts}")
-    private String heaterPostsTopic;
 
     public void heat() {
         List<CacheableUser> cacheableUsers = userServiceClient.getActiveCacheableUsers();
@@ -62,16 +58,19 @@ public class NewsFeedHeater {
 
     private void splitAndSendNewsFeedsEvents(List<CacheableNewsFeed> newsFeeds) {
         List<List<CacheableNewsFeed>> splitNewsFeeds = ListSplitter.split(newsFeeds, batchSize);
-        splitNewsFeeds.forEach(list -> kafkaProducer.send(heaterNewsFeedsTopic, new HeaterNewsFeedEvent(list)));
+        splitNewsFeeds.forEach(list -> kafkaProducer
+                .send(topicProperties.getHeaterNewsFeedsTopic(), new HeaterNewsFeedEvent(list)));
     }
 
     private void splitAndSendUsersEvents(List<CacheableUser> cacheableUsers) {
         List<List<CacheableUser>> splitUsers = ListSplitter.split(cacheableUsers, batchSize);
-        splitUsers.forEach(list -> kafkaProducer.send(heaterUsersTopic, new HeaterUsersEvent(list)));
+        splitUsers.forEach(list -> kafkaProducer
+                .send(topicProperties.getHeaterUsersTopic(), new HeaterUsersEvent(list)));
     }
 
     private void splitAndSendPostsEvents(List<Long> postIds) {
         List<List<Long>> splitIds = ListSplitter.split(postIds, batchSize);
-        splitIds.forEach(list -> kafkaProducer.send(heaterPostsTopic, new HeaterPostsEvent(list)));
+        splitIds.forEach(list -> kafkaProducer
+                .send(topicProperties.getHeaterPostsTopic(), new HeaterPostsEvent(list)));
     }
 }

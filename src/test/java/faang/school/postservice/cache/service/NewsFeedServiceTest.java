@@ -6,6 +6,7 @@ import faang.school.postservice.cache.model.CacheableUser;
 import faang.school.postservice.cache.repository.CacheableNewsFeedRepository;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.UserDto;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,8 @@ class NewsFeedServiceTest {
     private CacheableNewsFeedRepository cacheableNewsFeedRepository;
     @MockBean
     private RedisConcurrentExecutor concurrentExecutor;
+    @SpyBean
+    private KafkaTopicProperties kafkaTopicProperties;
     @Captor
     private ArgumentCaptor<Runnable> runnableCaptor;
 

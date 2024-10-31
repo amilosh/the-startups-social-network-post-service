@@ -2,6 +2,7 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.LikeDto;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.kafka.event.like.LikeAddedEvent;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.mapper.LikeMapper;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +57,8 @@ class LikeServiceTest {
     private LikeRepository likeRepository;
     @MockBean
     private LikeMapper mapper;
+    @SpyBean
+    private KafkaTopicProperties kafkaTopicProperties;
     @Autowired
     private LikeService service;
 

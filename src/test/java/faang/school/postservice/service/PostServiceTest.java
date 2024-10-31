@@ -16,6 +16,7 @@ import faang.school.postservice.filter.post.filterImpl.PostFilterProjectDraftNon
 import faang.school.postservice.filter.post.filterImpl.PostFilterProjectPostNonDeleted;
 import faang.school.postservice.filter.post.filterImpl.PostFilterUserDraftNonDeleted;
 import faang.school.postservice.filter.post.filterImpl.PostFilterUserPostNonDeleted;
+import faang.school.postservice.kafka.KafkaTopicProperties;
 import faang.school.postservice.kafka.event.post.PostPublishedEvent;
 import faang.school.postservice.kafka.event.post.PostViewedEvent;
 import faang.school.postservice.kafka.producer.KafkaProducer;
@@ -70,6 +71,8 @@ public class PostServiceTest {
     private KafkaProducer kafkaProducer;
     @MockBean
     private PostMapperImpl mapper;
+    @SpyBean
+    private KafkaTopicProperties kafkaTopicProperties;
     @SpyBean
     private PostFilterUserDraftNonDeleted userDraftNonDeleted;
     @SpyBean
