@@ -15,6 +15,9 @@ public class CacheableComment implements Comparable<CacheableComment> {
 
     @Override
     public int compareTo(CacheableComment other) {
+        if (other == null) {
+            return -1;
+        }
         return other.id.compareTo(this.id);
     }
 }

@@ -7,9 +7,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,8 +21,9 @@ public class CacheableNewsFeedRepository {
     }
 
     public void addAll(String key, List<Long> postIds) {
-        Set<ZSetOperations.TypedTuple<Object>> tuples = new HashSet<>();
-        postIds.forEach(postId -> tuples.add(new DefaultTypedTuple<>(postId, (double) -postId)));
+        Set<ZSetOperations.TypedTuple<Object>> tuples = postIds.stream()
+                .map(postId -> new DefaultTypedTuple<>((Object) postId, (double) -postId))
+                .collect(Collectors.toSet());
         redisTemplate.opsForZSet().add(key, tuples);
     }
 
@@ -35,7 +34,7 @@ public class CacheableNewsFeedRepository {
         }
         return postIds.stream()
                 .map(postId -> ((Number) postId).longValue())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public void removePostId(String key, Long postId) {
@@ -43,8 +42,11 @@ public class CacheableNewsFeedRepository {
     }
 
     public void removeLastPostId(String key) {
-        Objects.requireNonNull(redisTemplate.opsForZSet().range(key, -1, -1))
-                .stream()
+        Set<Object> postIds = redisTemplate.opsForZSet().range(key, -1, -1);
+        if (postIds == null) {
+            return;
+        }
+        postIds.stream()
                 .findFirst()
                 .ifPresent(postId -> removePostId(key, (Long) postId));
     }

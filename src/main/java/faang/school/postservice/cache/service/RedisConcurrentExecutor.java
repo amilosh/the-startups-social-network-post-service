@@ -16,8 +16,9 @@ public class RedisConcurrentExecutor {
     private final RedisLockRegistry redisLockRegistry;
     @Value("${spring.data.redis.lock-registry.try-lock-millis}")
     private long tryLockMillis;
+
     public void execute(String key, Runnable runnable, String action) {
-        log.info("{} to {}", action, key);
+        log.info("Running action \"{}\" to {}", action, key);
         Lock lock = redisLockRegistry.obtain(key);
         try {
             if (lock.tryLock(tryLockMillis, TimeUnit.MILLISECONDS)) {

@@ -112,10 +112,16 @@ public class NewsFeedService {
         }
     }
 
-    private List<Long> getSubList(List<Long> list, long lastPostId, int batchSize) {
-        int startIndex = list.indexOf(lastPostId) + 1;
-        int endIndex = Math.min(startIndex + batchSize, list.size());
-        return list.subList(startIndex, endIndex);
+    private List<Long> getSubList(List<Long> postIds, long lastPostId, int batchSize) {
+        int startIndex = postIds.indexOf(lastPostId) + 1;
+        if (startIndex == 0) {
+            do {
+                lastPostId--;
+                startIndex = postIds.indexOf(lastPostId);
+            } while (startIndex == -1);
+        }
+        int endIndex = Math.min(startIndex + batchSize, postIds.size());
+        return postIds.subList(startIndex, endIndex);
     }
 
     private void addExpiredPosts(List<Long> cacheablePostIds, TreeSet<CacheablePost> result) {
