@@ -10,9 +10,9 @@ import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
 import faang.school.postservice.kafka.event.heater.HeaterUsersEvent;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.service.PostService;
-import faang.school.postservice.service.util.ListSplitter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -57,19 +57,19 @@ public class NewsFeedHeater {
     }
 
     private void splitAndSendNewsFeedsEvents(List<CacheableNewsFeed> newsFeeds) {
-        List<List<CacheableNewsFeed>> splitNewsFeeds = ListSplitter.split(newsFeeds, batchSize);
+        List<List<CacheableNewsFeed>> splitNewsFeeds = ListUtils.partition(newsFeeds, batchSize);
         splitNewsFeeds.forEach(list -> kafkaProducer
                 .send(topicProperties.getHeaterNewsFeedsTopic(), new HeaterNewsFeedEvent(list)));
     }
 
     private void splitAndSendUsersEvents(List<CacheableUser> cacheableUsers) {
-        List<List<CacheableUser>> splitUsers = ListSplitter.split(cacheableUsers, batchSize);
+        List<List<CacheableUser>> splitUsers = ListUtils.partition(cacheableUsers, batchSize);
         splitUsers.forEach(list -> kafkaProducer
                 .send(topicProperties.getHeaterUsersTopic(), new HeaterUsersEvent(list)));
     }
 
     private void splitAndSendPostsEvents(List<Long> postIds) {
-        List<List<Long>> splitIds = ListSplitter.split(postIds, batchSize);
+        List<List<Long>> splitIds = ListUtils.partition(postIds, batchSize);
         splitIds.forEach(list -> kafkaProducer
                 .send(topicProperties.getHeaterPostsTopic(), new HeaterPostsEvent(list)));
     }

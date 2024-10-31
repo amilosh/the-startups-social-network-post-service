@@ -10,7 +10,7 @@ import faang.school.postservice.kafka.event.heater.HeaterPostsEvent;
 import faang.school.postservice.kafka.event.heater.HeaterUsersEvent;
 import faang.school.postservice.kafka.producer.KafkaProducer;
 import faang.school.postservice.service.PostService;
-import faang.school.postservice.service.util.ListSplitter;
+import org.apache.commons.collections4.ListUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,21 +70,21 @@ class NewsFeedHeaterTest {
         for (long i = 0; i < 10; i++) {
             cacheableUsers.add(new CacheableUser(i, "username" + i));
         }
-        splitUsers = ListSplitter.split(cacheableUsers, batchSize);
+        splitUsers = ListUtils.partition(cacheableUsers, batchSize);
 
         newsFeeds = new ArrayList<>();
         postIds = List.of(3L, 2L, 1L);
         cacheableUsers.forEach(user -> newsFeeds.add(new CacheableNewsFeed(user.getId(), postIds)));
-        splitNewsFeeds = ListSplitter.split(newsFeeds, batchSize);
+        splitNewsFeeds = ListUtils.partition(newsFeeds, batchSize);
 
-        splitPostIds = ListSplitter.split(postIds, batchSize);
+        splitPostIds = ListUtils.partition(postIds, batchSize);
 
         posts = new ArrayList<>();
         postIds.forEach(id -> posts.add(CacheablePost.builder().id(id).build()));
     }
 
     @Test
-    void testHeatPartWithUsers() {
+    void testHeat() {
         when(userServiceClient.getActiveCacheableUsers()).thenReturn(cacheableUsers);
         when(newsFeedService.getNewsFeedsForUsers(cacheableUsers)).thenReturn(newsFeeds);
 
