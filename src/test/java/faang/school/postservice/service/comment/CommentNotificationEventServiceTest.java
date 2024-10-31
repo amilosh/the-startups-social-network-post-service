@@ -1,6 +1,7 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.dto.comment.CommentNotificationEvent;
+import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.comment.RedisCommentNotificationEventPublisher;
@@ -23,6 +24,8 @@ class CommentNotificationEventServiceTest {
     private PostService postService;
     @Mock
     private RedisCommentNotificationEventPublisher commentNotificationEventPublisher;
+    @Mock
+    private CommentMapper commentMapper;
     @InjectMocks
     private CommentNotificationEventService commentNotificationEventService;
 
@@ -48,12 +51,13 @@ class CommentNotificationEventServiceTest {
 
         post.setAuthorId(postAuthorId);
         comment.setAuthorId(commentAuthorId);
+        CommentNotificationEvent event = commentMapper.toNotificationEvent(postId, comment, postAuthorId);
 
         when(postService.findPostById(postId)).thenReturn(post);
 
         commentNotificationEventService.handleCommentEvent(postId, comment);
 
-        verify(commentNotificationEventPublisher).publishCommentNotificationEvent(any(CommentNotificationEvent.class));
+        verify(commentNotificationEventPublisher).publishCommentNotificationEvent(event);
     }
 
     @Test
