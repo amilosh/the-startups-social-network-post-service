@@ -50,7 +50,7 @@ public class NewsFeedService {
             addExpiredPosts(resultPostIds, result);
         }
         if (result.size() < batchSize) {
-            addExtraPostsFromDB(userId, result);
+            addExtraPostsFromDB(userId, lastPostId,  result);
         }
         cacheablePostService.setAuthors(result);
         return result;
@@ -114,10 +114,13 @@ public class NewsFeedService {
 
     private List<Long> getSubList(List<Long> postIds, long lastPostId, int batchSize) {
         int startIndex = postIds.indexOf(lastPostId) + 1;
-        if (startIndex == 0) {
+        if (startIndex == 0 && lastPostId != 0) {
             do {
                 lastPostId--;
                 startIndex = postIds.indexOf(lastPostId);
+                if (lastPostId == 0) {
+                    startIndex = postIds.size();
+                }
             } while (startIndex == -1);
         }
         int endIndex = Math.min(startIndex + batchSize, postIds.size());
@@ -138,9 +141,11 @@ public class NewsFeedService {
         result.addAll(cacheablePosts);
     }
 
-    private void addExtraPostsFromDB(Long userId, TreeSet<CacheablePost> result) {
+    private void addExtraPostsFromDB(Long userId, Long lastPostId, TreeSet<CacheablePost> result) {
         log.info("Getting extra posts from DB for user {} because feed size is {}", userId, result.size());
-        Long lastPostId = result.last().getId();
+        if (!result.isEmpty()) {
+            lastPostId = result.last().getId();
+        }
         int postsCount = batchSize - result.size();
         result.addAll(getPostsFromDB(userId, lastPostId, postsCount));
     }
