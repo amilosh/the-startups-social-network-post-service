@@ -1,7 +1,7 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.annotations.PublishEvent;
-import faang.school.postservice.dto.comment.CommentEvent;
+import faang.school.postservice.annotations.PublishCommentEvent;
+import faang.school.postservice.annotations.PublishCommentNotificationEvent;
 import faang.school.postservice.exception.comment.CommentNotFoundException;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
@@ -14,14 +14,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 
-@Service
+
 @RequiredArgsConstructor
+@Service
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostService postService;
     private final CommentValidator commentValidator;
 
-    @PublishEvent(eventType = CommentEvent.class)
+    @PublishCommentEvent
+    @PublishCommentNotificationEvent
     @Transactional
     public Comment createComment(Long postId, Comment comment) {
         commentValidator.validateCreate(postId, comment);
