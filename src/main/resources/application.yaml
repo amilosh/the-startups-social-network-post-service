@@ -35,6 +35,8 @@ spring:
           name: post_view
         post-like-channel:
           name: post_like_event_channel
+        post_channel:
+          name: post_event_channel
 
   servlet:
     multipart:
@@ -47,6 +49,11 @@ server:
 logging:
   level:
     root: info
+
+comment:
+  banner:
+    scheduler:
+      cron: "00 01 06 * * *"
 
 post:
   publisher:

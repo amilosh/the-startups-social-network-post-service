@@ -9,11 +9,12 @@ import faang.school.postservice.event.EventType;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.publis.aspect.post.PostEventPublish;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.tools.YandexSpeller;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ public class PostService {
     }
 
     @Transactional
+    @PostEventPublish
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
         if (existingPost.isPublished()) {
