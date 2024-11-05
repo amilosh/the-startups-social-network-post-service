@@ -33,6 +33,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
     @Mock
@@ -126,8 +127,11 @@ public class PostServiceTest {
 
         assertNotNull(result);
         assertEquals(post.getId(), result.getId());
+
         verify(postRepository, times(1)).findById(post.getId());
     }
+
+
 
     @Test
     public void testGetPostById_NotFound() {

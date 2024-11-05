@@ -31,6 +31,8 @@ spring:
           name: user_ban
         comment-channel:
           name: comment_event_channel
+        post_view_channel:
+          name: post_view
         post-like-channel:
           name: post_like_event_channel
         post_channel:
@@ -40,7 +42,6 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-
 
 server:
   port: 8081
@@ -53,6 +54,7 @@ comment:
   banner:
     scheduler:
       cron: "00 01 06 * * *"
+
 post:
   publisher:
     scheduler:
@@ -76,9 +78,11 @@ user-service:
   host: localhost
   port: 8080
   path: user-service
+
 project-service:
   host: localhost
   port: 8082
+
 payment-service:
   host: localhost
   port: 9080

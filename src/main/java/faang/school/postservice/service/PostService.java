@@ -4,6 +4,8 @@ import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.SpellCheckerDto;
+import faang.school.postservice.event.AnalyticsEvent;
+import faang.school.postservice.event.EventType;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.model.Post;
@@ -73,9 +75,12 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
+    @AnalyticsEvent(EventType.POST_VIEW)
     public Post getPostById(Long id) {
-        return postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostRequirementsException("Post not found"));
+        return post;
     }
 
     @Transactional(readOnly = true)
