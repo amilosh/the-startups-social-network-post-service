@@ -31,6 +31,8 @@ spring:
         comment_notification_event_channel:
           name: comment_notification_event
         post-view: post_view_channel
+        post_like_event_channel:
+          name: post_like_event
 
 server:
   port: 8081
@@ -101,6 +103,9 @@ app:
       max_pool_size: 20
       queue_capacity: 1000
       thread_mane_prefix: PostCacheProcessExecutor-Async-
+    redis-publisher-async-pool:
+      core_pool_size: 10
+      max_pool_size: 10
 
 springdoc:
   api-docs:
