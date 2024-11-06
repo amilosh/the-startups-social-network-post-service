@@ -19,5 +19,6 @@ public interface CommentMapper {
 
     @Mapping(target = "postId", source = "post.id")
     @Mapping(target = "postAuthorId", source = "post.authorId")
+    @Mapping(target = "timestamp", source = "comment.createdAt")
     CommentEvent toCommentEvent(Comment comment);
 }
