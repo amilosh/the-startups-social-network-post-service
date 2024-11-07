@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
-import faang.school.postservice.config.RedisConfig.MessagePublisher;
+import faang.school.postservice.config.redis.RedisConfig.MessagePublisher;
 import faang.school.postservice.exception.EventPublishingException;
 
 @Slf4j

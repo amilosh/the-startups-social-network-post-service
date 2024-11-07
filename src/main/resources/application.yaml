@@ -1,3 +1,15 @@
+server:
+  port: 8081
+user-service:
+  host: localhost
+  port: 8080
+project-service:
+  host: localhost
+  port: 8082
+payment-service:
+  host: localhost
+  port: 9080
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -21,6 +33,14 @@ spring:
     redis:
       port: 6379
       host: localhost
+      channels:
+        hashtag: hashtags_channel
+        like_post: like_post_channel
+        post_view: post_view_channel
+        ad_bought: ad_bought_channel
+        user_ban: user_ban_channel
+        comment_channel: comment_channel
+        post-comment: post_comment_channel
 
   services:
     s3:
@@ -34,15 +54,6 @@ spring:
     multipart:
       max-request-size: 100MB
       max-file-size: 10MB
-
-server:
-  port: 8081
-
-logging:
-  level:
-    root: info
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: trace
 
 post:
   moderation:
@@ -77,16 +88,6 @@ resources:
       cron: "0 0 2 * * ?" # каждый день в 2 часа ночи
     retention-period: 1M # настройка периода: M - месяц, D - день
 
-user-service:
-  host: localhost
-  port: 8080
-project-service:
-  host: localhost
-  port: 8082
-payment-service:
-  host: localhost
-  port: 9080
-
 spell-checker:
   api:
     host: https://api.textgears.com
@@ -97,15 +98,14 @@ spell-checker:
     cron: "0 0 3 * * *" # каждый день в 3 часа ночи
   batch-size: 100
 
-redis:
-  channels:
-    hashtag: hashtags_channel
-    like_post: like_post_channel
-    post_view: post_view_channel
-    ad_bought: ad_bought_channel
-    user_ban: user_ban_channel
-    comment_channel: comment_channel
-
 scheduler:
   cron:
     ban-users: "0 0 0 * * ?" # every day at midnight
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -1,6 +1,7 @@
 package faang.school.postservice.repository;
 
 import faang.school.postservice.model.entity.Post;
+import feign.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -15,6 +17,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByAuthorId(long authorId);
 
     List<Post> findByProjectId(long projectId);
+
+    @Query("SELECT p FROM Post p WHERE p.id = :id AND p.deleted = false")
+    Optional<Post> findByIdAndNotDeleted(@Param("id") Long id);
 
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.likes WHERE p.projectId = :projectId")
     List<Post> findByProjectIdWithLikes(long projectId);
@@ -31,7 +36,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             " AND p.spellCheckCompleted = false" )
     List<Post> findReadyForSpellCheck();
 
-    @Query(value = "SELECT p FROM Post p JOIN p.hashtags h WHERE h.id = :hashtagId", nativeQuery = true)
+    @Query(value = "SELECT p FROM post p JOIN p.hashtags h WHERE h.id = :hashtagId", nativeQuery = true)
     List<Post> findByHashtagId(Long hashtagId);
 
     Page<Post> findByHashtagsContent(String content, Pageable pageable);

@@ -1,5 +1,6 @@
-package faang.school.postservice.exception;
+package faang.school.postservice.exception.advice;
 
+import faang.school.postservice.exception.ErrorResponse;
 import jakarta.xml.bind.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
