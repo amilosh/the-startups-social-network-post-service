@@ -9,7 +9,7 @@ on:
 
 jobs:
   test-build:
-    name: Test and Build User-Service
+    name: Test and Build Project-Service
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository Code
