@@ -43,6 +43,11 @@ public class RedisConfiguration {
     }
 
     @Bean
+    ChannelTopic userBanTopic() {
+        return new ChannelTopic(redisProperties.getChannels().getUserBanChannel().getName());
+    }
+
+    @Bean
     JedisConnectionFactory jedisConnectionFactory() {
         return new JedisConnectionFactory();
     }
