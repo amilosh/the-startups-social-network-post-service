@@ -64,6 +64,18 @@ public class LikeService {
         commentService.saveComment(commentOfLike);
     }
 
+    public void removeLikeFromPost(long userId, LikeDto dto) {
+        validateUserExistence(userId);
+        likeValidator.validateThisUserAddThisLike(userId, dto.getId());
+
+        Like likeToRemove = likeValidator.validateLikeExistence(dto.getId());
+        Post postOfLike = postValidator.validatePostExistence(dto.getPostId());
+        postOfLike.getLikes().remove(likeToRemove);
+
+        likeRepository.delete(likeToRemove);
+        postService.savePost(postOfLike);
+    }
+
     private void validateUserExistence(long id) {
         userServiceClient.getUser(id);
     }

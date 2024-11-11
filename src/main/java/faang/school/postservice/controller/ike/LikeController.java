@@ -32,8 +32,9 @@ public class LikeController {
     }
 
     @DeleteMapping("/posts/{userId}")
-    public void removeLikeFromPost(@PathVariable long userId, @RequestParam long likeId) {
-        likeService.removeLikeFromPost(userId, likeId);
+    public void removeLikeFromPost(@PathVariable long userId,
+                                   @RequestParam @Valid LikeDto dto) {
+        likeService.removeLikeFromPost(userId, dto);
     }
 
     @DeleteMapping("/comments/{userId}")

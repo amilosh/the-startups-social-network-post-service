@@ -17,8 +17,8 @@ public class LikeValidator {
 
     private final LikeRepository likeRepository;
 
-    public void validateLikeExistence(long likeId) {
-        likeRepository.findById(likeId).orElseThrow(() ->
+    public Like validateLikeExistence(long likeId) {
+        return likeRepository.findById(likeId).orElseThrow(() ->
                 new EntityNotFoundException(String.format("Like with ID: %d wasn't found", likeId)));
     }
 
@@ -40,6 +40,15 @@ public class LikeValidator {
     public void validateLikeWasNotPutToPost(LikeDto dto) {
         Like like = likeRepository.findById(dto.getId()).orElse(null);
         validateWasPut(dto.getPostId(), like, "post");
+    }
+
+    public void validateThisUserAddThisLike(long userId, long likeId) {
+        Like like = validateLikeExistence(likeId);
+
+        if (!like.getUserId().equals(userId)) {
+            throw new DataValidationException(
+                    String.format("User with ID: %d haven't added Like with ID: %d", userId, likeId));
+        }
     }
 
     private void validateWasPut(Long id, Like like, String placeOfLike) {
