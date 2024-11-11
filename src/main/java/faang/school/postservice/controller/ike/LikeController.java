@@ -1,6 +1,10 @@
 package faang.school.postservice.controller.ike;
 
+import faang.school.postservice.dto.like.LikeDto;
+import faang.school.postservice.service.like.LikeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,23 +20,23 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/posts/{userId}")
-    public void addLikeToPost(@PathVariable long userId, @RequestParam long postId,
-                              @RequestBody LikeDto like) {
-        likeService.addLikeToPost(userId, postId, like);
+    public void addLikeToPost(@PathVariable long userId,
+                              @RequestBody @Valid LikeDto like) {
+        likeService.addLikeToPost(userId, like);
     }
 
     @PostMapping("/comments/{userId}")
-    public void addLikeToComment(@PathVariable long userId, @RequestParam long commentId,
-                                 @RequestBody LikeDto like) {
-        likeService.addLikeToComment(userId, commentId, like);
+    public void addLikeToComment(@PathVariable long userId,
+                                 @RequestBody @Valid LikeDto like) {
+        likeService.addLikeToComment(userId, like);
     }
 
-    @PostMapping("/posts/{userId}")
+    @DeleteMapping("/posts/{userId}")
     public void removeLikeFromPost(@PathVariable long userId, @RequestParam long likeId) {
         likeService.removeLikeFromPost(userId, likeId);
     }
 
-    @PostMapping("/comments/{userId}")
+    @DeleteMapping("/comments/{userId}")
     public void removeLikeFromComment(@PathVariable long userId, @RequestParam long likeId) {
         likeService.removeLikeFromComment(userId, likeId);
     }

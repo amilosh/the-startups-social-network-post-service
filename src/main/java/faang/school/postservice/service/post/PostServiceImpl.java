@@ -120,6 +120,10 @@ public class PostServiceImpl implements PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectId(id));
     }
 
+    public void savePost(Post post){
+        postRepository.save(post);
+    }
+
     private void validateUserExist(Long id) {
         userServiceClient.getUser(id);
     }
