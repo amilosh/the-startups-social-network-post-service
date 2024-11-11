@@ -24,18 +24,38 @@ public class LikeValidator {
 
     public void validateUserAddOnlyOneLikeToPost(long postId, long userId) {
         List<Like> likesOfPost = likeRepository.findByPostId(postId);
-        boolean wasAddedLike = likesOfPost.stream()
-                .anyMatch(like -> like.getUserId() == userId);
-        if (wasAddedLike) {
-            throw new DataValidationException("You can add only one like to one post");
-        }
+        validateWasAddedLike(likesOfPost, userId, "post");
+    }
+
+    public void validateUserAddOnlyOneLikeToComment(long commentId, long userId) {
+        List<Like> likesOfComment = likeRepository.findByCommentId(commentId);
+        validateWasAddedLike(likesOfComment, userId, "comment");
     }
 
     public void validateLikeWasNotPutToComment(LikeDto dto) {
         Like like = likeRepository.findById(dto.getId()).orElse(null);
-        if (dto.getCommentId() != null ||
+        validateWasPut(dto.getCommentId(), like, "comment");
+    }
+
+    public void validateLikeWasNotPutToPost(LikeDto dto) {
+        Like like = likeRepository.findById(dto.getId()).orElse(null);
+        validateWasPut(dto.getPostId(), like, "post");
+    }
+
+    private void validateWasPut(Long id, Like like, String placeOfLike) {
+        if (id != null ||
                 (like != null && like.getComment() != null)) {
-            throw new AlreadyExistsException("This like already was added to comment");
+            throw new AlreadyExistsException(
+                    String.format("This like already was added to %s", placeOfLike));
+        }
+    }
+
+    private void validateWasAddedLike(List<Like> likes, long userId, String placeOfLike) {
+        boolean wasAddedLike = likes.stream()
+                .anyMatch(like -> like.getUserId() == userId);
+        if (wasAddedLike) {
+            throw new DataValidationException(
+                    String.format("You can add only one like to one %s", placeOfLike));
         }
     }
 }
