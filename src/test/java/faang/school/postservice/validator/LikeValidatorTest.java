@@ -44,7 +44,7 @@ public class LikeValidatorTest {
     public void testValidateAddedUserNotFound() {
         doThrow(FeignException.class).when(userServiceClient).getUser(userId);
 
-        validateAddedAssertThrow(new EntityNotFoundException(), String.format("User with id %s not found", userId));
+        validateAddedAssertThrow(new EntityNotFoundException(), String.format("User with id %d not found", userId));
     }
 
     @Test

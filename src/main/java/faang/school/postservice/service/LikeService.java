@@ -25,7 +25,7 @@ public class LikeService {
 
     public LikeDto getLikeById(long id) {
         return likeMapper.toDto(likeRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException(String.format("Like with id %s not found", id)))
+                () -> new EntityNotFoundException(String.format("Like with id %d not found", id)))
         );
     }
 

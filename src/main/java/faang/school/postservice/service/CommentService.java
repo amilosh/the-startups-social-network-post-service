@@ -13,7 +13,7 @@ public class CommentService {
 
     public Comment getComment(long id) {
         return commentRepository.findById(id).orElseThrow(
-                () ->new EntityNotFoundException(String.format("Comment %s not found", id)));
+                () ->new EntityNotFoundException(String.format("Comment %d not found", id)));
     }
 
     public boolean existsCommentById(Long id) {

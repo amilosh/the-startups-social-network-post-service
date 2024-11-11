@@ -19,7 +19,7 @@ public class LikeValidator {
             userServiceClient.getUser(userId);
         } catch (FeignException e) {
             log.error(e.getMessage(), e);
-            throw new EntityNotFoundException(String.format("User with id %s not found", userId));
+            throw new EntityNotFoundException(String.format("User with id %d not found", userId));
         }
 
         if ((dto.getCommentId() == null) == (dto.getPostId() == null)) {
