@@ -19,7 +19,6 @@ public interface PostMapper {
     @Mapping(target = "likes")
     Post toEntity(PostDto postDto);
 
-
     @Named("toIds")
     default List<Long> toInternshipIds(List<Like> likes) {
         return likes.stream().map(Like::getId).toList();
