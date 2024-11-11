@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,12 +32,13 @@ public class LikeController {
 
     @DeleteMapping("/posts/{userId}")
     public void removeLikeFromPost(@PathVariable long userId,
-                                   @RequestParam @Valid LikeDto dto) {
+                                   @RequestBody @Valid LikeDto dto) {
         likeService.removeLikeFromPost(userId, dto);
     }
 
     @DeleteMapping("/comments/{userId}")
-    public void removeLikeFromComment(@PathVariable long userId, @RequestParam long likeId) {
-        likeService.removeLikeFromComment(userId, likeId);
+    public void removeLikeFromComment(@PathVariable long userId,
+                                      @RequestBody @Valid LikeDto dto) {
+        likeService.removeLikeFromComment(userId, dto);
     }
 }
