@@ -1,0 +1,29 @@
+package faang.school.postservice.controller;
+
+import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.comment.CreateCommentDto;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/posts")
+@RequiredArgsConstructor
+@Validated
+@Slf4j
+public class CommentController {
+    private CommentService commentService;
+
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentDto> create(
+            @PathVariable @Positive(message = "Post id should be a positive number") long postId,
+            @Valid @RequestBody CreateCommentDto dto) {
+        log.info("Request for new commit for post #{} from user #{}", postId, dto.getAuthorId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.create(postId, dto));
+    }
+}
