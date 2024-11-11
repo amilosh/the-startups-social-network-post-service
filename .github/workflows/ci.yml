@@ -1,0 +1,28 @@
+name: Post Service CI
+on:
+  push:
+    branches:
+      - Dragon-master-stream7
+  pull_request:
+    branches:
+      - Dragon-master-stream7
+
+jobs:
+  test-build:
+    name: Test and Build Project-Service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Set Up JDK 17 Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: 17
+
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      - name: Build Project Application
+        run: ./gradlew build
