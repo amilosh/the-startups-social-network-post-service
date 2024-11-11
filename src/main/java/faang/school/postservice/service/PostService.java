@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    private PostRepository postRepository;
+    private final PostRepository postRepository;
 
     public Post getPostById(Long id) {
         return postRepository.findById(id).orElseThrow(() ->

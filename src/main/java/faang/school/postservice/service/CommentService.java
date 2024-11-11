@@ -29,6 +29,7 @@ public class CommentService {
         Comment comment = commentMapper.toEntity(dto);
         comment.setPost(postService.getPostById(postId));
         commentRepository.save(comment);
+        log.info("New comment #{} post #{} has been created", comment.getId(), comment.getPost().getId());
 
         return commentMapper.toDto(comment);
     }

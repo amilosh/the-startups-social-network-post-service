@@ -1,20 +1,19 @@
 package faang.school.postservice.dto.comment;
 
-import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Builder
 @Data
 public class CommentDto {
-
     private long id;
     private String content;
     private long authorId;
-    private List<Like> likes;
-    private Post post;
+    private List<Long> likeIds;
+    private Long postId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

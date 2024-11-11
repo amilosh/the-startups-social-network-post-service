@@ -44,6 +44,7 @@ class CommentControllerTest {
         ResponseEntity<CommentDto> result = commentController.create(postId, createDto);
 
         assertNotNull(result);
+        assertNotNull(result.getBody());
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
         assertEquals(1L, result.getBody().getId());
     }
