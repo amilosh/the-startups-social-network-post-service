@@ -11,6 +11,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.validator.like_validator.LikeValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,17 +26,17 @@ import java.util.Optional;
 public class LikeService {
 
     private final LikeRepository likeRepository;
-    private final UserServiceClient userServiceClient;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final LikeMapper likeMapper;
+    private final LikeValidator validator;
 
 
     public ReturnLikeDto postLike(AcceptanceLikeDto acceptanceLikeDto, long postId) {
         Long userId = acceptanceLikeDto.getUserId();
-        validateUserId(userId);
+        validator.validateUserId(userId);
         Post post = getPost(postId);
-        boolean result = validatePostHatLike(post.getId(), userId);
+        boolean result = validator.validatePostHatLike(post.getId(), userId);
         if (!result) {
             throw new DataValidationException("Post already liked with id " + userId);
         }
@@ -49,9 +50,9 @@ public class LikeService {
 
     public void deleteLikeFromPost(@RequestBody AcceptanceLikeDto likeDto, @PathVariable long postId) {
         Long userId = likeDto.getUserId();
-        validateUserId(userId);
+        validator.validateUserId(userId);
         Post post = getPost(postId);
-        boolean result = validatePostHatLike(post.getId(), userId);
+        boolean result = validator.validatePostHatLike(post.getId(), userId);
         if (result) {
             throw new DataValidationException("Post hat not liked with id " + userId);
         }
@@ -61,9 +62,9 @@ public class LikeService {
 
     public ReturnLikeDto commentLike(AcceptanceLikeDto acceptanceLikeDto, long commentId) {
         Long userId = acceptanceLikeDto.getUserId();
-        validateUserId(userId);
+        validator.validateUserId(userId);
         Comment comment = getComment(commentId);
-        boolean result = validateCommentHatLike(comment.getId(), userId);
+        boolean result = validator.validateCommentHatLike(comment.getId(), userId);
         if (!result) {
             throw new DataValidationException("Comment already liked with id " + commentId);
         }
@@ -77,17 +78,13 @@ public class LikeService {
 
     public void deleteLikeFromComment(AcceptanceLikeDto acceptanceLikeDto, long commentId) {
         Long userId = acceptanceLikeDto.getUserId();
-        validateUserId(userId);
+        validator.validateUserId(userId);
         Comment comment = getComment(commentId);
-        boolean result = validateCommentHatLike(comment.getId(), userId);
+        boolean result = validator.validateCommentHatLike(comment.getId(), userId);
         if (result) {
             throw new DataValidationException("Comment not liked with id " + commentId);
         }
         likeRepository.deleteByCommentIdAndUserId(commentId, userId);
-    }
-
-    private void validateUserId(Long userId) {
-        userServiceClient.getUser(userId);
     }
 
     private Post getPost(long postId) {
@@ -104,15 +101,5 @@ public class LikeService {
             throw new DataValidationException("Not found comment with id " + commentId);
         }
         return comment.get();
-    }
-
-    private boolean validatePostHatLike(long postId, long userId) {
-        Optional<Like> like = likeRepository.findByPostIdAndUserId(postId, userId);
-        return like.isEmpty();
-    }
-
-    private boolean validateCommentHatLike(long commentId, long userId) {
-        Optional<Like> like = likeRepository.findByCommentIdAndUserId(commentId, userId);
-        return like.isEmpty();
     }
 }

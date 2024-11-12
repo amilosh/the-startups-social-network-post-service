@@ -23,7 +23,7 @@ public class LikeValidator {
         return like.isEmpty();
     }
 
-    private void validateUserId(Long userId) {
+    public void validateUserId(Long userId) {
         userServiceClient.getUser(userId);
     }
 
