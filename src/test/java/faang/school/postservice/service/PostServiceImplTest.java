@@ -192,7 +192,7 @@ class PostServiceImplTest {
         postService.deletePost(1L);
 
         verify(postRepository, times(1)).save(post);
-        verify(postMapper, times(1)).toDto(post);
+        verify(postMapper, times(2)).toDto(post);
     }
 
     @Test
@@ -212,7 +212,7 @@ class PostServiceImplTest {
 
         postService.getPost(1L);
 
-        verify(postMapper, times(1)).toDto(post);
+        verify(postMapper, times(2)).toDto(post);
     }
 
     @Test
