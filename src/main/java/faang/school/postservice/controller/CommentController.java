@@ -2,6 +2,7 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
+import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.service.CommentService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -24,7 +25,15 @@ public class CommentController {
     public ResponseEntity<CommentDto> create(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId,
             @Valid @RequestBody CreateCommentDto dto) {
-        log.info("Request for new commit for post #{} from user #{}", postId, dto.getAuthorId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.create(postId, dto));
+        log.info("Request for new commit for the post #{} from user #{}", postId, dto.getAuthorId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(postId, dto));
+    }
+
+    @PutMapping("/{postId}/comments")
+    public CommentDto update(
+            @PathVariable @Positive(message = "Post id should be a positive number") long postId,
+            @Valid @RequestBody UpdateCommentDto dto) {
+        log.info("Request for update of the comment #{} for the post #{}", dto.getId(), postId);
+        return commentService.updateComment(postId, dto);
     }
 }
