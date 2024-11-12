@@ -2,93 +2,104 @@ package faang.school.postservice.service.like;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.like.LikeDto;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.mapper.like.LikeMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.service.comment.CommentService;
-import faang.school.postservice.service.post.PostServiceImpl;
-import faang.school.postservice.validator.comment.CommentValidator;
+import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.like.LikeValidator;
-import faang.school.postservice.validator.post.PostValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LikeService {
 
     private final LikeRepository likeRepository;
     private final UserServiceClient userServiceClient;
-    private final PostServiceImpl postService;
+    private final PostService postService;
     private final CommentService commentService;
     private final LikeValidator likeValidator;
-    private final CommentValidator commentValidator;
-    private final PostValidator postValidator;
     private final LikeMapper likeMapper;
 
-    public void addLikeToPost(long userId, LikeDto dto) {
-        validateUserExistence(userId);
-        Post postOfLike = postValidator.validatePostExistence(dto.getPostId());
-        likeValidator.validateLikeExistence(dto.getId());
-        likeValidator.validateLikeWasNotPutToComment(dto);
-        likeValidator.validateUserAddOnlyOneLikeToPost(dto.getPostId(), userId);
+    public void addLikeToPost(LikeDto likeDto) {
+        validateUserExistence(likeDto.getUserId());
+        likeValidator.validateLikeHasTarget(likeDto.getPostId(), likeDto.getCommentId());
 
-        Like likeToSave = likeMapper.toEntity(dto);
+        List<Like> likesOfPost = likeRepository.findByPostId(likeDto.getPostId());
+        likeValidator.validateUserAddOnlyOneLikeToPost(likesOfPost, likeDto.getUserId());
+
+        Like likeToCheckComment = getLikeOrNull(likeDto.getId());
+        likeValidator.validateLikeWasNotPutToComment(likeDto, likeToCheckComment);
+
+        Post postOfLike = postService.getPostEntity(likeDto.getPostId());
+        Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setPost(postOfLike);
-        likeToSave.setUserId(userId);
+        likeToSave.setUserId(likeDto.getUserId());
         likeToSave.setCreatedAt(LocalDateTime.now());
-        postOfLike.getLikes().add(likeToSave);
 
+        log.info("Save new Like for Post with ID: {}", likeDto.getPostId());
         likeRepository.save(likeToSave);
-        postService.savePost(postOfLike);
+        postService.addLikeToPost(likeDto.getPostId(), likeToSave);
     }
 
-    public void addLikeToComment(long userId, LikeDto dto) {
-        validateUserExistence(userId);
-        Comment commentOfLike = commentValidator.validateCommentExistence(dto.getCommentId());
-        likeValidator.validateLikeExistence(dto.getId());
-        likeValidator.validateLikeWasNotPutToPost(dto);
-        likeValidator.validateUserAddOnlyOneLikeToComment(dto.getCommentId(), userId);
+    public void addLikeToComment(LikeDto likeDto) {
+        validateUserExistence(likeDto.getUserId());
+        likeValidator.validateLikeHasTarget(likeDto.getPostId(), likeDto.getCommentId());
+        List<Like> likesOfComment = likeRepository.findByCommentId(likeDto.getCommentId());
+        likeValidator.validateUserAddOnlyOneLikeToComment(likesOfComment, likeDto.getUserId());
+        Like likeToCheckPost = getLikeOrNull(likeDto.getId());
+        likeValidator.validateLikeWasNotPutToPost(likeDto, likeToCheckPost);
 
-        Like likeToSave = likeMapper.toEntity(dto);
+        Comment commentOfLike = commentService.getEntityComment(likeDto.getCommentId());
+        Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setComment(commentOfLike);
-        likeToSave.setUserId(userId);
+        likeToSave.setUserId(likeDto.getUserId());
         likeToSave.setCreatedAt(LocalDateTime.now());
-        commentOfLike.getLikes().add(likeToSave);
 
+        log.info("Save new Like for Comment with ID: {}", likeDto.getCommentId());
         likeRepository.save(likeToSave);
-        commentService.saveComment(commentOfLike);
+        commentService.addLikeToComment(likeDto.getCommentId(), likeToSave);
     }
 
-    public void removeLikeFromPost(long userId, LikeDto dto) {
-        validateUserExistence(userId);
-        likeValidator.validateThisUserAddThisLike(userId, dto.getId());
+    public void removeLikeFromPost(LikeDto likeDto) {
+        validateUserExistence(likeDto.getUserId());
+        Like likeToRemove = getLike(likeDto.getId());
+        likeValidator.validateThisUserAddThisLike(likeDto.getUserId(), likeToRemove);
 
-        Like likeToRemove = likeValidator.validateLikeExistence(dto.getId());
-        Post postOfLike = postValidator.validatePostExistence(dto.getPostId());
-        postOfLike.getLikes().remove(likeToRemove);
-
+        log.info("Remove like with ID: {} ", likeDto.getId());
         likeRepository.delete(likeToRemove);
-        postService.savePost(postOfLike);
+        postService.removeLikeFromPost(likeDto.getPostId(), likeToRemove);
     }
 
-    public void removeLikeFromComment(long userId, LikeDto dto) {
-        validateUserExistence(userId);
-        likeValidator.validateThisUserAddThisLike(userId, dto.getId());
+    public void removeLikeFromComment(LikeDto likeDto) {
+        validateUserExistence(likeDto.getUserId());
+        Like likeToRemove = getLike(likeDto.getId());
+        likeValidator.validateThisUserAddThisLike(likeDto.getUserId(), likeToRemove);
 
-        Like likeToRemove = likeValidator.validateLikeExistence(dto.getId());
-        Comment commentOfLike = commentValidator.validateCommentExistence(dto.getCommentId());
-        commentOfLike.getLikes().remove(likeToRemove);
-
+        log.info("Remove like with ID: {}", likeDto.getId());
         likeRepository.delete(likeToRemove);
-        commentService.saveComment(commentOfLike);
+        commentService.removeLikeFromComment(likeDto.getCommentId(), likeToRemove);
     }
 
     private void validateUserExistence(long id) {
         userServiceClient.getUser(id);
+    }
+
+    private Like getLikeOrNull(Long likeId) {
+        return likeRepository.findById(likeId).orElse(null);
+    }
+
+    private Like getLike(long likeId) {
+        return likeRepository.findById(likeId).orElseThrow(() ->
+                new EntityNotFoundException(String.format("Like with ID: %s not found", likeId)));
     }
 }
