@@ -26,7 +26,6 @@ public class PostDto {
     private String content;
 
     private Boolean deleted;
-    private List<Long> likesId;
     private LocalDateTime createdAt;
     private LocalDateTime publishedAt;
     private LocalDateTime updatedAt;

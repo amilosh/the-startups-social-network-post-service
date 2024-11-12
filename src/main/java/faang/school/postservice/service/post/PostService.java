@@ -1,25 +1,26 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.ReturnPostDto;
 
 import java.util.List;
 
 public interface PostService {
-    PostDto createPost(PostDto postDto);
+    ReturnPostDto createPost(PostDto postDto);
 
-    PostDto publishPost(Long id);
+    ReturnPostDto publishPost(Long id);
 
-    PostDto updatePost(PostDto postDto);
+    ReturnPostDto updatePost(PostDto postDto);
 
-    PostDto deletePost(Long id);
+    ReturnPostDto deletePost(Long id);
 
-    PostDto getPost(Long id);
+    ReturnPostDto getPost(Long id);
 
-    List<PostDto> getAllNonPublishedByAuthorId(Long id);
+    List<ReturnPostDto> getAllNonPublishedByAuthorId(Long id);
 
-    List<PostDto> getAllNonPublishedByProjectId(Long id);
+    List<ReturnPostDto> getAllNonPublishedByProjectId(Long id);
 
-    List<PostDto> getAllPublishedByAuthorId(Long id);
+    List<ReturnPostDto> getAllPublishedByAuthorId(Long id);
 
-    List<PostDto> getAllPublishedByProjectId(Long id);
+    List<ReturnPostDto> getAllPublishedByProjectId(Long id);
 }

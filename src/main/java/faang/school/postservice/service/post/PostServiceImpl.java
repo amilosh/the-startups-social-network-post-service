@@ -3,11 +3,10 @@ package faang.school.postservice.service.post;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.ReturnPostDto;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
-import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @Service
 @RequiredArgsConstructor
@@ -25,26 +23,23 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
-    private final LikeRepository likeRepository;
 
     @Override
-    public PostDto createPost(PostDto postDto) {
+    public ReturnPostDto createPost(PostDto postDto) {
         isPostAuthorExist(postDto);
 
         postDto.setCreatedAt(LocalDateTime.now());
 
         Post post = postMapper.toEntity(postDto);
-        List<Like> likes = getLikes(postDto);
         post.setPublished(false);
         post.setDeleted(false);
-        post.setLikes(likes);
 
         postRepository.save(post);
-        return postDto;
+        return postMapper.toDto(post);
     }
 
     @Override
-    public PostDto publishPost(Long id) {
+    public ReturnPostDto publishPost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -60,13 +55,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto updatePost(PostDto postDto) {
+    public ReturnPostDto updatePost(PostDto postDto) {
         Post post = postRepository.findById(postDto.getId())
                 .orElseThrow(EntityNotFoundException::new);
 
         post.setUpdatedAt(LocalDateTime.now());
         post.setContent(postDto.getContent());
-        post.setLikes(getLikes(postDto));
 
         postRepository.save(post);
 
@@ -74,7 +68,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto deletePost(Long id) {
+    public ReturnPostDto deletePost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -86,42 +80,42 @@ public class PostServiceImpl implements PostService {
         post.setDeleted(true);
         postRepository.save(post);
 
-        PostDto postDto = postMapper.toDto(post);
+        ReturnPostDto postDto = postMapper.toDto(post);
         postDto.setDeletedAt(LocalDateTime.now());
 
         return postDto;
     }
 
     @Override
-    public PostDto getPost(Long id) {
+    public ReturnPostDto getPost(Long id) {
         return postRepository.findById(id)
                 .map(postMapper::toDto)
                 .orElseThrow(EntityNotFoundException::new);
     }
 
     @Override
-    public List<PostDto> getAllNonPublishedByAuthorId(Long id) {
+    public List<ReturnPostDto> getAllNonPublishedByAuthorId(Long id) {
         validateUserExist(id);
 
         return filterNonPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
     }
 
     @Override
-    public List<PostDto> getAllNonPublishedByProjectId(Long id) {
+    public List<ReturnPostDto> getAllNonPublishedByProjectId(Long id) {
         validateProjectExist(id);
 
         return filterNonPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
     @Override
-    public List<PostDto> getAllPublishedByAuthorId(Long id) {
+    public List<ReturnPostDto> getAllPublishedByAuthorId(Long id) {
         validateUserExist(id);
 
         return filterPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
     }
 
     @Override
-    public List<PostDto> getAllPublishedByProjectId(Long id) {
+    public List<ReturnPostDto> getAllPublishedByProjectId(Long id) {
         validateProjectExist(id);
 
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
@@ -135,7 +129,7 @@ public class PostServiceImpl implements PostService {
         projectServiceClient.getProject(id);
     }
 
-    private List<PostDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
+    private List<ReturnPostDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
         return posts.stream()
                 .filter(post -> !post.isDeleted() && post.isPublished())
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
@@ -143,7 +137,7 @@ public class PostServiceImpl implements PostService {
                 .toList();
     }
 
-    private List<PostDto> filterNonPublishedPostsByTimeToDto(List<Post> posts) {
+    private List<ReturnPostDto> filterNonPublishedPostsByTimeToDto(List<Post> posts) {
         return posts.stream()
                 .filter(post -> !post.isDeleted() && !post.isPublished())
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
@@ -159,13 +153,4 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private List<Like> getLikes(PostDto postDto) {
-        List<Long> likes = postDto.getLikesId();
-       return likes.stream().map(this::getLike).toList();
-    }
-
-    private Like getLike(Long likeId) {
-        return likeRepository.findById(likeId)
-                .orElseThrow(EntityNotFoundException::new);
-    }
 }
