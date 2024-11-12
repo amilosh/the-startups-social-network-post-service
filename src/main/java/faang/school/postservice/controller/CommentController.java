@@ -45,4 +45,14 @@ public class CommentController {
         log.info("Request for all comments for the post #{}", postId);
         return commentService.getAllComments(postId);
     }
+
+    @DeleteMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable @Positive(message = "Post id should be a positive number") long postId,
+            @PathVariable @Positive(message = "Comment id should be a positive number") long commentId) {
+        log.info("Request for delete of comment #{} from post #{} received", commentId, postId);
+        commentService.deleteComment(postId, commentId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

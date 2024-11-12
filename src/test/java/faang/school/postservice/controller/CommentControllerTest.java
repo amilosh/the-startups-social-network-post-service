@@ -24,7 +24,7 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -134,6 +134,27 @@ class CommentControllerTest {
         when(commentService.getAllComments(postId)).thenThrow(EntityNotFoundException.class);
 
         assertThrows(EntityNotFoundException.class, () -> commentService.getAllComments(postId));
+    }
+
+    @Test
+    @DisplayName("Delete comment by id successfully")
+    void testDeleteCommentByIdSuccess() throws Exception {
+        doNothing().when(commentService).deleteComment(postId, comment.getId());
+
+        mockMvc.perform(delete("/posts/{postId}/comments/{commentId}", postId, comment.getId()))
+                .andExpect(status().isNoContent());
+
+        verify(commentService, times(1)).deleteComment(postId, comment.getId());
+    }
+
+    @Test
+    @DisplayName("Delete comment by id fail: id")
+    void testDeleteCommentByIdFailInvalidId() {
+        doThrow(EntityNotFoundException.class).when(commentService).deleteComment(postId, comment.getId());
+
+        assertThrows(EntityNotFoundException.class, () -> commentController.deleteComment(postId, comment.getId()));
+
+        verify(commentService, times(1)).deleteComment(postId, comment.getId());
     }
 
     private CreateCommentDto mockCreateCommentDto() {
