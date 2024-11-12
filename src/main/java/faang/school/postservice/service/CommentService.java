@@ -21,7 +21,6 @@ public class CommentService {
     private final PostValidator postValidator;
     private final UserServiceClient userServiceClient;
 
-
     public CommentDto create(long postId, CreateCommentDto dto) {
         postValidator.validatePostExistsById(postId);
         userServiceClient.getUser(dto.getAuthorId());
