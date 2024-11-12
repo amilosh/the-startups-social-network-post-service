@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PostValidator {
-    private PostRepository postRepository;
+    private final PostRepository postRepository;
 
     public void validatePostExistsById(Long postId) {
         if (!postRepository.existsById(postId)) {
