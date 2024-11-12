@@ -6,6 +6,7 @@ import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.validator.CommentValidator;
 import faang.school.postservice.validator.PostValidator;
@@ -13,6 +14,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +53,17 @@ public class CommentService {
         log.info("Comment #{} to post #{} has been updated", comment.getId(), comment.getPost().getId());
 
         return commentMapper.toDto(comment);
+    }
+
+    public List<CommentDto> getAllComments(long postId) {
+        postValidator.validatePostExistsById(postId);
+        Post post = postService.getPostById(postId);
+        List<Comment> comments = post.getComments().stream()
+                .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+        log.info("All comments for the post #{} has been received", post.getId());
+
+        return commentMapper.toListDto(comments);
     }
 
     public Comment getCommentById(Long id) {

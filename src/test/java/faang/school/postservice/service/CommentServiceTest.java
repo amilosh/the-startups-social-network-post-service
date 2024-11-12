@@ -19,6 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -152,7 +155,7 @@ class CommentServiceTest {
     void testUpdateCommentFailInvalidCommentId() {
         when(commentRepository.findById(updateDto.getId())).thenReturn(Optional.empty());
 
-        Exception ex =assertThrows(EntityNotFoundException.class, () -> commentService.updateComment(postId, updateDto));
+        Exception ex = assertThrows(EntityNotFoundException.class, () -> commentService.updateComment(postId, updateDto));
         assertEquals("Comment with id #3 doesn't exist", ex.getMessage());
 
         verify(postValidator, times(1)).validatePostExistsById(postId);
@@ -161,6 +164,73 @@ class CommentServiceTest {
         verify(commentValidator, never()).validateCommentAuthorId(comment, updateDto.getAuthorId());
         verify(commentRepository, never()).save(comment);
     }
+
+    @Test
+    @DisplayName("Get all comments success")
+    void testGetAllCommentsSuccess() {
+        List<Comment> comments = List.of(
+                Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
+                Comment.builder().id(2L).updatedAt(LocalDateTime.of(2023, 11, 2, 9, 30)).build(),
+                Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
+        List<CommentDto> commentDtos = comments.stream()
+                .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(c -> CommentDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
+                .toList();
+        when(postService.getPostById(postId)).thenReturn(post);
+        post.setComments(comments);
+        when(commentMapper.toListDto(anyList())).thenReturn(commentDtos);
+
+        List<CommentDto> result = commentService.getAllComments(postId);
+
+        verify(postValidator, times(1)).validatePostExistsById(postId);
+        verify(postService, times(1)).getPostById(postId);
+        verify(commentMapper, times(1)).toListDto(anyList());
+
+        assertEquals(3, result.size());
+        assertEquals(2L, result.get(0).getId());
+        assertEquals(1L, result.get(1).getId());
+        assertEquals(3L, result.get(2).getId());
+    }
+
+    @Test
+    @DisplayName("Get all comments success with one null date")
+    void testGetAllCommentsSuccessnullDate() {
+        List<Comment> comments = List.of(
+                Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
+                Comment.builder().id(2L).updatedAt(null).build(),
+                Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
+        List<CommentDto> commentDtos = comments.stream()
+                .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(c -> CommentDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
+                .toList();
+        when(postService.getPostById(postId)).thenReturn(post);
+        post.setComments(comments);
+        when(commentMapper.toListDto(anyList())).thenReturn(commentDtos);
+
+        List<CommentDto> result = commentService.getAllComments(postId);
+
+        verify(postValidator, times(1)).validatePostExistsById(postId);
+        verify(postService, times(1)).getPostById(postId);
+        verify(commentMapper, times(1)).toListDto(anyList());
+
+        assertEquals(3, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(3L, result.get(1).getId());
+        assertEquals(2L, result.get(2).getId());
+    }
+
+    @Test
+    @DisplayName("Get all comments fail: invalid postId")
+    void testGetAllCommentsFailInvalidPostId() {
+        when(postService.getPostById(postId)).thenThrow(EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class, () -> commentService.getAllComments(postId));
+
+        verify(postValidator, times(1)).validatePostExistsById(postId);
+        verify(postService, times(1)).getPostById(postId);
+        verify(commentMapper, never()).toListDto(anyList());
+    }
+
 
     private CreateCommentDto createTestCreateCommentDto() {
         return CreateCommentDto.builder()
