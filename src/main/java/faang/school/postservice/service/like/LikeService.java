@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -57,6 +58,8 @@ public class LikeService {
             throw new DataValidationException("Post hat not liked with id " + userId);
         }
         likeRepository.deleteByPostIdAndUserId(postId, userId);
+        deleteLike(post.getLikes(), userId);
+        postRepository.save(post);
 
     }
 
@@ -85,6 +88,8 @@ public class LikeService {
             throw new DataValidationException("Comment not liked with id " + commentId);
         }
         likeRepository.deleteByCommentIdAndUserId(commentId, userId);
+        deleteLike(comment.getLikes(), userId);
+        commentRepository.save(comment);
     }
 
     private Post getPost(long postId) {
@@ -101,5 +106,9 @@ public class LikeService {
             throw new DataValidationException("Not found comment with id " + commentId);
         }
         return comment.get();
+    }
+
+    private void deleteLike(List<Like> likes, long userId) {
+        likes.removeIf(like -> like.getUserId().equals(userId));
     }
 }

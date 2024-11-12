@@ -4,7 +4,7 @@ import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.ReturnPostDto;
-import faang.school.postservice.exception.PostException;
+import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
@@ -44,7 +44,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(EntityNotFoundException::new);
 
         if (post.isPublished()) {
-            throw new PostException("Post is already published");
+            throw new DataValidationException("Post is already published");
         }
 
         post.setPublished(true);
@@ -73,7 +73,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(EntityNotFoundException::new);
 
         if (post.isDeleted()) {
-            throw new PostException("post already deleted");
+            throw new DataValidationException("post already deleted");
         }
 
         post.setPublished(false);
