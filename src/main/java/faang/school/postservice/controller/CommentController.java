@@ -1,6 +1,6 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.service.CommentService;
@@ -24,7 +24,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<CommentDto> create(
+    public ResponseEntity<CommentResponseDto> create(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId,
             @Valid @RequestBody CreateCommentDto dto) {
         log.info("Request for new commit for the post #{} from user #{}", postId, dto.getAuthorId());
@@ -32,7 +32,7 @@ public class CommentController {
     }
 
     @PutMapping("/{postId}/comments")
-    public CommentDto update(
+    public CommentResponseDto update(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId,
             @Valid @RequestBody UpdateCommentDto dto) {
         log.info("Request for update of the comment #{} for the post #{}", dto.getId(), postId);
@@ -40,7 +40,7 @@ public class CommentController {
     }
 
     @GetMapping("/{postId}/comments")
-    public List<CommentDto> getAllComments(
+    public List<CommentResponseDto> getAllComments(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId) {
         log.info("Request for all comments for the post #{}", postId);
         return commentService.getAllComments(postId);

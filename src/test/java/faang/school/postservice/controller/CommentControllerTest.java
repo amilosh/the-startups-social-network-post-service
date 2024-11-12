@@ -1,6 +1,6 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.model.Comment;
@@ -42,7 +42,7 @@ class CommentControllerTest {
     private CommentController commentController;
 
     private CreateCommentDto createDto;
-    private CommentDto responseDto;
+    private CommentResponseDto responseDto;
     private UpdateCommentDto updateDto;
     private Comment comment;
     private Long postId = 1L;
@@ -62,7 +62,7 @@ class CommentControllerTest {
     void testCreateCommentSuccess() throws Exception {
         when(commentService.createComment(postId, createDto)).thenReturn(responseDto);
 
-        ResponseEntity<CommentDto> result = commentController.create(postId, createDto);
+        ResponseEntity<CommentResponseDto> result = commentController.create(postId, createDto);
 
         mockMvc.perform(post("/posts/{postId}/comments", postId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +91,7 @@ class CommentControllerTest {
         System.out.println(responseDto);
         when(commentService.updateComment(postId, updateDto)).thenReturn(responseDto);
 
-        CommentDto result = commentController.update(postId, updateDto);
+        CommentResponseDto result = commentController.update(postId, updateDto);
 
         mockMvc.perform(put("/posts/{postId}/comments", postId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -116,7 +116,7 @@ class CommentControllerTest {
     @Test
     @DisplayName("Get all comments successfully")
     void testGetAllCommentsSuccess() throws Exception {
-        List<CommentDto> comments = List.of(responseDto, responseDto, responseDto);
+        List<CommentResponseDto> comments = List.of(responseDto, responseDto, responseDto);
         when(commentService.getAllComments(postId)).thenReturn(comments);
 
         mockMvc.perform(get("/posts/{postId}/comments", postId))
@@ -172,8 +172,8 @@ class CommentControllerTest {
                 .build();
     }
 
-    private CommentDto mockCommentDto() {
-        return CommentDto.builder()
+    private CommentResponseDto mockCommentDto() {
+        return CommentResponseDto.builder()
                 .id(1L)
                 .content("Test content")
                 .authorId(1L)
