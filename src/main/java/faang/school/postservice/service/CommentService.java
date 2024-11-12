@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -41,6 +42,7 @@ public class CommentService {
         return commentMapper.toDto(comment);
     }
 
+    @Transactional
     public CommentDto updateComment(long postId, UpdateCommentDto dto) {
         postValidator.validatePostExistsById(postId);
         commentValidator.validateCommentExistsById(dto.getId());
@@ -64,6 +66,13 @@ public class CommentService {
         log.info("All comments for the post #{} has been received", post.getId());
 
         return commentMapper.toListDto(comments);
+    }
+
+    public void deleteComment(long postId, long commentId) {
+        postValidator.validatePostExistsById(postId);
+        commentValidator.validateCommentExistsById(commentId);
+        commentRepository.deleteById(commentId);
+        log.info("Comment #{} from post #{} was deleted successfully", commentId, postId);
     }
 
     public Comment getCommentById(Long id) {

@@ -231,6 +231,39 @@ class CommentServiceTest {
         verify(commentMapper, never()).toListDto(anyList());
     }
 
+    @Test
+    @DisplayName("Delete comment success")
+    void testDeleteCommentSuccess() {
+
+        assertDoesNotThrow(() -> commentService.deleteComment(postId, comment.getId()));
+
+        verify(postValidator, times(1)).validatePostExistsById(postId);
+        verify(commentValidator, times(1)).validateCommentExistsById(comment.getId());
+        verify(commentRepository, times(1)).deleteById(comment.getId());
+    }
+
+    @Test
+    @DisplayName("Delete comment fail: invalid post id")
+    void testDeleteCommentFailInvalidPostId() {
+        doThrow(EntityNotFoundException.class).when(postValidator).validatePostExistsById(postId);
+
+        assertThrows(EntityNotFoundException.class, () -> commentService.deleteComment(postId, comment.getId()));
+
+        verify(commentValidator, never()).validateCommentExistsById(comment.getId());
+        verify(commentRepository, never()).deleteById(comment.getId());
+    }
+
+    @Test
+    @DisplayName("Delete comment fail: invalid comment id")
+    void testDeleteCommentFailInvalidCommentId() {
+        doThrow(EntityNotFoundException.class).when(commentValidator).validateCommentExistsById(comment.getId());
+
+        assertThrows(EntityNotFoundException.class, () -> commentService.deleteComment(postId, comment.getId()));
+
+        verify(postValidator, times(1)).validatePostExistsById(postId);
+        verify(commentRepository, never()).deleteById(comment.getId());
+    }
+
 
     private CreateCommentDto createTestCreateCommentDto() {
         return CreateCommentDto.builder()
