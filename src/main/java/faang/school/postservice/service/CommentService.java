@@ -1,7 +1,7 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.mapper.CommentMapper;
@@ -30,7 +30,7 @@ public class CommentService {
     private final CommentValidator commentValidator;
     private final UserServiceClient userServiceClient;
 
-    public CommentDto createComment(long postId, CreateCommentDto dto) {
+    public CommentResponseDto createComment(long postId, CreateCommentDto dto) {
         postValidator.validatePostExistsById(postId);
         userServiceClient.getUser(dto.getAuthorId());
 
@@ -43,7 +43,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto updateComment(long postId, UpdateCommentDto dto) {
+    public CommentResponseDto updateComment(long postId, UpdateCommentDto dto) {
         postValidator.validatePostExistsById(postId);
         commentValidator.validateCommentExistsById(dto.getId());
         userServiceClient.getUser(dto.getAuthorId());
@@ -57,7 +57,7 @@ public class CommentService {
         return commentMapper.toDto(comment);
     }
 
-    public List<CommentDto> getAllComments(long postId) {
+    public List<CommentResponseDto> getAllComments(long postId) {
         postValidator.validatePostExistsById(postId);
         Post post = postService.getPostById(postId);
         List<Comment> comments = post.getComments().stream()

@@ -1,7 +1,7 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.mapper.CommentMapper;
@@ -53,7 +53,7 @@ class CommentServiceTest {
 
     CreateCommentDto dto;
     UpdateCommentDto updateDto;
-    CommentDto responseDto;
+    CommentResponseDto responseDto;
     Post post;
     Comment comment;
     long postId = 1L;
@@ -75,7 +75,7 @@ class CommentServiceTest {
         when(postService.getPostById(postId)).thenReturn(post);
         when(commentMapper.toDto(comment)).thenReturn(responseDto);
 
-        CommentDto result = commentService.createComment(postId, dto);
+        CommentResponseDto result = commentService.createComment(postId, dto);
 
         verify(postValidator, times(1)).validatePostExistsById(postId);
         verify(userServiceClient, times(1)).getUser(dto.getAuthorId());
@@ -123,7 +123,7 @@ class CommentServiceTest {
         when(commentRepository.findById(updateDto.getId())).thenReturn(Optional.of(comment));
         when(commentMapper.toDto(comment)).thenReturn(responseDto);
 
-        CommentDto result = commentService.updateComment(postId, updateDto);
+        CommentResponseDto result = commentService.updateComment(postId, updateDto);
 
         verify(postValidator, times(1)).validatePostExistsById(postId);
         verify(commentValidator, times(1)).validateCommentExistsById(updateDto.getId());
@@ -172,15 +172,15 @@ class CommentServiceTest {
                 Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
                 Comment.builder().id(2L).updatedAt(LocalDateTime.of(2023, 11, 2, 9, 30)).build(),
                 Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
-        List<CommentDto> commentDtos = comments.stream()
+        List<CommentResponseDto> commentResponseDtos = comments.stream()
                 .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(c -> CommentDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
+                .map(c -> CommentResponseDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
                 .toList();
         when(postService.getPostById(postId)).thenReturn(post);
         post.setComments(comments);
-        when(commentMapper.toListDto(anyList())).thenReturn(commentDtos);
+        when(commentMapper.toListDto(anyList())).thenReturn(commentResponseDtos);
 
-        List<CommentDto> result = commentService.getAllComments(postId);
+        List<CommentResponseDto> result = commentService.getAllComments(postId);
 
         verify(postValidator, times(1)).validatePostExistsById(postId);
         verify(postService, times(1)).getPostById(postId);
@@ -199,15 +199,15 @@ class CommentServiceTest {
                 Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
                 Comment.builder().id(2L).updatedAt(null).build(),
                 Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
-        List<CommentDto> commentDtos = comments.stream()
+        List<CommentResponseDto> commentResponseDtos = comments.stream()
                 .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(c -> CommentDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
+                .map(c -> CommentResponseDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
                 .toList();
         when(postService.getPostById(postId)).thenReturn(post);
         post.setComments(comments);
-        when(commentMapper.toListDto(anyList())).thenReturn(commentDtos);
+        when(commentMapper.toListDto(anyList())).thenReturn(commentResponseDtos);
 
-        List<CommentDto> result = commentService.getAllComments(postId);
+        List<CommentResponseDto> result = commentService.getAllComments(postId);
 
         verify(postValidator, times(1)).validatePostExistsById(postId);
         verify(postService, times(1)).getPostById(postId);
@@ -272,8 +272,8 @@ class CommentServiceTest {
                 .build();
     }
 
-    private CommentDto createCommentTestCommentDto() {
-        return CommentDto.builder()
+    private CommentResponseDto createCommentTestCommentDto() {
+        return CommentResponseDto.builder()
                 .id(1L)
                 .content("Test content")
                 .authorId(1L)
