@@ -1,6 +1,6 @@
 package faang.school.postservice.controller;
 
-//import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.ReturnPostDto;
 import faang.school.postservice.service.post.PostService;
 import jakarta.validation.Valid;
@@ -18,9 +18,9 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-//    public ReturnPostDto create(@RequestBody @Valid PostDto postDto) {
-//        return postService.createPost(postDto);
-//    }
+    public ReturnPostDto create(@RequestBody @Valid PostDto postDto) {
+        return postService.createPost(postDto);
+    }
 
     @PutMapping("/{id}")
     public ReturnPostDto publish(@PathVariable Long id) {
@@ -33,9 +33,9 @@ public class PostController {
     }
 
     @PutMapping
-//    public ReturnPostDto update(@RequestBody PostDto postDto) {
-//        return postService.updatePost(postDto);
-//    }
+    public ReturnPostDto update(@RequestBody PostDto postDto) {
+        return postService.updatePost(postDto);
+    }
 
     @GetMapping("/{id}")
     public ReturnPostDto getPost(@PathVariable Long id) {
