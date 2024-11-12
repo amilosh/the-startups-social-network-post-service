@@ -12,13 +12,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class CommentControllerTest {
+
+    MockMvc mockMvc;
+    ObjectMapper objectMapper;
 
     @Mock
     private CommentService commentService;
@@ -32,16 +42,25 @@ class CommentControllerTest {
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(commentController).build();
+        objectMapper = new ObjectMapper();
         createDto = createTestCreateCommentDto();
         responseDto = createTestCommentDto();
     }
 
     @Test
     @DisplayName("Create comment successfully")
-    void testCreateSuccess() {
+    void testCreateSuccess() throws Exception {
         when(commentService.create(postId, createDto)).thenReturn(responseDto);
 
         ResponseEntity<CommentDto> result = commentController.create(postId, createDto);
+
+        mockMvc.perform(post("/posts/{postId}/comments", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(responseDto.getId()))
+                .andExpect(jsonPath("$.authorId").value(responseDto.getAuthorId()));
 
         assertNotNull(result);
         assertNotNull(result.getBody());
