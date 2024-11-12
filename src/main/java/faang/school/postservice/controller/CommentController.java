@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -35,5 +37,12 @@ public class CommentController {
             @Valid @RequestBody UpdateCommentDto dto) {
         log.info("Request for update of the comment #{} for the post #{}", dto.getId(), postId);
         return commentService.updateComment(postId, dto);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public List<CommentDto> getAllComments(
+            @PathVariable @Positive(message = "Post id should be a positive number") long postId) {
+        log.info("Request for all comments for the post #{}", postId);
+        return commentService.getAllComments(postId);
     }
 }

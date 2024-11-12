@@ -3,6 +3,7 @@ package faang.school.postservice.controller;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
+import faang.school.postservice.model.Comment;
 import faang.school.postservice.service.CommentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,12 +21,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 @ExtendWith(MockitoExtension.class)
 class CommentControllerTest {
@@ -42,15 +44,17 @@ class CommentControllerTest {
     private CreateCommentDto createDto;
     private CommentDto responseDto;
     private UpdateCommentDto updateDto;
+    private Comment comment;
     private Long postId = 1L;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(commentController).build();
         objectMapper = new ObjectMapper();
-        createDto = createTestCreateCommentDto();
-        updateDto = createTestUpdateCommentDto();
-        responseDto = createTestCommentDto();
+        createDto = mockCreateCommentDto();
+        updateDto = mockUpdateCommentDto();
+        responseDto = mockCommentDto();
+        comment = mockComment();
     }
 
     @Test
@@ -109,15 +113,37 @@ class CommentControllerTest {
         assertThrows(EntityNotFoundException.class, () -> commentController.update(postId, updateDto));
     }
 
+    @Test
+    @DisplayName("Get all comments successfully")
+    void testGetAllCommentsSuccess() throws Exception {
+        List<CommentDto> comments = List.of(responseDto, responseDto, responseDto);
+        when(commentService.getAllComments(postId)).thenReturn(comments);
 
-    private CreateCommentDto createTestCreateCommentDto() {
+        mockMvc.perform(get("/posts/{postId}/comments", postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(comments.get(0).getId()))
+                .andExpect(jsonPath("$[2].authorId").value(comments.get(2).getAuthorId()));
+
+        assertNotNull(commentService.getAllComments(postId));
+        assertEquals(3, commentService.getAllComments(postId).size());
+    }
+
+    @Test
+    @DisplayName("Get all comments fail")
+    void testGetAllComments() {
+        when(commentService.getAllComments(postId)).thenThrow(EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class, () -> commentService.getAllComments(postId));
+    }
+
+    private CreateCommentDto mockCreateCommentDto() {
         return CreateCommentDto.builder()
                 .authorId(1L)
                 .content("Test content")
                 .build();
     }
 
-    private UpdateCommentDto createTestUpdateCommentDto() {
+    private UpdateCommentDto mockUpdateCommentDto() {
         return UpdateCommentDto.builder()
                 .id(3L)
                 .authorId(1L)
@@ -125,13 +151,25 @@ class CommentControllerTest {
                 .build();
     }
 
-    private CommentDto createTestCommentDto() {
+    private CommentDto mockCommentDto() {
         return CommentDto.builder()
                 .id(1L)
                 .content("Test content")
                 .authorId(1L)
                 .likeIds(null)
                 .postId(1L)
+                .createdAt(null)
+                .updatedAt(null)
+                .build();
+    }
+
+    private Comment mockComment() {
+        return Comment.builder()
+                .id(1L)
+                .content("Test content")
+                .authorId(1L)
+                .likes(null)
+                .post(null)
                 .createdAt(null)
                 .updatedAt(null)
                 .build();
