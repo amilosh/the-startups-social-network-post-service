@@ -20,22 +20,22 @@ import java.util.Map;
 @RequestMapping("/api/v1/example")
 public class ExampleController {
     @GetMapping("/{id}")
-    @Operation(summary = "Получить пример по ID", description = "Возвращает данные по переданному ID")
+    @Operation(summary = "Getting data by ID", description = "Returns data by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Успешно выполнено"),
-            @ApiResponse(responseCode = "404", description = "Пример не найден")
+            @ApiResponse(responseCode = "200", description = "Successful"),
+            @ApiResponse(responseCode = "404", description = "Not found")
     })
     public ResponseEntity<String> getExampleById(
-            @Parameter(description = "ID примера для поиска") @PathVariable Long id,
-            @Parameter(description = "Дополнительный параметр") @RequestParam(required = false) String param) {
-        return ResponseEntity.ok("Пример с ID: " + id);
+            @Parameter(description = "ID") @PathVariable Long id,
+            @Parameter(description = "Param") @RequestParam(required = false) String param) {
+        return ResponseEntity.ok("Example with ID: " + id);
     }
 
     @PostMapping
-    @Operation(summary = "Создать сущность", description = "Возвращает данные после создания")
+    @Operation(summary = "Creating data", description = "Returns data by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Успешно выполнено"),
-            @ApiResponse(responseCode = "400", description = "Ошибка пользователя")
+            @ApiResponse(responseCode = "200", description = "Successful"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     public ResponseEntity<String> create(@RequestBody Map<String, String> data) {
         return ResponseEntity.status(HttpStatus.CREATED).body("Successful created");

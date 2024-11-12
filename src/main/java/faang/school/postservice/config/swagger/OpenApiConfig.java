@@ -14,7 +14,7 @@ public class OpenApiConfig {
                         new Info()
                                 .title("API Post Service")
                                 .version("1.0")
-                                .description("Документация для API")
+                                .description("API documentation for Post Service")
                                 .summary("This service is working for post service")
                 );
     }
