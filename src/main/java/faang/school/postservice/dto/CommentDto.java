@@ -15,7 +15,7 @@ import java.util.List;
 public class CommentDto {
     private Long id;
     @NotNull
-    @Size(max = 4096, message = "Content must not exceed 4096 characters")
+    @Size(min = 1, max = 4096, message = "Content must not exceed 4096 characters")
     private String content;
     @NotNull
     private Long authorId;
