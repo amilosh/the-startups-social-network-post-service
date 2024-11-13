@@ -1,7 +1,7 @@
 package faang.school.postservice.controller;
 
 import faang.school.postservice.dto.post.CreatePostDto;
-import faang.school.postservice.dto.post.response.PostDto;
+import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,7 +51,7 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<PostDto> create(@Valid @RequestBody CreatePostDto createPostDto) {
+    public ResponseEntity<ResponsePostDto> create(@Valid @RequestBody CreatePostDto createPostDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.create(createPostDto));
     }
 
@@ -72,7 +72,7 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<PostDto> publish(
+    public ResponseEntity<ResponsePostDto> publish(
             @Valid
             @PathVariable
             @Positive(message = "Post id must be positive")
@@ -99,7 +99,7 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<PostDto> update(
+    public ResponseEntity<ResponsePostDto> update(
             @Valid
             @PathVariable
             @NotNull(message = "Post id cannot be null")
@@ -154,7 +154,7 @@ public class PostController {
                 )
             ))
     })
-    public ResponseEntity<PostDto> getPostById(
+    public ResponseEntity<ResponsePostDto> getPostById(
             @PathVariable
             @Valid
             @NotNull(message = "Post id cannot be null")
@@ -180,13 +180,13 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<List<PostDto>> getDraftByUserId(
+    public ResponseEntity<List<ResponsePostDto>> getDraftByUserId(
             @PathVariable
             @Valid
             @NotNull(message = "User id cannot be null")
             @Positive(message = "User id must be positive") Long userId
     ) {
-        return ResponseEntity.ok(postService.getDraftByUserId(userId));
+        return ResponseEntity.ok(postService.getDraftsByUserId(userId));
     }
 
     @GetMapping("/draft/project/{projectId}")
@@ -206,13 +206,13 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<List<PostDto>> getDraftByProjectId(
+    public ResponseEntity<List<ResponsePostDto>> getDraftByProjectId(
             @PathVariable
             @Valid
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long projectId
     ) {
-        return ResponseEntity.ok(postService.getDraftByProjectId(projectId));
+        return ResponseEntity.ok(postService.getDraftsByProjectId(projectId));
     }
 
     @GetMapping("/published/author/{userId}")
@@ -232,7 +232,7 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<List<PostDto>> getPublishedByUserId(
+    public ResponseEntity<List<ResponsePostDto>> getPublishedByUserId(
             @Valid
             @PathVariable
             @NotNull(message = "User id cannot be null")
@@ -259,7 +259,7 @@ public class PostController {
                     )
             ))
     })
-    public ResponseEntity<List<PostDto>> getPublishedByProjectId(
+    public ResponseEntity<List<ResponsePostDto>> getPublishedByProjectId(
             @Valid
             @PathVariable
             @NotNull(message = "Project id cannot be null")

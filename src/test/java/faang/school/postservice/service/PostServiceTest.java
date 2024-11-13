@@ -2,13 +2,12 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
-import faang.school.postservice.dto.post.response.PostDto;
+import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.PostValidator;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -47,8 +46,8 @@ class PostServiceTest {
     Post firstPost = new Post();
     Post secondPost = new Post();
 
-    PostDto firstPostDto = new PostDto();
-    PostDto secondPostDto = new PostDto();
+    ResponsePostDto firstResponsePostDto = new ResponsePostDto();
+    ResponsePostDto secondResponsePostDto = new ResponsePostDto();
 
     @Test
     void createShouldCreatePostSuccessfully() {
@@ -65,9 +64,9 @@ class PostServiceTest {
         postEntity.setPublished(false);
         postEntity.setDeleted(false);
 
-        PostDto postDto = new PostDto();
-        postDto.setId(1L);
-        postDto.setContent(createPostDto.getContent());
+        ResponsePostDto responsePostDto = new ResponsePostDto();
+        responsePostDto.setId(1L);
+        responsePostDto.setContent(createPostDto.getContent());
 
         doNothing().when(postValidator).validateContent(createPostDto.getContent());
         doNothing().when(postValidator).validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
@@ -75,13 +74,13 @@ class PostServiceTest {
         doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId());
         when(postMapper.toEntity(createPostDto)).thenReturn(postEntity);
         when(postRepository.save(postEntity)).thenReturn(postEntity);
-        when(postMapper.toDto(postEntity)).thenReturn(postDto);
+        when(postMapper.toDto(postEntity)).thenReturn(responsePostDto);
 
-        PostDto result = postService.create(createPostDto);
+        ResponsePostDto result = postService.create(createPostDto);
 
         assertNotNull(result);
-        assertEquals(postDto.getId(), result.getId());
-        assertEquals(postDto.getContent(), result.getContent());
+        assertEquals(responsePostDto.getId(), result.getId());
+        assertEquals(responsePostDto.getContent(), result.getContent());
         assertFalse(postEntity.isPublished());
         assertFalse(postEntity.isDeleted());
 
@@ -109,13 +108,13 @@ class PostServiceTest {
         post.setId(postId);
         post.setPublished(false);
 
-        PostDto expectedDto = new PostDto();
+        ResponsePostDto expectedDto = new ResponsePostDto();
         expectedDto.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(postMapper.toDto(any(Post.class))).thenReturn(expectedDto);
 
-        PostDto result = postService.publish(postId);
+        ResponsePostDto result = postService.publish(postId);
 
         verify(postValidator, times(1)).validateExistingPostId(postId);
         verify(postValidator, times(1)).validatePostIdOnPublished(postId);
@@ -138,13 +137,13 @@ class PostServiceTest {
         post.setId(postId);
         post.setContent("Old content");
 
-        PostDto expectedDto = new PostDto();
+        ResponsePostDto expectedDto = new ResponsePostDto();
         expectedDto.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(postMapper.toDto(any(Post.class))).thenReturn(expectedDto);
 
-        PostDto result = postService.update(postId, updatePostDto);
+        ResponsePostDto result = postService.update(postId, updatePostDto);
 
         verify(postValidator, times(1)).validateExistingPostId(postId);
         verify(postValidator, times(1)).validateContent(newContent);
@@ -181,62 +180,62 @@ class PostServiceTest {
         Post post = new Post();
         post.setId(postId);
 
-        PostDto postDto = new PostDto();
-        postDto.setId(postId);
+        ResponsePostDto responsePostDto = new ResponsePostDto();
+        responsePostDto.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-        when(postMapper.toDto(post)).thenReturn(postDto);
+        when(postMapper.toDto(post)).thenReturn(responsePostDto);
 
-        PostDto result = postService.getById(postId);
+        ResponsePostDto result = postService.getById(postId);
 
         verify(postValidator, times(1)).validateExistingPostId(postId);
         verify(postValidator, times(1)).validatePostIdOnRemoved(postId);
         verify(postRepository, times(1)).findById(postId);
         verify(postMapper, times(1)).toDto(post);
 
-        assertEquals(postDto, result);
+        assertEquals(responsePostDto, result);
     }
 
     @Test
-    void getDraftByUserIdShouldValidateAndReturnDraftPosts() {
+    void getDraftByUserIdShouldValidateAndReturnDraftsPosts() {
         when(postRepository.findReadyToPublishByAuthor(userId)).thenReturn(List.of(firstPost, secondPost));
-        when(postMapper.toDto(firstPost)).thenReturn(firstPostDto);
-        when(postMapper.toDto(secondPost)).thenReturn(secondPostDto);
+        when(postMapper.toDto(firstPost)).thenReturn(firstResponsePostDto);
+        when(postMapper.toDto(secondPost)).thenReturn(secondResponsePostDto);
 
-        List<PostDto> result = postService.getDraftByUserId(userId);
+        List<ResponsePostDto> result = postService.getDraftsByUserId(userId);
 
         verify(postValidator, times(1)).validateAuthorId(userId);
         verify(postRepository, times(1)).findReadyToPublishByAuthor(userId);
 
-        assertEquals(List.of(firstPostDto, secondPostDto), result);
+        assertEquals(List.of(firstResponsePostDto, secondResponsePostDto), result);
     }
 
     @Test
-    void getDraftByProjectIdShouldValidateAndReturnDraftPosts() {
+    void getDraftByProjectIdShouldValidateAndReturnDraftsPosts() {
         when(postRepository.findReadyToPublishByProject(userId)).thenReturn(List.of(firstPost, secondPost));
-        when(postMapper.toDto(firstPost)).thenReturn(firstPostDto);
-        when(postMapper.toDto(secondPost)).thenReturn(secondPostDto);
+        when(postMapper.toDto(firstPost)).thenReturn(firstResponsePostDto);
+        when(postMapper.toDto(secondPost)).thenReturn(secondResponsePostDto);
 
-        List<PostDto> result = postService.getDraftByProjectId(userId);
+        List<ResponsePostDto> result = postService.getDraftsByProjectId(userId);
 
         verify(postValidator, times(1)).validateAuthorId(userId);
         verify(postRepository, times(1)).findReadyToPublishByProject(userId);
 
-        assertEquals(List.of(firstPostDto, secondPostDto), result);
+        assertEquals(List.of(firstResponsePostDto, secondResponsePostDto), result);
     }
 
     @Test
     void getPublishedByUserIdShouldValidateAndReturnPublishedPosts() {
         when(postRepository.findPublishedByAuthor(userId)).thenReturn(List.of(firstPost, secondPost));
-        when(postMapper.toDto(firstPost)).thenReturn(firstPostDto);
-        when(postMapper.toDto(secondPost)).thenReturn(secondPostDto);
+        when(postMapper.toDto(firstPost)).thenReturn(firstResponsePostDto);
+        when(postMapper.toDto(secondPost)).thenReturn(secondResponsePostDto);
 
-        List<PostDto> result = postService.getPublishedByUserId(userId);
+        List<ResponsePostDto> result = postService.getPublishedByUserId(userId);
 
         verify(postValidator, times(1)).validateAuthorId(userId);
         verify(postRepository, times(1)).findPublishedByAuthor(userId);
 
-        assertEquals(List.of(firstPostDto, secondPostDto), result);
+        assertEquals(List.of(firstResponsePostDto, secondResponsePostDto), result);
     }
 
     @Test
@@ -244,14 +243,14 @@ class PostServiceTest {
         Long projectId = 1L;
 
         when(postRepository.findPublishedByProject(projectId)).thenReturn(List.of(firstPost, secondPost));
-        when(postMapper.toDto(firstPost)).thenReturn(firstPostDto);
-        when(postMapper.toDto(secondPost)).thenReturn(secondPostDto);
+        when(postMapper.toDto(firstPost)).thenReturn(firstResponsePostDto);
+        when(postMapper.toDto(secondPost)).thenReturn(secondResponsePostDto);
 
-        List<PostDto> result = postService.getPublishedByProjectId(projectId);
+        List<ResponsePostDto> result = postService.getPublishedByProjectId(projectId);
 
         verify(postValidator, times(1)).validateProjectId(projectId);
         verify(postRepository, times(1)).findPublishedByProject(projectId);
 
-        assertEquals(List.of(firstPostDto, secondPostDto), result);
+        assertEquals(List.of(firstResponsePostDto, secondResponsePostDto), result);
     }
 }

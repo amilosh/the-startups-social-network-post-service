@@ -2,7 +2,7 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
-import faang.school.postservice.dto.post.response.PostDto;
+import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,10 +48,10 @@ class PostControllerTest {
         createPostDto.setAuthorId(1L);
         createPostDto.setProjectId(1L);
 
-        PostDto postDto = new PostDto();
-        postDto.setContent("Test content");
+        ResponsePostDto responsePostDto = new ResponsePostDto();
+        responsePostDto.setContent("Test content");
 
-        when(postService.create(any(CreatePostDto.class))).thenReturn(postDto);
+        when(postService.create(any(CreatePostDto.class))).thenReturn(responsePostDto);
 
         mockMvc.perform(post("/posts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -65,11 +65,11 @@ class PostControllerTest {
     @Test
     void publishPostShouldReturnPublishedPost() throws Exception {
         Long postId = 1L;
-        PostDto postDto = new PostDto();
-        postDto.setContent("Test content");
-        postDto.setPublished(true);
+        ResponsePostDto responsePostDto = new ResponsePostDto();
+        responsePostDto.setContent("Test content");
+        responsePostDto.setPublished(true);
 
-        when(postService.publish(postId)).thenReturn(postDto);
+        when(postService.publish(postId)).thenReturn(responsePostDto);
 
         mockMvc.perform(put("/posts/{postId}/publish", postId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -85,10 +85,10 @@ class PostControllerTest {
         Long postId = 1L;
         UpdatePostDto updatePostDto = new UpdatePostDto();
         updatePostDto.setContent("Updated content");
-        PostDto postDto = new PostDto();
-        postDto.setContent("Updated content");
+        ResponsePostDto responsePostDto = new ResponsePostDto();
+        responsePostDto.setContent("Updated content");
 
-        when(postService.update(postId, updatePostDto)).thenReturn(postDto);
+        when(postService.update(postId, updatePostDto)).thenReturn(responsePostDto);
 
         mockMvc.perform(put("/posts/{postId}", postId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,11 +115,11 @@ class PostControllerTest {
     @Test
     void getPostByIdShouldReturnPostDto() throws Exception {
         Long postId = 1L;
-        PostDto postDto = new PostDto();
-        postDto.setId(postId);
-        postDto.setContent("Post content");
+        ResponsePostDto responsePostDto = new ResponsePostDto();
+        responsePostDto.setId(postId);
+        responsePostDto.setContent("Post content");
 
-        when(postService.getById(postId)).thenReturn(postDto);
+        when(postService.getById(postId)).thenReturn(responsePostDto);
 
         mockMvc.perform(get("/posts/{postId}", postId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -133,17 +133,17 @@ class PostControllerTest {
     @Test
     void getDraftByUserIdShouldReturnPostDtos() throws Exception {
         Long userId = 1L;
-        PostDto postDto1 = new PostDto();
-        postDto1.setId(1L);
-        postDto1.setContent("Draft content 1");
+        ResponsePostDto responsePostDto1 = new ResponsePostDto();
+        responsePostDto1.setId(1L);
+        responsePostDto1.setContent("Draft content 1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setId(2L);
-        postDto2.setContent("Draft content 2");
+        ResponsePostDto responsePostDto2 = new ResponsePostDto();
+        responsePostDto2.setId(2L);
+        responsePostDto2.setContent("Draft content 2");
 
-        List<PostDto> postDtos = Arrays.asList(postDto1, postDto2);
+        List<ResponsePostDto> responsePostDtos = Arrays.asList(responsePostDto1, responsePostDto2);
 
-        when(postService.getDraftByUserId(userId)).thenReturn(postDtos);
+        when(postService.getDraftsByUserId(userId)).thenReturn(responsePostDtos);
 
         mockMvc.perform(get("/posts/draft/author/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -153,23 +153,23 @@ class PostControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].content").value("Draft content 2"));
 
-        verify(postService, times(1)).getDraftByUserId(userId);
+        verify(postService, times(1)).getDraftsByUserId(userId);
     }
 
     @Test
     void getDraftByProjectIdShouldReturnPostDtos() throws Exception {
         Long projectId = 1L;
-        PostDto postDto1 = new PostDto();
-        postDto1.setId(1L);
-        postDto1.setContent("Draft content 1");
+        ResponsePostDto responsePostDto1 = new ResponsePostDto();
+        responsePostDto1.setId(1L);
+        responsePostDto1.setContent("Draft content 1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setId(2L);
-        postDto2.setContent("Draft content 2");
+        ResponsePostDto responsePostDto2 = new ResponsePostDto();
+        responsePostDto2.setId(2L);
+        responsePostDto2.setContent("Draft content 2");
 
-        List<PostDto> postDtos = Arrays.asList(postDto1, postDto2);
+        List<ResponsePostDto> responsePostDtos = Arrays.asList(responsePostDto1, responsePostDto2);
 
-        when(postService.getDraftByProjectId(projectId)).thenReturn(postDtos);
+        when(postService.getDraftsByProjectId(projectId)).thenReturn(responsePostDtos);
 
         mockMvc.perform(get("/posts/draft/project/{projectId}", projectId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -179,23 +179,23 @@ class PostControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].content").value("Draft content 2"));
 
-        verify(postService, times(1)).getDraftByProjectId(projectId);
+        verify(postService, times(1)).getDraftsByProjectId(projectId);
     }
 
     @Test
     void getPublishedByUserIdShouldReturnPostDtos() throws Exception {
         Long userId = 1L;
-        PostDto postDto1 = new PostDto();
-        postDto1.setId(1L);
-        postDto1.setContent("Published content 1");
+        ResponsePostDto responsePostDto1 = new ResponsePostDto();
+        responsePostDto1.setId(1L);
+        responsePostDto1.setContent("Published content 1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setId(2L);
-        postDto2.setContent("Published content 2");
+        ResponsePostDto responsePostDto2 = new ResponsePostDto();
+        responsePostDto2.setId(2L);
+        responsePostDto2.setContent("Published content 2");
 
-        List<PostDto> postDtos = Arrays.asList(postDto1, postDto2);
+        List<ResponsePostDto> responsePostDtos = Arrays.asList(responsePostDto1, responsePostDto2);
 
-        when(postService.getPublishedByUserId(userId)).thenReturn(postDtos);
+        when(postService.getPublishedByUserId(userId)).thenReturn(responsePostDtos);
 
         mockMvc.perform(get("/posts/published/author/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -211,17 +211,17 @@ class PostControllerTest {
     @Test
     void getPublishedByProjectIdShouldReturnPostDtos() throws Exception {
         Long projectId = 1L;
-        PostDto postDto1 = new PostDto();
-        postDto1.setId(1L);
-        postDto1.setContent("Published content 1");
+        ResponsePostDto responsePostDto1 = new ResponsePostDto();
+        responsePostDto1.setId(1L);
+        responsePostDto1.setContent("Published content 1");
 
-        PostDto postDto2 = new PostDto();
-        postDto2.setId(2L);
-        postDto2.setContent("Published content 2");
+        ResponsePostDto responsePostDto2 = new ResponsePostDto();
+        responsePostDto2.setId(2L);
+        responsePostDto2.setContent("Published content 2");
 
-        List<PostDto> postDtos = Arrays.asList(postDto1, postDto2);
+        List<ResponsePostDto> responsePostDtos = Arrays.asList(responsePostDto1, responsePostDto2);
 
-        when(postService.getPublishedByProjectId(projectId)).thenReturn(postDtos);
+        when(postService.getPublishedByProjectId(projectId)).thenReturn(responsePostDtos);
 
         mockMvc.perform(get("/posts/published/project/{projectId}", projectId)
                         .contentType(MediaType.APPLICATION_JSON))

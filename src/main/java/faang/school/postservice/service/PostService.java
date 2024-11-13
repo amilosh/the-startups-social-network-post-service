@@ -1,7 +1,7 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.dto.post.CreatePostDto;
-import faang.school.postservice.dto.post.response.PostDto;
+import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
@@ -20,7 +20,7 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostValidator postValidator;
 
-    public PostDto create(CreatePostDto createPostDto) {
+    public ResponsePostDto create(CreatePostDto createPostDto) {
         postValidator.validateContent(createPostDto.getContent());
         postValidator.validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         postValidator.validateAuthorId(createPostDto.getAuthorId());
@@ -33,18 +33,15 @@ public class PostService {
         Post entity = postMapper.toEntity(createPostDto);
 
         entity.setCreatedAt(LocalDateTime.now());
-        entity.setScheduledAt(LocalDateTime.now());
         entity.setPublished(false);
         entity.setDeleted(false);
-        entity.setUpdatedAt(null);
-        entity.setId(0);
 
         postRepository.save(entity);
 
         return postMapper.toDto(entity);
     }
 
-    public PostDto publish(Long postId) {
+    public ResponsePostDto publish(Long postId) {
         postValidator.validateExistingPostId(postId);
         postValidator.validatePostIdOnPublished(postId);
 
@@ -59,7 +56,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public PostDto update(Long postId, UpdatePostDto updatePostDto) {
+    public ResponsePostDto update(Long postId, UpdatePostDto updatePostDto) {
         postValidator.validateExistingPostId(postId);
         postValidator.validateContent(updatePostDto.getContent());
 
@@ -84,32 +81,32 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public PostDto getById(Long postId) {
+    public ResponsePostDto getById(Long postId) {
         postValidator.validateExistingPostId(postId);
         postValidator.validatePostIdOnRemoved(postId);
 
         return postMapper.toDto(postRepository.findById(postId).get());
     }
 
-    public List<PostDto> getDraftByUserId(Long userId) {
+    public List<ResponsePostDto> getDraftsByUserId(Long userId) {
         postValidator.validateAuthorId(userId);
 
         return postRepository.findReadyToPublishByAuthor(userId).stream().map(postMapper::toDto).toList();
     }
 
-    public List<PostDto> getDraftByProjectId(Long userId) {
+    public List<ResponsePostDto> getDraftsByProjectId(Long userId) {
         postValidator.validateAuthorId(userId);
 
         return postRepository.findReadyToPublishByProject(userId).stream().map(postMapper::toDto).toList();
     }
 
-    public List<PostDto> getPublishedByUserId(Long userId) {
+    public List<ResponsePostDto> getPublishedByUserId(Long userId) {
         postValidator.validateAuthorId(userId);
 
         return postRepository.findPublishedByAuthor(userId).stream().map(postMapper::toDto).toList();
     }
 
-    public List<PostDto> getPublishedByProjectId(Long projectId) {
+    public List<ResponsePostDto> getPublishedByProjectId(Long projectId) {
         postValidator.validateProjectId(projectId);
 
         return postRepository.findPublishedByProject(projectId).stream().map(postMapper::toDto).toList();

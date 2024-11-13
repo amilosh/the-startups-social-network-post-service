@@ -1,6 +1,5 @@
 package faang.school.postservice.exception;
 
-
 import feign.FeignException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -60,6 +59,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
         log.error("Entity not found exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(EntityWasRemovedException.class)
+    public ResponseEntity<String> handleEntityWasRemovedException(EntityWasRemovedException ex) {
+        log.error("Entity was removed exception: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 

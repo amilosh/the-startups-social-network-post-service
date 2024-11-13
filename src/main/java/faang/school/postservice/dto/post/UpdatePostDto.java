@@ -12,8 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdatePostDto {
-    @NotNull(message = "Post content cannot be null")
     @NotBlank(message = "Post content cannot be blank")
-    @Size(min = 1, max = 4096, message = "Post content must be between 1 and 4096 characters")
+    @Size(max = 4096, message = "Post content must be between 1 and 4096 characters")
     private String content;
 }
