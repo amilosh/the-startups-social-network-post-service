@@ -151,4 +151,8 @@ public class PostServiceImpl implements PostService {
             projectServiceClient.getProject(postDto.getProjectId());
         }
     }
+
+    public Post findPost(Long id) {
+        return postRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+    }
 }
