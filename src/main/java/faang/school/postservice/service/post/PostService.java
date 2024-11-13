@@ -1,18 +1,18 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.model.Post;
+import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostService {
     private final PostRepository postRepository;
 
-    public Optional<Post> getPostById(Long id){
-        return postRepository.findById(id);
+    public PostDto getPostById(Long postId) {
+        return new PostDto();
     }
 }
