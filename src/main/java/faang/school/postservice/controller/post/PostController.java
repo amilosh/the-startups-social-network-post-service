@@ -3,6 +3,7 @@ package faang.school.postservice.controller.post;
 import faang.school.postservice.dto.filter.FilterDto;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.service.post.PostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequestMapping("/Posts")
 public class PostController {
     private final PostService postService;
+
     @PostMapping()
     public PostDto createPost(@RequestBody PostDto postDto) {
         return postService.createPost(postDto);
@@ -47,21 +49,22 @@ public class PostController {
     }
 
     @PostMapping("/authors/unposted/{id}")
-    public List<PostDto> getAuthorUnpostedPosts(@PathVariable("id") long authorId, @RequestBody FilterDto filterDto) {
+    public List<PostDto> getAuthorUnpostedPosts(@PathVariable("id") long authorId, @Valid @RequestBody FilterDto filterDto) {
         return postService.getPostsById(authorId, filterDto);
     }
 
     @PostMapping("/projects/unposted/{id}")
-    public List<PostDto> getProjectUnpostedPosts(@PathVariable("id") long projectId, @RequestBody FilterDto filterDto) {
+    public List<PostDto> getProjectUnpostedPosts(@PathVariable("id") long projectId, @Valid @RequestBody FilterDto filterDto) {
         return postService.getPostsById(projectId, filterDto);
     }
+
     @PostMapping("/authors/posted/{id}")
-    public List<PostDto> getAuthorPostedPosts(@PathVariable("id") long authorId,  @RequestBody FilterDto filterDto) {
+    public List<PostDto> getAuthorPostedPosts(@PathVariable("id") long authorId, @Valid @RequestBody FilterDto filterDto) {
         return postService.getPostsById(authorId, filterDto);
     }
 
     @PostMapping("/projects/posted/{id}")
-    public List<PostDto> getProjectPostedPosts(@PathVariable("id") long projectId,  @RequestBody FilterDto filterDto) {
+    public List<PostDto> getProjectPostedPosts(@PathVariable("id") long projectId, @Valid @RequestBody FilterDto filterDto) {
         return postService.getPostsById(projectId, filterDto);
     }
 
