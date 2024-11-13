@@ -21,6 +21,8 @@ public interface PostMapper {
     @Mapping(source = "resources", target = "resourcesIds", qualifiedByName = "toLong")
     PostDto toDto(Post post);
 
+    List<PostDto> toDto(List<Post> posts);
+
     @Named("toLong")
     default List<Long> toLong(List<Resource> resources) {
         List<Long> resourcesIds = new ArrayList<>();
