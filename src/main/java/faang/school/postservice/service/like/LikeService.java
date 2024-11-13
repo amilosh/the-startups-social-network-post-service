@@ -37,7 +37,7 @@ public class LikeService {
         List<Like> likesOfPost = likeRepository.findByPostId(likeDto.getPostId());
         likeValidator.validateUserAddOnlyOneLikeToPost(likesOfPost, likeDto.getUserId());
 
-        Like likeToCheckComment = getLikeOrNull(likeDto.getId());
+        Like likeToCheckComment = getLikeOrEmptyLike(likeDto.getId());
         likeValidator.validateLikeWasNotPutToComment(likeDto, likeToCheckComment);
 
         Post postOfLike = postService.getPostEntity(likeDto.getPostId());
@@ -53,12 +53,12 @@ public class LikeService {
 
     public void addLikeToComment(LikeDto likeDto) {
         validateUserExistence(likeDto.getUserId());
-        likeValidator.validateLikeHasTarget(likeDto.getPostId(), likeDto.getCommentId());
+        likeValidator.validateLikeHasTarget(likeDto.getCommentId(), likeDto.getPostId());
 
         List<Like> likesOfComment = likeRepository.findByCommentId(likeDto.getCommentId());
         likeValidator.validateUserAddOnlyOneLikeToComment(likesOfComment, likeDto.getUserId());
 
-        Like likeToCheckPost = getLikeOrNull(likeDto.getId());
+        Like likeToCheckPost = getLikeOrEmptyLike(likeDto.getId());
         likeValidator.validateLikeWasNotPutToPost(likeDto, likeToCheckPost);
 
         Comment commentOfLike = commentService.getEntityComment(likeDto.getCommentId());
@@ -96,7 +96,7 @@ public class LikeService {
         userServiceClient.getUser(id);
     }
 
-    private Like getLikeOrNull(Long likeId) {
+    private Like getLikeOrEmptyLike(Long likeId) {
         return likeRepository.findById(likeId).orElse(new Like());
     }
 

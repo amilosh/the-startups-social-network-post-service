@@ -15,11 +15,11 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
 
-    public Comment getEntityComment(long commentId) {
+    public Comment getEntityComment(Long commentId) {
         return getComment(commentId);
     }
 
-    public void addLikeToComment(long commentId, Like like) {
+    public void addLikeToComment(Long commentId, Like like) {
         Comment comment = getComment(commentId);
         comment.getLikes().add(like);
 
@@ -27,7 +27,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    public void removeLikeFromComment(long commentId, Like like) {
+    public void removeLikeFromComment(Long commentId, Like like) {
         Comment comment = getComment(commentId);
         comment.getLikes().remove(like);
 
@@ -35,7 +35,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    private Comment getComment(long commentId) {
+    private Comment getComment(Long commentId) {
         log.info("Try to get comment by id: {}", commentId);
 
         return commentRepository.findById(commentId).orElseThrow(()

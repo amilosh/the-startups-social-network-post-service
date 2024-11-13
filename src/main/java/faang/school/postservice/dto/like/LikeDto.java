@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NotNull(message = "Like can't be empty")
 @Builder
 @Getter
 @Setter
