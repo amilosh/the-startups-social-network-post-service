@@ -1,7 +1,6 @@
 package faang.school.postservice.dto.like;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +16,7 @@ import lombok.Setter;
 public class LikeDto {
     private Long id;
 
-    @Positive
+    @NotNull(message = "Like must have an author")
     private Long userId;
     private Long commentId;
     private Long postId;

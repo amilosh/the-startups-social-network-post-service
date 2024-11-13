@@ -54,8 +54,10 @@ public class LikeService {
     public void addLikeToComment(LikeDto likeDto) {
         validateUserExistence(likeDto.getUserId());
         likeValidator.validateLikeHasTarget(likeDto.getPostId(), likeDto.getCommentId());
+
         List<Like> likesOfComment = likeRepository.findByCommentId(likeDto.getCommentId());
         likeValidator.validateUserAddOnlyOneLikeToComment(likesOfComment, likeDto.getUserId());
+
         Like likeToCheckPost = getLikeOrNull(likeDto.getId());
         likeValidator.validateLikeWasNotPutToPost(likeDto, likeToCheckPost);
 

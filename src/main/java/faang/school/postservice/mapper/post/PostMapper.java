@@ -1,4 +1,4 @@
-package faang.school.postservice.mapper;
+package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.model.Like;
@@ -10,12 +10,11 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PostMapper {
 
-    @Mapping(source = "likes", target = "likesIds", qualifiedByName = "mapLikesToIds")
+    @Mapping(source = "likes", target = "likesCount", qualifiedByName = "mapLikesCount")
     PostDto toDto(Post post);
 
     Post toEntity(PostDto postDto);
@@ -24,10 +23,8 @@ public interface PostMapper {
 
     void update(PostDto postDto, @MappingTarget Post post);
 
-    @Named("mapLikesToIds")
-    default List<Long> mapLikesToIds(List<Like> likes) {
-        return likes == null ? List.of() : likes.stream()
-                .map(Like::getId)
-                .collect(Collectors.toList());
+    @Named("mapLikesCount")
+    default int mapLikesCount(List<Like> likes) {
+        return likes == null ? 0 : likes.size();
     }
 }
