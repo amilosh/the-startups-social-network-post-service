@@ -1,0 +1,18 @@
+package faang.school.postservice.dto.like;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+
+@Builder
+public record LikePostDto(
+        @NotNull(groups = {After.class})
+        Long id,
+        @NotNull(groups = {Before.class})
+        Long userId,
+        @NotNull(groups = {Before.class})
+        Long postId,
+        Long numberOfLikes
+) {
+    public interface After {}
+    public interface Before {}
+}
