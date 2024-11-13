@@ -1,6 +1,15 @@
 package faang.school.postservice.dto.payment;
 
-public class PaymentResponse {
+import java.math.BigDecimal;
+import java.util.Currency;
 
-    //класс заглушка
+public record PaymentResponse(
+        PaymentStatus status,
+        int verificationCode,
+        long paymentNumber,
+        BigDecimal amount,
+        Currency currency,
+        String message
+) {
 }
+

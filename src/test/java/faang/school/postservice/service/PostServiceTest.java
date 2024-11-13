@@ -11,7 +11,7 @@ import faang.school.postservice.mapper.PostMapperImpl;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.post.PostServiceImpl;
+import faang.school.postservice.service.post.PostService;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-class PostServiceImplTest {
+class PostServiceTest {
     @Mock
     private PostRepository postRepository;
 
@@ -46,7 +46,7 @@ class PostServiceImplTest {
     private PostMapperImpl postMapper;
 
     @InjectMocks
-    private PostServiceImpl postService;
+    private PostService postService;
 
     private Post post;
     private PostDto postDto;
