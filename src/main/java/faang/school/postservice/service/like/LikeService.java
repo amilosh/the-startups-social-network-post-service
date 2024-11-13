@@ -97,7 +97,7 @@ public class LikeService {
     }
 
     private Like getLikeOrNull(Long likeId) {
-        return likeRepository.findById(likeId).orElse(null);
+        return likeRepository.findById(likeId).orElse(new Like());
     }
 
     private Like getLike(long likeId) {

@@ -1,7 +1,7 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.exception.PostException;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
@@ -55,14 +55,15 @@ public class PostService {
 
     public void removeLikeFromPost(long postId, Like like) {
         Post post = getPost(postId);
-        post.getLikes().add(like);
+        post.getLikes().remove(like);
 
         log.info("Removing like from post with id {}", postId);
+        postRepository.save(post);
     }
 
     private Post getPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostException("Post with id " + postId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Post with id " + postId + " not found"));
 
         log.info("Get post with id {}", postId);
         return post;
