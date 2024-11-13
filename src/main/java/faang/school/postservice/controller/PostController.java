@@ -1,14 +1,18 @@
 package faang.school.postservice.controller;
 
+import faang.school.postservice.docs.post.CreatePostDoc;
+import faang.school.postservice.docs.post.DeletePostDoc;
+import faang.school.postservice.docs.post.GetDraftPostByAuthorDoc;
+import faang.school.postservice.docs.post.GetDraftPostByProjectDoc;
+import faang.school.postservice.docs.post.GetPostDoc;
+import faang.school.postservice.docs.post.GetPublishedPostByAuthorDoc;
+import faang.school.postservice.docs.post.GetPublishedPostByProjectDoc;
+import faang.school.postservice.docs.post.PublishPostDoc;
+import faang.school.postservice.docs.post.UpdatePostDoc;
 import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.service.PostService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -35,43 +39,13 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    @Operation(summary = "Create post", description = "Returns created post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post author id must be the same as user id"
-                    ))
-            ),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "User or project not found"
-                    )
-            ))
-    })
+    @CreatePostDoc
     public ResponseEntity<ResponsePostDto> create(@Valid @RequestBody CreatePostDto createPostDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.create(createPostDto));
     }
 
     @PutMapping("{postId}/publish")
-    @Operation(summary = "Publish post", description = "Returns published post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post is not ready to publish"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post not found"
-                    )
-            ))
-    })
+    @PublishPostDoc
     public ResponseEntity<ResponsePostDto> publish(
             @Valid
             @PathVariable
@@ -83,22 +57,7 @@ public class PostController {
     }
 
     @PutMapping("/{postId}")
-    @Operation(summary = "Update post", description = "Returns updated post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post author id must be the same as user id"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "User or project not found"
-                    )
-            ))
-    })
+    @UpdatePostDoc
     public ResponseEntity<ResponsePostDto> update(
             @Valid
             @PathVariable
@@ -111,22 +70,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    @Operation(summary = "Delete post", description = "Returns deleted post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post is not ready to delete"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post not found"
-                    )
-            ))
-    })
+    @DeletePostDoc
     public ResponseEntity<Void> delete(
             @PathVariable
             @Valid
@@ -138,22 +82,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    @Operation(summary = "Get post", description = "Returns post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Post not found"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                mediaType = "text/plain",
-                examples = @ExampleObject(
-                        value = "Post not found"
-                )
-            ))
-    })
+    @GetPostDoc
     public ResponseEntity<ResponsePostDto> getPostById(
             @PathVariable
             @Valid
@@ -164,22 +93,7 @@ public class PostController {
     }
 
     @GetMapping("/draft/author/{userId}")
-    @Operation(summary = "Get drafts by user id", description = "Returns drafts")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "User not found"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "User not found"
-                    )
-            ))
-    })
+    @GetDraftPostByAuthorDoc
     public ResponseEntity<List<ResponsePostDto>> getDraftByUserId(
             @PathVariable
             @Valid
@@ -190,22 +104,7 @@ public class PostController {
     }
 
     @GetMapping("/draft/project/{projectId}")
-    @Operation(summary = "Get drafts by project id", description = "Returns deleted post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Project not found"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Project not found"
-                    )
-            ))
-    })
+    @GetDraftPostByProjectDoc
     public ResponseEntity<List<ResponsePostDto>> getDraftByProjectId(
             @PathVariable
             @Valid
@@ -216,22 +115,7 @@ public class PostController {
     }
 
     @GetMapping("/published/author/{userId}")
-    @Operation(summary = "Get published by user id", description = "Returns published post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "User not found"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "User not found"
-                    )
-            ))
-    })
+    @GetPublishedPostByAuthorDoc
     public ResponseEntity<List<ResponsePostDto>> getPublishedByUserId(
             @Valid
             @PathVariable
@@ -243,22 +127,7 @@ public class PostController {
     }
 
     @GetMapping("/published/project/{projectId}")
-    @Operation(summary = "Get published by project id", description = "Returns published post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Project not found"
-                    )
-            )),
-            @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                    mediaType = "text/plain",
-                    examples = @ExampleObject(
-                            value = "Project not found"
-                    )
-            ))
-    })
+    @GetPublishedPostByProjectDoc
     public ResponseEntity<List<ResponsePostDto>> getPublishedByProjectId(
             @Valid
             @PathVariable
