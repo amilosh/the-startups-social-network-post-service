@@ -68,7 +68,7 @@ public class PostValidatorTest {
         postDto.setProjectId(2L);
         when(projectServiceClient.getProject(2L)).thenReturn(new ProjectDto());
 
-        postValidator.checkCreator(postDto);
+        assertDoesNotThrow(() -> postValidator.checkCreator(postDto));
 
         verify(projectServiceClient, times(1)).getProject(2L);
     }
@@ -82,6 +82,19 @@ public class PostValidatorTest {
         Post post = new Post();
         post.setAuthorId(2L);
         post.setProjectId(null);
+
+        assertThrows(PostException.class, () -> postValidator.checkUpdatePost(post, postDto));
+    }
+
+    @Test
+    public void checkUpdatePostWithChangeProjectTest() {
+        PostDto postDto = new PostDto();
+        postDto.setAuthorId(null);
+        postDto.setProjectId(1L);
+
+        Post post = new Post();
+        post.setAuthorId(null);
+        post.setProjectId(2L);
 
         assertThrows(PostException.class, () -> postValidator.checkUpdatePost(post, postDto));
     }

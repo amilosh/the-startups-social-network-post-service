@@ -4,6 +4,7 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.service.post.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public PostDto createPost(@Valid @RequestBody PostDto postDto) {
         return postService.createPost(postDto);
     }
@@ -40,22 +42,22 @@ public class PostController {
         return postService.getPostById(postId);
     }
 
-    @GetMapping("/user_drafts/{userId}")
+    @GetMapping("/user-drafts/{userId}")
     public List<PostDto> getAllNoPublishPostByUserId(@PathVariable Long userId) {
         return postService.getAllNoPublishPostByUserId(userId);
     }
 
-    @GetMapping("/project_drafts/{projectId}")
+    @GetMapping("/project-drafts/{projectId}")
     public List<PostDto> getAllNoPublishPostByProjectId(@PathVariable Long projectId) {
         return postService.getAllNoPublishPostByProjectId(projectId);
     }
 
-    @GetMapping("/user_posts/{userId}")
+    @GetMapping("/user-posts/{userId}")
     public List<PostDto> getAllPostByUserId(@PathVariable Long userId) {
         return postService.getAllPostByUserId(userId);
     }
 
-    @GetMapping("/project_posts/{projectId}")
+    @GetMapping("/project-posts/{projectId}")
     public List<PostDto> getAllPostByProjectId(@PathVariable Long projectId) {
         return postService.getAllPostByProjectId(projectId);
     }
