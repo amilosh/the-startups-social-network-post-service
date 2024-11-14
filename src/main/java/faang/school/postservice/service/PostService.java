@@ -54,7 +54,10 @@ public class PostService {
 
         Post publishedPost = postRepository.save(post);
         log.info("Post with ID: {} was published", postId);
-        return postMapper.toDto(publishedPost);
+
+        PostDto postDto = postMapper.toDto(publishedPost);
+        postDto.setLikeCount(countLikesForPost(postId));
+        return postDto;
     }
 
     public PostDto updatePost(Long postId, PostDto postDto) {
@@ -71,7 +74,10 @@ public class PostService {
 
         Post updatedPost = postRepository.save(post);
         log.info("Post with ID: {} was updated", postId);
-        return postMapper.toDto(updatedPost);
+
+        PostDto postDtoToReturn = postMapper.toDto(updatedPost);
+        postDtoToReturn.setLikeCount(countLikesForPost(postId));
+        return postDtoToReturn;
     }
 
     public void softDelete(Long postId) {
@@ -86,7 +92,10 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
         log.info("Fetch the post with ID: {}", postId);
-        return postMapper.toDto(post);
+
+        PostDto postDto = postMapper.toDto(post);
+        postDto.setLikeCount(countLikesForPost(postId));
+        return postDto;
     }
 
     public List<PostDto> getAllPostDraftsByUserId(Long userId) {
@@ -108,21 +117,25 @@ public class PostService {
     }
 
     public List<PostDto> getAllPublishedPostsByUserId(Long userId) {
-        List<Post> posts = postRepository.findByAuthorId(userId).stream()
+        List<PostDto> posts = postRepository.findByAuthorId(userId).stream()
                 .filter(post -> post.isPublished() && post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt))
+                .map(postMapper::toDto)
+                .peek(postDto -> postDto.setLikeCount(countLikesForPost(postDto.getId())))
                 .toList();
         log.info("Fetch all posts of the user with ID: {}", userId);
-        return postMapper.toDto(posts);
+        return posts;
     }
 
     public List<PostDto> getAllPublishedPostsByProjectId(Long projectId) {
-        List<Post> posts = postRepository.findByProjectId(projectId).stream()
+        List<PostDto> posts = postRepository.findByProjectId(projectId).stream()
                 .filter(post -> post.isPublished() && post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt))
+                .map(postMapper::toDto)
+                .peek(postDto -> postDto.setLikeCount(countLikesForPost(postDto.getId())))
                 .toList();
         log.info("Fetch all posts of the project with ID: {}", projectId);
-        return postMapper.toDto(posts);
+        return posts;
     }
 
     private void validateAuthor(PostDto postDto) {
@@ -159,5 +172,9 @@ public class PostService {
         if (post.isDeleted()) {
             throw new PostValidationException("The post has been deleted and cannot be published");
         }
+    }
+
+    private int countLikesForPost(Long postId) {
+        return postRepository.countLikesByPostId(postId);
     }
 }
