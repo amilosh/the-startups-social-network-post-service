@@ -21,9 +21,7 @@ public class LikeService {
     private final PostService postService;
     private final LikeMapper likeMapper;
 
-    public LikePostDto likePost(long postId, LikePostDto likeDto) {
-        long userId = likeDto.userId();
-
+    public LikePostDto likePost(long postId, long userId) {
         validateUserExisted(userId);
 
         if (isPostLikedByUser(postId, userId)) {
@@ -36,7 +34,11 @@ public class LikeService {
             throw new DataValidationException("This post does not exist");
         }
 
-        Like like = likeMapper.toLike(likeDto);
+//        Like like = likeMapper.toLike(likeDto);
+        Like like = Like.builder()
+                .userId(userId)
+                .post(postService.getPostById(postId))
+                .build();
         like.setPost(postService.getPostById(postId));
         Like savedLike = likeRepository.save(like);
 
