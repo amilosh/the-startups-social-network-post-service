@@ -1,6 +1,6 @@
-package faang.school.postservice.controller.like_controller;
+package faang.school.postservice.controller.like;
 
-import faang.school.postservice.dto.like.AcceptanceLikeDto;
+import faang.school.postservice.dto.like.LikeRequestDto;
 import faang.school.postservice.dto.like.ReturnLikeDto;
 import faang.school.postservice.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
@@ -19,22 +19,22 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/post/{postId}")
-    public ReturnLikeDto postLike(@RequestBody AcceptanceLikeDto likeDto, @PathVariable long postId) {
+    public ReturnLikeDto postLike(@RequestBody LikeRequestDto likeDto, @PathVariable long postId) {
       return likeService.postLike(likeDto, postId);
     }
 
     @DeleteMapping("/post/{postId}")
-    public void deleteLikeFromPost(@RequestBody AcceptanceLikeDto likeDto, @PathVariable long postId) {
+    public void deleteLikeFromPost(@RequestBody LikeRequestDto likeDto, @PathVariable long postId) {
         likeService.deleteLikeFromPost(likeDto, postId);
     }
 
     @PostMapping("/comment/{commentId}")
-    public ReturnLikeDto commentLike(@RequestBody AcceptanceLikeDto likeDto, @PathVariable long commentId) {
+    public ReturnLikeDto commentLike(@RequestBody LikeRequestDto likeDto, @PathVariable long commentId) {
         return likeService.commentLike(likeDto, commentId);
     }
 
     @DeleteMapping("/comment/{commentId}")
-    public void deleteLikeFromComment(@RequestBody AcceptanceLikeDto likeDto, @PathVariable long commentId) {
+    public void deleteLikeFromComment(@RequestBody LikeRequestDto likeDto, @PathVariable long commentId) {
          likeService.deleteLikeFromComment(likeDto, commentId);
     }
 }

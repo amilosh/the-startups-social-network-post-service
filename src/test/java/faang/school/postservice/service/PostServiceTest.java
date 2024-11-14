@@ -7,7 +7,7 @@ import faang.school.postservice.dto.post.ReturnPostDto;
 import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
-import faang.school.postservice.mapper.PostMapperImpl;
+import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;

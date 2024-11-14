@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ReturnLikeDto {
 
-    Long id;
-    Long userId;
-    Long postId;
-    Long commentId;
+    private Long id;
+    private Long userId;
+    private Long postId;
+    private Long commentId;
 
 }

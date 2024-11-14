@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AcceptanceLikeDto {
+public class LikeRequestDto {
 
-    Long id;
-    Long userId;
+    private Long id;
+    private Long userId;
 
 }

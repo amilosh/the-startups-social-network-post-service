@@ -1,6 +1,6 @@
 package faang.school.postservice.service.like;
 
-import faang.school.postservice.dto.like.AcceptanceLikeDto;
+import faang.school.postservice.dto.like.LikeRequestDto;
 import faang.school.postservice.dto.like.ReturnLikeDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.like.LikeMapper;
@@ -32,7 +32,7 @@ public class LikeService {
     private final LikeValidator validator;
 
 
-    public ReturnLikeDto postLike(AcceptanceLikeDto acceptanceLikeDto, long postId) {
+    public ReturnLikeDto postLike(LikeRequestDto acceptanceLikeDto, long postId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Post post = getPost(postId);
@@ -50,7 +50,7 @@ public class LikeService {
         return likeMapper.toReturnLikeDto(like);
     }
 
-    public void deleteLikeFromPost(@RequestBody AcceptanceLikeDto acceptanceLikeDto, @PathVariable long postId) {
+    public void deleteLikeFromPost(@RequestBody LikeRequestDto acceptanceLikeDto, @PathVariable long postId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Post post = getPost(postId);
@@ -66,7 +66,7 @@ public class LikeService {
 
     }
 
-    public ReturnLikeDto commentLike(AcceptanceLikeDto acceptanceLikeDto, long commentId) {
+    public ReturnLikeDto commentLike(LikeRequestDto acceptanceLikeDto, long commentId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Comment comment = getComment(commentId);
@@ -84,7 +84,7 @@ public class LikeService {
         return likeMapper.toReturnLikeDto(like);
     }
 
-    public void deleteLikeFromComment(AcceptanceLikeDto acceptanceLikeDto, long commentId) {
+    public void deleteLikeFromComment(LikeRequestDto acceptanceLikeDto, long commentId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Comment comment = getComment(commentId);
