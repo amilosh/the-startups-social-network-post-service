@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -44,7 +43,6 @@ public class LikeService {
         Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setPost(postOfLike);
         likeToSave.setUserId(likeDto.getUserId());
-        likeToSave.setCreatedAt(LocalDateTime.now());
 
         log.info("Save new Like for Post with ID: {}", likeDto.getPostId());
         likeRepository.save(likeToSave);
@@ -65,7 +63,6 @@ public class LikeService {
         Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setComment(commentOfLike);
         likeToSave.setUserId(likeDto.getUserId());
-        likeToSave.setCreatedAt(LocalDateTime.now());
 
         log.info("Save new Like for Comment with ID: {}", likeDto.getCommentId());
         likeRepository.save(likeToSave);
