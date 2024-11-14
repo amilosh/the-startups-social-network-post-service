@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -19,9 +18,9 @@ public class CommentDto {
     private String content;
     @NotNull
     private Long authorId;
-    private List<LikeDto> likes;
     @NotNull
     private Long postId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private int likeCount;
 }

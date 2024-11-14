@@ -19,7 +19,6 @@ public class PostDto {
     private String content;
     private Long authorId;
     private Long projectId;
-    private List<LikeDto> likes;
     private List<CommentDto> comments;
     private Long adId;
     private List<Long> resourcesIds;
@@ -28,4 +27,5 @@ public class PostDto {
     private LocalDateTime scheduledAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private int likeCount;
 }
