@@ -1,7 +1,6 @@
 package faang.school.postservice.dto.post;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,10 +18,8 @@ public class CreatePostRequestDto {
     @Length(max = 4096, message = "Maximum number of characters 4096 symbols")
     private String content;
 
-    @NotNull
     private Long authorId;
 
-    @NotNull
     private Long projectId;
 
     private LocalDateTime scheduledAt;

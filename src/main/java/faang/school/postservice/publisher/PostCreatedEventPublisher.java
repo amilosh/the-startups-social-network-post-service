@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Aspect
@@ -20,6 +21,7 @@ public class PostCreatedEventPublisher extends AbstractEventPublisher<PostCreate
         super(redisTemplate, objectMapper);
     }
 
+    @Async("redisPublisherAsyncThreadPool")
     @AfterReturning(
             pointcut = "@annotation(faang.school.postservice.annotations.SendPostCreatedEvent)",
             returning = "returnedValue")

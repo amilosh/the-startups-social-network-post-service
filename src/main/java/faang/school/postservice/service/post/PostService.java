@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static faang.school.postservice.model.VerificationPostStatus.REJECTED;
+import static faang.school.postservice.model.VerificationPostStatus.UNVERIFIED;
 import static faang.school.postservice.utils.ImageRestrictionRule.POST_IMAGES;
 
 @Slf4j
@@ -68,6 +69,7 @@ public class PostService {
         post.setPublished(false);
         post.setDeleted(false);
         post.setCreatedAt(LocalDateTime.now());
+        post.setVerificationStatus(UNVERIFIED);
         postHashTagParser.updateHashTags(post);
 
         return postRepository.save(post);
