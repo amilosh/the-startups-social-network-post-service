@@ -3,8 +3,6 @@ package faang.school.postservice.service;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.PostDto;
-import faang.school.postservice.dto.project.ProjectDto;
-import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.ExternalServiceException;
 import faang.school.postservice.exception.PostValidationException;
 import faang.school.postservice.mapper.PostMapper;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -31,45 +30,14 @@ public class PostService {
     private final PostMapper postMapper;
 
     public PostDto createPostDraft(PostDto postDto) {
-        if (postDto.getAuthorId() != null && postDto.getProjectId() != null) {
-            throw new PostValidationException("A post can be created by a user or a project");
-        }
-
-        Long authorId = postDto.getAuthorId();
-        if (authorId != null) {
-            try {
-                UserDto author = userServiceClient.getUser(authorId);
-                if (author == null) {
-                    throw new PostValidationException("User not found with ID: " + authorId);
-                }
-            } catch (FeignException.NotFound e) {
-                log.warn("User not found with ID: {}", authorId, e);
-                throw new ExternalServiceException("User Service returned 404 - User not found with ID: " + authorId);
-            } catch (FeignException e) {
-                log.error("Error while communicating with User Service: {}", e.getMessage(), e);
-                throw new ExternalServiceException("Failed to communicate with User Service. Please try again later.");
-            }
-        }
-
-        Long projectId = postDto.getProjectId();
-        if (projectId != null) {
-            try {
-                ProjectDto project = projectServiceClient.getProject(projectId);
-                if (project == null) {
-                    throw new PostValidationException("Project not found with ID: " + projectId);
-                }
-            } catch (FeignException.NotFound e) {
-                log.warn("Project not found with ID: {}", projectId, e);
-                throw new ExternalServiceException("Project Service returned 404 - Project not found with ID: " + projectId);
-            } catch (FeignException e) {
-                log.error("Error while communicating with Project Service: {}", e.getMessage(), e);
-                throw new ExternalServiceException("Failed to communicate with Project Service. Please try again later.");
-            }
-        }
+        validateAuthor(postDto);
+        checkEntityExistence(postDto.getAuthorId(), "User", userServiceClient::getUser);
+        checkEntityExistence(postDto.getProjectId(), "Project", projectServiceClient::getProject);
 
         Post postToSave = postMapper.toEntity(postDto);
         postToSave.setPublished(false);
         postToSave.setDeleted(false);
+
         Post savedPost = postRepository.save(postToSave);
         log.info("Post was created with ID: {}", savedPost.getId());
         return postMapper.toDto(savedPost);
@@ -79,15 +47,11 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
 
-        if (post.isPublished()) {
-            throw new PostValidationException("Post with ID: " + postId + " is already published");
-        }
-        if (post.isDeleted()) {
-            throw new PostValidationException("Post with ID: " + postId + " was deleted");
-        }
+        validatePostForPublishing(post);
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
+
         Post publishedPost = postRepository.save(post);
         log.info("Post with ID: {} was published", postId);
         return postMapper.toDto(publishedPost);
@@ -159,5 +123,41 @@ public class PostService {
                 .toList();
         log.info("Fetch all posts of the project with ID: {}", projectId);
         return postMapper.toDto(posts);
+    }
+
+    private void validateAuthor(PostDto postDto) {
+        if (postDto.getAuthorId() != null && postDto.getProjectId() != null) {
+            throw new PostValidationException("A post can be created by a user or a project");
+        }
+
+        if (postDto.getAuthorId() == null && postDto.getProjectId() == null) {
+            throw new PostValidationException("A post must be created by a user or a project");
+        }
+    }
+
+    private <T> void checkEntityExistence(Long id, String entityType, Function<Long, T> clientCall) {
+        if (id != null) {
+            try {
+                T entity = clientCall.apply(id);
+                if (entity == null) {
+                    throw new PostValidationException(entityType + " not found with ID: " + id);
+                }
+            } catch (FeignException.NotFound e) {
+                log.warn("{} not found with ID: {}", entityType, id, e);
+                throw new ExternalServiceException(entityType + " Service returned 404 - " + entityType + " not found with ID: " + id);
+            } catch (FeignException e) {
+                log.error("Error while communicating with {} Service: {}", entityType, e.getMessage(), e);
+                throw new ExternalServiceException("Failed to communicate with " + entityType + " Service. Please try again later.");
+            }
+        }
+    }
+
+    private void validatePostForPublishing(Post post) {
+        if (post.isPublished()) {
+            throw new PostValidationException("The post is already published");
+        }
+        if (post.isDeleted()) {
+            throw new PostValidationException("The post has been deleted and cannot be published");
+        }
     }
 }
