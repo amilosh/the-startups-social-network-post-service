@@ -153,7 +153,7 @@ public class PostService {
             try {
                 T entity = clientCall.apply(id);
                 if (entity == null) {
-                    throw new PostValidationException(entityType + " not found with ID: " + id);
+                    throw new ExternalServiceException(entityType + " not found with ID: " + id);
                 }
             } catch (FeignException.NotFound e) {
                 log.warn("{} not found with ID: {}", entityType, id, e);
