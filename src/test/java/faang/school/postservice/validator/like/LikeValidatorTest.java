@@ -1,4 +1,4 @@
-package faang.school.postservice.validator.like_validator;
+package faang.school.postservice.validator.like;
 
 
 import faang.school.postservice.client.UserServiceClient;

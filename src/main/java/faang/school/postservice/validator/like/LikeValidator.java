@@ -1,7 +1,6 @@
-package faang.school.postservice.validator.like_validator;
+package faang.school.postservice.validator.like;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
 import org.springframework.stereotype.Component;
