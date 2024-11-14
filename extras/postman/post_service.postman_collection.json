@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "a3855db3-3eb5-4b6c-a6e6-69d4cf2cbf62",
+		"_postman_id": "5cabbfcc-84e6-45c5-9fbf-b6220d4be3ec",
 		"name": "post_service",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "4829985"
+		"_exporter_id": "3997404"
 	},
 	"item": [
 		{
@@ -168,6 +168,38 @@
 					],
 					"path": [
 						"albums"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Post as author",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"content\",\r\n    \"authorId\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/posts",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"posts"
 					]
 				}
 			},

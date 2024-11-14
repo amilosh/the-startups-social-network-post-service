@@ -89,8 +89,7 @@ public class PostControllerTest extends TestContainersConfig {
 
         String responseJson = result.getResponse().getContentAsString();
         ErrorResponse response = objectMapper.readValue(responseJson, ErrorResponse.class);
-
-        Assertions.assertEquals(response.getErrorFields().get(projectFieldKey), errorFields.get(projectFieldKey));
-        Assertions.assertEquals(response.getErrorFields().get(authorFieldKey), errorFields.get(authorFieldKey));
+        Assertions.assertNull(response.getErrorFields());
+        Assertions.assertEquals("AuthorId or projectId must be filled in", response.getMessage());
     }
 }
