@@ -13,6 +13,6 @@ public class PostService {
 
     public Post getPostById(Long id) {
         return postRepository.findById(id).orElseThrow(() ->
-                new EntityNotFoundException(String.format("Post with id #%s not found", id)));
+                new EntityNotFoundException(String.format("Post with id: %s not found", id)));
     }
 }

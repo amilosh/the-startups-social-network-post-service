@@ -37,7 +37,7 @@ public class CommentService {
         Comment comment = commentMapper.toEntity(dto);
         comment.setPost(postService.getPostById(postId));
         commentRepository.save(comment);
-        log.info("New comment #{} post #{} has been created", comment.getId(), comment.getPost().getId());
+        log.info("New comment: {} post: {} has been created", comment.getId(), comment.getPost().getId());
 
         return commentMapper.toDto(comment);
     }
@@ -52,7 +52,7 @@ public class CommentService {
         commentValidator.validateCommentAuthorId(comment, dto.getAuthorId());
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
-        log.info("Comment #{} to post #{} has been updated", comment.getId(), comment.getPost().getId());
+        log.info("Comment: {} to post: {} has been updated", comment.getId(), comment.getPost().getId());
 
         return commentMapper.toDto(comment);
     }
@@ -63,7 +63,7 @@ public class CommentService {
         List<Comment> comments = post.getComments().stream()
                 .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
-        log.info("All comments for the post #{} has been received", post.getId());
+        log.info("All comments to the post: {} has been received", post.getId());
 
         return commentMapper.toListDto(comments);
     }
@@ -72,11 +72,11 @@ public class CommentService {
         postValidator.validatePostExistsById(postId);
         commentValidator.validateCommentExistsById(commentId);
         commentRepository.deleteById(commentId);
-        log.info("Comment #{} from post #{} was deleted successfully", commentId, postId);
+        log.info("Comment: {} from post: {} was deleted successfully", commentId, postId);
     }
 
     public Comment getCommentById(Long id) {
         return commentRepository.findById(id).orElseThrow(() ->
-                new EntityNotFoundException(String.format("Comment with id #%s doesn't exist", id)));
+                new EntityNotFoundException(String.format("Comment with id: %s doesn't exist", id)));
     }
 }

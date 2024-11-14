@@ -13,9 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -23,6 +21,7 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -58,11 +57,10 @@ class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("Create comment successfully")
+    @DisplayName("Create comment success")
     void testCreateCommentSuccess() throws Exception {
         when(commentService.createComment(postId, createDto)).thenReturn(responseDto);
 
-        ResponseEntity<CommentResponseDto> result = commentController.create(postId, createDto);
 
         mockMvc.perform(post("/posts/{postId}/comments", postId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -71,10 +69,7 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.id").value(responseDto.getId()))
                 .andExpect(jsonPath("$.authorId").value(responseDto.getAuthorId()));
 
-        assertNotNull(result);
-        assertNotNull(result.getBody());
-        assertEquals(HttpStatus.CREATED, result.getStatusCode());
-        assertEquals(1L, result.getBody().getId());
+        verify(commentService, times(1)).createComment(postId, createDto);
     }
 
     @Test
@@ -88,10 +83,8 @@ class CommentControllerTest {
     @Test
     @DisplayName("Update comment success")
     void testUpdateCommentSuccess() throws Exception {
-        System.out.println(responseDto);
         when(commentService.updateComment(postId, updateDto)).thenReturn(responseDto);
 
-        CommentResponseDto result = commentController.update(postId, updateDto);
 
         mockMvc.perform(put("/posts/{postId}/comments", postId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -101,8 +94,7 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.content").value(responseDto.getContent()))
                 .andExpect(jsonPath("$.authorId").value(responseDto.getAuthorId()));
 
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
+        verify(commentService, times(1)).updateComment(postId, updateDto);
     }
 
     @Test
@@ -114,7 +106,7 @@ class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("Get all comments successfully")
+    @DisplayName("Get all comments success")
     void testGetAllCommentsSuccess() throws Exception {
         List<CommentResponseDto> comments = List.of(responseDto, responseDto, responseDto);
         when(commentService.getAllComments(postId)).thenReturn(comments);
@@ -122,10 +114,10 @@ class CommentControllerTest {
         mockMvc.perform(get("/posts/{postId}/comments", postId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(comments.get(0).getId()))
-                .andExpect(jsonPath("$[2].authorId").value(comments.get(2).getAuthorId()));
+                .andExpect(jsonPath("$[2].authorId").value(comments.get(2).getAuthorId()))
+                .andExpect(jsonPath("$", hasSize(3)));
 
-        assertNotNull(commentService.getAllComments(postId));
-        assertEquals(3, commentService.getAllComments(postId).size());
+        verify(commentService, times(1)).getAllComments(postId);
     }
 
     @Test
@@ -137,7 +129,7 @@ class CommentControllerTest {
     }
 
     @Test
-    @DisplayName("Delete comment by id successfully")
+    @DisplayName("Delete comment by id success")
     void testDeleteCommentByIdSuccess() throws Exception {
         doNothing().when(commentService).deleteComment(postId, comment.getId());
 

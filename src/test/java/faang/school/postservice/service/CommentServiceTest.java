@@ -156,7 +156,7 @@ class CommentServiceTest {
         when(commentRepository.findById(updateDto.getId())).thenReturn(Optional.empty());
 
         Exception ex = assertThrows(EntityNotFoundException.class, () -> commentService.updateComment(postId, updateDto));
-        assertEquals("Comment with id #3 doesn't exist", ex.getMessage());
+        assertEquals("Comment with id: 3 doesn't exist", ex.getMessage());
 
         verify(postValidator, times(1)).validatePostExistsById(postId);
         verify(commentValidator, times(1)).validateCommentExistsById(updateDto.getId());
@@ -168,14 +168,8 @@ class CommentServiceTest {
     @Test
     @DisplayName("Get all comments success")
     void testGetAllCommentsSuccess() {
-        List<Comment> comments = List.of(
-                Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
-                Comment.builder().id(2L).updatedAt(LocalDateTime.of(2023, 11, 2, 9, 30)).build(),
-                Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
-        List<CommentResponseDto> commentResponseDtos = comments.stream()
-                .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(c -> CommentResponseDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
-                .toList();
+        List<Comment> comments = createTestComments();
+        List<CommentResponseDto> commentResponseDtos = createTestCommentResponseDtos(comments);
         when(postService.getPostById(postId)).thenReturn(post);
         post.setComments(comments);
         when(commentMapper.toListDto(anyList())).thenReturn(commentResponseDtos);
@@ -194,15 +188,10 @@ class CommentServiceTest {
 
     @Test
     @DisplayName("Get all comments success with one null date")
-    void testGetAllCommentsSuccessnullDate() {
-        List<Comment> comments = List.of(
-                Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
-                Comment.builder().id(2L).updatedAt(null).build(),
-                Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
-        List<CommentResponseDto> commentResponseDtos = comments.stream()
-                .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(c -> CommentResponseDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
-                .toList();
+    void testGetAllCommentsSuccessWithNullDate() {
+        List<Comment> comments = createTestComments();
+        comments.get(1).setUpdatedAt(null);
+        List<CommentResponseDto> commentResponseDtos = createTestCommentResponseDtos(comments);
         when(postService.getPostById(postId)).thenReturn(post);
         post.setComments(comments);
         when(commentMapper.toListDto(anyList())).thenReturn(commentResponseDtos);
@@ -311,4 +300,20 @@ class CommentServiceTest {
                 .updatedAt(null)
                 .build();
     }
+
+    private List<Comment> createTestComments() {
+        return List.of(
+                Comment.builder().id(1L).updatedAt(LocalDateTime.of(2023, 10, 1, 10, 0)).build(),
+                Comment.builder().id(2L).updatedAt(LocalDateTime.of(2023, 11, 2, 9, 30)).build(),
+                Comment.builder().id(3L).updatedAt(LocalDateTime.of(2023, 9, 30, 15, 45)).build());
+    }
+
+    private List<CommentResponseDto> createTestCommentResponseDtos(List<Comment> comments) {
+        return comments.stream()
+                .sorted(Comparator.comparing(Comment::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(c -> CommentResponseDto.builder().id(c.getId()).updatedAt(c.getUpdatedAt()).build())
+                .toList();
+    }
+
+
 }

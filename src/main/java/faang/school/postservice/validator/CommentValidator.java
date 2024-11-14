@@ -18,10 +18,10 @@ public class CommentValidator {
         }
     }
 
-    public void validateCommentAuthorId(Comment comment, long AuthorId) {
-        if (comment.getAuthorId() != AuthorId) {
+    public void validateCommentAuthorId(Comment comment, long authorId) {
+        if (comment.getAuthorId() != authorId) {
             throw new UnauthorizedAccessException(
-                    String.format("Comment with id %d doesn't belong to the user with id %d", comment.getId(), AuthorId));
+                    String.format("Comment with id %d doesn't belong to the user with id %d", comment.getId(), authorId));
         }
     }
 }

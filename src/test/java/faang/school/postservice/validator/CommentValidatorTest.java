@@ -32,8 +32,8 @@ class CommentValidatorTest {
     }
 
     @Test
-    @DisplayName("Validate comment exists by id successful")
-    void testValidateCommentExistsByIdSuccessful() {
+    @DisplayName("Validate comment exists by id success")
+    void testValidateCommentExistsByIdSuccess() {
         when(commentRepository.existsById(1L)).thenReturn(true);
 
         assertDoesNotThrow(() -> commentValidator.validateCommentExistsById(1L));

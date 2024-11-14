@@ -39,6 +39,6 @@ class PostValidatorTest {
         when(postRepository.existsById(postId)).thenReturn(false);
 
         Exception ex = assertThrows(EntityNotFoundException.class, () -> postValidator.validatePostExistsById(postId));
-        assertEquals("Post with id #1 doesn't exist", ex.getMessage());
+        assertEquals("Post with id: 1 doesn't exist", ex.getMessage());
     }
 }

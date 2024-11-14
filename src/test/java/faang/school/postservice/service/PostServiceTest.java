@@ -49,7 +49,7 @@ class PostServiceTest {
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
 
         Exception ex = assertThrows(EntityNotFoundException.class, () -> postService.getPostById(1L));
-        assertEquals("Post with id #1 not found", ex.getMessage());
+        assertEquals("Post with id: 1 not found", ex.getMessage());
     }
 
     private Post createTestPost() {
