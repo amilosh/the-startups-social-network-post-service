@@ -2,7 +2,7 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.utilities.UrlUtils;
@@ -63,25 +63,25 @@ public class PostController {
         return ResponseEntity.ok(postService.getPost(postId));
     }
 
-    @GetMapping
+    @GetMapping(UrlUtils.USER + UrlUtils.DRAFT)
     public ResponseEntity<List<PostDto>> getDraftPostsByUserId(@RequestParam(required = false) Long idUser) {
         checkByIdUserExist(idUser);
         return ResponseEntity.ok(postService.getDraftPostsForUser(idUser));
     }
 
-    @GetMapping
+    @GetMapping(UrlUtils.PROJECT + UrlUtils.DRAFT)
     public ResponseEntity<List<PostDto>> getDraftPostsByProjectId(@RequestParam(required = false) Long idProject) {
         checkByIdProjectExist(idProject);
         return ResponseEntity.ok(postService.getDraftPostsForProject(idProject));
     }
 
-    @GetMapping
+    @GetMapping(UrlUtils.USER + UrlUtils.PUBLISHED)
     public ResponseEntity<List<PostDto>> getPublishedPostsByUserId(@RequestParam(required = false) Long idUser) {
         checkByIdUserExist(idUser);
         return ResponseEntity.ok(postService.getPublishedPostsForUser(idUser));
     }
 
-    @GetMapping
+    @GetMapping(UrlUtils.PROJECT + UrlUtils.PUBLISHED)
     public ResponseEntity<List<PostDto>> getPublishedPostsByProjectId(@RequestParam(required = false) Long idProject) {
         checkByIdProjectExist(idProject);
         return ResponseEntity.ok(postService.getPublishedPostForProject(idProject));

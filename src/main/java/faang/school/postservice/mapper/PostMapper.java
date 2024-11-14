@@ -1,10 +1,10 @@
 package faang.school.postservice.mapper;
 
-import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.model.Post;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface PostMapper {
 
     PostDto toDto(Post post);

@@ -11,8 +11,8 @@ public class UrlUtils {
     public static final String PUBLISH = "/publish";
     public static final String UPDATE = "/update";
     public static final String DELETE = "/delete";
-//    public static final String REQUEST = "/request";
-//    public static final String ACCEPT = "/accept";
-//    public static final String REJECT = "/reject";
-//    public static final String USERS = "/users";
+    public static final String USER = "/user";
+    public static final String PROJECT = "/project";
+    public static final String DRAFT = "/draft";
+    public static final String PUBLISHED = "/published";
 }
