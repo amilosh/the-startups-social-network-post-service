@@ -4,14 +4,20 @@ import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.PostValidator;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +25,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final PostValidator postValidator;
+    private final HashtagService hashtagService;
 
     public ResponsePostDto create(CreatePostDto createPostDto) {
         postValidator.validateContent(createPostDto.getContent());
@@ -35,6 +42,17 @@ public class PostService {
         entity.setCreatedAt(LocalDateTime.now());
         entity.setPublished(false);
         entity.setDeleted(false);
+
+        if (createPostDto.getHashtags() != null && !createPostDto.getHashtags().isEmpty()) {
+            Set<Hashtag> hashtags = new HashSet<>();
+
+            for (String tag : createPostDto.getHashtags()) {
+                Hashtag hashtag = hashtagService.findByTag(tag)
+                        .orElseGet(() -> hashtagService.create(tag));
+                hashtags.add(hashtag);
+            }
+            entity.setHashtags(hashtags);
+        }
 
         postRepository.save(entity);
 
@@ -61,6 +79,18 @@ public class PostService {
         postValidator.validateContent(updatePostDto.getContent());
 
         Post post = postRepository.findById(postId).get();
+
+
+        if (updatePostDto.getHashtags() != null && !updatePostDto.getHashtags().isEmpty()) {
+            Set<Hashtag> hashtags = new HashSet<>();
+
+            for (String tag : updatePostDto.getHashtags()) {
+                Hashtag hashtag = hashtagService.findByTag(tag)
+                        .orElseGet(() -> hashtagService.create(tag));
+                hashtags.add(hashtag);
+            }
+            post.setHashtags(hashtags);
+        }
 
         post.setContent(updatePostDto.getContent());
         post.setUpdatedAt(LocalDateTime.now());
@@ -110,5 +140,11 @@ public class PostService {
         postValidator.validateProjectId(projectId);
 
         return postRepository.findPublishedByProject(projectId).stream().map(postMapper::toDto).toList();
+    }
+
+    public List<ResponsePostDto> findByHashtags(String tag) {
+        postValidator.validateHashtag(tag);
+
+        return postRepository.findByHashtags(tag).stream().map(postMapper::toDto).toList();
     }
 }

@@ -2,6 +2,7 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.docs.post.CreatePostDoc;
 import faang.school.postservice.docs.post.DeletePostDoc;
+import faang.school.postservice.docs.post.GetPostByHashtagDoc;
 import faang.school.postservice.docs.post.GetDraftPostByAuthorDoc;
 import faang.school.postservice.docs.post.GetDraftPostByProjectDoc;
 import faang.school.postservice.docs.post.GetPostDoc;
@@ -14,6 +15,7 @@ import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.service.PostService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -136,5 +138,15 @@ public class PostController {
             Long projectId
     ) {
         return ResponseEntity.ok(postService.getPublishedByProjectId(projectId));
+    }
+
+    @GetMapping("/hashtag/{tag}")
+    @GetPostByHashtagDoc
+    public ResponseEntity<List<ResponsePostDto>> searchHashtag(
+            @PathVariable
+            @NotBlank(message = "Tag cannot be empty")
+            String tag
+    ) {
+        return ResponseEntity.ok(postService.findByHashtags(tag));
     }
 }

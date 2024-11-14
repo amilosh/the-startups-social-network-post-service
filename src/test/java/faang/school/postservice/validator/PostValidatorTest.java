@@ -6,8 +6,10 @@ import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityWasRemovedException;
+import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.HashtagService;
 import jakarta.persistence.EntityNotFoundException;
 import liquibase.hub.model.Project;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,9 @@ class PostValidatorTest {
 
     @Mock
     private UserServiceClient userServiceClient;
+
+    @Mock
+    private HashtagService hashtagService;
 
     @InjectMocks
     private PostValidator postValidator;
@@ -160,5 +165,23 @@ class PostValidatorTest {
         when(postRepository.findById(postId)).thenReturn(java.util.Optional.of(post));
 
         postValidator.validatePostIdOnPublished(postId);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenHashtagNotFound() {
+        String nonExistentHashtag = "#nonexistent";
+
+        when(hashtagService.findByTag(nonExistentHashtag)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> postValidator.validateHashtag(nonExistentHashtag));
+    }
+
+    @Test
+    void shouldPassWhenHashtagExists() {
+        String existingHashtag = "#existing";
+
+        when(hashtagService.findByTag(existingHashtag)).thenReturn(Optional.of(Hashtag.builder().tag(existingHashtag).build()));
+
+        postValidator.validateHashtag(existingHashtag);
     }
 }
