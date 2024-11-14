@@ -11,8 +11,7 @@ import org.mapstruct.ReportingPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        uses = {CommentMapper.class, LikeMapper.class})
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = CommentMapper.class)
 public interface PostMapper {
 
     Post toEntity(PostDto postDto);
@@ -26,7 +25,7 @@ public interface PostMapper {
     @Named("toLong")
     default List<Long> toLong(List<Resource> resources) {
         List<Long> resourcesIds = new ArrayList<>();
-        if (resources != null) {
+        if (!resources.isEmpty()) {
             resourcesIds = resources.stream()
                     .map(Resource::getId)
                     .toList();
