@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -20,61 +19,60 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/posts")
 public class PostController {
 
     private final PostService postService;
 
-    @PostMapping
+    @PostMapping("/posts")
     public PostDto createPostDraft(@Valid @RequestBody PostDto postDto) {
         log.info("Received request to create a post by the user with ID: {}", postDto.getAuthorId());
         return postService.createPostDraft(postDto);
     }
 
-    @PatchMapping("/{postId}/publish")
+    @PatchMapping("/posts/{postId}/publish")
     public PostDto publishPost(@PathVariable Long postId) {
         log.info("Received request to publish the post with ID: {}", postId);
         return postService.publishPost(postId);
     }
 
-    @PatchMapping("/{postId}")
+    @PatchMapping("/posts/{postId}")
     public PostDto updatePost(@PathVariable Long postId,
                               @RequestBody PostDto postDto) {
         log.info("Received request to update the post with ID: {}", postId);
         return postService.updatePost(postId, postDto);
     }
 
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/posts/{postId}")
     public void softDelete(@PathVariable Long postId) {
         log.info("Received request to delete softly the post with ID: {}", postId);
         postService.softDelete(postId);
     }
 
-    @GetMapping("/{postId}")
+    @GetMapping("/posts/{postId}")
     public PostDto getPostById(@PathVariable Long postId) {
         log.info("Received request to fetch the post with ID: {}", postId);
         return postService.getPostById(postId);
     }
 
-    @GetMapping("/users/{userId}/drafts")
+    @GetMapping("/users/{userId}/posts/drafts")
     public List<PostDto> getAllPostDraftsByUserId(@PathVariable Long userId) {
         log.info("Received request to fetch all post drafts for the user with ID: {}", userId);
         return postService.getAllPostDraftsByUserId(userId);
     }
 
-    @GetMapping("/projects/{projectId}/drafts")
+    @GetMapping("/projects/{projectId}/posts/drafts")
     public List<PostDto> getAllPostDraftsByProjectId(@PathVariable Long projectId) {
         log.info("Received request to fetch all post drafts for the project with ID: {}", projectId);
         return postService.getAllPostDraftsByProjectId(projectId);
     }
 
-    @GetMapping("/users/{userId}")
+    @GetMapping("/users/{userId}/posts/published")
     public List<PostDto> getAllPublishedPostsByUserId(@PathVariable Long userId) {
         log.info("Received request to fetch all published posts for the user with ID: {}", userId);
         return postService.getAllPublishedPostsByUserId(userId);
     }
 
-    @GetMapping("/projects/{projectId}")
+    @GetMapping("/projects/{projectId}/posts/published")
     public List<PostDto> getAllPublishedPostsByProjectId(@PathVariable Long projectId) {
         log.info("Received request to fetch all published posts for the project with ID: {}", projectId);
         return postService.getAllPublishedPostsByProjectId(projectId);
