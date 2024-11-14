@@ -24,7 +24,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping()
-    public PostDto createPost(@RequestBody PostDto postDto) {
+    public PostDto createPost(@RequestBody @Valid PostDto postDto) {
         return postService.createPost(postDto);
     }
 
@@ -34,7 +34,7 @@ public class PostController {
     }
 
     @PatchMapping("/{id}")
-    public PostDto updatePost(@PathVariable long id, @RequestBody PostDto postDto) {
+    public PostDto updatePost(@PathVariable long id, @Valid @RequestBody PostDto postDto) {
         return postService.updatePost(id, postDto);
     }
 
