@@ -1,7 +1,7 @@
 package faang.school.postservice.controller.like;
 
 import faang.school.postservice.dto.like.LikeRequestDto;
-import faang.school.postservice.dto.like.ReturnLikeDto;
+import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,7 +19,7 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/post/{postId}")
-    public ReturnLikeDto postLike(@RequestBody LikeRequestDto likeDto, @PathVariable long postId) {
+    public LikeResponseDto postLike(@RequestBody LikeRequestDto likeDto, @PathVariable long postId) {
       return likeService.postLike(likeDto, postId);
     }
 
@@ -29,7 +29,7 @@ public class LikeController {
     }
 
     @PostMapping("/comment/{commentId}")
-    public ReturnLikeDto commentLike(@RequestBody LikeRequestDto likeDto, @PathVariable long commentId) {
+    public LikeResponseDto commentLike(@RequestBody LikeRequestDto likeDto, @PathVariable long commentId) {
         return likeService.commentLike(likeDto, commentId);
     }
 

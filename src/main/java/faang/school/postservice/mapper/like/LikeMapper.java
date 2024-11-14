@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper.like;
 
 import faang.school.postservice.dto.like.LikeRequestDto;
-import faang.school.postservice.dto.like.ReturnLikeDto;
+import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.model.Like;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,6 +13,6 @@ public interface LikeMapper {
 
     @Mapping(source = "comment.id", target = "commentId")
     @Mapping(source = "post.id", target = "postId")
-    ReturnLikeDto toReturnLikeDto(Like like);
+    LikeResponseDto toReturnLikeDto(Like like);
 
 }

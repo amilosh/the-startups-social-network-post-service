@@ -2,8 +2,8 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.dto.post.ReturnPostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
@@ -48,13 +48,13 @@ class PostServiceTest {
     private PostService postService;
 
     private Post post;
-    private PostDto postDto;
-    private ReturnPostDto returnPostDto;
+    private PostRequestDto postDto;
+    private PostResponseDto postResponseDto;
     private List<Post> preparedPosts;
 
     @BeforeEach
     void setUp() {
-        postDto = new PostDto();
+        postDto = new PostRequestDto();
         postDto.setId(1L);
 
         // 1 опубликован 3 (1 из них удалён) не опубликовано
@@ -93,9 +93,9 @@ class PostServiceTest {
         post4.setDeleted(true);
         post4.setCreatedAt(LocalDateTime.now().plusDays(4));
         preparedPosts.add(post4);
-        returnPostDto = new ReturnPostDto();
-        returnPostDto.setId(1L);
-        returnPostDto.setAuthorId(1L);
+        postResponseDto = new PostResponseDto();
+        postResponseDto.setId(1L);
+        postResponseDto.setAuthorId(1L);
     }
 
     @Test
@@ -186,7 +186,7 @@ class PostServiceTest {
     @Test
     void testDeletePostExistentPost() {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        when(postMapper.toDto(post)).thenReturn(returnPostDto);
+        when(postMapper.toDto(post)).thenReturn(postResponseDto);
 
         postService.deletePost(1L);
 
@@ -207,7 +207,7 @@ class PostServiceTest {
         Optional<Post> opt = Optional.of(post);
 
         when(postRepository.findById(1L)).thenReturn(opt);
-        when(postMapper.toDto(post)).thenReturn(returnPostDto);
+        when(postMapper.toDto(post)).thenReturn(postResponseDto);
 
         postService.getPost(1L);
 
@@ -229,10 +229,10 @@ class PostServiceTest {
 
         verify(postMapper, times(2)).toDto(any());
 
-        List<ReturnPostDto> returnPostDto = postService.getAllNonPublishedByAuthorId(1L);
-        ReturnPostDto returnPostDto1 = returnPostDto.get(0);
+        List<PostResponseDto> postResponseDto = postService.getAllNonPublishedByAuthorId(1L);
+        PostResponseDto postResponseDto1 = postResponseDto.get(0);
 
-        assertEquals(returnPostDto1.getCountLikes(), 3L);
+        assertEquals(postResponseDto1.getCountLikes(), 3L);
 
     }
 

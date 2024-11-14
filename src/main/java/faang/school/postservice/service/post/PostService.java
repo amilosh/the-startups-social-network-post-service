@@ -2,8 +2,8 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.dto.post.ReturnPostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
@@ -24,10 +24,8 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
 
-    public ReturnPostDto createPost(PostDto postDto) {
+    public PostResponseDto createPost(PostRequestDto postDto) {
         isPostAuthorExist(postDto);
-
-        postDto.setCreatedAt(LocalDateTime.now());
 
         Post post = postMapper.toEntity(postDto);
         post.setPublished(false);
@@ -37,7 +35,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public ReturnPostDto publishPost(Long id) {
+    public PostResponseDto publishPost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -52,7 +50,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public ReturnPostDto updatePost(PostDto postDto) {
+    public PostResponseDto updatePost(PostRequestDto postDto) {
         Post post = postRepository.findById(postDto.getId())
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -64,7 +62,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public ReturnPostDto deletePost(Long id) {
+    public PostResponseDto deletePost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -76,37 +74,37 @@ public class PostService {
         post.setDeleted(true);
         postRepository.save(post);
 
-        ReturnPostDto postDto = postMapper.toDto(post);
+        PostResponseDto postDto = postMapper.toDto(post);
         postDto.setDeletedAt(LocalDateTime.now());
 
         return postDto;
     }
 
-    public ReturnPostDto getPost(Long id) {
+    public PostResponseDto getPost(Long id) {
         return postRepository.findById(id)
                 .map(postMapper::toDto)
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public List<ReturnPostDto> getAllNonPublishedByAuthorId(Long id) {
+    public List<PostResponseDto> getAllNonPublishedByAuthorId(Long id) {
         validateUserExist(id);
 
         return filterNonPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
     }
 
-    public List<ReturnPostDto> getAllNonPublishedByProjectId(Long id) {
+    public List<PostResponseDto> getAllNonPublishedByProjectId(Long id) {
         validateProjectExist(id);
 
         return filterNonPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
-    public List<ReturnPostDto> getAllPublishedByAuthorId(Long id) {
+    public List<PostResponseDto> getAllPublishedByAuthorId(Long id) {
         validateUserExist(id);
 
         return filterPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
     }
 
-    public List<ReturnPostDto> getAllPublishedByProjectId(Long id) {
+    public List<PostResponseDto> getAllPublishedByProjectId(Long id) {
         validateProjectExist(id);
 
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
@@ -120,7 +118,7 @@ public class PostService {
         projectServiceClient.getProject(id);
     }
 
-    private List<ReturnPostDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
+    private List<PostResponseDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
         return posts.stream()
                 .filter(post -> !post.isDeleted() && post.isPublished())
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
@@ -128,7 +126,7 @@ public class PostService {
                 .toList();
     }
 
-    private List<ReturnPostDto> filterNonPublishedPostsByTimeToDto(List<Post> posts) {
+    private List<PostResponseDto> filterNonPublishedPostsByTimeToDto(List<Post> posts) {
         return posts.stream()
                 .filter(post -> !post.isDeleted() && !post.isPublished())
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
@@ -136,7 +134,7 @@ public class PostService {
                 .toList();
     }
 
-    private void isPostAuthorExist(PostDto postDto) {
+    private void isPostAuthorExist(PostRequestDto postDto) {
         if (postDto.getAuthorId() != null) {
             userServiceClient.getUser(postDto.getAuthorId());
         } else {

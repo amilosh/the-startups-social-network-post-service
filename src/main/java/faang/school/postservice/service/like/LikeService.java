@@ -1,7 +1,7 @@
 package faang.school.postservice.service.like;
 
 import faang.school.postservice.dto.like.LikeRequestDto;
-import faang.school.postservice.dto.like.ReturnLikeDto;
+import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.like.LikeMapper;
 import faang.school.postservice.model.Comment;
@@ -32,7 +32,7 @@ public class LikeService {
     private final LikeValidator validator;
 
 
-    public ReturnLikeDto postLike(LikeRequestDto acceptanceLikeDto, long postId) {
+    public LikeResponseDto postLike(LikeRequestDto acceptanceLikeDto, long postId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Post post = getPost(postId);
@@ -66,7 +66,7 @@ public class LikeService {
 
     }
 
-    public ReturnLikeDto commentLike(LikeRequestDto acceptanceLikeDto, long commentId) {
+    public LikeResponseDto commentLike(LikeRequestDto acceptanceLikeDto, long commentId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Comment comment = getComment(commentId);
