@@ -10,13 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PostService {
 
     private final PostMapper postMapper;
@@ -27,7 +26,6 @@ public class PostService {
         postValidator.checkCreator(postDto);
 
         Post createPost = postMapper.toEntity(postDto);
-        createPost.setCreatedAt(LocalDateTime.now());
         createPost.setPublished(false);
         createPost.setDeleted(false);
 
@@ -41,7 +39,6 @@ public class PostService {
             throw new PostException("Forbidden republish post");
         }
         publishPost.setPublished(true);
-        publishPost.setPublishedAt(LocalDateTime.now());
 
         log.info("Post with id {} - published", publishPost.getId());
         return postMapper.toDto(postRepository.save(publishPost));
@@ -52,7 +49,6 @@ public class PostService {
         postValidator.checkUpdatePost(post, postDto);
 
         postMapper.update(postDto, post);
-        post.setUpdatedAt(LocalDateTime.now());
 
         log.info("Post with id {} - updated", post.getId());
         return postMapper.toDto(postRepository.save(post));
@@ -69,7 +65,6 @@ public class PostService {
     public PostDto getPostById(Long postId) {
         Post post = getPost(postId);
 
-        log.info("Get post with id {}", postId);
         return postMapper.toDto(post);
     }
 
