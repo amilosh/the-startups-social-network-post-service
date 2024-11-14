@@ -13,5 +13,5 @@ public interface CommentService {
 
     List<CommentDto> getCommentsByPostId(@PathVariable Long postId);
 
-    CommentDto deleteComment(@PathVariable Long commentId);
+    void deleteComment(@PathVariable Long commentId);
 }

@@ -7,6 +7,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CommentMapper {
     @Mapping(source = "post.id", target = "postId")
@@ -18,6 +20,11 @@ public interface CommentMapper {
     @Mapping(target = "updatedAt", ignore = true)
     void update(CommentDto commentDto, @MappingTarget Comment comment);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "post", ignore = true)
     Comment toEntity(CommentDto commentDto);
+
+    List<CommentDto> toDto(List<Comment> comments);
+
+    List<Comment> toEntity(List<CommentDto> commentsDto);
 }

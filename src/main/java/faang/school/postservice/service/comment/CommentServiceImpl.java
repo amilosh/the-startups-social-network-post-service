@@ -2,11 +2,17 @@ package faang.school.postservice.service.comment;
 
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.mapper.CommentMapper;
+import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentServiceValidator;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,23 +25,40 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentServiceValidator validator;
 
+    private final PostService postService;
+
     @Override
-    public CommentDto createComment(CommentDto commentDto) {
-        return null;
+    public CommentDto createComment(@Valid CommentDto commentDto) {
+        validator.validateCreateComment(commentDto);
+
+        Post post = postService.findPostById(commentDto.getPostId())
+                .orElseThrow(() -> new EntityNotFoundException("Post with id %s not found".formatted(commentDto.getPostId())));
+
+        Comment comment = commentMapper.toEntity(commentDto);
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setPost(post);
+
+        return commentMapper.toDto(commentRepository.save(comment));
     }
 
     @Override
-    public CommentDto updateComment(CommentDto commentDto) {
-        return null;
+    public CommentDto updateComment(@Valid CommentDto commentDto) {
+        Comment comment = commentRepository.findById(commentDto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Comment with id %s not found".formatted(commentDto.getId())));
+        commentMapper.update(commentDto, comment);
+
+        return commentMapper.toDto(commentRepository.save(comment));
     }
 
     @Override
     public List<CommentDto> getCommentsByPostId(Long postId) {
-        return List.of();
+        validator.validatePostId(postId);
+        return commentMapper.toDto(commentRepository.findAllByPostId(postId));
     }
 
     @Override
-    public CommentDto deleteComment(Long commentId) {
-        return null;
+    public void deleteComment(Long commentId) {
+        validator.validateCommentId(commentId);
+        commentRepository.deleteById(commentId);
     }
 }

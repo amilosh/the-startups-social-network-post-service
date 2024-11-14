@@ -44,8 +44,8 @@ public class CommentController {
     }
 
     @DeleteMapping("/{commentId}")
-    CommentDto deleteComment(@PathVariable Long commentId) {
+    void deleteComment(@PathVariable Long commentId) {
         validator.validateCommentId(commentId);
-        return commentService.deleteComment(commentId);
+        commentService.deleteComment(commentId);
     }
 }
