@@ -153,11 +153,11 @@ public class PostService {
             try {
                 T entity = clientCall.apply(id);
                 if (entity == null) {
-                    throw new ExternalServiceException(entityType + " not found with ID: " + id);
+                    throw new EntityNotFoundException(entityType + " not found with ID: " + id);
                 }
             } catch (FeignException.NotFound e) {
                 log.warn("{} not found with ID: {}", entityType, id, e);
-                throw new ExternalServiceException(entityType + " Service returned 404 - " + entityType + " not found with ID: " + id);
+                throw new EntityNotFoundException(entityType + " Service returned 404 - " + entityType + " not found with ID: " + id);
             } catch (FeignException e) {
                 log.error("Error while communicating with {} Service: {}", entityType, e.getMessage(), e);
                 throw new ExternalServiceException("Failed to communicate with " + entityType + " Service. Please try again later.");
