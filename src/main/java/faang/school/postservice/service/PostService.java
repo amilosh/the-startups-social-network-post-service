@@ -7,12 +7,10 @@ import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.validator.HashtagValidator;
 import faang.school.postservice.validator.PostValidator;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -26,12 +24,19 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostValidator postValidator;
     private final HashtagService hashtagService;
+    private final HashtagValidator hashtagValidator;
 
     public ResponsePostDto create(CreatePostDto createPostDto) {
         postValidator.validateContent(createPostDto.getContent());
         postValidator.validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         postValidator.validateAuthorId(createPostDto.getAuthorId());
         postValidator.validateProjectId(createPostDto.getProjectId());
+
+        if (createPostDto.getHashtags() != null) {
+            for (String hashtag : createPostDto.getHashtags()) {
+                hashtagValidator.validateHashtag(hashtag);
+            }
+        }
 
         if (createPostDto.getAuthorId() != null && createPostDto.getProjectId() != null) {
             createPostDto.setProjectId(null);
@@ -77,6 +82,12 @@ public class PostService {
     public ResponsePostDto update(Long postId, UpdatePostDto updatePostDto) {
         postValidator.validateExistingPostId(postId);
         postValidator.validateContent(updatePostDto.getContent());
+
+        if (updatePostDto.getHashtags() != null) {
+            for (String hashtag : updatePostDto.getHashtags()) {
+                hashtagValidator.validateHashtag(hashtag);
+            }
+        }
 
         Post post = postRepository.findById(postId).get();
 
@@ -143,7 +154,7 @@ public class PostService {
     }
 
     public List<ResponsePostDto> findByHashtags(String tag) {
-        postValidator.validateHashtag(tag);
+        hashtagValidator.validateHashtag(tag);
 
         return postRepository.findByHashtags(tag).stream().map(postMapper::toDto).toList();
     }

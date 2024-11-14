@@ -8,6 +8,7 @@ import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.validator.HashtagValidator;
 import faang.school.postservice.validator.PostValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,9 @@ class PostServiceTest {
 
     @Mock
     private PostValidator postValidator;
+
+    @Mock
+    private HashtagValidator hashtagValidator;
 
     @Mock
     private HashtagService hashtagService;
@@ -350,7 +354,7 @@ class PostServiceTest {
 
         assertEquals(List.of(responsePostDto), result);
 
-        verify(postValidator, times(1)).validateHashtag(existingTag);
+        verify(hashtagValidator, times(1)).validateHashtag(existingTag);
         verify(postRepository, times(1)).findByHashtags(existingTag);
         verify(postMapper, times(1)).toDto(post);
     }
@@ -365,7 +369,7 @@ class PostServiceTest {
 
         assertEquals(Collections.emptyList(), result);
 
-        verify(postValidator, times(1)).validateHashtag(existingTag);
+        verify(hashtagValidator, times(1)).validateHashtag(existingTag);
         verify(postRepository, times(1)).findByHashtags(existingTag);
         verify(postMapper, never()).toDto(any(Post.class));
     }

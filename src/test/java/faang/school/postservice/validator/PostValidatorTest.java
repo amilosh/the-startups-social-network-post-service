@@ -166,22 +166,4 @@ class PostValidatorTest {
 
         postValidator.validatePostIdOnPublished(postId);
     }
-
-    @Test
-    void shouldThrowExceptionWhenHashtagNotFound() {
-        String nonExistentHashtag = "#nonexistent";
-
-        when(hashtagService.findByTag(nonExistentHashtag)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> postValidator.validateHashtag(nonExistentHashtag));
-    }
-
-    @Test
-    void shouldPassWhenHashtagExists() {
-        String existingHashtag = "#existing";
-
-        when(hashtagService.findByTag(existingHashtag)).thenReturn(Optional.of(Hashtag.builder().tag(existingHashtag).build()));
-
-        postValidator.validateHashtag(existingHashtag);
-    }
 }

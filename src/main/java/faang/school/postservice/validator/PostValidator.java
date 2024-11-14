@@ -4,15 +4,12 @@ import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityWasRemovedException;
-import faang.school.postservice.repository.HashtagRepository;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.HashtagService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 
 @Slf4j
 @Component
@@ -21,7 +18,6 @@ public class PostValidator {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostRepository postRepository;
-    private final HashtagService hashtagService;
 
     public void validateContent(String content) {
         if (content.isBlank()) {
@@ -62,12 +58,6 @@ public class PostValidator {
     public void validatePostIdOnPublished(Long postId) {
         if (postRepository.findById(postId).get().isPublished()) {
             throw new DataValidationException("Post with id " + postId + " was published");
-        }
-    }
-
-    public void validateHashtag(String hashtag) {
-        if (hashtagService.findByTag(hashtag).isEmpty()) {
-            throw new EntityNotFoundException("Hashtag with name: " + hashtag + " not found");
         }
     }
 }
