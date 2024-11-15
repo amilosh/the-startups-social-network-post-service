@@ -44,6 +44,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.26")
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
+    implementation("org.modelmapper:modelmapper:3.2.1")
     implementation("com.amazonaws:aws-java-sdk-s3:1.12.772")
     implementation("net.coobird:thumbnailator:0.4.20")
 
