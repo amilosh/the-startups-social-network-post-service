@@ -24,10 +24,11 @@ public class CommentService {
     private final CommentValidator commentValidator;
 
     public CommentDto createComment(CommentDto commentDto) {
+        postService.getPostById(commentDto.getPostId());
         commentValidator.isAuthorExist(commentDto.getAuthorId());
         commentDto.setCreatedAt(LocalDateTime.now());
-        Comment comment = commentRepository.save(commentMapper.toEntity(commentDto));
-        return commentMapper.toDto(comment);
+        Comment result = commentRepository.save(commentMapper.toEntity(commentDto));
+        return commentMapper.toDto(result);
     }
 
     public CommentDto updateComment(Long commentId, CommentDto commentDto) {
