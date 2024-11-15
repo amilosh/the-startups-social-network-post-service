@@ -7,11 +7,10 @@ import lombok.Builder;
 public record LikePostDto(
         @NotNull(groups = {After.class})
         Long id,
-        @NotNull(groups = {Before.class})
+        @NotNull(groups = {Before.class, After.class})
         Long userId,
-        @NotNull(groups = {Before.class})
-        Long postId,
-        Long numberOfLikes
+        @NotNull(groups = {Before.class, After.class})
+        Long postId
 ) {
     public interface After {}
     public interface Before {}

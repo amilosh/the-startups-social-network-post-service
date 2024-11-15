@@ -10,15 +10,7 @@ import org.mapstruct.ReportingPolicy;
 public interface LikePostMapper {
 
     @Mapping(source = "post.id", target = "postId")
-    @Mapping(target = "numberOfLikes", expression = "java(countLikes(like))")
     LikePostDto toDto(Like like);
 
-    @Mapping(source = "postId", target = "post", ignore = true)
     Like toEntity(LikePostDto likePostDto);
-
-    default Long countLikes(Like like) {
-        return like.getPost() != null && like.getPost().getLikes() != null
-                ? (long) like.getPost().getLikes().size() + 1
-                : 0L;
-    }
 }
