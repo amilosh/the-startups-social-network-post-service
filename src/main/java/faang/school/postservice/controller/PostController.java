@@ -29,32 +29,32 @@ public class PostController {
 
 
     @PostMapping
-    public ResponseEntity<Void> draftPost(@RequestBody PostDto postDto) {
+    public ResponseEntity<Long> draftPost(@RequestBody PostDto postDto) {
         checkPostDtoContainsContent(postDto);
         checkIdUserAndIdProjectNotNull(postDto);
-        postService.createDraftPost(postDto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        Long postId = postService.createDraftPost(postDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postId);
     }
 
-    @PutMapping(UrlUtils.ID + UrlUtils.PUBLISH)
-    public ResponseEntity<Void> publishPost(@PathVariable("id") @Min(1) Long postId) {
+    @PatchMapping(UrlUtils.ID)
+    public ResponseEntity<PostDto> publishPost(@PathVariable("id") @Min(1) Long postId) {
         checkPostExistsById(postId);
-        postService.publishPost(postId);
-        return ResponseEntity.ok().build();
+        PostDto postDto = postService.publishPost(postId);
+        return ResponseEntity.ok().body(postDto);
     }
 
-    @PutMapping(UrlUtils.ID + UrlUtils.UPDATE)
-    public ResponseEntity<Void> updatePost(@PathVariable("id") @Min(1) Long postId, @RequestBody String content) {
+    @PutMapping(UrlUtils.ID)
+    public ResponseEntity<PostDto> updatePost(@PathVariable("id") @Min(1) Long postId, @RequestBody PostDto postDto) {
         checkPostExistsById(postId);
-        postService.updatePost(postId, content);
-        return ResponseEntity.ok().build();
+        PostDto postDtoUpdated = postService.updatePost(postId, postDto);
+        return ResponseEntity.ok().body(postDtoUpdated);
     }
 
-    @PutMapping(UrlUtils.ID + UrlUtils.DELETE)
-    public ResponseEntity<Void> deletePost(@PathVariable("id") @Min(1) Long postId) {
+    @DeleteMapping(UrlUtils.ID)
+    public ResponseEntity<Long> deletePost(@PathVariable("id") @Min(1) Long postId) {
         checkPostExistsById(postId);
-        postService.deletePost(postId);
-        return ResponseEntity.ok().build();
+        Long postDeletedId = postService.deletePost(postId);
+        return ResponseEntity.ok().body(postDeletedId);
     }
 
     @GetMapping

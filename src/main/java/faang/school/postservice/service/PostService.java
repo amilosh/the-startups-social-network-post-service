@@ -28,30 +28,34 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
 
-    public void createDraftPost(PostDto postDto) {
+    public Long createDraftPost(PostDto postDto) {
         checkAuthorIdExist(postDto.idUser(), postDto.idProject());
-        postRepository.save(postMapper.toEntity(postDto));
+        Post post = postRepository.save(postMapper.toEntity(postDto));
+        return post.getId();
     }
 
-    public void publishPost(Long postId) {
+    public PostDto publishPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
         post.setPublished(true);
         postRepository.save(post);
+        return postMapper.toDto(postRepository.findById(postId).get());
     }
 
-    public void updatePost(Long postId, String content) {
+    public PostDto updatePost(Long postId, PostDto postDto) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
-        post.setContent(content);
+        post.setContent(postDto.content());
         postRepository.save(post);
+        return postMapper.toDto(postRepository.findById(postId).get());
     }
 
-    public void deletePost(Long postId) {
+    public Long deletePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
         post.setDeleted(true);
         postRepository.save(post);
+        return post.getId();
     }
 
     public PostDto getPost(Long postId) {
