@@ -3,7 +3,9 @@ package faang.school.postservice.validator.comment;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,9 @@ public class CommentValidatorTest {
 
     @Mock
     private UserServiceClient userServiceClient;
+
+    @Mock
+    private PostRepository postRepository;
 
     @InjectMocks
     private CommentValidator commentValidator;
@@ -66,6 +71,22 @@ public class CommentValidatorTest {
         when(userServiceClient.getUser(authorId)).thenReturn(userDto);
         commentValidator.isAuthorExist(authorId);
         verify(userServiceClient, times(1)).getUser(authorId);
+    }
+
+    @Test
+    public void isPostExistNotFound() {
+        Long postId = 1L;
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> commentValidator.isPostExist(postId));
+        verify(postRepository, times(1)).findById(postId);
+    }
+
+    @Test
+    public void isPostExist() {
+        Long postId = 1L;
+        when(postRepository.findById(postId)).thenReturn(Optional.of(new Post()));
+        commentValidator.isPostExist(postId);
+        verify(postRepository, times(1)).findById(postId);
     }
 
 }

@@ -5,7 +5,6 @@ import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,9 +31,6 @@ public class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
 
-    @Mock
-    private PostService postService;
-
     @Spy
     private CommentMapper commentMapper = Mappers.getMapper(CommentMapper.class);
 
@@ -51,13 +47,14 @@ public class CommentServiceTest {
         commentDto.setContent("Test");
         commentDto.setPostId(1L);
 
-        when(postService.getPostById(commentDto.getPostId())).thenReturn(new Post());
+        doNothing().when(commentValidator).isPostExist(commentDto.getPostId());
 
         Comment savedComment = new Comment();
         savedComment.setAuthorId(commentDto.getAuthorId());
         savedComment.setContent(commentDto.getContent());
         savedComment.setCreatedAt(LocalDateTime.now());
         savedComment.setPost(new Post());
+
 
         doNothing().when(commentValidator).isAuthorExist(commentDto.getAuthorId());
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
@@ -97,7 +94,8 @@ public class CommentServiceTest {
     @Test
     public void getAllComments() {
         Long postId = 1L;
-        when(postService.getPostById(postId)).thenReturn(new Post());
+
+        doNothing().when(commentValidator).isPostExist(postId);
 
         Comment comment1 = new Comment();
         comment1.setCreatedAt(LocalDateTime.of(2024, 11, 11, 12, 0));
@@ -119,7 +117,6 @@ public class CommentServiceTest {
 
         assertEquals(expectedDtos, result);
 
-        verify(postService, times(1)).getPostById(postId);
         verify(commentRepository, times(1)).findAllByPostId(postId);
         verify(commentMapper, times(comments.size())).toDto(any());
     }
