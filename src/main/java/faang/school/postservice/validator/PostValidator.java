@@ -42,8 +42,8 @@ public class PostValidator {
         }
     }
 
-    public void validateProjectId(Long projectId) {
-        if (projectId != null && projectServiceClient.getProject(projectId).getId() == 0) {
+    public void validateProjectId(Long projectId, Long authorId) {
+        if (projectId != null && projectServiceClient.getProjectById(projectId, authorId).getId() == 0) {
             throw new DataValidationException("Project with id " + projectId + " not found");
         }
     }
