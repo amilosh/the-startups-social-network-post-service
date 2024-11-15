@@ -9,6 +9,7 @@ import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.FeignClientException;
 import faang.school.postservice.exception.MessageError;
+import faang.school.postservice.exception.UnauthorizedException;
 import faang.school.postservice.filter.album.AlbumFilter;
 import faang.school.postservice.mapper.AlbumMapper;
 import faang.school.postservice.model.Album;
@@ -42,47 +43,47 @@ public class AlbumService {
 
     @Transactional
     public AlbumDto createAlbum(AlbumCreateUpdateDto createDto) {
-        log.info("Start creating album with title: {}", createDto.getTitle());
-
         long userId = userContext.getUserId();
-        validateUserId(userId);
+        log.info("User with ID {} is attempting to create a new album with title '{}'", userId, createDto.getTitle());
+
+        validateUserIdExistence(userId);
         validateAlbumTitle(createDto.getTitle(), userId);
         Album albumToSave = albumMapper.toEntity(createDto);
         albumToSave.setAuthorId(userId);
         Album savedAlbum = albumRepository.save(albumToSave);
 
-        log.info("Album created successfully with ID: {}", savedAlbum.getId());
+        log.info("User with ID {} successfully created album with ID {} titled '{}'", userId, savedAlbum.getId(), createDto.getTitle());
         return albumMapper.toDto(savedAlbum);
     }
 
     @Transactional
     public AlbumDto addPostToAlbum(long albumId, long postId) {
-        log.info("Start adding post with ID: {} to album with ID: {}", postId, albumId);
-
         long userId = userContext.getUserId();
+        log.info("User with ID {} is adding post with ID {} to album with ID {}", userId, postId, albumId);
+
         Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
         Post post = postService.getPost(postId);
         album.addPost(post);
 
-        log.info("Post added successfully to album with ID: {}", albumId);
+        log.info("User with ID {} successfully added post with ID {} to album with ID {}", userId, postId, albumId);
         return albumMapper.toDto(albumRepository.save(album));
     }
 
     @Transactional
     public void deletePostFromAlbum(long albumId, long postId) {
-        log.info("Start removing post with ID: {} from album with ID: {}", postId, albumId);
-
         long userId = userContext.getUserId();
+        log.info("User with ID {} is attempting to remove post with ID {} from album with ID {}", userId, postId, albumId);
+
         Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
 
         if (album.getPosts().stream().anyMatch(post -> post.getId() == postId)) {
             album.removePost(postId);
             albumRepository.save(album);
-            log.info("Post with ID: {} removed from album with ID: {}", postId, albumId);
+            log.info("User with ID {} successfully removed post with ID {} from album with ID {}", userId, postId, albumId);
         } else {
-            log.warn("Post with ID: {} not found in album with ID: {}", postId, albumId);
+            log.warn("User with ID {} attempted to remove non-existent post with ID {} from album with ID {}", userId, postId, albumId);
         }
     }
 
@@ -94,7 +95,7 @@ public class AlbumService {
         validateAlbumAuthor(album, userId);
         albumRepository.addAlbumToFavorites(albumId, userId);
         albumRepository.save(album);
-        log.info("Album with ID: {} added to favorites", albumId);
+        log.info("User with ID {} added album with ID {} to favorites", userId, albumId);
     }
 
     @Transactional
@@ -105,33 +106,33 @@ public class AlbumService {
         validateAlbumAuthor(album, userId);
         albumRepository.deleteAlbumFromFavorites(albumId, userId);
         albumRepository.save(album);
-        log.info("Album with ID: {} removed from favorites", albumId);
+        log.info("User with ID {} removed album with ID {} from favorites", userId, albumId);
     }
 
     @Transactional
     public AlbumDto getAlbumById(long albumId) {
-        log.info("Start fetching album with ID: {}", albumId);
+        log.info("User with ID {} is fetching album with ID {}", userContext.getUserId(), albumId);
         Album album = getAlbum(albumId);
-        log.info("Album with ID: {} found", albumId);
+        log.info("Album with ID {} successfully fetched", albumId);
         return albumMapper.toDto(album);
     }
 
     @Transactional
     public List<AlbumDto> getAllAlbums(AlbumFilterDto filterDto) {
-        log.info("Start fetching all albums with filters");
+        log.info("User with ID {} is fetching all albums with applied filters", userContext.getUserId());
 
         Stream<Album> albums = StreamSupport.stream(albumRepository.findAll().spliterator(), false);
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
-        log.info("Found {} albums after applying filters for all albums", filteredAlbums.size());
+        log.info("Found {} albums after applying filters", filteredAlbums.size());
         return albumMapper.toDto(filteredAlbums);
     }
 
     @Transactional
     public List<AlbumDto> getUserAlbums(AlbumFilterDto filterDto) {
-        log.info("Start fetching user's albums with filters");
-
         long userId = userContext.getUserId();
+        log.info("User with ID {} is fetching their albums with applied filters", userId);
+
         Stream<Album> albums = albumRepository.findByAuthorId(userId);
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
@@ -141,9 +142,9 @@ public class AlbumService {
 
     @Transactional
     public List<AlbumDto> getUserFavoriteAlbums(AlbumFilterDto filterDto) {
-        log.info("Start fetching user's favorite albums with filters");
-
         long userId = userContext.getUserId();
+        log.info("User with ID {} is fetching their favorite albums with filters", userId);
+
         Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(userId);
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
@@ -153,36 +154,36 @@ public class AlbumService {
 
     @Transactional
     public AlbumDto updateAlbum(long albumId, AlbumCreateUpdateDto updateDto) {
-        log.info("Start updating album with ID {}", albumId);
-
         long userId = userContext.getUserId();
+        log.info("User with ID {} is attempting to update album with ID {}", userId, albumId);
+
         Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
         validateAlbumTitle(updateDto.getTitle(), userId);
         albumMapper.update(updateDto, album);
         album = albumRepository.save(album);
 
-        log.info("Album updated successfully with ID: {}", albumId);
+        log.info("User with ID {} successfully updated album with ID {}", userId, albumId);
         return albumMapper.toDto(album);
     }
 
     @Transactional
     public void deleteAlbum(long albumId) {
-        log.info("Start deleting album with ID {}", albumId);
-
         long userId = userContext.getUserId();
+        log.info("User with ID {} is attempting to delete album with ID {}", userId, albumId);
+
         Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
         albumRepository.delete(album);
 
-        log.info("Album deleted successfully with ID: {}", albumId);
+        log.info("User with ID {} successfully deleted album with ID {}", userId, albumId);
     }
 
-    private void validateUserId(long userId) {
+    private void validateUserIdExistence(long userId) {
         try {
             userServiceClient.getUser(userId);
         } catch(FeignException.NotFound e) {
-            throw new EntityNotFoundException(USER, userId);
+            throw new UnauthorizedException(userId);
         } catch (Exception e) {
             throw new FeignClientException(
                     MessageError.FEIGN_CLIENT_UNEXPECTED_EXCEPTION
