@@ -13,13 +13,13 @@ public class LikeValidator {
     private LikeRepository likeRepository;
     private UserServiceClient userServiceClient;
 
-    public boolean validateCommentHatLike(long commentId, long userId) {
+    public boolean validateCommentHasLike(long commentId, long userId) {
         Optional<Like> like = likeRepository.findByCommentIdAndUserId(commentId, userId);
         return like.isEmpty();
 
     }
 
-    public boolean validatePostHatLike(long postId, long userId) {
+    public boolean validatePostHasLike(long postId, long userId) {
         Optional<Like> like = likeRepository.findByPostIdAndUserId(postId, userId);
         return like.isEmpty();
     }

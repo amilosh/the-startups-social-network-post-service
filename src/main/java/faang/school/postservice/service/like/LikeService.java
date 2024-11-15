@@ -36,7 +36,7 @@ public class LikeService {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Post post = getPost(postId);
-        boolean result = validator.validatePostHatLike(post.getId(), userId);
+        boolean result = validator.validatePostHasLike(post.getId(), userId);
         if (!result) {
             throw new DataValidationException("Post already liked with id " + userId);
         }
@@ -47,14 +47,14 @@ public class LikeService {
         post.getLikes().add(like);
         postRepository.save(post);
         log.info("The post {} was successfully saved in DB", post.getId());
-        return likeMapper.toReturnLikeDto(like);
+        return likeMapper.toResponseLikeDto(like);
     }
 
     public void deleteLikeFromPost(@RequestBody LikeRequestDto acceptanceLikeDto, @PathVariable long postId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Post post = getPost(postId);
-        boolean result = validator.validatePostHatLike(post.getId(), userId);
+        boolean result = validator.validatePostHasLike(post.getId(), userId);
         if (result) {
             throw new DataValidationException("Post hat not liked with id " + userId);
         }
@@ -70,7 +70,7 @@ public class LikeService {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Comment comment = getComment(commentId);
-        boolean result = validator.validateCommentHatLike(comment.getId(), userId);
+        boolean result = validator.validateCommentHasLike(comment.getId(), userId);
         if (!result) {
             throw new DataValidationException("Comment already liked with id " + commentId);
         }
@@ -81,14 +81,14 @@ public class LikeService {
         comment.getLikes().add(like);
         commentRepository.save(comment);
         log.info("The comment {} was successfully saved in DB", comment.getId());
-        return likeMapper.toReturnLikeDto(like);
+        return likeMapper.toResponseLikeDto(like);
     }
 
     public void deleteLikeFromComment(LikeRequestDto acceptanceLikeDto, long commentId) {
         Long userId = acceptanceLikeDto.getUserId();
         validator.validateUserId(userId);
         Comment comment = getComment(commentId);
-        boolean result = validator.validateCommentHatLike(comment.getId(), userId);
+        boolean result = validator.validateCommentHasLike(comment.getId(), userId);
         if (result) {
             throw new DataValidationException("Comment not liked with id " + commentId);
         }

@@ -73,7 +73,7 @@ public class LikeServiceTest {
     @Test
     public void testPostLikeSuccess() {
         when(postRepository.findById(5L)).thenReturn(Optional.ofNullable(post));
-        when(validator.validatePostHatLike(5L, 1L)).thenReturn(true);
+        when(validator.validatePostHasLike(5L, 1L)).thenReturn(true);
 
         likeService.postLike(acceptanceLikeDto, 5L);
 
@@ -88,7 +88,7 @@ public class LikeServiceTest {
     @Test
     public void testPostLikeWithPostHatLike() {
         when(postRepository.findById(5L)).thenReturn(Optional.ofNullable(post));
-        when(validator.validatePostHatLike(5L, 1L)).thenReturn(false);
+        when(validator.validatePostHasLike(5L, 1L)).thenReturn(false);
 
         assertThrows(DataValidationException.class,
                 () -> likeService.postLike(acceptanceLikeDto, 5L));
@@ -97,7 +97,7 @@ public class LikeServiceTest {
     @Test
     public void testCommentLikeSuccess() {
         when(commentRepository.findById(10L)).thenReturn(Optional.ofNullable(comment));
-        when(validator.validateCommentHatLike(10L, 1L)).thenReturn(true);
+        when(validator.validateCommentHasLike(10L, 1L)).thenReturn(true);
 
         likeService.commentLike(acceptanceLikeDto, 10L);
 
@@ -112,7 +112,7 @@ public class LikeServiceTest {
     @Test
     public void testCommentLikeWithCommentHatLike() {
         when(commentRepository.findById(10L)).thenReturn(Optional.ofNullable(comment));
-        when(validator.validateCommentHatLike(10L, 1L)).thenReturn(false);
+        when(validator.validateCommentHasLike(10L, 1L)).thenReturn(false);
 
         assertThrows(DataValidationException.class,
                 () -> likeService.commentLike(acceptanceLikeDto, 10L));
@@ -122,7 +122,7 @@ public class LikeServiceTest {
     public void testDeleteLikeFromPost() {
         post.getLikes().add(like);
         when(postRepository.findById(5L)).thenReturn(Optional.ofNullable(post));
-        when(validator.validatePostHatLike(5L, 1L)).thenReturn(false);
+        when(validator.validatePostHasLike(5L, 1L)).thenReturn(false);
         likeService.deleteLikeFromPost(acceptanceLikeDto, 5L);
         verify(likeRepository).deleteByPostIdAndUserId(post.getId(), 1L);
 
@@ -132,7 +132,7 @@ public class LikeServiceTest {
     @Test
     public void testDeleteLikeFromPostWithPostHasNotLike() {
         when(postRepository.findById(5L)).thenReturn(Optional.ofNullable(post));
-        when(validator.validatePostHatLike(5L, 1L)).thenReturn(true);
+        when(validator.validatePostHasLike(5L, 1L)).thenReturn(true);
         assertThrows(DataValidationException.class,
                 () -> likeService.deleteLikeFromPost(acceptanceLikeDto, 5L));
     }
@@ -141,7 +141,7 @@ public class LikeServiceTest {
     public void testDeleteLikeFromComment() {
         comment.getLikes().add(like);
         when(commentRepository.findById(10L)).thenReturn(Optional.ofNullable(comment));
-        when(validator.validateCommentHatLike(10L, 1L)).thenReturn(false);
+        when(validator.validateCommentHasLike(10L, 1L)).thenReturn(false);
         likeService.deleteLikeFromComment(acceptanceLikeDto, 10L);
         verify(likeRepository).deleteByCommentIdAndUserId(comment.getId(), 1L);
         assertTrue(comment.getLikes().isEmpty());
@@ -150,7 +150,7 @@ public class LikeServiceTest {
     @Test
     public void testDeleteLikeFromCommentWithCommentHasNotLike() {
         when(commentRepository.findById(10L)).thenReturn(Optional.ofNullable(comment));
-        when(validator.validateCommentHatLike(10L, 1L)).thenReturn(true);
+        when(validator.validateCommentHasLike(10L, 1L)).thenReturn(true);
         assertThrows(DataValidationException.class,
                 () -> likeService.deleteLikeFromComment(acceptanceLikeDto, 10L));
     }

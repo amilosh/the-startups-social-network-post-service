@@ -13,6 +13,6 @@ public interface LikeMapper {
 
     @Mapping(source = "comment.id", target = "commentId")
     @Mapping(source = "post.id", target = "postId")
-    LikeResponseDto toReturnLikeDto(Like like);
+    LikeResponseDto toResponseLikeDto(Like like);
 
 }

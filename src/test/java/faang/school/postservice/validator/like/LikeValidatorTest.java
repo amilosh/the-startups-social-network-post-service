@@ -1,6 +1,5 @@
 package faang.school.postservice.validator.like;
 
-
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
@@ -29,31 +28,31 @@ public class LikeValidatorTest {
     private UserServiceClient userServiceClient;
 
     @Test
-    public void testValidateCommentHatLikeNotLike() {
+    public void testValidateCommentHasLikeNotLike() {
         when(likeRepository.findByCommentIdAndUserId(1L, 1L))
                 .thenReturn(Optional.empty());
-        assertTrue(likeValidator.validateCommentHatLike(1L, 1L));
+        assertTrue(likeValidator.validateCommentHasLike(1L, 1L));
     }
 
     @Test
     public void testValidateCommentHat() {
         when(likeRepository.findByCommentIdAndUserId(1L, 1L))
                 .thenReturn(Optional.of(new Like()));
-        assertFalse(likeValidator.validateCommentHatLike(1L, 1L));
+        assertFalse(likeValidator.validateCommentHasLike(1L, 1L));
     }
 
     @Test
-    public void testValidatePostHatLike() {
+    public void testValidatePostHasLike() {
         when(likeRepository.findByPostIdAndUserId(1L, 1L))
                 .thenReturn(Optional.of(new Like()));
-        assertFalse(likeValidator.validatePostHatLike(1L, 1L));
+        assertFalse(likeValidator.validatePostHasLike(1L, 1L));
     }
 
     @Test
-    public void testValidatePostHatLikeNotLike() {
+    public void testValidatePostHasLikeNotLike() {
         when(likeRepository.findByPostIdAndUserId(1L, 1L))
                 .thenReturn(Optional.empty());
-        assertTrue(likeValidator.validatePostHatLike(1L, 1L));
+        assertTrue(likeValidator.validatePostHasLike(1L, 1L));
     }
 
 }
