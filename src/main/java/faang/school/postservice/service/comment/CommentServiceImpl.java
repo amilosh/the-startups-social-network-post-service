@@ -52,7 +52,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentDto> getCommentsByPostId(Long postId) {
         validator.validatePostId(postId);
-        return commentMapper.toDto(commentRepository.findAllByPostId(postId).stream().sorted(Comparator.comparing(Comment::getCreatedAt).reversed()).toList());
+        return commentMapper.toDto(commentRepository.findAllByPostId(postId).stream()
+                .sorted(Comparator.comparing(Comment::getCreatedAt).reversed())
+                .toList()
+        );
     }
 
     @Override
