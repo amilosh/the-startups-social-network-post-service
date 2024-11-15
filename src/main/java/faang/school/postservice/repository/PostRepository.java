@@ -3,10 +3,10 @@ package faang.school.postservice.repository;
 import faang.school.postservice.model.Post;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends CrudRepository<Post, Long> {
@@ -25,5 +25,7 @@ public interface PostRepository extends CrudRepository<Post, Long> {
     List<Post> findReadyToPublish();
 
     @Query("SELECT COUNT(l) FROM Like l WHERE l.post.id = :postId")
-    int countLikesByPostId(@Param("postId") Long postId);
+    int countLikesByPostId(long postId);
+
+    Optional<Post> findByIdAndDeletedFalse(long postId);
 }

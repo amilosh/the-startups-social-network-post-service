@@ -53,10 +53,10 @@ public class PostService {
         post.setPublishedAt(LocalDateTime.now());
 
         Post publishedPost = postRepository.save(post);
-        log.info("Post with ID: {} was published", postId);
 
         PostDto postDto = postMapper.toDto(publishedPost);
         postDto.setLikeCount(countLikesForPost(postId));
+        log.info("Post with ID: {} was published", postId);
         return postDto;
     }
 
@@ -73,10 +73,10 @@ public class PostService {
         }
 
         Post updatedPost = postRepository.save(post);
-        log.info("Post with ID: {} was updated", postId);
 
         PostDto postDtoToReturn = postMapper.toDto(updatedPost);
         postDtoToReturn.setLikeCount(countLikesForPost(postId));
+        log.info("Post with ID: {} was updated", postId);
         return postDtoToReturn;
     }
 
@@ -94,12 +94,12 @@ public class PostService {
     }
 
     public PostDto getPostById(Long postId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
-        log.info("Fetch the post with ID: {}", postId);
 
         PostDto postDto = postMapper.toDto(post);
         postDto.setLikeCount(countLikesForPost(postId));
+        log.info("Fetch the post with ID: {}", postId);
         return postDto;
     }
 
