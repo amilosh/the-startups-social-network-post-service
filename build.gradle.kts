@@ -56,41 +56,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.2")
     testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-    /**
-     * Jacoco
-     */
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
-
-    /**
-     * Swagger
-     */
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
-}
-
-jacoco {
-    toolVersion = "0.8.7"
-}
-
-tasks.test {
-    finalizedBy(tasks.jacocoTestReport)
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required.set(true)
-        csv.required.set(false)
-        html.outputLocation.set(file("${buildDir}/jacocoHtml"))
-    }
-    classDirectories.setFrom(
-        fileTree(project.buildDir) {
-            include("**/post_service/service/**",
-                "**/post_service/validator/**",
-                "**/post_service/filter/**",
-                "**/post_service/controller/**")
-        }
-    )
 }
 
 tasks.test {
