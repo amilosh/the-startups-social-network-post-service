@@ -5,6 +5,7 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityWasRemovedException;
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,12 @@ public class PostValidator {
     public void validatePostIdOnPublished(Long postId) {
         if (postRepository.findById(postId).get().isPublished()) {
             throw new DataValidationException("Post with id " + postId + " was published");
+        }
+    }
+
+    public void validatePostExistsById(Long postId) {
+        if (!postRepository.existsById(postId)) {
+            throw new EntityNotFoundException(String.format("Post with id: %s doesn't exist", postId));
         }
     }
 }

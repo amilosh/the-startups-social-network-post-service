@@ -9,9 +9,9 @@ import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -110,5 +110,10 @@ public class PostService {
         postValidator.validateProjectId(projectId);
 
         return postRepository.findPublishedByProject(projectId).stream().map(postMapper::toDto).toList();
+    }
+
+    public Post getPostById(Long id) {
+        return postRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException(String.format("Post with id: %s not found", id)));
     }
 }
