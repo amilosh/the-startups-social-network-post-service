@@ -26,7 +26,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserServiceClient userServiceClient;
-    private ProjectServiceClient projectServiceClient;
+    private final ProjectServiceClient projectServiceClient;
     private final PostMapper postMapper;
 
     public PostDto createPostDraft(PostDto postDto) {
@@ -64,6 +64,10 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
 
+        if (post.isDeleted()) {
+            throw new PostValidationException("Post is already deleted with ID: " + postId);
+        }
+
         if (postDto.getContent() != null) {
             if (postDto.getContent().isBlank()) {
                 throw new PostValidationException("Post content cannot be empty, post ID: " + postId);
@@ -85,7 +89,7 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
 
         if (post.isDeleted()) {
-            throw new PostValidationException("Post with ID: " + postId + " is already deleted");
+            throw new PostValidationException("Post is already deleted with ID: " + postId);
         }
 
         post.setDeleted(true);
@@ -106,7 +110,7 @@ public class PostService {
     public List<PostDto> getAllPostDraftsByUserId(Long userId) {
         List<Post> postDrafts = postRepository.findByAuthorId(userId).stream()
                 .filter(post -> !post.isPublished() && !post.isDeleted())
-                .sorted(Comparator.comparing(Post::getCreatedAt))
+                .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
                 .toList();
         log.info("Fetch all post drafts of the user with ID: {}", userId);
         return postMapper.toDto(postDrafts);
@@ -115,7 +119,7 @@ public class PostService {
     public List<PostDto> getAllPostDraftsByProjectId(Long projectId) {
         List<Post> postDrafts = postRepository.findByProjectId(projectId).stream()
                 .filter(post -> !post.isPublished() && !post.isDeleted())
-                .sorted(Comparator.comparing(Post::getCreatedAt))
+                .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
                 .toList();
         log.info("Fetch all post drafts of the project with ID: {}", projectId);
         return postMapper.toDto(postDrafts);
@@ -123,10 +127,13 @@ public class PostService {
 
     public List<PostDto> getAllPublishedPostsByUserId(Long userId) {
         List<PostDto> posts = postRepository.findByAuthorId(userId).stream()
-                .filter(post -> post.isPublished() && post.isDeleted())
-                .sorted(Comparator.comparing(Post::getPublishedAt))
+                .filter(post -> post.isPublished() && !post.isDeleted())
+                .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
                 .map(postMapper::toDto)
-                .peek(postDto -> postDto.setLikeCount(countLikesForPost(postDto.getId())))
+                .map(postDto -> {
+                    postDto.setLikeCount(countLikesForPost(postDto.getId()));
+                    return postDto;
+                })
                 .toList();
         log.info("Fetch all posts of the user with ID: {}", userId);
         return posts;
@@ -134,8 +141,8 @@ public class PostService {
 
     public List<PostDto> getAllPublishedPostsByProjectId(Long projectId) {
         List<PostDto> posts = postRepository.findByProjectId(projectId).stream()
-                .filter(post -> post.isPublished() && post.isDeleted())
-                .sorted(Comparator.comparing(Post::getPublishedAt))
+                .filter(post -> post.isPublished() && !post.isDeleted())
+                .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
                 .map(postMapper::toDto)
                 .peek(postDto -> postDto.setLikeCount(countLikesForPost(postDto.getId())))
                 .toList();
@@ -175,7 +182,7 @@ public class PostService {
             throw new PostValidationException("The post is already published");
         }
         if (post.isDeleted()) {
-            throw new PostValidationException("The post has been deleted and cannot be published");
+            throw new PostValidationException("Post is already deleted with ID: " + post.getId());
         }
     }
 
