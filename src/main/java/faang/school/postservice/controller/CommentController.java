@@ -7,11 +7,11 @@ import faang.school.postservice.dto.comment.CommentUpdateDto;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.CommentValidator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,7 +32,7 @@ public class CommentController {
         return commentService.createComment(input);
     }
 
-    @PostMapping("/comments")
+    @PutMapping("/comments")
     public CommentDtoOutputUponUpdate update(@RequestBody CommentUpdateDto updatingInput) {
         commentValidator.validateCommentUpdateDto(updatingInput);
         return commentService.updateComment(updatingInput);
