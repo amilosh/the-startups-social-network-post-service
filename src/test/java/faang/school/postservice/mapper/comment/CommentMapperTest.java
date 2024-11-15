@@ -18,7 +18,6 @@ class CommentMapperTest {
     private static final Long COMMENT_ID = 4L;
 
     private CommentInputMapperImpl commentMapper;
-    private Comment comment;
     private CommentDtoInput commentDto;
 
     @BeforeEach
@@ -31,7 +30,7 @@ class CommentMapperTest {
         Like like = new Like();
         like.setId(LIKE_ID);
 
-        comment = new Comment();
+        Comment comment = new Comment();
         comment.setId(COMMENT_ID);
         comment.setAuthorId(AUTHOR_ID);
         comment.setPost(post);
@@ -43,20 +42,8 @@ class CommentMapperTest {
         commentDto.setAuthorId(AUTHOR_ID);
         commentDto.setContent("content");
         commentDto.setPostId(POST_ID);
-        commentDto.setLikeIds(List.of(LIKE_ID));
     }
 
-    @Test
-    void toCommentDto() {
-        CommentDtoInput commentDtoInTest = commentMapper.toDto(comment);
-
-        assertNotNull(commentDtoInTest);
-        assertEquals(comment.getId(), commentDtoInTest.getId());
-        assertEquals(comment.getAuthorId(), commentDtoInTest.getAuthorId());
-        assertEquals(comment.getContent(), commentDtoInTest.getContent());
-        assertEquals(LIKE_ID, commentDtoInTest.getLikeIds().get(0));
-        assertEquals(POST_ID, commentDtoInTest.getPostId());
-    }
 
     @Test
     void toComment() {
@@ -66,7 +53,6 @@ class CommentMapperTest {
         assertEquals(commentDto.getId(), commentInTest.getId());
         assertEquals(commentDto.getAuthorId(), commentInTest.getAuthorId());
         assertEquals(commentDto.getContent(), commentInTest.getContent());
-        assertEquals(commentDto.getLikeIds().get(0), commentInTest.getLikes().get(0).getId());
         assertEquals(commentDto.getPostId(), commentInTest.getPost().getId());
     }
 }

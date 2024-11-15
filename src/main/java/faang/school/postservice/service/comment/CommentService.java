@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class CommentService {
 
         commentDtoInput.setId(null);
         Comment comment = commentInputMapper.toEntity(commentDtoInput);
+        comment.setLikes(new ArrayList<>());
 
         commentRepository.save(comment);
         log.info("New comment with id: {} created", comment.getId());
