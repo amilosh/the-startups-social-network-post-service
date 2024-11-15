@@ -4,6 +4,7 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,19 +20,21 @@ public class CommentServiceValidator {
     private final CommentRepository commentRepository;
 
     public void validateCreateComment(CommentDto commentDto) {
-        if (userServiceClient.getUser(commentDto.getAuthorId()) == null) {
+        try {
+            userServiceClient.getUser(commentDto.getAuthorId());
+        } catch (FeignException e) {
             throw new EntityNotFoundException("User with id %s not found".formatted(commentDto.getAuthorId()));
         }
     }
 
     public void validatePostId(Long postId) {
-        if(postService.findPostById(postId).isEmpty()){
+        if (postService.findPostById(postId).isEmpty()) {
             throw new EntityNotFoundException("Post with id %s not found".formatted(postId));
         }
     }
 
     public void validateCommentId(Long commentId) {
-        if(!commentRepository.existsById(commentId)){
+        if (!commentRepository.existsById(commentId)) {
             throw new EntityNotFoundException("Comment with id %s not found".formatted(commentId));
         }
     }

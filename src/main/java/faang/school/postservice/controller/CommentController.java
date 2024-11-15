@@ -3,7 +3,6 @@ package faang.school.postservice.controller;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.comment.CommentControllerValidator;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
