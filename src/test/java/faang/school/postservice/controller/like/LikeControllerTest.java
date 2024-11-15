@@ -1,8 +1,10 @@
 package faang.school.postservice.controller.like;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.like.LikeCommentDto;
 import faang.school.postservice.dto.like.LikePostDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.service.like.LikeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,11 +21,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
-@ContextConfiguration(classes = {LikeController.class, LikeService.class})
+@ContextConfiguration(classes = {LikeController.class})
 class LikeControllerTest {
 
     @Autowired
@@ -32,13 +35,16 @@ class LikeControllerTest {
     @MockBean
     private LikeService likeService;
 
+    @MockBean
+    private UserServiceClient userServiceClient;
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
     void likePost_shouldReturnLikePostDto_whenRequestDataIsValid() throws Exception {
-        LikePostDto likePostDto = new LikePostDto(1L, 2L, 3L, 1L);
-        Mockito.when(likeService.likePost(any(LikePostDto.class))).thenReturn(likePostDto);
+        LikePostDto likePostDto = new LikePostDto(1L, 2L, 3L);
+        when(likeService.likePost(any(LikePostDto.class))).thenReturn(likePostDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/likes/posts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -46,8 +52,7 @@ class LikeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.postId").value(likePostDto.postId()))
                 .andExpect(jsonPath("$.userId").value(likePostDto.userId()))
-                .andExpect(jsonPath("$.id").value(likePostDto.id()))
-                .andExpect(jsonPath("$.numberOfLikes").value(likePostDto.numberOfLikes()));
+                .andExpect(jsonPath("$.id").value(likePostDto.id()));
     }
 
     @ParameterizedTest
@@ -61,18 +66,19 @@ class LikeControllerTest {
 
     @Test
     void unlikePost_shouldReturnStatusOk_whenRequestDataIsValid() throws Exception {
-        Long likeId = 1L;
+        Long userId = 1L;
+        Long postId = 1L;
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/likes/posts/{likeId}", likeId))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/likes/posts/{postId}/users/{userId}", postId, userId))
                 .andExpect(status().isOk());
 
-        Mockito.verify(likeService).unlikePost(likeId);
+        Mockito.verify(likeService).unlikePost(postId, userId);
     }
 
     @Test
     void likeComment_shouldReturnLikeCommentDto_whenRequestDataIsValid() throws Exception {
-        LikeCommentDto likeCommentDto = new LikeCommentDto(1L, 2L, 3L, 4L, 1L);
-        Mockito.when(likeService.likeComment(any(LikeCommentDto.class))).thenReturn(likeCommentDto);
+        LikeCommentDto likeCommentDto = new LikeCommentDto(1L, 2L, 3L, 4L);
+        when(likeService.likeComment(any(LikeCommentDto.class))).thenReturn(likeCommentDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/likes/comments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,8 +87,7 @@ class LikeControllerTest {
                 .andExpect(jsonPath("$.postId").value(likeCommentDto.postId()))
                 .andExpect(jsonPath("$.userId").value(likeCommentDto.userId()))
                 .andExpect(jsonPath("$.commentId").value(likeCommentDto.commentId()))
-                .andExpect(jsonPath("$.id").value(likeCommentDto.id()))
-                .andExpect(jsonPath("$.numberOfLikes").value(likeCommentDto.numberOfLikes()));
+                .andExpect(jsonPath("$.id").value(likeCommentDto.id()));
     }
 
     @ParameterizedTest
@@ -96,12 +101,16 @@ class LikeControllerTest {
 
     @Test
     void unlikeComment_shouldReturnStatusOk_whenRequestDataIsValid() throws Exception {
-        Long likeId = 1L;
+        Long userId = 1L;
+        Long commentId = 1L;
+        UserDto mockUserDto = new UserDto(userId, "testuser", "test@example.com");
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/likes/comments/{likeId}", likeId))
+        when(userServiceClient.getUser(userId)).thenReturn(mockUserDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/likes/comments/{commentId}/users/{userId}", commentId, userId))
                 .andExpect(status().isOk());
 
-        Mockito.verify(likeService).unlikeComment(likeId);
+        Mockito.verify(likeService).unlikeComment(commentId, userId);
     }
 
     static Stream<LikePostDto> invalidLikePostDto(){

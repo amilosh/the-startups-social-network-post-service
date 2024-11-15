@@ -1,15 +1,17 @@
 package faang.school.postservice.service.like;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.like.LikeCommentDto;
 import faang.school.postservice.dto.like.LikePostDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.like.LikeCommentMapperImpl;
 import faang.school.postservice.mapper.like.LikePostMapperImpl;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
-import faang.school.postservice.service.comment.CommentService;
-import faang.school.postservice.service.post.PostServiceImpl;
+import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +36,15 @@ class LikeServiceTest {
     @Mock
     private LikeRepository likeRepository;
     @Mock
-    private PostServiceImpl postService;
+    private PostRepository postRepository;
     @Mock
-    private CommentService commentService;
+    private CommentRepository commentRepository;
     @Mock
     private LikePostMapperImpl likePostMapper;
     @Mock
     private LikeCommentMapperImpl likeCommentMapper;
+    @Mock
+    private UserServiceClient userServiceClient;
 
 
     @Test
@@ -50,7 +54,7 @@ class LikeServiceTest {
         Post post = getPost();
         Like like = getLike();
 
-        when(postService.findPost(likePostDto.postId())).thenReturn(post);
+        when(postRepository.findById(likePostDto.postId())).thenReturn(Optional.of(post));
         when(likePostMapper.toEntity(any())).thenReturn(like);
         when(likePostMapper.toDto(any())).thenReturn(expectedLikePostDto);
         when(likeRepository.save(like)).thenReturn(like);
@@ -61,7 +65,6 @@ class LikeServiceTest {
 
         assertNotNull(actualLikePost);
         assertThat(actualLikePost.id()).isEqualTo(expectedLikePostDto.id());
-        assertThat(actualLikePost.numberOfLikes()).isEqualTo(expectedLikePostDto.numberOfLikes());
 
 
     }
@@ -74,7 +77,9 @@ class LikeServiceTest {
         post.setLikes(List.of(new Like(1L, 1L, null, null, null)));
         Like like = getLike();
 
-        when(postService.findPost(likePostDto.postId())).thenReturn(post);
+        when(postRepository.findById(likePostDto.postId())).thenReturn(Optional.of(post));
+        when(likeRepository.findByPostIdAndUserId(likePostDto.postId(), likePostDto.userId()))
+                .thenReturn(Optional.of(new Like(1L, 1L, null, null, null)));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> likeService.likePost(expectedLikePostDto));
@@ -88,7 +93,7 @@ class LikeServiceTest {
     void likePost_shouldThrowEntityNotFoundException_whenPostNotFound() {
         LikePostDto likePostDto = getLikePostDto();
 
-        when(postService.findPost(any())).thenThrow(EntityNotFoundException.class);
+        when(postRepository.findById(any())).thenThrow(EntityNotFoundException.class);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> likeService.likePost(likePostDto));
@@ -101,23 +106,33 @@ class LikeServiceTest {
     @Test
     void unlikePost_shouldUnlikePost() {
         Like like = getLike();
-        when(likeRepository.findById(like.getId())).thenReturn(Optional.of(like));
+        long postId = 1L;
+        long userId = 1L;
+        UserDto mockUser = new UserDto(userId, "testuser", "test@gmail.com");
 
-        likeService.unlikePost(like.getId());
+        when(userServiceClient.getUser(userId)).thenReturn(mockUser);
+        when(likeRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.of(like));
 
-        verify(likeRepository, times(1)).deleteById(like.getId());
+        likeService.unlikePost(postId, userId);
+
+        verify(userServiceClient, times(1)).getUser(userId);
+
+        verify(likeRepository, times(1)).deleteByPostIdAndUserId(postId, userId);
     }
 
     @Test
-    void unlikePost_shouldEntityNotFoundException_whenLikeNotFound() {
-        Like like = getLike();
+    void unlikePost_shouldThrowEntityNotFoundException_whenLikeOfPostNotFound() {
+        long postId = 1L;
+        long userId = 1L;
+        UserDto mockUser = new UserDto(userId, "testuser", "test@gmail.com");
+
+        when(userServiceClient.getUser(userId)).thenReturn(mockUser);
+        when(likeRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> likeService.unlikePost(like.getId()));
+                () -> likeService.unlikePost(postId, userId));
 
-        verify(likeRepository, never()).deleteById(like.getId());
-
-        assertThat(exception.getClass()).isEqualTo(EntityNotFoundException.class);
+        assertThat(exception.getMessage()).isEqualTo("Like not found for postId: " + postId + " and userId: " + userId);
     }
 
     @Test
@@ -128,10 +143,8 @@ class LikeServiceTest {
         LikeCommentDto likeCommentDto = getLikeCommentDto();
         LikeCommentDto expectedLikeCommentDto = getExpectedCommentDto();
 
-        when(postService.findPost(post.getId())).thenReturn(post);
-        when(commentService.findComment(comment.getId())).thenReturn(comment);
+        when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(comment));
         when(likeCommentMapper.toEntity(any())).thenReturn(like);
-        when(likeCommentMapper.toDto(any(), any())).thenReturn(expectedLikeCommentDto);
         when(likeRepository.save(like)).thenReturn(like);
 
         LikeCommentDto actualLikeComment = likeService.likeComment(likeCommentDto);
@@ -150,8 +163,9 @@ class LikeServiceTest {
         comment.setLikes(List.of(new Like(1L, 1L, null, null, null)));
         Like like = getLike();
 
-        when(postService.findPost(likeCommentDto.postId())).thenReturn(post);
-        when(commentService.findComment(likeCommentDto.commentId())).thenReturn(comment);
+        when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(comment));
+        when(likeRepository.findByCommentIdAndUserId(likeCommentDto.postId(), likeCommentDto.userId()))
+                .thenReturn(Optional.of(new Like(1L, 1L, null, null, null)));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 likeService.likeComment(likeCommentDto));
@@ -163,11 +177,10 @@ class LikeServiceTest {
 
     @Test
     void likeComment_shouldThrowEntityNotFoundException_whenPostNotFound() {
-        Post post = getPost();
         LikeCommentDto likeCommentDto = getExpectedCommentDto();
 
-        when(postService.findPost(any())).thenReturn(post);
-        when(commentService.findComment(any())).thenThrow(EntityNotFoundException.class);
+
+        when(commentRepository.findById(any())).thenThrow(EntityNotFoundException.class);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> likeService.likeComment(likeCommentDto));
@@ -180,24 +193,33 @@ class LikeServiceTest {
     @Test
     void unlikeComment_shouldUnlikeComment() {
         Like like = getLike();
-        when(likeRepository.findById(like.getId())).thenReturn(Optional.of(like));
+        long commentId = 1L;
+        long userId = 1L;
+        UserDto mockUser = new UserDto(userId, "testuser", "test@gmail.com");
 
-        likeService.unlikeComment(like.getId());
+        when(likeRepository.findByCommentIdAndUserId(commentId, userId)).thenReturn(Optional.of(like));
+        when(userServiceClient.getUser(userId)).thenReturn(mockUser);
 
-        verify(likeRepository, times(1)).deleteById(like.getId());
+        likeService.unlikeComment(commentId, userId);
+
+        verify(userServiceClient, times(1)).getUser(userId);
+
+        verify(likeRepository, times(1)).deleteByCommentIdAndUserId(commentId, userId);
     }
 
     @Test
-    void unlikeComment_shouldEntityNotFoundException_whenLikeNotFound() {
-        Like like = getLike();
-        when(likeRepository.findById(like.getId())).thenThrow(EntityNotFoundException.class);
+    void unlikeComment_shouldThrowEntityNotFoundException_whenLikeOfCommentNotFound() {
+        long commentId = 1L;
+        long userId = 1L;
+        UserDto mockUser = new UserDto(userId, "testuser", "test@gmail.com");
+
+        when(userServiceClient.getUser(userId)).thenReturn(mockUser);
+        when(likeRepository.findByCommentIdAndUserId(commentId, userId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> likeService.unlikeComment(like.getId()));
+                () -> likeService.unlikeComment(commentId, userId));
 
-        verify(likeRepository, never()).deleteById(like.getId());
-
-        assertThat(exception.getClass()).isEqualTo(EntityNotFoundException.class);
+        assertThat(exception.getMessage()).isEqualTo("Like not found for commentId: " + commentId + " and userId: " + userId);
     }
 
     private Post getPost(){
@@ -222,7 +244,6 @@ class LikeServiceTest {
                 .id(1L)
                 .userId(1L)
                 .postId(1L)
-                .numberOfLikes(3L)
                 .build();
     }
 
@@ -232,7 +253,6 @@ class LikeServiceTest {
                 .userId(1L)
                 .postId(1L)
                 .commentId(1L)
-                .numberOfLikes(3L)
                 .build();
     }
 
@@ -241,7 +261,6 @@ class LikeServiceTest {
                 .id(null)
                 .userId(1L)
                 .postId(1L)
-                .numberOfLikes(null)
                 .build();
     }
 
@@ -251,7 +270,6 @@ class LikeServiceTest {
                 .userId(1L)
                 .postId(1L)
                 .commentId(1L)
-                .numberOfLikes(null)
                 .build();
     }
 
