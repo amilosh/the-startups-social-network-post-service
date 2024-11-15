@@ -42,7 +42,6 @@ public class LikeService {
         Post postOfLike = postService.getPostEntity(likeDto.getPostId());
         Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setPost(postOfLike);
-        likeToSave.setUserId(likeDto.getUserId());
 
         log.info("Save new Like for Post with ID: {}", likeDto.getPostId());
         likeRepository.save(likeToSave);
@@ -62,7 +61,6 @@ public class LikeService {
         Comment commentOfLike = commentService.getEntityComment(likeDto.getCommentId());
         Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setComment(commentOfLike);
-        likeToSave.setUserId(likeDto.getUserId());
 
         log.info("Save new Like for Comment with ID: {}", likeDto.getCommentId());
         likeRepository.save(likeToSave);
