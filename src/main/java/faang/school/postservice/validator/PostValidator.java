@@ -60,4 +60,10 @@ public class PostValidator {
             throw new DataValidationException("Post with id " + postId + " was published");
         }
     }
+
+    public void validatePostExistsById(Long postId) {
+        if (!postRepository.existsById(postId)) {
+            throw new EntityNotFoundException(String.format("Post with id: %s doesn't exist", postId));
+        }
+    }
 }

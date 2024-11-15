@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -157,5 +159,10 @@ public class PostService {
         hashtagValidator.validateHashtag(tag);
 
         return postRepository.findByHashtags(tag).stream().map(postMapper::toDto).toList();
+    }
+
+    public Post getPostById(Long id) {
+        return postRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException(String.format("Post with id: %s not found", id)));
     }
 }

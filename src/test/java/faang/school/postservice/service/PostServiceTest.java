@@ -10,10 +10,13 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.HashtagValidator;
 import faang.school.postservice.validator.PostValidator;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -57,6 +60,8 @@ class PostServiceTest {
 
     Post firstPost = new Post();
     Post secondPost = new Post();
+
+    Post post = createTestPost();
 
     ResponsePostDto firstResponsePostDto = new ResponsePostDto();
     ResponsePostDto secondResponsePostDto = new ResponsePostDto();
@@ -255,7 +260,7 @@ class PostServiceTest {
         verify(postValidator, times(1)).validateExistingPostId(postId);
         verify(postValidator, times(1)).validatePostIdOnRemoved(postId);
 
-        assert(post.isDeleted());
+        assert (post.isDeleted());
 
         verify(postRepository, times(1)).save(post);
     }
@@ -372,5 +377,31 @@ class PostServiceTest {
         verify(hashtagValidator, times(1)).validateHashtag(existingTag);
         verify(postRepository, times(1)).findByHashtags(existingTag);
         verify(postMapper, never()).toDto(any(Post.class));
+    }
+
+    @DisplayName("Get post with valid id")
+    void testGetPostByIdValidId() {
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        Post result = postService.getPostById(1L);
+
+        assertNotNull(result);
+        assertEquals(post, result);
+    }
+
+    @Test
+    @DisplayName("Get post with invalid id")
+    void testGetPostByIdInvalidId() {
+        when(postRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(EntityNotFoundException.class, () -> postService.getPostById(1L));
+        assertEquals("Post with id: 1 not found", ex.getMessage());
+    }
+
+    private Post createTestPost() {
+        return Post.builder()
+                .id(1L)
+                .content("Test content")
+                .build();
     }
 }

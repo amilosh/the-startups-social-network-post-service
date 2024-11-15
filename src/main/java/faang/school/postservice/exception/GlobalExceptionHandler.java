@@ -1,7 +1,7 @@
 package faang.school.postservice.exception;
 
-import feign.FeignException;
 
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

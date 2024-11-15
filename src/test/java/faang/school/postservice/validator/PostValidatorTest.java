@@ -11,7 +11,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import jakarta.persistence.EntityNotFoundException;
-import liquibase.hub.model.Project;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
@@ -42,6 +41,8 @@ class PostValidatorTest {
 
     @InjectMocks
     private PostValidator postValidator;
+
+    Long postId = 1L;
 
     @Test
     void validateContentWhenContentIsBlankShouldThrowDataValidationException() {
@@ -165,5 +166,24 @@ class PostValidatorTest {
         when(postRepository.findById(postId)).thenReturn(java.util.Optional.of(post));
 
         postValidator.validatePostIdOnPublished(postId);
+    }
+
+    @Test
+    @DisplayName("Check post exists by id success")
+    void testValidatePostExistsById() {
+        when(postRepository.existsById(postId)).thenReturn(true);
+
+        postValidator.validatePostExistsById(postId);
+
+        verify(postRepository, times(1)).existsById(postId);
+    }
+
+    @Test
+    @DisplayName("Check post exists by id fail")
+    void testValidatePostExistsByIdFail() {
+        when(postRepository.existsById(postId)).thenReturn(false);
+
+        Exception ex = assertThrows(EntityNotFoundException.class, () -> postValidator.validatePostExistsById(postId));
+        assertEquals("Post with id: 1 doesn't exist", ex.getMessage());
     }
 }
