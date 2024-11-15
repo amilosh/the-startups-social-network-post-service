@@ -83,6 +83,11 @@ public class PostService {
     public void softDelete(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
+
+        if (post.isDeleted()) {
+            throw new PostValidationException("Post with ID: " + postId + " is already deleted");
+        }
+
         post.setDeleted(true);
         postRepository.save(post);
         log.info("Post with ID: {} was deleted softly", postId);
