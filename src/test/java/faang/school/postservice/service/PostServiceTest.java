@@ -121,7 +121,7 @@ class PostServiceTest {
         doNothing().when(postValidator).validateContent(createPostDto.getContent());
         doNothing().when(postValidator).validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         doNothing().when(postValidator).validateAuthorId(createPostDto.getAuthorId());
-        doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId());
+        doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
         when(postMapper.toEntity(createPostDto)).thenReturn(postEntity);
         when(hashtagService.findByTag("tag1")).thenReturn(Optional.of(existingTag));
         when(hashtagService.findByTag("tag2")).thenReturn(Optional.empty());
