@@ -1,39 +1,41 @@
 package faang.school.postservice.service.like;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.like.LikeCommentDto;
 import faang.school.postservice.dto.like.LikePostDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.like.LikeCommentMapper;
 import faang.school.postservice.mapper.like.LikePostMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
-import faang.school.postservice.service.comment.CommentService;
-import faang.school.postservice.service.post.PostServiceImpl;
+import faang.school.postservice.repository.PostRepository;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class LikeService {
     private final LikeRepository likeRepository;
-    private final PostServiceImpl postService;
-    private final CommentService commentService;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final LikePostMapper likePostMapper;
     private final LikeCommentMapper likeCommentMapper;
+    private final UserServiceClient userServiceClient;
 
     public LikePostDto likePost(LikePostDto likePostDto){
-        Post post = postService.findPost(likePostDto.postId());
-        post.getLikes()
-                .forEach(like -> {
-                    if(Objects.equals(like.getUserId(), likePostDto.userId())){
-                        throw new IllegalArgumentException("This post was already liked by this user");
-                    }
+        Post post = postRepository.findById(likePostDto.postId()).orElseThrow(
+                () -> new EntityNotFoundException("Post not found with id:  " + likePostDto.postId()));
+
+        likeRepository.findByPostIdAndUserId(likePostDto.postId(), likePostDto.userId())
+                .ifPresent(like -> {
+                    throw new IllegalArgumentException("This post was already liked by this user");
                 });
 
         Like like = likePostMapper.toEntity(likePostDto);
@@ -44,23 +46,25 @@ public class LikeService {
         return likePostMapper.toDto(like);
     }
 
-    public void unlikePost(Long likeId){
-        Like like = likeRepository.findById(likeId).orElseThrow(EntityNotFoundException::new);
+    public void unlikePost(Long postId, Long userId){
+        authorizeUser(userId);
 
-        likeRepository.deleteById(like.getId());
+        likeRepository.findByPostIdAndUserId(postId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Like not found for postId: " + postId + " and userId: " + userId));
+
+        likeRepository.deleteByPostIdAndUserId(postId, userId);
 
         log.info("Like of post was successfully deleted");
     }
 
     public LikeCommentDto likeComment(LikeCommentDto likeCommentDto){
-        Post post = postService.findPost(likeCommentDto.postId());
-        Comment comment = commentService.findComment(likeCommentDto.commentId());
+        Comment comment = commentRepository.findById(likeCommentDto.commentId()).orElseThrow(
+                () -> new EntityNotFoundException("Post not found with id:  " + likeCommentDto.postId())
+        );
 
-        comment.getLikes()
-                .forEach(like -> {
-                    if(Objects.equals(like.getUserId(), likeCommentDto.userId())){
-                        throw new IllegalArgumentException("This comment was already liked by this user");
-                    }
+        likeRepository.findByCommentIdAndUserId(likeCommentDto.commentId(), likeCommentDto.userId())
+                .ifPresent(like -> {
+                    throw new IllegalArgumentException("This comment was already liked by this user");
                 });
 
         Like like = likeCommentMapper.toEntity(likeCommentDto);
@@ -68,14 +72,35 @@ public class LikeService {
 
         Like createdLike = likeRepository.save(like);
 
-        return likeCommentMapper.toDto(createdLike, post);
+        return LikeCommentDto.builder()
+                .id(createdLike.getId())
+                .userId(createdLike.getUserId())
+                .postId(likeCommentDto.postId())
+                .commentId(createdLike.getComment().getId())
+                .build();
     }
 
-    public void unlikeComment(Long likeId){
-        Like like = likeRepository.findById(likeId).orElseThrow(EntityNotFoundException::new);
+    public void unlikeComment(Long commentId, Long userId){
+        authorizeUser(userId);
 
-        likeRepository.deleteById(like.getId());
+        likeRepository.findByCommentIdAndUserId(commentId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Like not found for commentId: " + commentId + " and userId: " + userId));
+
+        likeRepository.deleteByCommentIdAndUserId(commentId, userId);
 
         log.info("Like of comment was successfully deleted");
+    }
+
+    private void authorizeUser(Long userId){
+        try{
+            UserDto userDto = userServiceClient.getUser(userId);
+            if (userDto == null){
+                log.error("User not found with id: {}", userId);
+                throw new EntityNotFoundException("User not found with id: " + userId);
+            }
+        } catch (FeignException.NotFound e) {
+            log.warn("User not found with ID: {}", userId, e);
+            throw new EntityNotFoundException("User not found with id: " + userId, e);
+        }
     }
 }
