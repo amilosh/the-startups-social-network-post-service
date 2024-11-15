@@ -32,7 +32,7 @@ public class PostService {
         postValidator.validateContent(createPostDto.getContent());
         postValidator.validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         postValidator.validateAuthorId(createPostDto.getAuthorId());
-        postValidator.validateProjectId(createPostDto.getProjectId());
+        postValidator.validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
 
         if (createPostDto.getHashtags() != null) {
             for (String hashtag : createPostDto.getHashtags()) {
@@ -149,8 +149,8 @@ public class PostService {
         return postRepository.findPublishedByAuthor(userId).stream().map(postMapper::toDto).toList();
     }
 
-    public List<ResponsePostDto> getPublishedByProjectId(Long projectId) {
-        postValidator.validateProjectId(projectId);
+    public List<ResponsePostDto> getPublishedByProjectId(Long projectId, Long authorId) {
+        postValidator.validateProjectId(projectId, authorId);
 
         return postRepository.findPublishedByProject(projectId).stream().map(postMapper::toDto).toList();
     }

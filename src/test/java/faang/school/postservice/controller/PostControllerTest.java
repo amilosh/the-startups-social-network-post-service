@@ -212,6 +212,7 @@ class PostControllerTest {
     @Test
     void getPublishedByProjectIdShouldReturnPostDtos() throws Exception {
         Long projectId = 1L;
+        Long authorId = 1L;
         ResponsePostDto responsePostDto1 = new ResponsePostDto();
         responsePostDto1.setId(1L);
         responsePostDto1.setContent("Published content 1");
@@ -222,9 +223,9 @@ class PostControllerTest {
 
         List<ResponsePostDto> responsePostDtos = Arrays.asList(responsePostDto1, responsePostDto2);
 
-        when(postService.getPublishedByProjectId(projectId)).thenReturn(responsePostDtos);
+        when(postService.getPublishedByProjectId(projectId, authorId)).thenReturn(responsePostDtos);
 
-        mockMvc.perform(get("/posts/published/project/{projectId}", projectId)
+        mockMvc.perform(get("/posts/published/project/{projectId}?authorId=1", projectId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
@@ -232,7 +233,7 @@ class PostControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].content").value("Published content 2"));
 
-        verify(postService, times(1)).getPublishedByProjectId(projectId);
+        verify(postService, times(1)).getPublishedByProjectId(projectId, authorId);
     }
 
     @Test

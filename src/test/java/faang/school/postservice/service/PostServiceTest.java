@@ -88,7 +88,7 @@ class PostServiceTest {
         doNothing().when(postValidator).validateContent(createPostDto.getContent());
         doNothing().when(postValidator).validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         doNothing().when(postValidator).validateAuthorId(createPostDto.getAuthorId());
-        doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId());
+        doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
         when(postMapper.toEntity(createPostDto)).thenReturn(postEntity);
         when(postRepository.save(postEntity)).thenReturn(postEntity);
         when(postMapper.toDto(postEntity)).thenReturn(responsePostDto);
@@ -331,15 +331,16 @@ class PostServiceTest {
 
     @Test
     void getPublishedByProjectIdShouldValidateAndReturnPublishedPosts() {
-        Long projectId = 1L;
+        long projectId = 1L;
+        long authorId = 1L;
 
         when(postRepository.findPublishedByProject(projectId)).thenReturn(List.of(firstPost, secondPost));
         when(postMapper.toDto(firstPost)).thenReturn(firstResponsePostDto);
         when(postMapper.toDto(secondPost)).thenReturn(secondResponsePostDto);
 
-        List<ResponsePostDto> result = postService.getPublishedByProjectId(projectId);
+        List<ResponsePostDto> result = postService.getPublishedByProjectId(projectId, authorId);
 
-        verify(postValidator, times(1)).validateProjectId(projectId);
+        verify(postValidator, times(1)).validateProjectId(projectId, authorId);
         verify(postRepository, times(1)).findPublishedByProject(projectId);
 
         assertEquals(List.of(firstResponsePostDto, secondResponsePostDto), result);

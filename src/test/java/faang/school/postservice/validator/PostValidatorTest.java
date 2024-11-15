@@ -112,12 +112,14 @@ class PostValidatorTest {
     @Test
     void validateProjectIdWhenProjectIdIsNotNullAndProjectExistsShouldNotThrowException() {
         Long projectId = 1L;
+        Long authorId = 1L;
+
         ProjectDto project = new ProjectDto();
         project.setId(projectId);
 
-        when(projectServiceClient.getProject(projectId)).thenReturn(project);
+        when(projectServiceClient.getProjectById(projectId, authorId)).thenReturn(project);
 
-        postValidator.validateProjectId(projectId);
+        postValidator.validateProjectId(projectId, authorId);
     }
 
     @Test

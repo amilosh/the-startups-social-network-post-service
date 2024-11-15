@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -133,9 +134,13 @@ public class PostController {
             @PathVariable
             @NotNull(message = "Project id cannot be null")
             @Positive(message = "Project id must be positive")
-            Long projectId
+            Long projectId,
+            @RequestParam
+            @NotNull(message = "Page number cannot be null")
+            @NotBlank(message = "Page number cannot be blank")
+            Long authorId
     ) {
-        return ResponseEntity.ok(postService.getPublishedByProjectId(projectId));
+        return ResponseEntity.ok(postService.getPublishedByProjectId(projectId, authorId));
     }
 
     @GetMapping("/hashtag/{tag}")
