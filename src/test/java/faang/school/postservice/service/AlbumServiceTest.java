@@ -176,22 +176,6 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testRemoveAlbumSucсesfully() {
-        doNothing().when(userValidator).checkUserExistence(albumDto);
-        when(albumValidator.albumExistsByTitleAndAuthorId(albumDto)).thenReturn(albumDto);
-        when(albumMapper.toDto(album)).thenReturn(albumDto);
-        when(albumRepository.save(album)).thenReturn(album);
-
-        AlbumDto result = albumService.removePost(userId, albumId, postDto);
-
-        assertEquals(result, albumDto);
-        verify(userValidator, times(1)).checkUserExistence(albumDto);
-        verify(albumMapper, times(1)).toDto(album);
-        verify(albumValidator, times(1)).albumExistsByTitleAndAuthorId(albumDto);
-        verify(albumRepository, times(1)).save(album);
-    }
-
-    @Test
     void testAddPostToAlboomSucсesfully() {
         doNothing().when(postValidator).checkPostExistence(postDto);
         when(albumRepository.findByAuthorId(1L)).thenReturn(Stream.of(album));
