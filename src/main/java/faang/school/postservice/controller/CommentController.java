@@ -39,7 +39,7 @@ public class CommentController {
     }
 
     @GetMapping("/comments")
-    public List<CommentDtoOutput> getCommentsByPostId(@RequestParam("postId") Long postId) {
+    public List<CommentDtoOutput> getCommentsByPostId(@RequestParam Long postId) {
         return commentService.getCommentsByPostId(postId);
     }
 
