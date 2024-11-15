@@ -5,10 +5,10 @@ import faang.school.postservice.dto.comment.CommentDtoInput;
 import faang.school.postservice.dto.comment.CommentUpdateDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -50,7 +50,7 @@ class CommentValidatorTest {
         CommentDtoInput commentDtoInput = new CommentDtoInput();
         commentDtoInput.setContent(null);
 
-        DataValidationException exception = assertThrows(DataValidationException.class, () -> commentValidator.validateComment(commentDtoInput));
+        DataValidationException exception = assertThrows(DataValidationException.class, () -> commentValidator.validateCommentDtoInput(commentDtoInput));
 
         assertEquals("Comment content is empty", exception.getMessage());
     }
@@ -61,7 +61,7 @@ class CommentValidatorTest {
         commentDtoInput.setContent(EMPTY_CONTENT);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateComment(commentDtoInput);
+            commentValidator.validateCommentDtoInput(commentDtoInput);
         });
 
         assertEquals("Comment content is empty", exception.getMessage());
@@ -73,7 +73,7 @@ class CommentValidatorTest {
         commentDtoInput.setContent(LONGER_THAN_4096_SYMBOLS_CONTENT);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateComment(commentDtoInput);
+            commentValidator.validateCommentDtoInput(commentDtoInput);
         });
 
         assertEquals("Comment content is too long", exception.getMessage());
@@ -86,7 +86,7 @@ class CommentValidatorTest {
         commentDtoInput.setAuthorId(null);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateComment(commentDtoInput);
+            commentValidator.validateCommentDtoInput(commentDtoInput);
         });
 
         assertEquals("Comment must have an author", exception.getMessage());
@@ -100,24 +100,10 @@ class CommentValidatorTest {
         commentDtoInput.setPostId(null);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateComment(commentDtoInput);
+            commentValidator.validateCommentDtoInput(commentDtoInput);
         });
 
         assertEquals("Comment must relate to a post", exception.getMessage());
-    }
-
-    @Test
-    void validateCommentUpdateDto_shouldThrowException_whenCommentDoesNotExist() {
-        CommentUpdateDto updatingDto = new CommentUpdateDto();
-        updatingDto.setCommentId(1L); // Non-existing comment ID
-
-        when(commentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateCommentUpdateDto(updatingDto);
-        });
-
-        assertEquals("Comment with id 1 does not exist", exception.getMessage());
     }
 
     @Test
@@ -125,8 +111,6 @@ class CommentValidatorTest {
         CommentUpdateDto updatingDto = new CommentUpdateDto();
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(null);
-
-        when(commentRepository.findById(updatingDto.getCommentId())).thenReturn(Optional.of(new Comment()));
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
             commentValidator.validateCommentUpdateDto(updatingDto);
@@ -141,8 +125,6 @@ class CommentValidatorTest {
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(EMPTY_CONTENT);
 
-        when(commentRepository.findById(updatingDto.getCommentId())).thenReturn(Optional.of(new Comment()));
-
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
             commentValidator.validateCommentUpdateDto(updatingDto);
         });
@@ -156,8 +138,6 @@ class CommentValidatorTest {
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(LONGER_THAN_4096_SYMBOLS_CONTENT);
 
-        when(commentRepository.findById(updatingDto.getCommentId())).thenReturn(Optional.of(new Comment()));
-
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
             commentValidator.validateCommentUpdateDto(updatingDto);
         });
@@ -169,11 +149,21 @@ class CommentValidatorTest {
     void validateCommentUpdateDto_shouldPass_whenAllValidationsPass() {
         CommentUpdateDto updatingDto = new CommentUpdateDto();
         updatingDto.setCommentId(VALID_COMMENT_ID);
-        updatingDto.setContent(VALID_CONTENT); // Valid content
-
-        when(commentRepository.findById(updatingDto.getCommentId())).thenReturn(Optional.of(new Comment()));
+        updatingDto.setContent(VALID_CONTENT);
 
         assertDoesNotThrow(() -> commentValidator.validateCommentUpdateDto(updatingDto));
+    }
+
+    @Test
+    void validateCommentExists_shouldThrowException_whenCommentDoesNotExist() {
+        Long commentId = VALID_COMMENT_ID;
+        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            commentValidator.validateCommentExists(commentId);
+        });
+
+        assertEquals("Comment with id " + commentId + " does not exist", exception.getMessage());
     }
 
     @Test
@@ -183,7 +173,7 @@ class CommentValidatorTest {
 
         when(postRepository.findById(2L)).thenReturn(java.util.Optional.empty());
 
-        DataValidationException exception = assertThrows(DataValidationException.class, () -> {
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
             commentValidator.validatePostExists(commentDtoInput.getPostId());
         });
 

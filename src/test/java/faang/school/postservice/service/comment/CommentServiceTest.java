@@ -69,7 +69,6 @@ class CommentServiceTest {
 
         CommentDtoOutput actualOutput = commentService.createComment(commentDtoInput);
 
-        verify(commentValidator).validateComment(commentDtoInput);
         verify(commentValidator).validateAuthorExists(commentDtoInput);
         verify(commentValidator).validatePostExists(commentDtoInput.getPostId());
         verify(commentRepository).save(comment);

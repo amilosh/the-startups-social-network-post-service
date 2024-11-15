@@ -28,7 +28,6 @@ public class CommentService {
     private final CommentOutputUponUpdateMapper commentOutputUponUpdateMapper;
 
     public CommentDtoOutput createComment(CommentDtoInput commentDtoInput) {
-        commentValidator.validateComment(commentDtoInput);
         commentValidator.validateAuthorExists(commentDtoInput);
         commentValidator.validatePostExists(commentDtoInput.getPostId());
 
@@ -41,7 +40,7 @@ public class CommentService {
     }
 
     public CommentDtoOutputUponUpdate updateComment(CommentUpdateDto commentUpdateDto) {
-        commentValidator.validateCommentUpdateDto(commentUpdateDto);
+        commentValidator.validateCommentExists(commentUpdateDto.getCommentId());
         Comment commentToUpdate = commentRepository.getCommentById(commentUpdateDto.getCommentId());
 
         String postContent = commentUpdateDto.getContent();

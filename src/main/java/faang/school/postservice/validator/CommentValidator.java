@@ -9,6 +9,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class CommentValidator {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
-    public void validateComment(CommentDtoInput commentDtoInput) {
+    public void validateCommentDtoInput(CommentDtoInput commentDtoInput) {
         if (commentDtoInput.getContent() == null || commentDtoInput.getContent().isEmpty()) {
             throw new DataValidationException("Comment content is empty");
         }
@@ -36,23 +37,30 @@ public class CommentValidator {
         }
     }
 
-    public void validateCommentUpdateDto(CommentUpdateDto updatingDto){
-        Comment comment = commentRepository.findById(updatingDto.getCommentId()).orElse(null);
-        if(comment == null){
-            throw new DataValidationException("Comment with id " + updatingDto.getCommentId() + " does not exist");
+    public void validateCommentUpdateDto(CommentUpdateDto commentUpdateDto){
+        Long commentId = commentUpdateDto.getCommentId();
+        if(commentId == null){
+            throw new DataValidationException("Comment must have an id");
         }
-        if (updatingDto.getContent() == null || updatingDto.getContent().isEmpty()) {
+        if (commentUpdateDto.getContent() == null || commentUpdateDto.getContent().isEmpty()) {
             throw new DataValidationException("Comment content is empty");
         }
-        if (updatingDto.getContent().length() > 4096) {
+        if (commentUpdateDto.getContent().length() > 4096) {
             throw new DataValidationException("Comment content is too long");
+        }
+    }
+
+    public void validateCommentExists(Long commentId) {
+        Comment comment = commentRepository.findById(commentId).orElse(null);
+        if(comment == null){
+            throw new EntityNotFoundException("Comment with id " + commentId + " does not exist");
         }
     }
 
     public void validatePostExists(Long postId) {
         Post post = postRepository.findById(postId).orElse(null);
         if (post == null) {
-            throw new DataValidationException("Post with id " + postId + " does not exist");
+            throw new EntityNotFoundException("Post with id " + postId + " does not exist");
         }
     }
 
@@ -61,7 +69,7 @@ public class CommentValidator {
         try {
             UserDto userDto = userServiceClient.getUser(authorId);
             if (userDto == null) {
-                throw new IllegalArgumentException("User with id " + authorId + " does not exist");
+                throw new EntityNotFoundException("User with id " + authorId + " does not exist");
             }
         } catch (Exception e) {
             log.error("Error validating user existence: {}", e.getMessage());
