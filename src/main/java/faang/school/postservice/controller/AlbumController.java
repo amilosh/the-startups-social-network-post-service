@@ -117,7 +117,7 @@ public class AlbumController {
     }
 
     @Operation(summary = "Filter all albums", description = "Filters all albums based on criteria.")
-    @GetMapping("/filter")
+    @PostMapping("/filter")
     public ResponseEntity<List<AlbumDto>> getAllAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
@@ -129,7 +129,7 @@ public class AlbumController {
     }
 
     @Operation(summary = "Filter user's albums", description = "Filters user's albums based on criteria.")
-    @GetMapping("/user/filter")
+    @PostMapping("/user/filter")
     public ResponseEntity<List<AlbumDto>> getUserAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
@@ -141,7 +141,7 @@ public class AlbumController {
     }
 
     @Operation(summary = "Filter user's favorite albums", description = "Filters user's favorite albums based on criteria.")
-    @GetMapping("/user/favorite/filter")
+    @PostMapping("/user/favorite/filter")
     public ResponseEntity<List<AlbumDto>> getUserFavoriteAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
