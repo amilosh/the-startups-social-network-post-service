@@ -1,6 +1,5 @@
 package faang.school.postservice.controller;
 
-
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.service.PostService;
 import jakarta.validation.Valid;
