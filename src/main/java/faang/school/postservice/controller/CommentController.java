@@ -21,7 +21,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 @RequestMapping("/api")
 public class CommentController {
     private final CommentService commentService;
@@ -33,7 +32,7 @@ public class CommentController {
         return commentService.createComment(input);
     }
 
-    @PostMapping("comments")
+    @PostMapping("/comments")
     public CommentDtoOutputUponUpdate update(@RequestBody CommentUpdateDto updatingInput) {
         commentValidator.validateCommentUpdateDto(updatingInput);
         return commentService.updateComment(updatingInput);
@@ -45,7 +44,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public void deleteComment(@PathVariable("commentId") Long commentId) {
+    public void deleteComment(@PathVariable Long commentId) {
         commentService.deleteComment(commentId);
     }
 }

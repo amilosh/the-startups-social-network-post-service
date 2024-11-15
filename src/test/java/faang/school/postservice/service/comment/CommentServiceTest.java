@@ -92,7 +92,7 @@ class CommentServiceTest {
 
         CommentDtoOutputUponUpdate actualOutput = commentService.updateComment(commentUpdateDto);
 
-        verify(commentValidator).validateCommentUpdateDto(commentUpdateDto);
+        verify(commentValidator).validateCommentExists(commentUpdateDto.getCommentId());
         verify(commentRepository).save(existingComment);
         assertEquals(UPDATED_CONTENT, existingComment.getContent());
         assertEquals(expectedOutput, actualOutput);
