@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - Manticore-master-stream7
-      - feature/pipeline-test-BJS2-40880
+      - feature/pipline-BJS2-40880
 
 jobs:
   test:
