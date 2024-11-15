@@ -158,6 +158,7 @@ public class AlbumService {
         long userId = userContext.getUserId();
         Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
+        validateAlbumTitle(updateDto.getTitle(), userId);
         albumMapper.update(updateDto, album);
         album = albumRepository.save(album);
 

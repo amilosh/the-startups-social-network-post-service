@@ -26,7 +26,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "API for managing posts' albums")
+@Tag(
+        name = "API for managing posts' albums",
+        description = "Provides endpoints for creating, updating, retrieving, and deleting albums associated with posts."
+)
 @RestController
 @RequestMapping("/albums")
 @RequiredArgsConstructor
@@ -34,7 +37,7 @@ public class AlbumController {
 
     private final AlbumService albumService;
 
-    @Operation(description = "Create an empty album with given title and description")
+    @Operation(summary = "Create a new album", description = "Creates an empty album with the given title and description.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Album was created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid title or description provided"),
@@ -51,7 +54,13 @@ public class AlbumController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    @PatchMapping("/{albumId}/posts/{postId}")
+    @Operation(summary = "Add a post to an album", description = "Associates a post with an album.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Album was created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid user ID: may be not an album's author"),
+            @ApiResponse(responseCode = "404", description = "Album with the provided ID not found in the database")
+    })
+    @PostMapping("/{albumId}/posts/{postId}")
     public ResponseEntity<AlbumDto> addPostToAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
@@ -63,6 +72,12 @@ public class AlbumController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @Operation(summary = "Remove a post from an album", description = "Deletes the association of a post with an album.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Album was created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid title or description provided"),
+            @ApiResponse(responseCode = "404", description = "User with the provided ID not found in the database")
+    })
     @DeleteMapping("/{albumId}/posts/{postId}")
     public ResponseEntity<Void> deletePostFromAlbum(
             @RequestHeader("x-user-id")
@@ -75,7 +90,8 @@ public class AlbumController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{albumId}/favorite")
+    @Operation(summary = "Mark an album as favorite", description = "Adds an album to the user's list of favorite albums.")
+    @PostMapping("/{albumId}/favorite")
     public ResponseEntity<Void> addAlbumToFavorites(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
@@ -86,6 +102,7 @@ public class AlbumController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Unmark an album as favorite", description = "Removes an album from the user's list of favorite albums.")
     @DeleteMapping("/{albumId}/favorite")
     public ResponseEntity<Void> deleteAlbumFromFavorites(
             @RequestHeader("x-user-id")
@@ -97,6 +114,7 @@ public class AlbumController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Retrieve an album by ID", description = "Fetches details of an album by its ID.")
     @GetMapping("/{albumId}")
     public ResponseEntity<AlbumDto> getAlbumById(
             @RequestHeader("x-user-id")
@@ -108,6 +126,7 @@ public class AlbumController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @Operation(summary = "Filter all albums", description = "Filters all albums based on criteria.")
     @GetMapping("/filter")
     public ResponseEntity<List<AlbumDto>> getAllAlbums(
             @RequestHeader("x-user-id")
@@ -119,6 +138,7 @@ public class AlbumController {
         return ResponseEntity.ok(filteredAlbums);
     }
 
+    @Operation(summary = "Filter user's albums", description = "Filters user's albums based on criteria.")
     @GetMapping("/user/filter")
     public ResponseEntity<List<AlbumDto>> getUserAlbums(
             @RequestHeader("x-user-id")
@@ -130,6 +150,7 @@ public class AlbumController {
         return ResponseEntity.ok(filteredAlbums);
     }
 
+    @Operation(summary = "Filter user's favorite albums", description = "Filters user's favorite albums based on criteria.")
     @GetMapping("/user/favorite/filter")
     public ResponseEntity<List<AlbumDto>> getUserFavoriteAlbums(
             @RequestHeader("x-user-id")
@@ -141,6 +162,7 @@ public class AlbumController {
         return ResponseEntity.ok(filteredAlbums);
     }
 
+    @Operation(summary = "Update an album", description = "Updates an album's details")
     @PatchMapping("/{albumId}")
     public ResponseEntity<AlbumDto> updateAlbum(
             @RequestBody @Valid AlbumCreateUpdateDto updateDto,
@@ -150,6 +172,7 @@ public class AlbumController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @Operation(summary = "Delete an album", description = "Deletes an album")
     @DeleteMapping("/{albumId}")
     public ResponseEntity<Void> deleteAlbum(@PathVariable @Min(1) long albumId) {
         albumService.deleteAlbum(albumId);
