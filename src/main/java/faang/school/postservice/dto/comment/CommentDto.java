@@ -1,6 +1,5 @@
 package faang.school.postservice.dto.comment;
 
-import faang.school.postservice.validator.comment.AuthorAndPostId;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@AuthorAndPostId
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentDto {
