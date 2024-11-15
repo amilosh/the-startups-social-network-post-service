@@ -17,22 +17,22 @@ public class LikeController {
 
     private final LikeService likeService;
 
-    @PostMapping("/posts/{userId}")
+    @PostMapping("/posts")
     public void addLikeToPost(@RequestBody @Valid LikeDto likeDto) {
         likeService.addLikeToPost(likeDto);
     }
 
-    @PostMapping("/comments/{userId}")
+    @PostMapping("/comments")
     public void addLikeToComment(@RequestBody @Valid LikeDto likeDto) {
         likeService.addLikeToComment(likeDto);
     }
 
-    @DeleteMapping("/posts/{userId}")
+    @DeleteMapping("/posts")
     public void removeLikeFromPost(@RequestBody @Valid LikeDto likeDto) {
         likeService.removeLikeFromPost(likeDto);
     }
 
-    @DeleteMapping("/comments/{userId}")
+    @DeleteMapping("/comments")
     public void removeLikeFromComment(@RequestBody @Valid LikeDto likeDto) {
         likeService.removeLikeFromComment(likeDto);
     }
