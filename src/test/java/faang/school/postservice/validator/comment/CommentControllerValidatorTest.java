@@ -3,7 +3,6 @@ package faang.school.postservice.validator.comment;
 import faang.school.postservice.dto.CommentDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,7 +27,7 @@ class CommentControllerValidatorTest {
 
     @Test
     void validatePostIdSuccess() {
-        assertDoesNotThrow(() -> validator.validatePostId(Mockito.anyLong()));
+        assertDoesNotThrow(() -> validator.validatePostId(1L));
     }
 
     @Test
@@ -39,7 +38,7 @@ class CommentControllerValidatorTest {
 
     @Test
     void validateCommentIdSuccess() {
-        assertDoesNotThrow(() -> validator.validateCommentId(Mockito.anyLong()));
+        assertDoesNotThrow(() -> validator.validateCommentId(1L));
     }
 
     @Test
