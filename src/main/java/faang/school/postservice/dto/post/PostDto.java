@@ -1,6 +1,11 @@
 package faang.school.postservice.dto.post;
 
-import java.time.LocalDate;
+import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Like;
 
-public record PostDto(String content, Long idUser, Long idProject, LocalDate createdTime) {
+import java.util.List;
+
+public record PostDto(String content,
+                      Long userId,
+                      Long projectId) {
 }

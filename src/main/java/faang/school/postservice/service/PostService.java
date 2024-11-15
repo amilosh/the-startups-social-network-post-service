@@ -29,7 +29,7 @@ public class PostService {
     private final ProjectServiceClient projectServiceClient;
 
     public Long createDraftPost(PostDto postDto) {
-        checkAuthorIdExist(postDto.idUser(), postDto.idProject());
+        checkAuthorIdExist(postDto.userId(), postDto.projectId());
         Post post = postRepository.save(postMapper.toEntity(postDto));
         return post.getId();
     }

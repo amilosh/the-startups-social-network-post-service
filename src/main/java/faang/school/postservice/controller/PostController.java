@@ -88,6 +88,11 @@ public class PostController {
     }
 
     private void checkPostDtoContainsContent(PostDto postDto) {
+        if (postDto.content()==null)
+        {
+            log.error("Field Content is NULL");
+            throw new IllegalArgumentException("Field Content is NULL");
+        }
         if (postDto.content().isBlank()) {
             log.error("Field Content is blank");
             throw new IllegalArgumentException("Field Content is blank");
@@ -102,7 +107,7 @@ public class PostController {
     }
 
     private void checkIdUserAndIdProjectNotNull(PostDto postDto) {
-        if (postDto.idProject() == null && postDto.idUser() == null) {
+        if (postDto.projectId() == null && postDto.userId() == null) {
             log.error("idProject and idUser are NULL");
             throw new IllegalArgumentException("idProject and idUser equals");
         }
