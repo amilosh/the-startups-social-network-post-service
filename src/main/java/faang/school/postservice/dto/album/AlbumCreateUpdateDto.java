@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class AlbumCreateDto {
+public class AlbumCreateUpdateDto {
 
     @NotBlank(message = "Album title cannot be null or empty!")
     @Size(max = 256, message = "Title length cannot exceed 256 symbols!")
