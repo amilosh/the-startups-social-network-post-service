@@ -1,51 +1,44 @@
 package faang.school.postservice.validator;
 
-import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PostValidatorTest {
+class PostValidatorTest {
+
     @Mock
     private PostRepository postRepository;
 
     @InjectMocks
     private PostValidator postValidator;
 
-    long postId;
-
-    @BeforeEach
-    void setUp() {
-        postId = 4L;
-    }
+    Long postId = 1L;
 
     @Test
-    public void testCheckPostExistenceWherPostExist() {
+    @DisplayName("Check post exists by id success")
+    void testValidatePostExistsById() {
         when(postRepository.existsById(postId)).thenReturn(true);
-        assertDoesNotThrow(() -> postValidator.checkPostExistence(postId),
-                "No exception should be thrown if post exists");
+
+        postValidator.validatePostExistsById(postId);
+
         verify(postRepository, times(1)).existsById(postId);
     }
 
     @Test
-    public void testCheckPostExistenceWherPostNotFound() {
+    @DisplayName("Check post exists by id fail")
+    void testValidatePostExistsByIdFail() {
         when(postRepository.existsById(postId)).thenReturn(false);
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            postValidator.checkPostExistence(postId);
-        });
-        verify(postRepository, times(1)).existsById(postId);
+
+        Exception ex = assertThrows(EntityNotFoundException.class, () -> postValidator.validatePostExistsById(postId));
+        assertEquals("Post with id: 1 doesn't exist", ex.getMessage());
     }
 }
