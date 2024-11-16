@@ -49,7 +49,7 @@ public class AlbumService {
     }
 
     public AlbumDto addPostToAlboom(long userId, long albumId, long postId) {
-        postValidator.checkPostExistence(postId);
+        postValidator.validatePostExistsById(postId);
         Post post = postRepository.findById(postId).get();
         Album album = findAlbumForUser(userId, albumId);
         album.addPost(post);
@@ -59,7 +59,7 @@ public class AlbumService {
     }
 
     public AlbumDto removePost(long userId, long albumId, long postId) {
-        postValidator.checkPostExistence(postId);
+        postValidator.validatePostExistsById(postId);
         Post post = postRepository.findById(postId).get();
         Album album = findAlbumForUser(userId, albumId);
         album.removePost(postId);
