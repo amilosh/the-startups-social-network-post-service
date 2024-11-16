@@ -65,7 +65,7 @@ public class AlbumValidator {
         }
     }
 
-    public void validateAlbumForAddPost(AlbumRequestDto albumRequestDto) {
+    public void validateAlbumForPost(AlbumRequestDto albumRequestDto) {
         Long authorId = albumRequestDto.getAuthorId();
         Long id = albumRequestDto.getId();
         if (authorId == null) {
