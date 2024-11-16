@@ -4,36 +4,32 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Validated
 public class LikeService {
     private static final int BATCH_SIZE = 100;
     private final LikeRepository likeRepository;
     private final UserServiceClient userServiceClient;
 
-    public List<UserDto> getUsersWhoLikePostByPostId(@NotNull @Positive long Id) {
+    public List<UserDto> getUsersWhoLikePostByPostId(long Id) {
         List<Like> usersWhoLikedPost  = likeRepository.findByPostId(Id);
-        return getUserDtos(usersWhoLikedPost);
+        return mapLikesToUserDtos(usersWhoLikedPost);
     }
 
 
-    public List<UserDto> getCommentLikers(@NotNull @Positive long id) {
+    public List<UserDto> getUsersWhoLikeComments(long id) {
         List<Like> usersWhoLikedComment  = likeRepository.findByCommentId(id);
-        return getUserDtos(usersWhoLikedComment);
+        return mapLikesToUserDtos(usersWhoLikedComment);
     }
 
 
-    private List<UserDto> getUserDtos(@NotNull @Positive List<Like> usersWhoLiked) {
+    private List<UserDto> mapLikesToUserDtos(List<Like> usersWhoLiked) {
         List<Long> userIds = usersWhoLiked.stream()
                 .map(Like::getUserId)
                 .toList();
@@ -51,7 +47,6 @@ public class LikeService {
             List<UserDto> batchResults = userServiceClient.getUsersByIds(batch);
             userDtos.addAll(batchResults);
         }
-
         return userDtos;
     }
 }
