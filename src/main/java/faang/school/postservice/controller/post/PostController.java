@@ -23,7 +23,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping()
+    @PostMapping
     public PostDto createPost(@RequestBody @Valid PostDto postDto) {
         return postService.createPost(postDto);
     }

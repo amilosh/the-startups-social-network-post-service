@@ -1,6 +1,5 @@
 package faang.school.postservice.sort;
 
-import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import org.junit.jupiter.api.Test;
 
@@ -9,8 +8,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SortByAlbumsTest {
-    private SortByAlbums sortByAlbums= new SortByAlbums();
+class SortByContentLengthTest {
+    private SortByContentLength sortByContentLength = new SortByContentLength();
 
     @Test
     void testGetComparator() {
@@ -18,13 +17,13 @@ class SortByAlbumsTest {
         Post post2 = new Post();
         Post post3 = new Post();
 
-        post1.setAlbums(Arrays.asList(new Album(), new Album()));
-        post2.setAlbums(List.of(new Album()));
-        post3.setAlbums(List.of());
+        post1.setContent("Large content");
+        post2.setContent("medi content");
+        post3.setContent("sm content");
 
         List<Post> posts = Arrays.asList(post1, post2, post3);
 
-        posts.sort(sortByAlbums.getComparator());
+        posts.sort(sortByContentLength.getComparator());
 
         assertEquals(post3, posts.get(0));
         assertEquals(post2, posts.get(1));

@@ -7,7 +7,7 @@ import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Post;
 
 
-public class Validator {
+public class PostServiceValidator {
     public static void checkDtoValidAuthorOrProjectId(PostDto postDto) {
         if (postDto.getAuthorId() == null && postDto.getProjectId() == null) {
             throw new IllegalStateException("Нельзя создать пост без автора");

@@ -8,7 +8,7 @@ import java.util.Comparator;
 @Component
 public class SortByUpdatedAt extends SortBy {
     public SortByUpdatedAt() {
-        super(PostField.UPDATEDAT);
+        super(PostField.UPDATED_AT);
     }
 
     @Override

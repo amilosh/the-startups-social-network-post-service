@@ -8,7 +8,7 @@ import java.util.Comparator;
 @Component
 public class SortBySchebuletAt extends SortBy {
     public SortBySchebuletAt() {
-        super(PostField.SCHEDULETAT);
+        super(PostField.SCHEDULET_AT);
     }
 
     @Override

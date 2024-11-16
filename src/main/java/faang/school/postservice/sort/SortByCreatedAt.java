@@ -8,7 +8,7 @@ import java.util.Comparator;
 @Component
 public class SortByCreatedAt extends SortBy {
     public SortByCreatedAt() {
-        super(PostField.CREATEDAT);
+        super(PostField.CREATED_AT);
     }
 
     @Override

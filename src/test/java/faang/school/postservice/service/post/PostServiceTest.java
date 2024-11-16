@@ -7,7 +7,6 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.filter.post.DeletedFilter;
 import faang.school.postservice.filter.post.PostFilter;
 import faang.school.postservice.filter.post.PublishedFilter;
-import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -32,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -250,7 +247,7 @@ class PostServiceTest {
         filterDto.setAuthor(true);
         filterDto.setDeleted(false);
         filterDto.setPublished(false);
-        filterDto.setPostField(PostField.CREATEDAT);
+        filterDto.setPostField(PostField.CREATED_AT);
 
         List<Post> posts = getPosts(false);
 
@@ -279,7 +276,7 @@ class PostServiceTest {
         filterDto.setAuthor(true);
         filterDto.setDeleted(false);
         filterDto.setPublished(true);
-        filterDto.setPostField(PostField.PUBLISHEDAT);
+        filterDto.setPostField(PostField.PUBLISHED_AT);
 
         List<Post> posts = getPosts(true);
 

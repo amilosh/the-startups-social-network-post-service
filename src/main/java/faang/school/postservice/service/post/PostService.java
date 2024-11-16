@@ -10,7 +10,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.sort.PostField;
 import faang.school.postservice.sort.SortBy;
-import faang.school.postservice.validator.Validator;
+import faang.school.postservice.validator.PostServiceValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +30,9 @@ public class PostService {
     private final List<SortBy> sort;
 
     public PostDto createPost(PostDto postDto) {
-        Validator.checkDtoValidAuthorOrProjectId(postDto);
-        Validator.checkThatUserOrProjectIsExist(postDto, userServiceClient, projectServiceClient);
+        PostServiceValidator.checkDtoValidAuthorOrProjectId(postDto);
+        PostServiceValidator.checkThatUserOrProjectIsExist(postDto, userServiceClient, projectServiceClient);
+
 
         Post post = postMapper.toEntity(postDto);
         post.setCreatedAt(LocalDateTime.now());
@@ -39,12 +40,14 @@ public class PostService {
         post.setDeleted(false);
         postRepository.save(post);
 
+
+
         return postMapper.toDto(post);
     }
 
     public PostDto publishPost(long id) {
         Post post = getPost(id);
-        Validator.checkPostWasPosted(post);
+        PostServiceValidator.checkPostWasPosted(post);
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
@@ -104,6 +107,9 @@ public class PostService {
                 .sorted(comparator)
                 .map(postMapper::toDto)
                 .toList();
+    }
+    private void addPostToProjectOrAuthor(){
+
     }
 
     private List<Post> getPostWithLikes(long id, boolean author) {

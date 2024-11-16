@@ -6,13 +6,13 @@ import org.springframework.stereotype.Component;
 import java.util.Comparator;
 
 @Component
-public class SortByAlbums extends SortBy {
-    public SortByAlbums() {
-        super(PostField.ALBUMS);
+public class SortByCommentsSize extends SortBy {
+    public SortByCommentsSize() {
+        super(PostField.COMMENTS);
     }
 
     @Override
     public Comparator<Post> getComparator() {
-        return Comparator.comparing(post -> post.getAlbums().size());
+        return Comparator.comparing(post -> post.getComments().size());
     }
 }

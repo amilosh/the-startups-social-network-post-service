@@ -1,6 +1,5 @@
 package faang.school.postservice.sort;
 
-import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import org.junit.jupiter.api.Test;
@@ -10,8 +9,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SortByLikesTest {
-    private SortByLikes sortByAlbums= new SortByLikes();
+class SortByLikesSizeTest {
+    private SortByLikesSize sortByAlbums= new SortByLikesSize();
 
     @Test
     void testGetComparator() {

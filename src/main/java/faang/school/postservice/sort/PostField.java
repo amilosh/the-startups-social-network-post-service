@@ -6,9 +6,9 @@ public enum PostField {
     COMMENTS,
     ALBUMS,
     PUBLISHED,
-    PUBLISHEDAT,
-    SCHEDULETAT,
+    PUBLISHED_AT,
+    SCHEDULET_AT,
     DELETED,
-    CREATEDAT,
-    UPDATEDAT
+    CREATED_AT,
+    UPDATED_AT
 }

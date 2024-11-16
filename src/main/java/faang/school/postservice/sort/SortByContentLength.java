@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import java.util.Comparator;
 
 @Component
-public class SortByContent extends SortBy {
-    public SortByContent() {
+public class SortByContentLength extends SortBy {
+    public SortByContentLength() {
         super(PostField.CONTENT);
     }
 
