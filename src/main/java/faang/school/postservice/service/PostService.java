@@ -7,9 +7,11 @@ import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.PostValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -32,7 +34,7 @@ public class PostService {
 
         Post entity = postMapper.toEntity(createPostDto);
 
-        entity.setCreatedAt(LocalDateTime.now());
+        entity.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
         entity.setPublished(false);
         entity.setDeleted(false);
 
@@ -41,6 +43,7 @@ public class PostService {
         return postMapper.toDto(entity);
     }
 
+    @Transactional
     public ResponsePostDto publish(Long postId) {
         postValidator.validateExistingPostId(postId);
         postValidator.validatePostIdOnPublished(postId);
@@ -56,6 +59,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
+    @Transactional
     public ResponsePostDto update(Long postId, UpdatePostDto updatePostDto) {
         postValidator.validateExistingPostId(postId);
         postValidator.validateContent(updatePostDto.getContent());
@@ -70,6 +74,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
+    @Transactional
     public void delete(Long postId) {
         postValidator.validateExistingPostId(postId);
         postValidator.validatePostIdOnRemoved(postId);

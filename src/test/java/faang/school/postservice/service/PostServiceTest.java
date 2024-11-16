@@ -19,6 +19,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,8 +65,8 @@ class PostServiceTest {
         Post postEntity = new Post();
         postEntity.setId(1);
         postEntity.setAuthorId(createPostDto.getAuthorId());
-        postEntity.setCreatedAt(LocalDateTime.now());
-        postEntity.setScheduledAt(LocalDateTime.now());
+        postEntity.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
+        postEntity.setScheduledAt(LocalDateTime.now(ZoneId.of("UTC+3")));
         postEntity.setPublished(false);
         postEntity.setDeleted(false);
 
