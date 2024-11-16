@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,6 +31,7 @@ import java.util.List;
         name = "API for managing posts' albums",
         description = "Provides endpoints for creating, updating, retrieving, and deleting albums associated with posts."
 )
+@Validated
 @RestController
 @RequestMapping("/albums")
 @RequiredArgsConstructor
@@ -41,13 +43,13 @@ public class AlbumController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Album was created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid title or description provided"),
-            @ApiResponse(responseCode = "404", description = "User with the provided ID not found in the database")
+            @ApiResponse(responseCode = "401", description = "User is unauthorized or does not exist in data base")
     })
     @PostMapping
     public ResponseEntity<AlbumDto> createAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request", required = true) String userId,
+            @Parameter(description = "ID of user who sent the request", required = true) long userId,
             @RequestBody @Valid AlbumCreateUpdateDto createDto
     ) {
         AlbumDto responseDto = albumService.createAlbum(createDto);
@@ -85,7 +87,7 @@ public class AlbumController {
     public ResponseEntity<Void> addAlbumToFavorites(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId
     ) {
         albumService.addAlbumToFavorites(albumId);
@@ -97,7 +99,7 @@ public class AlbumController {
     public ResponseEntity<Void> deleteAlbumFromFavorites(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId
     ) {
         albumService.deleteAlbumFromFavorites(albumId);
@@ -109,7 +111,7 @@ public class AlbumController {
     public ResponseEntity<AlbumDto> getAlbumById(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId
     ) {
         AlbumDto responseDto = albumService.getAlbumById(albumId);
@@ -121,7 +123,7 @@ public class AlbumController {
     public ResponseEntity<List<AlbumDto>> getAllAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @RequestBody AlbumFilterDto filterDto
     ) {
         List<AlbumDto> filteredAlbums = albumService.getAllAlbums(filterDto);
@@ -133,7 +135,7 @@ public class AlbumController {
     public ResponseEntity<List<AlbumDto>> getUserAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @RequestBody AlbumFilterDto filterDto
     ) {
         List<AlbumDto> filteredAlbums = albumService.getUserAlbums(filterDto);
@@ -145,7 +147,7 @@ public class AlbumController {
     public ResponseEntity<List<AlbumDto>> getUserFavoriteAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @RequestBody AlbumFilterDto filterDto
     ) {
         List<AlbumDto> filteredAlbums = albumService.getUserFavoriteAlbums(filterDto);
