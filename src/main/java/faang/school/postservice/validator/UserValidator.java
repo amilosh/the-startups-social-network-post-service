@@ -2,9 +2,8 @@ package faang.school.postservice.validator;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.AlbumDto;
-import faang.school.postservice.dto.PostDto;
-import faang.school.postservice.exceptions.EntityNotFoundException;
 import feign.FeignException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

@@ -5,8 +5,8 @@ import faang.school.postservice.dto.AlbumDto;
 import faang.school.postservice.dto.AlbumFilterDto;
 import faang.school.postservice.dto.AlbumUpdateDto;
 import faang.school.postservice.dto.PostDto;
-import faang.school.postservice.exceptions.EntityNotFoundException;
 import faang.school.postservice.service.AlbumService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +55,7 @@ public class AlbumControllerTest {
     private AlbumUpdateDto albumUpdateDto;
     private Long currentUserId = 1L;
     private Long albumId = 2L;
+    private Long postId = 3L;
     private PostDto postDto;
     private AlbumFilterDto albumFilterDto;
 
@@ -74,7 +75,7 @@ public class AlbumControllerTest {
     void testCreateAlbumSuccess() throws Exception {
         when(albumService.createAlbum(albumDto)).thenReturn(albumDto);
 
-        mockMvc.perform(post("/api/v1/albums")
+        mockMvc.perform(post("/albums")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumDto)))
                 .andExpect(status().isCreated())
@@ -95,89 +96,89 @@ public class AlbumControllerTest {
     @Test
     @DisplayName("Add Post To Alboom success")
     void testAddPostToAlbumSuccess() throws Exception {
-        when(albumService.addPostToAlboom(currentUserId, albumId, postDto)).thenReturn(albumDto);
+        when(albumService.addPostToAlboom(currentUserId, albumId, postId)).thenReturn(albumDto);
 
-        mockMvc.perform(post("/api/v1/albums/{currentUserId}/album/{albumId}", currentUserId, albumId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(postDto)))
+        mockMvc.perform(post("/albums/{albumId}", albumId)
+                        .param("currentUserId", String.valueOf(currentUserId))
+                        .param("postId", String.valueOf(postId))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(postDto.getId()))
-                .andExpect(jsonPath("$.authorId").value(postDto.getId()));
+                .andExpect(jsonPath("$.id").value(albumDto.getId()));
 
-        verify(albumService, times(1)).addPostToAlboom(currentUserId, albumId, postDto);
+        verify(albumService, times(1)).addPostToAlboom(currentUserId, albumId, postId);
     }
 
     @Test
     @DisplayName("Add Post To Alboom fail")
     void testAddPostToAlbumFail() throws Exception {
-        when(albumService.addPostToAlboom(currentUserId, albumId, postDto))
+        when(albumService.addPostToAlboom(currentUserId, albumId, postId))
                 .thenThrow(new EntityNotFoundException("Album not found"));
 
-        assertThrows(EntityNotFoundException.class, () -> albumController.addPostToAlboom(currentUserId, albumId, postDto));
+        assertThrows(EntityNotFoundException.class, () -> albumController.addPostToAlbum(currentUserId, albumId, postId));
     }
 
     @Test
     @DisplayName("Remove Post From Alboom success")
-    void testRemovePostToAlbumSuccess() throws Exception {
-        when(albumService.removePost(currentUserId, albumId, postDto)).thenReturn(albumDto);
+    void testRemovePostFromAlbumSuccess() throws Exception {
+        when(albumService.removePost(currentUserId, albumId, postId)).thenReturn(albumDto);
 
-        mockMvc.perform(delete("/api/v1/albums/{currentUserId}/album/{albumId}", currentUserId, albumId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(postDto)))
+        mockMvc.perform(delete("/albums/{albumId}/posts/{postId}", albumId, postId)
+                        .param("currentUserId", String.valueOf(currentUserId))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(albumDto.getId()))
                 .andExpect(jsonPath("$.title").value(albumDto.getTitle()))
                 .andExpect(jsonPath("$.description").value(albumDto.getDescription()));
 
-        verify(albumService, times(1)).removePost(currentUserId, albumId, postDto);
+        verify(albumService, times(1)).removePost(currentUserId, albumId, postId);
     }
 
     @Test
     @DisplayName("Remove Post From Alboom fail")
     void testRemovePostToAlbumFail() throws Exception {
-        when(albumService.removePost(currentUserId, albumId, postDto))
+        when(albumService.removePost(currentUserId, albumId, postId))
                 .thenThrow(new EntityNotFoundException("Album not found"));
 
-        assertThrows(EntityNotFoundException.class, () -> albumController.removePostFromAlbum(currentUserId, albumId, postDto));
+        assertThrows(EntityNotFoundException.class, () -> albumController.removePostFromAlbum(currentUserId, albumId, postId));
     }
 
     @Test
     @DisplayName("Adding album to Favorites successfully")
     void testAddAlbomToFavoritesSuccess() throws Exception {
-        when(albumService.addAlbumToFavorites(currentUserId, albumDto)).thenReturn(albumDto);
+        when(albumService.addAlbumToFavorites(currentUserId, albumId)).thenReturn(albumDto);
 
-        mockMvc.perform(post("/api/v1/albums/favorites")
+        mockMvc.perform(post("/albums/favorites")
                         .param("userId", String.valueOf(currentUserId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(albumDto)))
+                        .param("albumId", String.valueOf(albumId))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(albumDto.getId()))
                 .andExpect(jsonPath("$.title").value(albumDto.getTitle()));
 
-        verify(albumService, times(1)).addAlbumToFavorites(currentUserId, albumDto);
+        verify(albumService, times(1)).addAlbumToFavorites(currentUserId, albumId);
     }
 
     @Test
     @DisplayName("Adding album to Favorites fail")
     void testAddAlbomToFavoritesFail() throws Exception {
-        when(albumService.addAlbumToFavorites(currentUserId, albumDto))
+        when(albumService.addAlbumToFavorites(currentUserId, albumId))
                 .thenThrow(new EntityNotFoundException("Album not found"));
 
-        assertThrows(EntityNotFoundException.class, () -> albumController.addAlbumToFavorites(currentUserId, albumDto));
+        assertThrows(EntityNotFoundException.class, () -> albumController.addAlbumToFavorites(currentUserId, albumId));
     }
 
     @Test
     @DisplayName("Delete album to Favorites successfully")
     void testDeleteAlbomFromFavoritesSuccess() throws Exception {
-        doNothing().when(albumService).deleteAlbumFromFavorites(currentUserId, albumDto);
+        doNothing().when(albumService).deleteAlbumFromFavorites(currentUserId, albumId);
 
-        mockMvc.perform(delete("/api/v1/albums/favorites")
+        mockMvc.perform(delete("/albums/favorites")
                         .param("userId", String.valueOf(currentUserId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(albumDto)))
+                        .param("albumId", String.valueOf(albumId))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        verify(albumService, times(1)).deleteAlbumFromFavorites(currentUserId, albumDto);
+        verify(albumService, times(1)).deleteAlbumFromFavorites(currentUserId,albumId);
     }
 
     @Test
@@ -185,7 +186,7 @@ public class AlbumControllerTest {
     void testGetAlbumByIdSuccess() throws Exception {
         when(albumService.findByAlbumId(albumId)).thenReturn(albumDto);
 
-        mockMvc.perform(get("/api/v1/albums//{albumId}", albumId))
+        mockMvc.perform(get("/albums//{albumId}", albumId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(albumDto.getId()))
                 .andExpect(jsonPath("$.title").value(albumDto.getTitle()))
@@ -208,7 +209,7 @@ public class AlbumControllerTest {
     void testGetUsersAlbumsWithFiltersSuccess() throws Exception {
         List<AlbumDto> albums = List.of(albumDto, albumDto1);
         when(albumService.getAlbumsForUserByFilter(currentUserId, albumFilterDto)).thenReturn(albums);
-        mockMvc.perform(get("/api/v1/albums/user/{currentUserId}/albums", currentUserId)
+        mockMvc.perform(post("/albums/user/{currentUserId}/albums", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumFilterDto)))
                 .andExpect(status().isOk())
@@ -224,7 +225,7 @@ public class AlbumControllerTest {
     void testGetUsersAlbumsWithFiltersEmptyList() throws Exception {
         when(albumService.getAlbumsForUserByFilter(currentUserId, albumFilterDto)).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/v1/albums/user/{currentUserId}/albums", currentUserId)
+        mockMvc.perform(post("/albums/user/{currentUserId}/albums", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumFilterDto)))
                 .andExpect(status().isOk())
@@ -240,7 +241,7 @@ public class AlbumControllerTest {
         List<AlbumDto> albums = List.of(albumDto, albumDto1);
         when(albumService.getAllAlbumsByFilter(albumFilterDto)).thenReturn(albums);
 
-        mockMvc.perform(get("/api/v1/albums/albums")
+        mockMvc.perform(post("/albums/albums")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumFilterDto)))
                 .andExpect(status().isOk())
@@ -256,7 +257,7 @@ public class AlbumControllerTest {
     void testGetAllAlbumsWithFiltersEmptyList() throws Exception {
         when(albumService.getAllAlbumsByFilter(albumFilterDto)).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/v1/albums/albums")
+        mockMvc.perform(post("/albums/albums")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumFilterDto)))
                 .andExpect(status().isOk())
@@ -272,7 +273,7 @@ public class AlbumControllerTest {
         List<AlbumDto> albums = List.of(albumDto, albumDto1);
         when(albumService.getFavoritAlbumsForUserByFilter(currentUserId, albumFilterDto)).thenReturn(albums);
 
-        mockMvc.perform(get("/api/v1/albums/user/{currentUserId}/favorites", currentUserId)
+        mockMvc.perform(post("/albums/user/{currentUserId}/favorites", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumFilterDto)))
                 .andExpect(status().isOk())
@@ -288,7 +289,7 @@ public class AlbumControllerTest {
     void testGetFavoritUsersAlbumsWithFiltersEmptyList() throws Exception {
         when(albumService.getFavoritAlbumsForUserByFilter(currentUserId, albumFilterDto)).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/v1/albums/user/{currentUserId}/favorites", currentUserId)
+        mockMvc.perform(post("/albums/user/{currentUserId}/favorites", currentUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumFilterDto)))
                 .andExpect(status().isOk())
@@ -303,7 +304,7 @@ public class AlbumControllerTest {
     void testUpdateAlbum() throws Exception {
         when(albumService.updateAlbum(albumUpdateDto)).thenReturn(albumDto);
 
-        mockMvc.perform(put("/api/v1/albums")
+        mockMvc.perform(put("/albums")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(albumUpdateDto)))
                 .andExpect(status().isOk())
@@ -317,15 +318,14 @@ public class AlbumControllerTest {
     @Test
     @DisplayName("Delete album successfully")
     void testDeleteAlbumSuccess() throws Exception {
-        doNothing().when(albumService).deleteAlbum(currentUserId, albumDto);
+        doNothing().when(albumService).deleteAlbum(currentUserId, albumId);
 
-        mockMvc.perform(delete("/api/v1/albums/user/{currentUserId}", currentUserId)
-                        .param("userId", String.valueOf(currentUserId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(albumDto)))
+        mockMvc.perform(delete("/albums/{albumId}", albumId)
+                        .param("currentUserId", String.valueOf(currentUserId))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        verify(albumService, times(1)).deleteAlbum(currentUserId, albumDto);
+        verify(albumService, times(1)).deleteAlbum(currentUserId, albumId);
     }
 
     private AlbumDto mockAlbumDto() {

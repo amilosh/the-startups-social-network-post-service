@@ -3,24 +3,23 @@ package faang.school.postservice.service;
 import faang.school.postservice.dto.AlbumDto;
 import faang.school.postservice.dto.AlbumFilterDto;
 import faang.school.postservice.dto.AlbumUpdateDto;
-import faang.school.postservice.dto.PostDto;
-import faang.school.postservice.exceptions.EntityNotFoundException;
 import faang.school.postservice.filter.Filter;
 import faang.school.postservice.mapper.AlbumMapper;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Album;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
+import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.AlbumValidator;
 import faang.school.postservice.validator.PostValidator;
 import faang.school.postservice.validator.UserValidator;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -30,53 +29,54 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class AlbumService {
 
-    private AlbumRepository albumRepository;
-
-    private PostValidator postValidator;
-
-    private UserValidator userValidator;
-
-    private AlbumValidator albumValidator;
-
-    private AlbumMapper albumMapper;
-
-    private PostMapper postMapper;
-
+    private final AlbumRepository albumRepository;
+    private final PostValidator postValidator;
+    private final UserValidator userValidator;
+    private final AlbumValidator albumValidator;
+    private final AlbumMapper albumMapper;
+    private final PostMapper postMapper;
+    private final PostRepository postRepository;
     private List<Filter<Album, AlbumFilterDto>> filters;
 
 
     public AlbumDto createAlbum(AlbumDto albumDto) {
         userValidator.checkUserExistence(albumDto);
+
         Album album = albumMapper.toEntity(albumValidator.albumExistsByTitleAndAuthorId(albumDto));
         Album saveAlbum = albumRepository.save(album);
+
         return albumMapper.toDto(saveAlbum);
     }
 
-    public AlbumDto addPostToAlboom(long userId, long albumId, PostDto postDto) {
-        postValidator.checkPostExistence(postDto);
+    public AlbumDto addPostToAlboom(long userId, long albumId, long postId) {
+        postValidator.checkPostExistence(postId);
+        Post post = postRepository.findById(postId).get();
         Album album = findAlbumForUser(userId, albumId);
-        album.addPost(postMapper.toEntity(postDto));
+        album.addPost(post);
         albumRepository.save(album);
+
         return albumMapper.toDto(album);
     }
 
-    public AlbumDto removePost(long userId, long albumId, PostDto postDto) {
-        postValidator.checkPostExistence(postDto);
+    public AlbumDto removePost(long userId, long albumId, long postId) {
+        postValidator.checkPostExistence(postId);
+        Post post = postRepository.findById(postId).get();
         Album album = findAlbumForUser(userId, albumId);
-        album.removePost(postDto.getId());
+        album.removePost(postId);
         albumRepository.save(album);
+
         return albumMapper.toDto(album);
     }
 
-    public AlbumDto addAlbumToFavorites(long userId, AlbumDto albumDto) {
-        AlbumDto existAlbum = findByAlbumId(albumDto.getId());
+    public AlbumDto addAlbumToFavorites(long userId, long albumId) {
+        AlbumDto existAlbum = findByAlbumId(albumId);
         albumRepository.addAlbumToFavorites(existAlbum.getId(), userId);
-        return albumDto;
+
+        return existAlbum;
     }
 
-    public void deleteAlbumFromFavorites(long userId, AlbumDto albumDto) {
-        findByAlbumId(albumDto.getId());
-        albumRepository.deleteAlbumFromFavorites(userId, albumDto.getAuthorId());
+    public void deleteAlbumFromFavorites(long userId, long albumId) {
+        albumRepository.deleteAlbumFromFavorites(albumId, userId);
     }
 
     public AlbumDto findByAlbumId(long albumId) {
@@ -95,6 +95,7 @@ public class AlbumService {
                 .map(albumMapper::toDto)
                 .toList();
         log.info("Albums filtered by {}.", albumFilterDto);
+
         return result;
     }
 
@@ -108,6 +109,7 @@ public class AlbumService {
                 .map(albumMapper::toDto)
                 .toList();
         log.info("All albums filtered by {}.", albumFilterDto);
+
         return result;
     }
 
@@ -121,18 +123,20 @@ public class AlbumService {
                 .map(albumMapper::toDto)
                 .toList();
         log.info("Albums filtered by {}.", albumFilterDto);
+
         return result;
     }
 
     public AlbumDto updateAlbum(AlbumUpdateDto albumUpdateDto) {
         Album updateAlbum = albumMapper.toEntity(findByAlbumId(albumUpdateDto.getId()));
         albumMapper.update(albumUpdateDto, updateAlbum);
+
         return albumMapper.toDto(albumRepository.save(updateAlbum));
     }
 
-    public void deleteAlbum(long userId, AlbumDto albumDto) {
-        Album albumForUser = findAlbumForUser(userId, albumDto.getId());
-        albumRepository.deleteById(albumDto.getId());
+    public void deleteAlbum(long userId, long albumId) {
+        Album albumForUser = findAlbumForUser(userId, albumId);
+        albumRepository.deleteById(albumForUser.getId());
     }
 
 

@@ -1,8 +1,8 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.dto.PostDto;
-import faang.school.postservice.exceptions.EntityNotFoundException;
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,28 +25,27 @@ public class PostValidatorTest {
     @InjectMocks
     private PostValidator postValidator;
 
-    PostDto postDto;
+    long postId;
 
     @BeforeEach
     void setUp() {
-        postDto = new PostDto();
-        postDto.setId(1L);
+        postId = 4L;
     }
 
     @Test
     public void testCheckPostExistenceWherPostExist() {
-        when(postRepository.existsById(postDto.getId())).thenReturn(true);
-        assertDoesNotThrow(() -> postValidator.checkPostExistence(postDto),
+        when(postRepository.existsById(postId)).thenReturn(true);
+        assertDoesNotThrow(() -> postValidator.checkPostExistence(postId),
                 "No exception should be thrown if post exists");
-        verify(postRepository, times(1)).existsById(postDto.getId());
+        verify(postRepository, times(1)).existsById(postId);
     }
 
     @Test
     public void testCheckPostExistenceWherPostNotFound() {
-        when(postRepository.existsById(postDto.getId())).thenReturn(false);
+        when(postRepository.existsById(postId)).thenReturn(false);
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            postValidator.checkPostExistence(postDto);
+            postValidator.checkPostExistence(postId);
         });
-        verify(postRepository, times(1)).existsById(postDto.getId());
+        verify(postRepository, times(1)).existsById(postId);
     }
 }

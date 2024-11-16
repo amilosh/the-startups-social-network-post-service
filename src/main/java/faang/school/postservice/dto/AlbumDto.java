@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AlbumDto {
 
-    @PositiveOrZero
+    @Positive(message = "Id is required")
     private long id;
 
     @NotBlank(message = "Title is required")
@@ -28,8 +28,8 @@ public class AlbumDto {
     @Size(min = 10, max = 4096, message = "Description must be between 10 and 4096 characters.")
     private String description;
 
-    @PositiveOrZero(message = "ID is required")
+    @Positive(message = "ID is required")
     private long authorId;
 
-    private List<@PositiveOrZero Long> postsId;
+    private List<@Positive Long> postsId;
 }

@@ -10,10 +10,10 @@ public class AlbumValidator {
     private AlbumRepository albumRepository;
 
     public AlbumDto albumExistsByTitleAndAuthorId(AlbumDto albumDto) {
-        if (!albumRepository.existsByTitleAndAuthorId(albumDto.getTitle(), albumDto.getAuthorId())) {
-            return albumDto;
-        } else {
+        if (albumRepository.existsByTitleAndAuthorId(albumDto.getTitle(), albumDto.getAuthorId())) {
             throw new NotUniqueAlbumException("Album with the same title and author already exists.");
+        } else {
+            return albumDto;
         }
     }
 }
