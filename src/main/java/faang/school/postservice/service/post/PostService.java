@@ -56,7 +56,7 @@ public class PostService {
         return postMapper.toDto(postRepository.save(post));
     }
 
-    public void deletePostById(Long postId) {
+    public void disablePostById(Long postId) {
         Post deletePost = getPost(postId);
         deletePost.setDeleted(true);
 
