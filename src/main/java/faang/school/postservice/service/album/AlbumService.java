@@ -1,11 +1,16 @@
 package faang.school.postservice.service.album;
 
-import faang.school.postservice.exception.*;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.album.AlbumCreateUpdateDto;
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
+import faang.school.postservice.exception.DataValidationException;
+import faang.school.postservice.exception.EntityNotFoundException;
+import faang.school.postservice.exception.FeignClientException;
+import faang.school.postservice.exception.ForbiddenException;
+import faang.school.postservice.exception.MessageError;
+import faang.school.postservice.exception.UnauthorizedException;
 import faang.school.postservice.filter.album.AlbumFilter;
 import faang.school.postservice.mapper.AlbumMapper;
 import faang.school.postservice.model.Album;
@@ -16,9 +21,7 @@ import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -183,7 +186,7 @@ public class AlbumService {
     private void validateUserExistence(long userId) {
         try {
             userServiceClient.getUser(userId);
-        } catch(FeignException.NotFound e) {
+        } catch (FeignException.NotFound e) {
             throw new UnauthorizedException(userId, e);
         } catch (FeignException e) {
             throw new FeignClientException(

@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -375,6 +376,10 @@ class AlbumServiceTest {
 
     private void filterAlbums(Function<AlbumFilterDto, List<AlbumDto>> method,
                               BiConsumer<AlbumRepository, Stream<Album>> repositoryWhenAction) {
+        String titlePattern = "Holiday";
+        String descriptionPattern = "Vacation";
+        LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
+        LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
         Stream<Album> albums = Stream.of(
                 createAlbum("Summer Holidays", "Amazing summer vacation photos!", 10, 8, 2024), // этот подойдет
                 createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", 20, 7, 2024),
@@ -388,17 +393,20 @@ class AlbumServiceTest {
                 createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", 20, 8, 2024)
         );
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
-                .titlePattern("Holiday")
-                .descriptionPattern("Vacation")
-                .createdBefore(LocalDateTime.of(2024, 9, 10, 0, 0, 0))
-                .createdAfter(LocalDateTime.of(2024, 8, 2, 0, 0, 0))
+                .titlePattern(titlePattern)
+                .descriptionPattern(descriptionPattern)
+                .createdBefore(createdBefore)
+                .createdAfter(createdAfter)
                 .build();
-
         repositoryWhenAction.accept(albumRepository, albums);
 
         List<AlbumDto> filteredAlbums = assertDoesNotThrow(() -> method.apply(filterDto));
 
         assertEquals(2, filteredAlbums.size());
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getTitle().toLowerCase().contains(titlePattern.toLowerCase())));
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getDescription().toLowerCase().contains(descriptionPattern.toLowerCase())));
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getCreatedAt().isAfter(createdAfter)));
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getCreatedAt().isBefore(createdBefore)));
     }
 
     private Album createAlbum(String title, String description, int day, int month, int year) {
