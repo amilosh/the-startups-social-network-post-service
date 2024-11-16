@@ -54,7 +54,7 @@ public class AlbumService {
         Album savedAlbum = albumRepository.save(albumToSave);
 
         log.info("User with ID {} successfully created album with ID {} titled '{}'", userId, savedAlbum.getId(), createDto.getTitle());
-        return albumMapper.toDto(savedAlbum);
+        return albumMapper.toDtoList(savedAlbum);
     }
 
     @Transactional
@@ -69,7 +69,7 @@ public class AlbumService {
         Album savedAlbum = albumRepository.save(album);
 
         log.info("User with ID {} successfully added post with ID {} to album with ID {}", userId, postId, albumId);
-        return albumMapper.toDto(savedAlbum);
+        return albumMapper.toDtoList(savedAlbum);
     }
 
     @Transactional
@@ -118,7 +118,7 @@ public class AlbumService {
         log.info("User with ID {} is fetching album with ID {}", userContext.getUserId(), albumId);
         Album album = getAlbum(albumId);
         log.info("Album with ID {} successfully fetched", albumId);
-        return albumMapper.toDto(album);
+        return albumMapper.toDtoList(album);
     }
 
     @Transactional
@@ -129,7 +129,7 @@ public class AlbumService {
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
         log.info("Found {} albums after applying filters", filteredAlbums.size());
-        return albumMapper.toDto(filteredAlbums);
+        return albumMapper.toDtoList(filteredAlbums);
     }
 
     @Transactional
@@ -141,7 +141,7 @@ public class AlbumService {
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
         log.info("Found {} albums after applying filters for user's albums", filteredAlbums.size());
-        return albumMapper.toDto(filteredAlbums);
+        return albumMapper.toDtoList(filteredAlbums);
     }
 
     @Transactional
@@ -153,7 +153,7 @@ public class AlbumService {
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
         log.info("Found {} albums after applying filters for user's favorite albums", filteredAlbums.size());
-        return albumMapper.toDto(filteredAlbums);
+        return albumMapper.toDtoList(filteredAlbums);
     }
 
     @Transactional
@@ -168,7 +168,7 @@ public class AlbumService {
         album = albumRepository.save(album);
 
         log.info("User with ID {} successfully updated album with ID {}", userId, albumId);
-        return albumMapper.toDto(album);
+        return albumMapper.toDtoList(album);
     }
 
     @Transactional

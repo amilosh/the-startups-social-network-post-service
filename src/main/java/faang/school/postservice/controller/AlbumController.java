@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 @Tag(
@@ -53,7 +54,8 @@ public class AlbumController {
             @RequestBody @Valid AlbumCreateUpdateDto createDto
     ) {
         AlbumDto responseDto = albumService.createAlbum(createDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        URI albumUri = URI.create("/albums/%d".formatted(responseDto.getId()));
+        return ResponseEntity.created(albumUri).body(responseDto);
     }
 
     @Operation(summary = "Add a post to an album", description = "Associates a post with an album.")

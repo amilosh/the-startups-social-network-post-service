@@ -2,7 +2,7 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.exception.EntityNoyFoundException;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
@@ -25,7 +25,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -162,7 +161,7 @@ public class PostServiceTest {
         post.setContent("Hello world!");
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNoyFoundException.class, () -> postService.getPostById(1L));
+        assertThrows(EntityNotFoundException.class, () -> postService.getPostById(1L));
     }
 
     @Test

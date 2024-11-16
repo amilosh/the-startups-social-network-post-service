@@ -17,9 +17,9 @@ public interface AlbumMapper {
     Album toEntity(AlbumCreateUpdateDto createDto);
 
     @Mapping(source = "posts", target = "postIds")
-    AlbumDto toDto(Album album);
+    AlbumDto toDtoList(Album album);
 
-    List<AlbumDto> toDto(List<Album> albums);
+    List<AlbumDto> toDtoList(List<Album> albums);
 
     void update(AlbumCreateUpdateDto updateDto, @MappingTarget Album album);
 
