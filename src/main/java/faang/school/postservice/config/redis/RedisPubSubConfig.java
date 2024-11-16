@@ -1,4 +1,4 @@
-package faang.school.postservice.config;
+package faang.school.postservice.config.redis;
 
 import faang.school.postservice.topic.CommentEventTopic;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +19,7 @@ public class RedisPubSubConfig {
     }
 
     @Bean
-    RedisTemplate<String, String> redisTemplate(RedisConnectionFactory factory) {
+    RedisTemplate<String, String> redisPubSubTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(factory);
         return redisTemplate;
