@@ -12,9 +12,9 @@ import java.util.List;
 @FeignClient(name = "user-service", url = "${user-service.host}:${user-service.port}${spring.mvc.servlet.path}")
 public interface UserServiceClient {
 
-    @GetMapping("/users/{userId}")
-    UserDto getUser(@PathVariable long userId);
+    @GetMapping("${user-service.path}/users/{userId}")
+    UserDto getUser(@PathVariable Long userId);
 
-    @PostMapping("/users")
+    @PostMapping("${user-service.path}/users/by-ids")
     List<UserDto> getUsersByIds(@RequestBody List<Long> ids);
 }
