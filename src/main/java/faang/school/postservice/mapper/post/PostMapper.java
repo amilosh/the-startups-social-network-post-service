@@ -1,6 +1,7 @@
 package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import org.mapstruct.Mapper;
@@ -19,9 +20,11 @@ public interface PostMapper {
 
     Post toEntity(PostDto postDto);
 
+    Post toEntity(PostRequestDto postRequestDto);
+
     List<PostDto> toDto(List<Post> posts);
 
-    void update(PostDto postDto, @MappingTarget Post post);
+    void updatePostFromDto(PostDto postDto, @MappingTarget Post post);
 
     @Named("mapLikesCount")
     default int mapLikesCount(List<Like> likes) {

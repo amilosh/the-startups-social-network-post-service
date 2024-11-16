@@ -2,10 +2,8 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.exception.EntityNoyFoundException;
-import faang.school.postservice.exception.PostException;
-import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.exception.EntityNotFoundException;
+import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
@@ -93,7 +91,7 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    public List<PostDto> getAllPostByUserId(Long userId) {
+    public List<PostDto> getAllPostsByUserId(Long userId) {
         List<Post> posts = postRepository.findByAuthorIdWithLikes(userId).stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
@@ -103,7 +101,7 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    public List<PostDto> getAllPostByProjectId(Long projectId) {
+    public List<PostDto> getAllPostsByProjectId(Long projectId) {
         List<Post> posts = postRepository.findByProjectIdWithLikes(projectId).stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt).reversed())

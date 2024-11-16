@@ -288,7 +288,7 @@ public class PostServiceTest {
                 .build();
         when(postRepository.findByAuthorIdWithLikes(id)).thenReturn(posts);
 
-        List<PostDto> result = postService.getAllPostByUserId(id);
+        List<PostDto> result = postService.getAllPostsByUserId(id);
 
         verify(postRepository, times(1)).findByAuthorIdWithLikes(id);
         assertEquals(2, result.size());
@@ -346,7 +346,7 @@ public class PostServiceTest {
                 .build();
         when(postRepository.findByProjectIdWithLikes(id)).thenReturn(posts);
 
-        List<PostDto> result = postService.getAllPostByProjectId(id);
+        List<PostDto> result = postService.getAllPostsByProjectId(id);
 
         verify(postRepository, times(1)).findByProjectIdWithLikes(id);
         assertEquals(2, result.size());
