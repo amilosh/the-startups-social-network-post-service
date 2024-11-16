@@ -1,6 +1,8 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.exception.EntityNoyFoundException;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
@@ -47,22 +49,21 @@ public class PostServiceTest {
 
     @Test
     public void createPostTest() {
-        PostDto postDto = new PostDto();
-        postDto.setId(1L);
-        postDto.setAuthorId(1L);
-        postDto.setContent("Hello world!");
+        PostRequestDto postRequestDto = new PostRequestDto();
+        postRequestDto.setAuthorId(1L);
+        postRequestDto.setContent("Hello world!");
         Post post = new Post();
         post.setId(1L);
         post.setAuthorId(1L);
         post.setContent("Hello world!");
         when(postRepository.save(captor.capture())).thenReturn(post);
 
-        postService.createPost(postDto);
+        postService.createPost(postRequestDto);
 
         Post createPost = captor.getValue();
 
-        assertEquals(postDto.getAuthorId(), createPost.getAuthorId());
-        assertEquals(postDto.getContent(), createPost.getContent());
+        assertEquals(postRequestDto.getAuthorId(), createPost.getAuthorId());
+        assertEquals(postRequestDto.getContent(), createPost.getContent());
         assertFalse(createPost.isPublished());
         assertFalse(createPost.isDeleted());
     }
@@ -161,7 +162,7 @@ public class PostServiceTest {
         post.setContent("Hello world!");
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(PostException.class, () -> postService.getPostById(1L));
+        assertThrows(EntityNoyFoundException.class, () -> postService.getPostById(1L));
     }
 
     @Test
@@ -189,7 +190,7 @@ public class PostServiceTest {
         thirdPost.setCreatedAt(LocalDateTime.now().plusSeconds(2));
         when(postRepository.findByAuthorId(1L)).thenReturn(List.of(firstPost, secondPost, thirdPost));
 
-        List<PostDto> posts = postService.getAllNoPublishPostByUserId(1L);
+        List<PostDto> posts = postService.getAllNoPublishPostsByUserId(1L);
 
         assertEquals(2, posts.size());
         assertEquals(firstPost.getId(), posts.get(1).getId());
@@ -200,7 +201,7 @@ public class PostServiceTest {
     public void getAllNoPublishPostByNoExistUserTest() {
         when(postRepository.findByAuthorId(1L)).thenReturn(List.of());
 
-        List<PostDto> posts = postService.getAllNoPublishPostByUserId(1L);
+        List<PostDto> posts = postService.getAllNoPublishPostsByUserId(1L);
 
         assertEquals(0, posts.size());
     }
@@ -230,7 +231,7 @@ public class PostServiceTest {
         thirdPost.setCreatedAt(LocalDateTime.now().plusSeconds(2));
         when(postRepository.findByProjectId(1L)).thenReturn(List.of(firstPost, secondPost, thirdPost));
 
-        List<PostDto> posts = postService.getAllNoPublishPostByProjectId(1L);
+        List<PostDto> posts = postService.getAllNoPublishPostsByProjectId(1L);
 
         assertEquals(2, posts.size());
         assertEquals(firstPost.getId(), posts.get(1).getId());
@@ -262,7 +263,7 @@ public class PostServiceTest {
         thirdPost.setPublishedAt(LocalDateTime.now().plusSeconds(2));
         when(postRepository.findByAuthorId(1L)).thenReturn(List.of(firstPost, secondPost, thirdPost));
 
-        List<PostDto> posts = postService.getAllPostByUserId(1L);
+        List<PostDto> posts = postService.getAllPostsByUserId(1L);
 
         assertEquals(2, posts.size());
         assertEquals(secondPost.getId(), posts.get(1).getId());
@@ -294,7 +295,7 @@ public class PostServiceTest {
         thirdPost.setPublishedAt(LocalDateTime.now().plusSeconds(2));
         when(postRepository.findByProjectId(1L)).thenReturn(List.of(firstPost, secondPost, thirdPost));
 
-        List<PostDto> posts = postService.getAllPostByProjectId(1L);
+        List<PostDto> posts = postService.getAllPostsByProjectId(1L);
 
         assertEquals(2, posts.size());
         assertEquals(secondPost.getId(), posts.get(1).getId());
