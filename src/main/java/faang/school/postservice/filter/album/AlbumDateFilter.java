@@ -14,13 +14,28 @@ public class AlbumDateFilter implements AlbumFilter {
     public boolean isApplicable(AlbumFilterDto filterDto) {
         LocalDateTime createdBefore = filterDto.getCreatedBefore();
         LocalDateTime createdAfter = filterDto.getCreatedAfter();
-        return (createdAfter != null && createdBefore == null) || (createdAfter == null && createdBefore != null);
+
+        if (createdAfter == null && createdBefore == null) {
+            return false;
+        }
+        if (createdAfter != null && createdBefore != null) {
+            return createdBefore.isAfter(createdAfter);
+        }
+        return true;
     }
 
     @Override
     public Stream<Album> apply(Stream<Album> albums, AlbumFilterDto filterDto) {
-        return filterDto.getCreatedAfter() != null
-                ? albums.filter(album -> album.getCreatedAt().isAfter(filterDto.getCreatedAfter()))
-                : albums.filter(album -> album.getCreatedAt().isAfter(filterDto.getCreatedBefore()));
+        LocalDateTime createdBefore = filterDto.getCreatedBefore();
+        LocalDateTime createdAfter = filterDto.getCreatedAfter();
+
+        if (createdBefore != null) {
+            albums = albums.filter(album -> album.getCreatedAt().isBefore(createdBefore));
+        }
+        if (createdAfter != null) {
+            albums = albums.filter(album -> album.getCreatedAt().isAfter(createdAfter));
+        }
+
+        return albums;
     }
 }

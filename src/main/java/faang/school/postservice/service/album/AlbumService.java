@@ -1,15 +1,11 @@
 package faang.school.postservice.service.album;
 
+import faang.school.postservice.exception.*;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.album.AlbumCreateUpdateDto;
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
-import faang.school.postservice.exception.DataValidationException;
-import faang.school.postservice.exception.EntityNotFoundException;
-import faang.school.postservice.exception.FeignClientException;
-import faang.school.postservice.exception.MessageError;
-import faang.school.postservice.exception.UnauthorizedException;
 import faang.school.postservice.filter.album.AlbumFilter;
 import faang.school.postservice.mapper.AlbumMapper;
 import faang.school.postservice.model.Album;
@@ -48,7 +44,7 @@ public class AlbumService {
         long userId = userContext.getUserId();
         log.info("User with ID {} is attempting to create a new album with title '{}'", userId, createDto.getTitle());
 
-        validateUserIdExistence(userId);
+        validateUserExistence(userId);
         validateAlbumTitle(createDto.getTitle(), userId);
         Album albumToSave = albumMapper.toEntity(createDto);
         albumToSave.setAuthorId(userId);
@@ -67,9 +63,10 @@ public class AlbumService {
         validateAlbumAuthor(album, userId);
         Post post = postService.getPost(postId);
         album.addPost(post);
+        Album savedAlbum = albumRepository.save(album);
 
         log.info("User with ID {} successfully added post with ID {} to album with ID {}", userId, postId, albumId);
-        return albumMapper.toDto(albumRepository.save(album));
+        return albumMapper.toDto(savedAlbum);
     }
 
     @Transactional
@@ -97,19 +94,19 @@ public class AlbumService {
         Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
         albumRepository.addAlbumToFavorites(albumId, userId);
-        albumRepository.save(album);
 
         log.info("User with ID {} added album with ID {} to favorites", userId, albumId);
     }
 
     @Transactional
     public void deleteAlbumFromFavorites(long albumId) {
-        log.info("Start removing album with ID: {} from favorites", albumId);
-        Album album = getAlbum(albumId);
         long userId = userContext.getUserId();
+        log.info("User with ID {} is attempting to remove album with ID: {} to favorites", userId, albumId);
+
+        Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
         albumRepository.deleteAlbumFromFavorites(albumId, userId);
-        albumRepository.save(album);
+
         log.info("User with ID {} removed album with ID {} from favorites", userId, albumId);
     }
 
@@ -183,12 +180,12 @@ public class AlbumService {
         log.info("User with ID {} successfully deleted album with ID {}", userId, albumId);
     }
 
-    private void validateUserIdExistence(long userId) {
+    private void validateUserExistence(long userId) {
         try {
             userServiceClient.getUser(userId);
         } catch(FeignException.NotFound e) {
             throw new UnauthorizedException(userId, e);
-        } catch (Exception e) {
+        } catch (FeignException e) {
             throw new FeignClientException(
                     MessageError.FEIGN_CLIENT_UNEXPECTED_EXCEPTION
                             .getMessage("There was an attempt to get %s by ID: %d".formatted(USER, userId)),
@@ -205,10 +202,7 @@ public class AlbumService {
 
     private void validateAlbumAuthor(Album album, long userId) {
         if (album.getAuthorId() != userId) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    String.format("User with ID %d is not the author of the album with ID %d.", userId, album.getId())
-            );
+            throw new ForbiddenException(userId, "add post to album with ID %d".formatted(album.getId()));
         }
     }
 

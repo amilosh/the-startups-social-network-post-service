@@ -61,7 +61,7 @@ public class AlbumController {
     public ResponseEntity<AlbumDto> addPostToAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId,
             @PathVariable @Min(value = 1, message = "Post ID must be greater than 0!") long postId
     ) {
@@ -74,7 +74,7 @@ public class AlbumController {
     public ResponseEntity<Void> deletePostFromAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") String userId,
+            @Parameter(description = "ID of user who sent the request") long userId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId,
             @PathVariable @Min(value = 1, message = "Post ID must be greater than 0!") long postId
     ) {
