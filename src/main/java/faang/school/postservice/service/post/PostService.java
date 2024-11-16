@@ -1,6 +1,8 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.exception.EntityNoyFoundException;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
@@ -22,10 +24,10 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostValidator postValidator;
 
-    public PostDto createPost(PostDto postDto) {
-        postValidator.checkCreator(postDto);
+    public PostDto createPost(PostRequestDto postRequestDtoDto) {
+        postValidator.checkCreator(postRequestDtoDto);
 
-        Post createPost = postMapper.toEntity(postDto);
+        Post createPost = postMapper.toEntity(postRequestDtoDto);
         createPost.setPublished(false);
         createPost.setDeleted(false);
 
@@ -48,7 +50,7 @@ public class PostService {
         Post post = getPost(postDto.getId());
         postValidator.checkUpdatePost(post, postDto);
 
-        postMapper.update(postDto, post);
+        postMapper.updatePostFromDto(postDto, post);
 
         log.info("Post with id {} - updated", post.getId());
         return postMapper.toDto(postRepository.save(post));
@@ -68,7 +70,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public List<PostDto> getAllNoPublishPostByUserId(Long userId) {
+    public List<PostDto> getAllNoPublishPostsByUserId(Long userId) {
         List<Post> posts = postRepository.findByAuthorId(userId).stream()
                 .filter(post -> !post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
@@ -78,7 +80,7 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    public List<PostDto> getAllNoPublishPostByProjectId(Long projectId) {
+    public List<PostDto> getAllNoPublishPostsByProjectId(Long projectId) {
         List<Post> posts = postRepository.findByProjectId(projectId).stream()
                 .filter(post -> !post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
@@ -88,7 +90,7 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    public List<PostDto> getAllPostByUserId(Long userId) {
+    public List<PostDto> getAllPostsByUserId(Long userId) {
         List<Post> posts = postRepository.findByAuthorId(userId).stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
@@ -98,7 +100,7 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    public List<PostDto> getAllPostByProjectId(Long projectId) {
+    public List<PostDto> getAllPostsByProjectId(Long projectId) {
         List<Post> posts = postRepository.findByProjectId(projectId).stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
@@ -110,7 +112,7 @@ public class PostService {
 
     private Post getPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostException("Post with id " + postId + " not found"));
+                .orElseThrow(() -> new EntityNoyFoundException("Post with id " + postId + " not found"));
 
         log.info("Get post with id {}", postId);
         return post;
