@@ -33,9 +33,9 @@ public class PostController {
         return postService.updatePost(postDto);
     }
 
-    @DeleteMapping("/{postId}/delete")
-    public void deletePostById(@PathVariable Long postId) {
-        postService.deletePostById(postId);
+    @PatchMapping("/{postId}/disable")
+    public void disablePostById(@PathVariable Long postId) {
+        postService.disablePostById(postId);
     }
 
     @GetMapping("/{postId}")

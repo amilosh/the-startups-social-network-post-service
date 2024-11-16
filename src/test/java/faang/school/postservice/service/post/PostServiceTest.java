@@ -130,7 +130,7 @@ public class PostServiceTest {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(postRepository.save(captor.capture())).thenReturn(post);
 
-        postService.deletePostById(1L);
+        postService.disablePostById(1L);
 
         Post deletePost = captor.getValue();
 
