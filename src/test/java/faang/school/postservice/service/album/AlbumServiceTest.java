@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -381,16 +382,16 @@ class AlbumServiceTest {
         LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
         LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
         Stream<Album> albums = Stream.of(
-                createAlbum("Summer Holidays", "Amazing summer vacation photos!", 10, 8, 2024), // этот подойдет
-                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", 20, 7, 2024),
-                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", 5, 12, 2023),
-                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", 15, 2, 2024),
-                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", 25, 12, 2024),
-                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", 14, 5, 2024),
-                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", 18, 6, 2024),
-                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", 25, 6, 2024),
-                createAlbum("Summer Holidays", "More summer vacation pictures!", 30, 8, 2024),// и этот подойдет
-                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", 20, 8, 2024)
+                createAlbum("Summer Holidays", "Amazing summer vacation photos!", LocalDate.of(2024, 9, 9)), // этот подойдет
+                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", LocalDate.of(2024, 7, 20)),
+                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", LocalDate.of(2023, 12, 5)),
+                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", LocalDate.of(2024, 2, 15)),
+                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", LocalDate.of(2024, 12, 25)),
+                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", LocalDate.of(2024, 5, 14)),
+                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", LocalDate.of(2024, 6, 18)),
+                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", LocalDate.of(2024, 6, 25)),
+                createAlbum("Summer Holidays", "More summer vacation pictures!", LocalDate.of(2024, 8, 30)),// и этот подойдет
+                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", LocalDate.of(2024, 8, 20))
         );
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
@@ -409,11 +410,11 @@ class AlbumServiceTest {
         assertTrue(filteredAlbums.stream().allMatch(album -> album.getCreatedAt().isBefore(createdBefore)));
     }
 
-    private Album createAlbum(String title, String description, int day, int month, int year) {
+    private Album createAlbum(String title, String description, LocalDate createdDate) {
         Album album = new Album();
         album.setTitle(title);
         album.setDescription(description);
-        album.setCreatedAt(LocalDateTime.of(year, month, day, 0, 0, 0));
+        album.setCreatedAt(createdDate.atStartOfDay());
         return album;
     }
 }

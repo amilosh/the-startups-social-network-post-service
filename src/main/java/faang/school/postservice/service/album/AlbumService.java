@@ -189,11 +189,8 @@ public class AlbumService {
         } catch (FeignException.NotFound e) {
             throw new UnauthorizedException(userId, e);
         } catch (FeignException e) {
-            throw new FeignClientException(
-                    MessageError.FEIGN_CLIENT_UNEXPECTED_EXCEPTION
-                            .getMessage("There was an attempt to get %s by ID: %d".formatted(USER, userId)),
-                    e
-            );
+            String errorMessage = "There was an attempt to get %s by ID: %d".formatted(USER, userId);
+            throw new FeignClientException(MessageError.FEIGN_CLIENT_UNEXPECTED_EXCEPTION.getMessage(errorMessage), e);
         }
     }
 
