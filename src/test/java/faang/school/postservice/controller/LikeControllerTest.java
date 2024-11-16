@@ -1,0 +1,84 @@
+package faang.school.postservice.controller;
+import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.service.LikeService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+
+@WebMvcTest
+@ContextConfiguration(classes = {LikeController.class, LikeService.class})
+public class LikeControllerTest {
+    private final static String POST_URL = "/post/{postId}/likes";
+
+    private final static String COMMENT_URL = "/comment/{commentId}/likes";
+
+    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private LikeService likeService;
+
+    @Test
+    void testGetUsersWhoLikePostByPostId() throws Exception {
+        long postId = 1L;
+
+
+        List<UserDto> userDtos = List.of(
+                UserDto.builder().id(1L).username("Name1").email("test1@gmail.com").build(),
+                UserDto.builder().id(2L).username("Name2").email("test2@gmail.com").build()
+        );
+
+        when(likeService.getUsersWhoLikePostByPostId(postId)).thenReturn(userDtos);
+
+        mockMvc.perform(get(POST_URL, postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(userDtos.size()))
+                .andExpect(jsonPath("$[0].id").value(userDtos.get(0).getId()))
+                .andExpect(jsonPath("$[0].username").value(userDtos.get(0).getUsername()))
+                .andExpect(jsonPath("$[0].email").value(userDtos.get(0).getEmail()))
+                .andExpect(jsonPath("$[1].id").value(userDtos.get(1).getId()))
+                .andExpect(jsonPath("$[1].username").value(userDtos.get(1).getUsername()))
+                .andExpect(jsonPath("$[1].email").value(userDtos.get(1).getEmail()));
+
+        verify(likeService, times(1)).getUsersWhoLikePostByPostId(postId);
+    }
+
+    @Test
+    void testGetUsersWhoLikeComments() throws Exception {
+        long commentId = 1L;
+
+        List<UserDto> userDtos = List.of(
+                UserDto.builder()
+                        .id(1L)
+                        .username("JohnDoe")
+                        .email("johndoe@example.com")
+                        .build()
+        );
+
+        when(likeService.getUsersWhoLikeComments(commentId)).thenReturn(userDtos);
+
+        mockMvc.perform(get(COMMENT_URL, commentId))
+                .andExpect(status().isOk())
+                .andExpect(content().json(OBJECT_MAPPER.writeValueAsString(userDtos)));
+
+        verify(likeService, times(1)).getUsersWhoLikeComments(commentId);
+    }
+}
