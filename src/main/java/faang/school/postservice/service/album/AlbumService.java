@@ -20,7 +20,9 @@ import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -89,12 +91,14 @@ public class AlbumService {
 
     @Transactional
     public void addAlbumToFavorites(long albumId) {
-        log.info("Start adding album with ID: {} to favorites", albumId);
-        Album album = getAlbum(albumId);
         long userId = userContext.getUserId();
+        log.info("User with ID {} is attempting to add album with ID: {} to favorites", userId, albumId);
+
+        Album album = getAlbum(albumId);
         validateAlbumAuthor(album, userId);
         albumRepository.addAlbumToFavorites(albumId, userId);
         albumRepository.save(album);
+
         log.info("User with ID {} added album with ID {} to favorites", userId, albumId);
     }
 
@@ -183,7 +187,7 @@ public class AlbumService {
         try {
             userServiceClient.getUser(userId);
         } catch(FeignException.NotFound e) {
-            throw new UnauthorizedException(userId);
+            throw new UnauthorizedException(userId, e);
         } catch (Exception e) {
             throw new FeignClientException(
                     MessageError.FEIGN_CLIENT_UNEXPECTED_EXCEPTION
@@ -201,7 +205,10 @@ public class AlbumService {
 
     private void validateAlbumAuthor(Album album, long userId) {
         if (album.getAuthorId() != userId) {
-            throw new DataValidationException("User with ID %d is not the author of the album with ID %d.".formatted(userId, album.getId()));
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    String.format("User with ID %d is not the author of the album with ID %d.", userId, album.getId())
+            );
         }
     }
 
