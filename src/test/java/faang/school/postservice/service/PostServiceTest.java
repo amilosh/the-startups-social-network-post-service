@@ -16,17 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -76,8 +74,8 @@ class PostServiceTest {
         Post postEntity = new Post();
         postEntity.setId(1);
         postEntity.setAuthorId(createPostDto.getAuthorId());
-        postEntity.setCreatedAt(LocalDateTime.now());
-        postEntity.setScheduledAt(LocalDateTime.now());
+        postEntity.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
+        postEntity.setScheduledAt(LocalDateTime.now(ZoneId.of("UTC+3")));
         postEntity.setPublished(false);
         postEntity.setDeleted(false);
 

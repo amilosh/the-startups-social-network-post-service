@@ -21,6 +21,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -48,7 +50,6 @@ public class PostController {
     @PutMapping("{postId}/publish")
     @PublishPostDoc
     public ResponseEntity<ResponsePostDto> publish(
-            @Valid
             @PathVariable
             @Positive(message = "Post id must be positive")
             @NotNull(message = "Post id cannot be null")
@@ -60,7 +61,6 @@ public class PostController {
     @PutMapping("/{postId}")
     @UpdatePostDoc
     public ResponseEntity<ResponsePostDto> update(
-            @Valid
             @PathVariable
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive")
@@ -74,7 +74,6 @@ public class PostController {
     @DeletePostDoc
     public ResponseEntity<Void> delete(
             @PathVariable
-            @Valid
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long postId
     ) {
@@ -86,7 +85,6 @@ public class PostController {
     @GetPostDoc
     public ResponseEntity<ResponsePostDto> getPostById(
             @PathVariable
-            @Valid
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long postId
     ) {
@@ -97,7 +95,6 @@ public class PostController {
     @GetDraftPostByAuthorDoc
     public ResponseEntity<List<ResponsePostDto>> getDraftByUserId(
             @PathVariable
-            @Valid
             @NotNull(message = "User id cannot be null")
             @Positive(message = "User id must be positive") Long userId
     ) {
@@ -108,7 +105,6 @@ public class PostController {
     @GetDraftPostByProjectDoc
     public ResponseEntity<List<ResponsePostDto>> getDraftByProjectId(
             @PathVariable
-            @Valid
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long projectId
     ) {
@@ -118,7 +114,6 @@ public class PostController {
     @GetMapping("/published/author/{userId}")
     @GetPublishedPostByAuthorDoc
     public ResponseEntity<List<ResponsePostDto>> getPublishedByUserId(
-            @Valid
             @PathVariable
             @NotNull(message = "User id cannot be null")
             @Positive(message = "User id must be positive")
@@ -130,7 +125,6 @@ public class PostController {
     @GetMapping("/published/project/{projectId}")
     @GetPublishedPostByProjectDoc
     public ResponseEntity<List<ResponsePostDto>> getPublishedByProjectId(
-            @Valid
             @PathVariable
             @NotNull(message = "Project id cannot be null")
             @Positive(message = "Project id must be positive")

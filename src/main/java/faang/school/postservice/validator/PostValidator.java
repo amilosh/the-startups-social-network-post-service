@@ -7,11 +7,8 @@ import faang.school.postservice.exception.EntityWasRemovedException;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PostValidator {
