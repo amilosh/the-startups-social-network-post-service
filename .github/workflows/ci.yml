@@ -26,5 +26,12 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: Dependency analysis
-        run: ./gradlew dependencyCheckAnalyze
+      - name: Check for unused dependencies
+        run: ./gradlew checkUnusedDependencies
+
+      - name: Upload dependency analysis report
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-analysis-report
+          path: build/reports/dependency-analysis/advice-report.json

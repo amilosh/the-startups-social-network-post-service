@@ -1,8 +1,10 @@
+import groovy.json.JsonSlurper
+
 plugins {
     java
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    id("org.owasp.dependencycheck") version "8.4.0"
+    id("com.autonomousapps.dependency-analysis") version "1.22.0"
 }
 
 group = "faang.school"
@@ -71,4 +73,22 @@ val test by tasks.getting(Test::class) { testLogging.showStandardStreams = true 
 
 tasks.bootJar {
     archiveFileName.set("service.jar")
+}
+
+tasks.register("checkUnusedDependencies") {
+    group = "verification"
+    description = "Check for unused dependencies and fail if any are found."
+    dependsOn("buildHealth")
+
+    doLast {
+        val outputFile = file("$buildDir/reports/dependency-analysis/advice-report.json")
+        if (outputFile.exists()) {
+            val jsonSlurper = JsonSlurper()
+            val advice = jsonSlurper.parse(outputFile) as Map<*, *>
+            val unusedDependencies = advice["unusedDependencies"] as? List<*> ?: emptyList<Any>()
+            if (unusedDependencies.isNotEmpty()) {
+                throw GradleException("Unused dependencies found! Check ${outputFile.path} for details.")
+            }
+        }
+    }
 }
