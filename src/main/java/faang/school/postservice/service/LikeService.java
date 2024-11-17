@@ -75,12 +75,7 @@ public class LikeService {
     }
 
     private void validateUserExists(long userId) {
-        try {
             userServiceClient.getUser(userId);
-        } catch (FeignException e) {
-            log.error("User not found with userId={}", userId);
-            throw new EntityNotFoundException("User not found");
-        }
     }
 
     private void checkPostExists(long postId) {
