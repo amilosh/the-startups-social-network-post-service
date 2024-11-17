@@ -27,7 +27,7 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
     private final AlbumMapper mapper;
     private final AlbumValidator validator;
-    private List<AlbumFilter> filters;
+    private final List<AlbumFilter> filters;
 
     public AlbumResponseDto createAlbum(AlbumRequestDto albumRequestDto) {
         long authorId = albumRequestDto.getAuthorId();
@@ -36,6 +36,7 @@ public class AlbumService {
         validator.validateAlbumWithSameTitleExists(authorId, title);
         Album album = mapper.toAlbum(albumRequestDto);
         album.setPosts(new ArrayList<>());
+        validator.validateAlbumExists(album.getId());
         albumRepository.save(album);
         log.info("Album saved: {}", album.getId());
         log.info("Album created: {}", album.getId());
@@ -80,6 +81,7 @@ public class AlbumService {
         validator.validateAlbumExists(albumId);
         validator.validateAuthor(authorId);
         boolean result = validator.validateFavoritesHasThisAlbum(albumId, authorId);
+        System.out.println(result);
         if (!result) {
             throw new DataValidationException("Favorite album with id " + albumId + " does not exist");
         }
