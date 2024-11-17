@@ -27,7 +27,7 @@ jobs:
         run: ./gradlew test
 
       - name: Check for unused dependencies
-        run: ./gradlew analyzeDependencies
+        run: ./gradlew dependencyAnalysis
 
       - name: Upload dependency analysis report
         if: failure()
