@@ -6,14 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostDto {
-
-    private Long id;
+public class PostRequestDto {
 
     @NotBlank(message = "Content must be not blank")
     @Size(max = 1000, message = "Content must be shorter than 1000 characters")
@@ -25,13 +22,5 @@ public class PostDto {
 
     private boolean published;
 
-    private LocalDateTime publishedAt;
-
-    private LocalDateTime scheduledAt;
-
     private boolean deleted;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 }

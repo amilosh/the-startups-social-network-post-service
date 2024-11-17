@@ -1,18 +1,20 @@
 package faang.school.postservice.dto.user;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Builder
+@Getter
+@Setter
+@EqualsAndHashCode
+@NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
-    @Min(value = 1, message = "ID must be a positive number")
     private Long id;
-    @NotBlank(message = "Title should not be blank")
     private String username;
-    @Email(message = "Email must be in right format")
     private String email;
 }
