@@ -1,12 +1,14 @@
 package faang.school.postservice.controller;
 
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.like.LikeCommentDto;
 import faang.school.postservice.dto.like.LikePostDto;
 
 import faang.school.postservice.service.LikeService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,17 +17,42 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/api/like")
+@RequestMapping("/like")
 public class LikeController {
     private final LikeService likeService;
     private final UserContext userContext;
 
-    @PostMapping("/{postId}")
+    @PostMapping("/post/{postId}")
     public LikePostDto likePost(@PathVariable @Positive long postId) {
         long userId = userContext.getUserId();
+        validateUserId(userId);
+        return likeService.createLikePost(postId, userId);
+    }
+
+    @PostMapping("/comment/{commentId}")
+    public LikeCommentDto likeComment(@PathVariable @Positive long commentId) {
+        long userId = userContext.getUserId();
+        validateUserId(userId);
+        return likeService.createLikeComment(commentId, userId);
+    }
+
+    @DeleteMapping("/delete/post/{postId}")
+    public void deleteLikeFromPost(@PathVariable @Positive long postId) {
+        long userId = userContext.getUserId();
+        validateUserId(userId);
+        likeService.deleteLikeFromPost(postId, userId);
+    }
+
+    @DeleteMapping("/delete/comment/{commentId}")
+    public void deleteLikeFromComment(@PathVariable @Positive long commentId) {
+        long userId = userContext.getUserId();
+        validateUserId(userId);
+        likeService.deleteLikeFromComment(commentId, userId);
+    }
+
+    private void validateUserId(Long userId) {
         if (userId <= 0) {
-            throw new IllegalArgumentException("User ID must be positive");
+            throw new IllegalArgumentException("User id must be more 0");
         }
-        return likeService.likePost(postId, userId);
     }
 }

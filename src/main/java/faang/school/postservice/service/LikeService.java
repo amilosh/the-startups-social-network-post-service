@@ -1,11 +1,13 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.like.LikeDto;
+import faang.school.postservice.dto.like.LikeCommentDto;
+import faang.school.postservice.dto.like.LikePostDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,89 +24,98 @@ public class LikeService {
     private final CommentService commentService;
     private final LikeMapper likeMapper;
 
-    public LikeDto likePost(long postId, LikeDto likeDto) {
-        log.info("Creating like with likeDto {} and postId {}", likeDto, postId);
-        long userId = likeDto.userId();
-        userServiceClient.getUser(userId);
+    @Transactional
+    public LikePostDto createLikePost(long postId, long userId) {
+        log.info("Creating like with userId {} and postId {}", userId, postId);
 
-        if (isPostLikedByUser(postId, userId)) {
-            log.error("User {} cannot like this post {}, already liked", userId, postId);
-            throw new DataValidationException("You already liked this post");
-        }
+        validateUserExists(userId);
+        checkPostExists(postId);
+        validatePostLiked(postId, userId);
 
-        if(postService.isPostNotExist(postId)){
-            log.error("User {} cannot like this post {}, this post does not exist", userId, postId);
-            throw new DataValidationException("This post does not exist");
-        }
+        Like like = Like.builder()
+                .userId(userId)
+                .post(postService.getPostById(postId))
+                .build();
 
-        Like like = likeMapper.toLike(likeDto);
-        like.setPost(postService.getPostById(postId));
         Like savedLike = likeRepository.save(like);
 
-        log.info("User {} successfully liked post {} with {} ", userId, postId, savedLike);
+        log.info("UserId {} successfully liked postId {} with {} ", userId, postId, savedLike);
         return likeMapper.toLikePostDto(savedLike);
     }
 
+    private void validateUserExists(long userId){
+        try {
+            userServiceClient.getUser(userId);
+        } catch (FeignException e){
+            throw new EntityNotFoundException("User is not found by " + userId);
+        }
+    }
 
-    public LikeDto likeComment(long commentId, LikeDto likeDto){
-        log.info("Creating like with likeDto {} and commentId {}", likeDto, commentId);
-        long userId = likeDto.userId();
-        userServiceClient.getUser(userId);
+    private void checkPostExists(long postId) {
+        if (postService.isPostNotExist(postId)) {
+            log.error("Post id {} does not exist", postId);
+            throw new EntityNotFoundException("This post does not exist");
+        }
+    }
 
-        if (isCommentLikedByUser(commentId, userId)) {
-            log.error("User {} cannot like this comment {}, already liked", userId, commentId);
+    private void validatePostLiked(long postId, long userId) {
+        if (isPostLikedByUser(postId, userId)) {
+            log.error("User {} cannot like this post id {}, already liked", userId, postId);
             throw new DataValidationException("You already liked this post");
         }
-
-        if(commentService.isCommentNotExist(commentId)){
-            log.error("User {} cannot like this post {}, this post does not exist", userId, commentId);
-            throw new DataValidationException("This comment does not exist");
-        }
-
-        Like like = likeMapper.toLike(likeDto);
-        like.setComment(commentService.getCommentById(commentId));
-        Like savedLike = likeRepository.save(like);
-
-        log.info("User {} successfully liked post {} with {} ", userId, commentId, savedLike);
-        return likeMapper.toLikePostDto(savedLike);
     }
 
 
     @Transactional
-    public void deleteLikeFromPost(long postId, LikeDto likeDto){
-        long userId = likeDto.userId();
+    public LikeCommentDto createLikeComment(long commentId, long userId) {
+        log.info("Creating like with user {} and commentId {}", userId, commentId);
+
+        validateUserExists(userId);
+        validateCommentExists(commentId);
+        validateCommentLiked(commentId, userId);
+
+        Like like = Like.builder()
+                .userId(userId)
+                .comment(commentService.getCommentById(commentId))
+                .build();
+
+        Like savedLike = likeRepository.save(like);
+
+        log.info("User {} successfully liked comment {} with {} ", userId, commentId, savedLike);
+        return likeMapper.toLikeCommentDto(savedLike);
+    }
+
+    private void validateCommentExists(long commentId) {
+        if (commentService.isCommentNotExist(commentId)) {
+            log.error("Comment id {} does not exist", commentId);
+            throw new EntityNotFoundException("This comment does not exist");
+        }
+    }
+
+    private void validateCommentLiked(long commentId, long userId) {
+        if (isCommentLikedByUser(commentId, userId)) {
+            log.error("User {} cannot like this comment id {}, already liked", userId, commentId);
+            throw new DataValidationException("You already liked this comment");
+        }
+    }
+
+    @Transactional
+    public void deleteLikeFromPost(long postId, long userId) {
         likeRepository.deleteByPostIdAndUserId(postId, userId);
         log.info("Successfully deleted like for postId: {} by userId: {}", postId, userId);
     }
 
     @Transactional
-    public void deleteLikeFromComment(long commentId, LikeDto likeDto){
-        long userId = likeDto.userId();
+    public void deleteLikeFromComment(long commentId, long userId) {
         likeRepository.deleteByCommentIdAndUserId(commentId, userId);
         log.info("Successfully deleted like for comment: {} by userId: {}", commentId, userId);
-    }
-
-    private void validateAlreadyLiked(long postId, long commentId, long userId){
-        if (isPostLikedByUser(postId, userId) || isCommentLikedByUser(commentId, userId)) {
-            log.error("User {} cannot like this, already liked", userId);
-            throw new DataValidationException("You already liked");
-        }
     }
 
     private boolean isPostLikedByUser(long postId, long userId) {
         return likeRepository.findByPostIdAndUserId(postId, userId).isPresent();
     }
 
-
-    private boolean isCommentLikedByUser(long commentId, long userId){
+    private boolean isCommentLikedByUser(long commentId, long userId) {
         return likeRepository.findByCommentIdAndUserId(commentId, userId).isPresent();
     }
-
-
-
-    public Like getLikeByPostIdAndUserId(long postId, long userId) {
-        return likeRepository.findByPostIdAndUserId(postId, userId)
-                .orElseThrow(() -> new EntityNotFoundException("Like is not found"));
-    }
 }
-
