@@ -1,8 +1,8 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.comment.CommentDtoInput;
-import faang.school.postservice.dto.comment.CommentUpdateDto;
+import faang.school.postservice.dto.comment.RequestCommentDto;
+import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.Post;
@@ -47,21 +47,21 @@ class CommentValidatorTest {
 
     @Test
     public void validateComment_shouldThrowException_whenContentIsNull() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setContent(null);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setContent(null);
 
-        DataValidationException exception = assertThrows(DataValidationException.class, () -> commentValidator.validateCommentDtoInput(commentDtoInput));
+        DataValidationException exception = assertThrows(DataValidationException.class, () -> commentValidator.validateCommentDtoInput(requestCommentDto));
 
         assertEquals("Comment content is empty", exception.getMessage());
     }
 
     @Test
     public void validateComment_shouldThrowException_whenContentIsEmpty() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setContent(EMPTY_CONTENT);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setContent(EMPTY_CONTENT);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateCommentDtoInput(commentDtoInput);
+            commentValidator.validateCommentDtoInput(requestCommentDto);
         });
 
         assertEquals("Comment content is empty", exception.getMessage());
@@ -69,11 +69,11 @@ class CommentValidatorTest {
 
     @Test
     public void validateComment_shouldThrowException_whenContentIsTooLong() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setContent(LONGER_THAN_4096_SYMBOLS_CONTENT);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setContent(LONGER_THAN_4096_SYMBOLS_CONTENT);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateCommentDtoInput(commentDtoInput);
+            commentValidator.validateCommentDtoInput(requestCommentDto);
         });
 
         assertEquals("Comment content is too long", exception.getMessage());
@@ -81,12 +81,12 @@ class CommentValidatorTest {
 
     @Test
     public void validateComment_shouldThrowException_whenAuthorIdIsNull() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setContent(VALID_CONTENT);
-        commentDtoInput.setAuthorId(null);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setContent(VALID_CONTENT);
+        requestCommentDto.setAuthorId(null);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateCommentDtoInput(commentDtoInput);
+            commentValidator.validateCommentDtoInput(requestCommentDto);
         });
 
         assertEquals("Comment must have an author", exception.getMessage());
@@ -94,13 +94,13 @@ class CommentValidatorTest {
 
     @Test
     public void validateComment_shouldThrowException_whenPostIdIsNull() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setAuthorId(VALID_AUTHOR_ID);
-        commentDtoInput.setContent(VALID_CONTENT);
-        commentDtoInput.setPostId(null);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setAuthorId(VALID_AUTHOR_ID);
+        requestCommentDto.setContent(VALID_CONTENT);
+        requestCommentDto.setPostId(null);
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateCommentDtoInput(commentDtoInput);
+            commentValidator.validateCommentDtoInput(requestCommentDto);
         });
 
         assertEquals("Comment must relate to a post", exception.getMessage());
@@ -108,7 +108,7 @@ class CommentValidatorTest {
 
     @Test
     void validateCommentUpdateDto_shouldThrowException_whenContentIsNull() {
-        CommentUpdateDto updatingDto = new CommentUpdateDto();
+        RequestCommentUpdateDto updatingDto = new RequestCommentUpdateDto();
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(null);
 
@@ -121,7 +121,7 @@ class CommentValidatorTest {
 
     @Test
     void validateCommentUpdateDto_shouldThrowException_whenContentIsEmpty() {
-        CommentUpdateDto updatingDto = new CommentUpdateDto();
+        RequestCommentUpdateDto updatingDto = new RequestCommentUpdateDto();
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(EMPTY_CONTENT);
 
@@ -134,7 +134,7 @@ class CommentValidatorTest {
 
     @Test
     void validateCommentUpdateDto_shouldThrowException_whenContentIsTooLong() {
-        CommentUpdateDto updatingDto = new CommentUpdateDto();
+        RequestCommentUpdateDto updatingDto = new RequestCommentUpdateDto();
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(LONGER_THAN_4096_SYMBOLS_CONTENT);
 
@@ -147,7 +147,7 @@ class CommentValidatorTest {
 
     @Test
     void validateCommentUpdateDto_shouldPass_whenAllValidationsPass() {
-        CommentUpdateDto updatingDto = new CommentUpdateDto();
+        RequestCommentUpdateDto updatingDto = new RequestCommentUpdateDto();
         updatingDto.setCommentId(VALID_COMMENT_ID);
         updatingDto.setContent(VALID_CONTENT);
 
@@ -168,13 +168,13 @@ class CommentValidatorTest {
 
     @Test
     public void validatePostExists_shouldThrowException_whenPostDoesNotExist() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setPostId(2L);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setPostId(2L);
 
         when(postRepository.findById(2L)).thenReturn(java.util.Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            commentValidator.validatePostExists(commentDtoInput.getPostId());
+            commentValidator.validatePostExists(requestCommentDto.getPostId());
         });
 
         assertEquals("Post with id 2 does not exist", exception.getMessage());
@@ -182,24 +182,24 @@ class CommentValidatorTest {
 
     @Test
     public void validatePostExists_shouldPass_whenPostExists() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setPostId(VALID_POST_ID);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setPostId(VALID_POST_ID);
 
-        when(postRepository.findById(commentDtoInput.getPostId())).thenReturn(java.util.Optional.of(new Post()));
+        when(postRepository.findById(requestCommentDto.getPostId())).thenReturn(java.util.Optional.of(new Post()));
 
-        assertDoesNotThrow(() -> commentValidator.validatePostExists(commentDtoInput.getPostId()));
+        assertDoesNotThrow(() -> commentValidator.validatePostExists(requestCommentDto.getPostId()));
     }
 
     @Test
     public void validateAuthorExists_shouldThrowException_whenUserDoesNotExist() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setAuthorId(VALID_AUTHOR_ID);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setAuthorId(VALID_AUTHOR_ID);
 
         when(userServiceClient.getUser(VALID_AUTHOR_ID))
                 .thenThrow(new IllegalArgumentException("User with id 1 does not exist"));
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateAuthorExists(commentDtoInput);
+            commentValidator.validateAuthorExists(requestCommentDto);
         });
 
         assertEquals("User with id 1 does not exist", exception.getMessage());
@@ -207,11 +207,31 @@ class CommentValidatorTest {
 
     @Test
     public void validateAuthorExists_shouldPass_whenUserExists() {
-        CommentDtoInput commentDtoInput = new CommentDtoInput();
-        commentDtoInput.setAuthorId(VALID_AUTHOR_ID);
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setAuthorId(VALID_AUTHOR_ID);
 
         when(userServiceClient.getUser(1L)).thenReturn(VALID_USER_DTO);
 
-        assertDoesNotThrow(() -> commentValidator.validateAuthorExists(commentDtoInput));
+        assertDoesNotThrow(() -> commentValidator.validateAuthorExists(requestCommentDto));
+    }
+
+    @Test
+    public void validateCommentIdNotNullForCreatingNewComment_shouldThrowException_whenIdIsNotNull() {
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setId(VALID_COMMENT_ID);
+
+        DataValidationException exception = assertThrows(DataValidationException.class, () -> {
+            commentValidator.validateCommentIdIsNullForCreatingNewComment(requestCommentDto);
+        });
+
+        assertEquals("Comment id must be null to create a new comment", exception.getMessage());
+    }
+
+    @Test
+    public void validateCommentIdIsNullForCreatingNewComment_shouldPass_whenIdIsNull() {
+        RequestCommentDto requestCommentDto = new RequestCommentDto();
+        requestCommentDto.setId(null);
+
+        assertDoesNotThrow(() -> commentValidator.validateCommentIdIsNullForCreatingNewComment(requestCommentDto));
     }
 }

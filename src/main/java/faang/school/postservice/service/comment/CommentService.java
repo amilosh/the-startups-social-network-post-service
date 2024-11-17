@@ -1,12 +1,9 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.dto.comment.CommentDtoInput;
-import faang.school.postservice.dto.comment.CommentDtoOutput;
-import faang.school.postservice.dto.comment.CommentDtoOutputUponUpdate;
-import faang.school.postservice.dto.comment.CommentUpdateDto;
-import faang.school.postservice.mapper.comment.CommentInputMapper;
-import faang.school.postservice.mapper.comment.CommentOutputMapper;
-import faang.school.postservice.mapper.comment.CommentOutputUponUpdateMapper;
+import faang.school.postservice.dto.comment.RequestCommentDto;
+import faang.school.postservice.dto.comment.ResponseCommentDto;
+import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
+import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.validator.CommentValidator;
@@ -24,43 +21,40 @@ import java.util.List;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentValidator commentValidator;
-    private final CommentInputMapper commentInputMapper;
-    private final CommentOutputMapper commentOutputMapper;
-    private final CommentOutputUponUpdateMapper commentOutputUponUpdateMapper;
+    private final CommentMapper commentMapper;
 
-    public CommentDtoOutput createComment(CommentDtoInput commentDtoInput) {
-        commentValidator.validateAuthorExists(commentDtoInput);
-        commentValidator.validatePostExists(commentDtoInput.getPostId());
+    public ResponseCommentDto createComment(RequestCommentDto requestCommentDto) {
+        commentValidator.validateAuthorExists(requestCommentDto);
+        commentValidator.validatePostExists(requestCommentDto.getPostId());
 
-        commentDtoInput.setId(null);
-        Comment comment = commentInputMapper.toEntity(commentDtoInput);
+        Comment comment = commentMapper.toEntity(requestCommentDto);
         comment.setLikes(new ArrayList<>());
 
         commentRepository.save(comment);
         log.info("New comment with id: {} created", comment.getId());
-        return commentOutputMapper.toDto(comment);
+        return commentMapper.toDto(comment);
     }
 
-    public CommentDtoOutputUponUpdate updateComment(CommentUpdateDto commentUpdateDto) {
-        commentValidator.validateCommentExists(commentUpdateDto.getCommentId());
-        Comment commentToUpdate = commentRepository.getCommentById(commentUpdateDto.getCommentId());
+    public ResponseCommentDto updateComment(RequestCommentUpdateDto requestCommentUpdateDto) {
+        commentValidator.validateCommentExists(requestCommentUpdateDto.getCommentId());
+        Comment commentToUpdate = commentRepository.getCommentById(requestCommentUpdateDto.getCommentId());
 
-        String postContent = commentUpdateDto.getContent();
+        String postContent = requestCommentUpdateDto.getContent();
         commentToUpdate.setContent(postContent);
 
         commentRepository.save(commentToUpdate);
-        log.info("Comment with id: {} updated", commentUpdateDto.getCommentId());
-        return commentOutputUponUpdateMapper.toDto(commentToUpdate);
+        log.info("Comment with id: {} updated", requestCommentUpdateDto.getCommentId());
+        return commentMapper.toDto(commentToUpdate);
     }
 
-    public List<CommentDtoOutput> getCommentsByPostId(Long postId) {
+    public List<ResponseCommentDto> getCommentsByPostId(Long postId) {
         commentValidator.validatePostExists(postId);
 
         List<Comment> commentsByPostId = commentRepository.findAllByPostId(postId);
         commentsByPostId.sort(Comparator.comparing(Comment::getCreatedAt).reversed());
 
         log.info("Retrieved all the comments for the post with id: {}", postId);
-        return commentOutputMapper.toDto(commentsByPostId);
+        return commentMapper.toDto(commentsByPostId);
     }
 
     public void deleteComment(Long commentId) {

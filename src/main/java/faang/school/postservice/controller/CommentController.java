@@ -1,9 +1,8 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.dto.comment.CommentDtoInput;
-import faang.school.postservice.dto.comment.CommentDtoOutput;
-import faang.school.postservice.dto.comment.CommentDtoOutputUponUpdate;
-import faang.school.postservice.dto.comment.CommentUpdateDto;
+import faang.school.postservice.dto.comment.RequestCommentDto;
+import faang.school.postservice.dto.comment.ResponseCommentDto;
+import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.CommentValidator;
 import lombok.RequiredArgsConstructor;
@@ -21,29 +20,30 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/v1/comments")
 public class CommentController {
     private final CommentService commentService;
     private final CommentValidator commentValidator;
 
-    @PostMapping("/comments")
-    public CommentDtoOutput create(@RequestBody CommentDtoInput input) {
+    @PostMapping()
+    public ResponseCommentDto create(@RequestBody RequestCommentDto input) {
+        commentValidator.validateCommentIdIsNullForCreatingNewComment(input);
         commentValidator.validateCommentDtoInput(input);
         return commentService.createComment(input);
     }
 
-    @PutMapping("/comments")
-    public CommentDtoOutputUponUpdate update(@RequestBody CommentUpdateDto updatingInput) {
+    @PutMapping()
+    public ResponseCommentDto update(@RequestBody RequestCommentUpdateDto updatingInput) {
         commentValidator.validateCommentUpdateDto(updatingInput);
         return commentService.updateComment(updatingInput);
     }
 
-    @GetMapping("/comments")
-    public List<CommentDtoOutput> getCommentsByPostId(@RequestParam Long postId) {
+    @GetMapping()
+    public List<ResponseCommentDto> getCommentsByPostId(@RequestParam Long postId) {
         return commentService.getCommentsByPostId(postId);
     }
 
-    @DeleteMapping("/comments/{commentId}")
+    @DeleteMapping("/{commentId}")
     public void deleteComment(@PathVariable Long commentId) {
         commentService.deleteComment(commentId);
     }
