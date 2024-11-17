@@ -1,10 +1,12 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +39,9 @@ public class CommentServiceTest {
     @Mock
     private CommentValidator commentValidator;
 
+    @Mock
+    private PostService postService;
+
     @InjectMocks
     private CommentService commentService;
 
@@ -47,7 +52,7 @@ public class CommentServiceTest {
         commentDto.setContent("Test");
         commentDto.setPostId(1L);
 
-        doNothing().when(commentValidator).isPostExist(commentDto.getPostId());
+       when(postService.getPostById(commentDto.getPostId())).thenReturn(new PostDto());
 
         Comment savedComment = new Comment();
         savedComment.setAuthorId(commentDto.getAuthorId());
@@ -95,7 +100,7 @@ public class CommentServiceTest {
     public void getAllComments() {
         Long postId = 1L;
 
-        doNothing().when(commentValidator).isPostExist(postId);
+        when(postService.getPostById(postId)).thenReturn(new PostDto());
 
         Comment comment1 = new Comment();
         comment1.setCreatedAt(LocalDateTime.of(2024, 11, 11, 12, 0));
