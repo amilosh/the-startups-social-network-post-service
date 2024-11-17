@@ -2,7 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    id("se.patrikerdes.use-latest-versions") version "0.2.18"
+    id("org.owasp.dependencycheck") version "8.4.0"
 }
 
 group = "faang.school"
