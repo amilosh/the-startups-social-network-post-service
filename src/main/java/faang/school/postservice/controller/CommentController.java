@@ -1,6 +1,7 @@
 package faang.school.postservice.controller;
 
 import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -13,13 +14,23 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/post/comment/create")
-    public CommentDto createComment(@RequestBody @Valid CommentDto comment) {
+    @PostMapping("/post/{postId}/comment")
+    public CommentDto createComment(@PathVariable long postId, @RequestBody @Valid CommentDto comment) {
+        if (comment.getId() != null) {
+            throw new DataValidationException("The comment must not contain an ID for creation");
+        }
+        if (postId != comment.getPostId()) {
+            throw new DataValidationException("Path postId and body postId are different");
+        }
+
         return commentService.createComment(comment);
     }
 
-    @PutMapping("/comment/update")
-    public CommentDto updateComment(@RequestBody @Valid CommentDto comment) {
+    @PutMapping("/comment/{commentId}")
+    public CommentDto updateComment(@PathVariable long commentId,@RequestBody @Valid CommentDto comment) {
+        if (commentId != comment.getId()) {
+            throw new DataValidationException("Path commentId and body commentId are different");
+        }
         return commentService.updateComment(comment);
     }
 

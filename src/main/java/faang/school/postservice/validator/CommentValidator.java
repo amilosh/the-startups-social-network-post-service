@@ -20,9 +20,6 @@ public class CommentValidator {
         if (comment.getAuthorId() == null) {
             throw new DataValidationException("Comment author is empty");
         }
-        if (comment.getPostId() == null) {
-            throw new DataValidationException("Comment post is empty");
-        }
 
         try {
             userServiceClient.getUser(comment.getAuthorId());
