@@ -5,12 +5,18 @@ import faang.school.postservice.dto.AlbumDto;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class UserValidator {
     private UserServiceClient userServiceClient;
+
+    @Autowired
+    public UserValidator(UserServiceClient userServiceClient) {
+        this.userServiceClient = userServiceClient;
+    }
 
     public void checkUserExistence(AlbumDto albumDto) {
         try {
