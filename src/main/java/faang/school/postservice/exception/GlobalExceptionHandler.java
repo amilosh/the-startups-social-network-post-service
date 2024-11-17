@@ -65,4 +65,10 @@ public class GlobalExceptionHandler {
         log.error("Unauthorized access exception: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @ExceptionHandler(NotUniqueAlbumException.class)
+    public ResponseEntity<String> handleNotUniqueAlbumException(NotUniqueAlbumException ex) {
+        log.error("NotUniqueAlbumException access exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 }

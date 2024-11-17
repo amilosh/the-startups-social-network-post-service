@@ -1,4 +1,4 @@
-package faang.school.postservice.exceptions;
+package faang.school.postservice.exception;
 
 public class NotUniqueAlbumException extends RuntimeException {
     public NotUniqueAlbumException(String message) {

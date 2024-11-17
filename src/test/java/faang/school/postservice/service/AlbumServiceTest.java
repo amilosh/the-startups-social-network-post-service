@@ -5,7 +5,7 @@ import faang.school.postservice.dto.AlbumFilterDto;
 import faang.school.postservice.dto.AlbumUpdateDto;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.dto.user.UserDto;
-import faang.school.postservice.exceptions.NotUniqueAlbumException;
+import faang.school.postservice.exception.NotUniqueAlbumException;
 import faang.school.postservice.filter.Filter;
 import faang.school.postservice.filter.albumfilter.AlbumDateFilter;
 import faang.school.postservice.mapper.AlbumMapper;
