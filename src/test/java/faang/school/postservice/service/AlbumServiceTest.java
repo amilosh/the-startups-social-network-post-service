@@ -191,7 +191,7 @@ public class AlbumServiceTest {
         when(albumRepository.save(album)).thenReturn(album);
         when(albumMapper.toDto(album)).thenReturn(albumDto);
 
-        AlbumDto result = albumService.addPostToAlboom(userDto.getId(), albumDto.getId(), postId);
+        AlbumDto result = albumService.addPostToAlbum(userDto.getId(), albumDto.getId(), postId);
 
         assertEquals(result, albumDto);
         verify(postValidator, times(1)).validatePostExistsById(postId);
@@ -205,7 +205,7 @@ public class AlbumServiceTest {
                 .when(postValidator).validatePostExistsById(postId);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-                albumService.addPostToAlboom(1L, 1L, postId));
+                albumService.addPostToAlbum(1L, 1L, postId));
 
         assertEquals("Post does not exist", exception.getMessage());
         verify(postValidator).validatePostExistsById(postId);
@@ -219,7 +219,7 @@ public class AlbumServiceTest {
         when(albumRepository.findByAuthorId(1L)).thenReturn(Stream.of());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-                albumService.addPostToAlboom(1L, 1L, postId));
+                albumService.addPostToAlbum(1L, 1L, postId));
 
         assertEquals("Album not found or doesn't belong to the user ", exception.getMessage());
         verify(postValidator).validatePostExistsById(postId);
@@ -230,7 +230,6 @@ public class AlbumServiceTest {
     void testRemovePostToAlboomSucсesfully() {
         doNothing().when(postValidator).validatePostExistsById(postId);
         when(albumRepository.findByAuthorId(1L)).thenReturn(Stream.of(album));
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(albumRepository.save(album)).thenReturn(album);
         when(albumMapper.toDto(album)).thenReturn(albumDto);
 

@@ -56,7 +56,7 @@ public class AlbumValidatorTest {
         when(albumRepository.existsByTitleAndAuthorId(albumDto.getTitle(), albumDto.getAuthorId()))
                 .thenReturn(true);
 
-        NotUniqueAlbumException exception = assertThrows(NotUniqueAlbumException.class, () -> {
+       assertThrows(NotUniqueAlbumException.class, () -> {
             albumValidator.albumExistsByTitleAndAuthorId(albumDto);
         });
         verify(albumRepository, times(1)).existsByTitleAndAuthorId(albumDto.getTitle(), albumDto.getAuthorId());

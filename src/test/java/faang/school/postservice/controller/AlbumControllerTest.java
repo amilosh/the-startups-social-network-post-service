@@ -96,7 +96,7 @@ public class AlbumControllerTest {
     @Test
     @DisplayName("Add Post To Alboom success")
     void testAddPostToAlbumSuccess() throws Exception {
-        when(albumService.addPostToAlboom(currentUserId, albumId, postId)).thenReturn(albumDto);
+        when(albumService.addPostToAlbum(currentUserId, albumId, postId)).thenReturn(albumDto);
 
         mockMvc.perform(post("/albums/{albumId}", albumId)
                         .param("currentUserId", String.valueOf(currentUserId))
@@ -105,13 +105,13 @@ public class AlbumControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(albumDto.getId()));
 
-        verify(albumService, times(1)).addPostToAlboom(currentUserId, albumId, postId);
+        verify(albumService, times(1)).addPostToAlbum(currentUserId, albumId, postId);
     }
 
     @Test
     @DisplayName("Add Post To Alboom fail")
     void testAddPostToAlbumFail() throws Exception {
-        when(albumService.addPostToAlboom(currentUserId, albumId, postId))
+        when(albumService.addPostToAlbum(currentUserId, albumId, postId))
                 .thenThrow(new EntityNotFoundException("Album not found"));
 
         assertThrows(EntityNotFoundException.class, () -> albumController.addPostToAlbum(currentUserId, albumId, postId));

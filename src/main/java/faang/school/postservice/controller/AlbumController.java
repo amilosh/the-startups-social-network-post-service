@@ -49,7 +49,7 @@ public class AlbumController {
             long postId) {
         log.info("Adding post to album. UserId: {}, AlbumId: {}", currentUserId, albumId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(albumService.addPostToAlboom(currentUserId, albumId, postId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(albumService.addPostToAlbum(currentUserId, albumId, postId));
     }
 
     @DeleteMapping("/{albumId}/posts/{postId}")

@@ -14,10 +14,13 @@ import faang.school.postservice.validator.AlbumValidator;
 import faang.school.postservice.validator.PostValidator;
 import faang.school.postservice.validator.UserValidator;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,6 +39,7 @@ public class AlbumService {
     private final AlbumMapper albumMapper;
     private final PostMapper postMapper;
     private final PostRepository postRepository;
+    @Autowired
     private List<Filter<Album, AlbumFilterDto>> filters;
 
 
@@ -48,7 +52,8 @@ public class AlbumService {
         return albumMapper.toDto(saveAlbum);
     }
 
-    public AlbumDto addPostToAlboom(long userId, long albumId, long postId) {
+    @Transactional
+    public AlbumDto addPostToAlbum(long userId, long albumId, long postId) {
         postValidator.validatePostExistsById(postId);
         Post post = postRepository.findById(postId).get();
         Album album = findAlbumForUser(userId, albumId);
@@ -58,14 +63,13 @@ public class AlbumService {
         return albumMapper.toDto(album);
     }
 
+    @Transactional
     public AlbumDto removePost(long userId, long albumId, long postId) {
         postValidator.validatePostExistsById(postId);
-        Post post = postRepository.findById(postId).get();
         Album album = findAlbumForUser(userId, albumId);
         album.removePost(postId);
-        albumRepository.save(album);
 
-        return albumMapper.toDto(album);
+        return albumMapper.toDto((albumRepository.save(album)));
     }
 
     public AlbumDto addAlbumToFavorites(long userId, long albumId) {
@@ -82,7 +86,7 @@ public class AlbumService {
     public AlbumDto findByAlbumId(long albumId) {
         return albumRepository.findById(albumId)
                 .map(albumMapper::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Album whith id " + albumId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Album with id %d not found", albumId)));
     }
 
     public List<AlbumDto> getAlbumsForUserByFilter(long authorId, AlbumFilterDto albumFilterDto) {
