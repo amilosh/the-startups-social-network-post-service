@@ -1,30 +1,26 @@
 package faang.school.postservice.dto.post;
 
-import faang.school.postservice.model.Album;
-import faang.school.postservice.model.Comment;
-import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Resource;
-import faang.school.postservice.model.ad.Ad;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record PostDto(
         Long id,
         @NotBlank(message = "Content cannot be empty")
+        @Size(max = 4096, message = "The content must not exceed 4096 characters")
         String content,
         Long authorId,
         Long projectId,
-        List<Like> likes,
-        List<Comment> comments,
-        List<Album> albums,
-        Ad ad,
-        List<Resource> resources,
         LocalDateTime publishedAt,
         LocalDateTime scheduledAt,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Boolean published,
+        Boolean deleted
 ) {
-
 }
