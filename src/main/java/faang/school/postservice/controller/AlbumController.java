@@ -50,7 +50,7 @@ public class AlbumController {
     public ResponseEntity<AlbumDto> createAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request", required = true) long userId,
+            @Parameter(description = "ID of user who sent the request", required = true) long requesterUserId,
             @RequestBody @Valid AlbumCreateUpdateDto createDto
     ) {
         AlbumDto responseDto = albumService.createAlbum(createDto);
@@ -66,7 +66,7 @@ public class AlbumController {
     public ResponseEntity<AlbumDto> addPostToAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId,
             @PathVariable @Min(value = 1, message = "Post ID must be greater than 0!") long postId
     ) {
@@ -79,7 +79,7 @@ public class AlbumController {
     public ResponseEntity<Void> deletePostFromAlbum(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId,
             @PathVariable @Min(value = 1, message = "Post ID must be greater than 0!") long postId
     ) {
@@ -92,7 +92,7 @@ public class AlbumController {
     public ResponseEntity<Void> addAlbumToFavorites(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId
     ) {
         albumService.addAlbumToFavorites(albumId);
@@ -104,7 +104,7 @@ public class AlbumController {
     public ResponseEntity<Void> deleteAlbumFromFavorites(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId
     ) {
         albumService.deleteAlbumFromFavorites(albumId);
@@ -116,7 +116,7 @@ public class AlbumController {
     public ResponseEntity<AlbumDto> getAlbumById(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @PathVariable @Min(value = 1, message = "Album ID must be greater than 0!") long albumId
     ) {
         AlbumDto responseDto = albumService.getAlbumById(albumId);
@@ -128,7 +128,7 @@ public class AlbumController {
     public ResponseEntity<List<AlbumDto>> getAllAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @RequestBody AlbumFilterDto filterDto
     ) {
         List<AlbumDto> filteredAlbums = albumService.getAllAlbums(filterDto);
@@ -136,32 +136,37 @@ public class AlbumController {
     }
 
     @Operation(summary = "Filter user's albums", description = "Filters user's albums based on criteria.")
-    @PostMapping("/user/filter")
+    @PostMapping("/users/{albumAuthorUserId}/filter")
     public ResponseEntity<List<AlbumDto>> getUserAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
+            @PathVariable @Min(value = 1, message = "User ID must be greater than 0!") long albumAuthorUserId,
             @RequestBody AlbumFilterDto filterDto
     ) {
-        List<AlbumDto> filteredAlbums = albumService.getUserAlbums(filterDto);
+        List<AlbumDto> filteredAlbums = albumService.getUserAlbums(albumAuthorUserId, filterDto);
         return ResponseEntity.ok(filteredAlbums);
     }
 
     @Operation(summary = "Filter user's favorite albums", description = "Filters user's favorite albums based on criteria.")
-    @PostMapping("/user/favorite/filter")
+    @PostMapping("/users/{albumAuthorUserId}/favorite/filter")
     public ResponseEntity<List<AlbumDto>> getUserFavoriteAlbums(
             @RequestHeader("x-user-id")
             @Min(value = 1, message = "User ID must be greater than 0!")
-            @Parameter(description = "ID of user who sent the request") long userId,
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
+            @PathVariable @Min(value = 1, message = "User ID must be greater than 0!") long albumAuthorUserId,
             @RequestBody AlbumFilterDto filterDto
     ) {
-        List<AlbumDto> filteredAlbums = albumService.getUserFavoriteAlbums(filterDto);
+        List<AlbumDto> filteredAlbums = albumService.getUserFavoriteAlbums(albumAuthorUserId, filterDto);
         return ResponseEntity.ok(filteredAlbums);
     }
 
     @Operation(summary = "Update an album", description = "Updates an album's details")
     @PatchMapping("/{albumId}")
     public ResponseEntity<AlbumDto> updateAlbum(
+            @RequestHeader("x-user-id")
+            @Min(value = 1, message = "User ID must be greater than 0!")
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
             @RequestBody @Valid AlbumCreateUpdateDto updateDto,
             @PathVariable @Min(1) long albumId
     ) {
@@ -171,7 +176,12 @@ public class AlbumController {
 
     @Operation(summary = "Delete an album", description = "Deletes an album")
     @DeleteMapping("/{albumId}")
-    public ResponseEntity<Void> deleteAlbum(@PathVariable @Min(1) long albumId) {
+    public ResponseEntity<Void> deleteAlbum(
+            @RequestHeader("x-user-id")
+            @Min(value = 1, message = "User ID must be greater than 0!")
+            @Parameter(description = "ID of user who sent the request") long requesterUserId,
+            @PathVariable @Min(1) long albumId
+    ) {
         albumService.deleteAlbum(albumId);
         return ResponseEntity.noContent().build();
     }

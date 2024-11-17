@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -299,16 +299,43 @@ class AlbumServiceTest {
 
     @Test
     void getAllAlbums() {
-        filterAlbums(
-                albumService::getAllAlbums,
-                (repository, albums) -> when(repository.findAll()).thenReturn(albums::iterator)
+        String titlePattern = "Holiday";
+        String descriptionPattern = "Vacation";
+        LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
+        LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
+        Stream<Album> albums = Stream.of(
+                createAlbum("Summer Holidays", "Amazing summer vacation photos!", LocalDate.of(2024, 9, 9)), // этот подойдет
+                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", LocalDate.of(2024, 7, 20)),
+                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", LocalDate.of(2023, 12, 5)),
+                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", LocalDate.of(2024, 2, 15)),
+                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", LocalDate.of(2024, 12, 25)),
+                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", LocalDate.of(2024, 5, 14)),
+                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", LocalDate.of(2024, 6, 18)),
+                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", LocalDate.of(2024, 6, 25)),
+                createAlbum("Summer Holidays", "More summer vacation pictures!", LocalDate.of(2024, 8, 30)),// и этот подойдет
+                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", LocalDate.of(2024, 8, 20))
         );
+        AlbumFilterDto filterDto = AlbumFilterDto.builder()
+                .titlePattern(titlePattern)
+                .descriptionPattern(descriptionPattern)
+                .createdBefore(createdBefore)
+                .createdAfter(createdAfter)
+                .build();
+        when(albumRepository.findAll()).thenReturn(albums::iterator);
+
+        List<AlbumDto> filteredAlbums = assertDoesNotThrow(() -> albumService.getAllAlbums(filterDto));
+
+        assertEquals(2, filteredAlbums.size());
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getTitle().toLowerCase().contains(titlePattern.toLowerCase())));
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getDescription().toLowerCase().contains(descriptionPattern.toLowerCase())));
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getCreatedAt().isAfter(createdAfter)));
+        assertTrue(filteredAlbums.stream().allMatch(album -> album.getCreatedAt().isBefore(createdBefore)));
         verify(albumRepository, times(1)).findAll();
     }
 
     @Test
     void getUserAlbums() {
-        filterAlbums(
+        filterUserAlbums(
                 albumService::getUserAlbums,
                 (repository, albums) -> when(repository.findByAuthorId(anyLong())).thenReturn(albums)
         );
@@ -317,7 +344,7 @@ class AlbumServiceTest {
 
     @Test
     void getUserFavoriteAlbums() {
-        filterAlbums(
+        filterUserAlbums(
                 albumService::getUserFavoriteAlbums,
                 (repository, albums) -> when(repository.findFavoriteAlbumsByUserId(anyLong())).thenReturn(albums)
         );
@@ -375,8 +402,9 @@ class AlbumServiceTest {
         verify(userContext, times(1)).getUserId();
     }
 
-    private void filterAlbums(Function<AlbumFilterDto, List<AlbumDto>> method,
+    private void filterUserAlbums(BiFunction<Long, AlbumFilterDto, List<AlbumDto>> method,
                               BiConsumer<AlbumRepository, Stream<Album>> repositoryWhenAction) {
+        long albumAuthorUserId = 1L;
         String titlePattern = "Holiday";
         String descriptionPattern = "Vacation";
         LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
@@ -401,7 +429,7 @@ class AlbumServiceTest {
                 .build();
         repositoryWhenAction.accept(albumRepository, albums);
 
-        List<AlbumDto> filteredAlbums = assertDoesNotThrow(() -> method.apply(filterDto));
+        List<AlbumDto> filteredAlbums = assertDoesNotThrow(() -> method.apply(albumAuthorUserId, filterDto));
 
         assertEquals(2, filteredAlbums.size());
         assertTrue(filteredAlbums.stream().allMatch(album -> album.getTitle().toLowerCase().contains(titlePattern.toLowerCase())));

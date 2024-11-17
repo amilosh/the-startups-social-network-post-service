@@ -44,71 +44,71 @@ public class AlbumService {
 
     @Transactional
     public AlbumDto createAlbum(AlbumCreateUpdateDto createDto) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is attempting to create a new album with title '{}'", userId, createDto.getTitle());
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is attempting to create a new album with title '{}'", requesterUserId, createDto.getTitle());
 
-        validateUserExistence(userId);
-        validateAlbumTitle(createDto.getTitle(), userId);
+        validateUserExistence(requesterUserId);
+        validateAlbumTitle(createDto.getTitle(), requesterUserId);
         Album albumToSave = albumMapper.toEntity(createDto);
-        albumToSave.setAuthorId(userId);
+        albumToSave.setAuthorId(requesterUserId);
         Album savedAlbum = albumRepository.save(albumToSave);
 
-        log.info("User with ID {} successfully created album with ID {} titled '{}'", userId, savedAlbum.getId(), createDto.getTitle());
+        log.info("User with ID {} successfully created album with ID {} titled '{}'", requesterUserId, savedAlbum.getId(), createDto.getTitle());
         return albumMapper.toDtoList(savedAlbum);
     }
 
     @Transactional
     public AlbumDto addPostToAlbum(long albumId, long postId) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is adding post with ID {} to album with ID {}", userId, postId, albumId);
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is adding post with ID {} to album with ID {}", requesterUserId, postId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId, "add post to album with ID %d".formatted(albumId));
+        validateAlbumAuthor(album, requesterUserId, "add post to album with ID %d".formatted(albumId));
         Post post = postService.getPost(postId);
         album.addPost(post);
         Album savedAlbum = albumRepository.save(album);
 
-        log.info("User with ID {} successfully added post with ID {} to album with ID {}", userId, postId, albumId);
+        log.info("User with ID {} successfully added post with ID {} to album with ID {}", requesterUserId, postId, albumId);
         return albumMapper.toDtoList(savedAlbum);
     }
 
     @Transactional
     public void deletePostFromAlbum(long albumId, long postId) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is attempting to remove post with ID {} from album with ID {}", userId, postId, albumId);
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is attempting to remove post with ID {} from album with ID {}", requesterUserId, postId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId, "delete post from album with ID %d".formatted(albumId));
+        validateAlbumAuthor(album, requesterUserId, "delete post from album with ID %d".formatted(albumId));
 
         if (album.getPosts().stream().anyMatch(post -> post.getId() == postId)) {
             album.removePost(postId);
             albumRepository.save(album);
-            log.info("User with ID {} successfully removed post with ID {} from album with ID {}", userId, postId, albumId);
+            log.info("User with ID {} successfully removed post with ID {} from album with ID {}", requesterUserId, postId, albumId);
         } else {
-            log.warn("User with ID {} attempted to remove non-existent post with ID {} from album with ID {}", userId, postId, albumId);
+            log.warn("User with ID {} attempted to remove non-existent post with ID {} from album with ID {}", requesterUserId, postId, albumId);
         }
     }
 
     @Transactional
     public void addAlbumToFavorites(long albumId) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is attempting to add album with ID: {} to favorites", userId, albumId);
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is attempting to add album with ID: {} to favorites", requesterUserId, albumId);
 
         getAlbum(albumId);
-        albumRepository.addAlbumToFavorites(albumId, userId);
+        albumRepository.addAlbumToFavorites(albumId, requesterUserId);
 
-        log.info("User with ID {} added album with ID {} to favorites", userId, albumId);
+        log.info("User with ID {} added album with ID {} to favorites", requesterUserId, albumId);
     }
 
     @Transactional
     public void deleteAlbumFromFavorites(long albumId) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is attempting to remove album with ID: {} to favorites", userId, albumId);
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is attempting to remove album with ID: {} to favorites", requesterUserId, albumId);
 
         getAlbum(albumId);
-        albumRepository.deleteAlbumFromFavorites(albumId, userId);
+        albumRepository.deleteAlbumFromFavorites(albumId, requesterUserId);
 
-        log.info("User with ID {} removed album with ID {} from favorites", userId, albumId);
+        log.info("User with ID {} removed album with ID {} from favorites", requesterUserId, albumId);
     }
 
     @Transactional
@@ -131,11 +131,11 @@ public class AlbumService {
     }
 
     @Transactional
-    public List<AlbumDto> getUserAlbums(AlbumFilterDto filterDto) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is fetching their albums with applied filters", userId);
+    public List<AlbumDto> getUserAlbums(long albumAuthorUserId, AlbumFilterDto filterDto) {
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is fetching albums of user with ID {} with applied filters", requesterUserId, albumAuthorUserId);
 
-        Stream<Album> albums = albumRepository.findByAuthorId(userId);
+        Stream<Album> albums = albumRepository.findByAuthorId(albumAuthorUserId);
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
         log.info("Found {} albums after applying filters for user's albums", filteredAlbums.size());
@@ -143,11 +143,11 @@ public class AlbumService {
     }
 
     @Transactional
-    public List<AlbumDto> getUserFavoriteAlbums(AlbumFilterDto filterDto) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is fetching their favorite albums with filters", userId);
+    public List<AlbumDto> getUserFavoriteAlbums(long albumAuthorUserId, AlbumFilterDto filterDto) {
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is fetching favorite albums of user with ID {} with filters", requesterUserId, albumAuthorUserId);
 
-        Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(userId);
+        Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(albumAuthorUserId);
         List<Album> filteredAlbums = filterAlbums(albums, filterDto);
 
         log.info("Found {} albums after applying filters for user's favorite albums", filteredAlbums.size());
@@ -156,29 +156,29 @@ public class AlbumService {
 
     @Transactional
     public AlbumDto updateAlbum(long albumId, AlbumCreateUpdateDto updateDto) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is attempting to update album with ID {}", userId, albumId);
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is attempting to update album with ID {}", requesterUserId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId, "update album with ID %d".formatted(albumId));
-        validateAlbumTitle(updateDto.getTitle(), userId);
+        validateAlbumAuthor(album, requesterUserId, "update album with ID %d".formatted(albumId));
+        validateAlbumTitle(updateDto.getTitle(), requesterUserId);
         albumMapper.update(updateDto, album);
         album = albumRepository.save(album);
 
-        log.info("User with ID {} successfully updated album with ID {}", userId, albumId);
+        log.info("User with ID {} successfully updated album with ID {}", requesterUserId, albumId);
         return albumMapper.toDtoList(album);
     }
 
     @Transactional
     public void deleteAlbum(long albumId) {
-        long userId = userContext.getUserId();
-        log.info("User with ID {} is attempting to delete album with ID {}", userId, albumId);
+        long requesterUserId = userContext.getUserId();
+        log.info("User with ID {} is attempting to delete album with ID {}", requesterUserId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId, "delete album with ID %d".formatted(albumId));
+        validateAlbumAuthor(album, requesterUserId, "delete album with ID %d".formatted(albumId));
         albumRepository.delete(album);
 
-        log.info("User with ID {} successfully deleted album with ID {}", userId, albumId);
+        log.info("User with ID {} successfully deleted album with ID {}", requesterUserId, albumId);
     }
 
     private void validateUserExistence(long userId) {
