@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - dev
+      - feature/pipeline-BSJ2-40892
 
 jobs:
   test:
