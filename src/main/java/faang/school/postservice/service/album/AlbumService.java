@@ -9,7 +9,7 @@ import faang.school.postservice.mapper.album.AlbumMapper;
 import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
-import faang.school.postservice.service.album.albumFilter.AlbumFilter;
+import faang.school.postservice.service.album.album_filter.AlbumFilter;
 import faang.school.postservice.validator.album.AlbumValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

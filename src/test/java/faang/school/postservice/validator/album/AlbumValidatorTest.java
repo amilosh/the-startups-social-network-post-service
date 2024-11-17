@@ -3,7 +3,6 @@ package faang.school.postservice.validator.album;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.album.AlbumRequestDto;
 import faang.school.postservice.dto.album.AlbumRequestUpdateDto;
-import faang.school.postservice.dto.album.AlbumResponseDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.Album;
@@ -20,9 +19,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +40,6 @@ public class AlbumValidatorTest {
 
     private AlbumRequestDto albumRequestDto;
     private AlbumRequestUpdateDto albumRequestUpdateDto;
-    private AlbumResponseDto albumResponseDto;
     private Album album;
     private Post post;
 
@@ -54,11 +54,6 @@ public class AlbumValidatorTest {
         album = Album.builder()
                 .id(10L)
                 .posts(new ArrayList<>())
-                .build();
-        albumResponseDto = AlbumResponseDto.builder()
-                .id(10L)
-                .authorId(0L)
-                .postsIds(new ArrayList<>())
                 .build();
         albumRequestUpdateDto = AlbumRequestUpdateDto.builder()
                 .id(10L)
@@ -183,8 +178,9 @@ public class AlbumValidatorTest {
     }
 
     @Test
-    public void testValidateFavoritesHasThisAlbum() {}
-
-
+    public void testValidateFavoritesHasThisAlbum() {
+        when(albumRepository.findFavoriteAlbumsByUserId(5L)).thenReturn(Stream.of(album));
+        assertTrue(() -> validator.validateFavoritesHasThisAlbum(10L, 5L));
+    }
 
 }

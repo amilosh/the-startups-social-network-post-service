@@ -1,4 +1,4 @@
-package faang.school.postservice.service.album.albumFilter;
+package faang.school.postservice.service.album.album_filter;
 
 import faang.school.postservice.dto.album.AlbumFilterDto;
 import faang.school.postservice.model.Album;
@@ -17,7 +17,7 @@ public class AlbumPostFilter implements AlbumFilter {
     @Override
     public List<Album> apply(Stream<Album> albums, AlbumFilterDto filters) {
         return albums.filter(album -> album.getPosts()
-                        .stream().map(Post::getAd)
+                        .stream().map(Post::getId)
                         .anyMatch(id -> filters.getPosts().contains(id)))
                 .toList();
     }

@@ -1,4 +1,4 @@
-package faang.school.postservice.service.album.albumFilter;
+package faang.school.postservice.service.album.album_filter;
 
 import faang.school.postservice.dto.album.AlbumFilterDto;
 import faang.school.postservice.model.Album;
