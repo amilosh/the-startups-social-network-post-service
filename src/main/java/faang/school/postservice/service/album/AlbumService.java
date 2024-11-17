@@ -63,7 +63,7 @@ public class AlbumService {
         log.info("User with ID {} is adding post with ID {} to album with ID {}", userId, postId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId);
+        validateAlbumAuthor(album, userId, "add post to album with ID %d".formatted(albumId));
         Post post = postService.getPost(postId);
         album.addPost(post);
         Album savedAlbum = albumRepository.save(album);
@@ -78,7 +78,7 @@ public class AlbumService {
         log.info("User with ID {} is attempting to remove post with ID {} from album with ID {}", userId, postId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId);
+        validateAlbumAuthor(album, userId, "delete post from album with ID %d".formatted(albumId));
 
         if (album.getPosts().stream().anyMatch(post -> post.getId() == postId)) {
             album.removePost(postId);
@@ -94,8 +94,7 @@ public class AlbumService {
         long userId = userContext.getUserId();
         log.info("User with ID {} is attempting to add album with ID: {} to favorites", userId, albumId);
 
-        Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId);
+        getAlbum(albumId);
         albumRepository.addAlbumToFavorites(albumId, userId);
 
         log.info("User with ID {} added album with ID {} to favorites", userId, albumId);
@@ -106,8 +105,7 @@ public class AlbumService {
         long userId = userContext.getUserId();
         log.info("User with ID {} is attempting to remove album with ID: {} to favorites", userId, albumId);
 
-        Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId);
+        getAlbum(albumId);
         albumRepository.deleteAlbumFromFavorites(albumId, userId);
 
         log.info("User with ID {} removed album with ID {} from favorites", userId, albumId);
@@ -162,7 +160,7 @@ public class AlbumService {
         log.info("User with ID {} is attempting to update album with ID {}", userId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId);
+        validateAlbumAuthor(album, userId, "update album with ID %d".formatted(albumId));
         validateAlbumTitle(updateDto.getTitle(), userId);
         albumMapper.update(updateDto, album);
         album = albumRepository.save(album);
@@ -177,7 +175,7 @@ public class AlbumService {
         log.info("User with ID {} is attempting to delete album with ID {}", userId, albumId);
 
         Album album = getAlbum(albumId);
-        validateAlbumAuthor(album, userId);
+        validateAlbumAuthor(album, userId, "delete album with ID %d".formatted(albumId));
         albumRepository.delete(album);
 
         log.info("User with ID {} successfully deleted album with ID {}", userId, albumId);
@@ -200,9 +198,9 @@ public class AlbumService {
         }
     }
 
-    private void validateAlbumAuthor(Album album, long userId) {
+    private void validateAlbumAuthor(Album album, long userId, String forbiddenMessage) {
         if (album.getAuthorId() != userId) {
-            throw new ForbiddenException(userId, "add post to album with ID %d".formatted(album.getId()));
+            throw new ForbiddenException(userId, forbiddenMessage);
         }
     }
 
