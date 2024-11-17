@@ -7,11 +7,13 @@ import faang.school.postservice.dto.like.LikePostDto;
 import faang.school.postservice.service.LikeService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,6 +25,7 @@ public class LikeController {
     private final UserContext userContext;
 
     @PostMapping("/post/{postId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public LikePostDto likePost(@PathVariable @Positive long postId) {
         long userId = userContext.getUserId();
         validateUserId(userId);
@@ -30,6 +33,7 @@ public class LikeController {
     }
 
     @PostMapping("/comment/{commentId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public LikeCommentDto likeComment(@PathVariable @Positive long commentId) {
         long userId = userContext.getUserId();
         validateUserId(userId);

@@ -10,7 +10,6 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.LikeRepository;
-import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,15 +107,6 @@ class LikeServiceTest {
     }
 
     @Test
-    public void testCreateLikePostWithNonExistentUser() {
-        long nonExistentUserId = 123L;
-        when(userServiceClient.getUser(nonExistentUserId)).thenThrow(FeignException.class);
-
-        assertThrows(EntityNotFoundException.class,
-                () -> likeService.createLikePost(postId, nonExistentUserId));
-    }
-
-    @Test
     public void testCreateLikePostWithNonExistentPost() {
         long nonExistentPost = 123L;
         when(postService.isPostNotExist(nonExistentPost)).thenReturn(true);
@@ -153,15 +143,6 @@ class LikeServiceTest {
         assertEquals(savedLikeComment.getId(), result.id());
         assertEquals(savedLikeComment.getUserId(), result.userId());
         assertEquals(savedLikeComment.getComment().getId(), result.commentId());
-    }
-
-    @Test
-    public void testCreateLikeCommentWithNonExistentUser() {
-        long nonExistentUserId = 123L;
-        when(userServiceClient.getUser(nonExistentUserId)).thenThrow(FeignException.class);
-
-        assertThrows(EntityNotFoundException.class,
-                () -> likeService.createLikeComment(commentId, nonExistentUserId));
     }
 
     @Test

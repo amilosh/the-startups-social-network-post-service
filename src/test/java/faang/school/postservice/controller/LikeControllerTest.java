@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -58,9 +59,8 @@ class LikeControllerTest {
         when(userContext.getUserId()).thenReturn(userId);
         when(likeService.createLikePost(postId, userId)).thenReturn(likePostDto);
 
-
         mockMvc.perform(post("/like/post/{postId}", postId))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(2)))
                 .andExpect(jsonPath("$.userId", is(1)))
                 .andExpect(jsonPath("$.postId", is(5)));
@@ -68,14 +68,14 @@ class LikeControllerTest {
         verify(likeService, times(1)).createLikePost(postId, userId);
     }
 
-//    @Test
-//    public void testLikePostWhenUserWithNegativeId() throws Exception{
-//        long nonExistentUser = -1;
-//        when(userContext.getUserId()).thenReturn(nonExistentUser);
-//
-//        mockMvc.perform(post("/like/post/{postId}", postId))
-//                .andExpect(status().isBadRequest());
-//    }
+    @Test
+    public void testLikePostWhenUserWithNegativeId() {
+        long nonExistentUser = -1;
+        when(userContext.getUserId()).thenReturn(nonExistentUser);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> likeController.likePost(postId));
+    }
 
     @Test
     public void testLikeComment() throws Exception {
@@ -87,8 +87,9 @@ class LikeControllerTest {
         when(userContext.getUserId()).thenReturn(userId);
         when(likeService.createLikeComment(commentId, userId)).thenReturn(likeCommentDto);
 
+
         mockMvc.perform(post("/like/comment/{commentId}", commentId))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(2)))
                 .andExpect(jsonPath("$.userId", is(1)))
                 .andExpect(jsonPath("$.commentId", is(6)));
@@ -96,6 +97,14 @@ class LikeControllerTest {
         verify(likeService, times(1)).createLikeComment(commentId, userId);
     }
 
+    @Test
+    public void testLikeCommentWhenUserWithNegativeId() {
+        long nonExistentUser = -1;
+        when(userContext.getUserId()).thenReturn(nonExistentUser);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> likeController.likeComment(commentId));
+    }
 
     @Test
     public void testDeleteLikeFromPost() throws Exception {
@@ -109,6 +118,15 @@ class LikeControllerTest {
     }
 
     @Test
+    public void testDeletePostWhenUserWithNegativeId() {
+        long nonExistentUser = -1;
+        when(userContext.getUserId()).thenReturn(nonExistentUser);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> likeController.deleteLikeFromPost(postId));
+    }
+
+    @Test
     public void testDeleteLikeFromComment() throws Exception {
         when(userContext.getUserId()).thenReturn(userId);
         doNothing().when(likeService).deleteLikeFromComment(commentId, userId);
@@ -117,5 +135,14 @@ class LikeControllerTest {
                 .andExpect(status().isOk());
 
         verify(likeService, times(1)).deleteLikeFromComment(commentId, userId);
+    }
+
+    @Test
+    public void testDeleteCommentWhenUserWithNegativeId() {
+        long nonExistentUser = -1;
+        when(userContext.getUserId()).thenReturn(nonExistentUser);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> likeController.deleteLikeFromComment(commentId));
     }
 }

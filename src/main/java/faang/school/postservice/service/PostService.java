@@ -14,12 +14,13 @@ public class PostService {
     private final PostRepository postRepository;
 
     public Post getPostById(long postId) {
-        log.debug("found post by id {}", postId);
+        log.debug("start searching post by id {}", postId);
         return postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post is not found"));
     }
 
     public boolean isPostNotExist(long postId){
+        log.debug("start searching for existence post with id {}", postId);
         return !postRepository.existsById(postId);
     }
 }
