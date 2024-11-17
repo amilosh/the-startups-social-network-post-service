@@ -22,3 +22,6 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
+
+      - name: Check for unused dependencies
+        run: ./gradlew buildHealth
