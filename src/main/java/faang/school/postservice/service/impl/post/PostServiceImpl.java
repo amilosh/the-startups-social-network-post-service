@@ -1,9 +1,12 @@
 package faang.school.postservice.service.impl.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.PostEvent;
+import faang.school.postservice.model.event.kafka.PostNFEvent;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
@@ -34,6 +37,8 @@ public class PostServiceImpl implements PostService {
     private final PostValidator postValidator;
     private final PostServiceAsync postServiceAsync;
     private final PostEventPublisher postEventPublisher;
+    private final KafkaPostProducer kafkaPostProducer;
+    private final UserServiceClient userServiceClient;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -54,9 +59,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto publishPost(PostDto postDto) {
         Post post = getPostFromRepository(postDto.id());
-
         postValidator.publishPostValidator(post);
-
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
 
@@ -66,7 +69,7 @@ public class PostServiceImpl implements PostService {
                 .authorId(publishedPost.getAuthorId())
                 .postId(publishedPost.getId())
                 .build();
-//        postEventPublisher.publish(event);
+        sendPostEventForNewsFeed(publishedPost);
         postEventPublisher.publish(event);
 
         return postMapper.toDto(post);
@@ -194,5 +197,14 @@ public class PostServiceImpl implements PostService {
     private Post getPostFromRepository(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
+    }
+
+    private void sendPostEventForNewsFeed(Post publishedPost) {
+        List<Long> followerIds = userServiceClient.getFollowerIds(publishedPost.getAuthorId());
+        PostNFEvent event = PostNFEvent.builder()
+                .postId(publishedPost.getId())
+                .followersId(followerIds)
+                .build();
+        kafkaPostProducer.publish(event);
     }
 }

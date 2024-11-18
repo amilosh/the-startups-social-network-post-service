@@ -1,8 +1,10 @@
 package faang.school.postservice.service.impl.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
@@ -58,6 +60,12 @@ public class PostServiceImplTest {
 
     @Mock
     private PostServiceAsyncImpl postServiceAsync;
+
+    @Mock
+    private KafkaPostProducer kafkaPostProducer;
+
+    @Mock
+    private UserServiceClient userServiceClient;
 
     private PostDto examplePostDto;
     private Post examplePost;
