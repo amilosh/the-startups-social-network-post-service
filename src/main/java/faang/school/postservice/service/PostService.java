@@ -13,6 +13,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -37,9 +38,11 @@ public class PostService {
     public PostDto publishPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
+        checkPostIsNotPublishedAndNotDeleted(post);
         post.setPublished(true);
+        post.setPublishedAt(LocalDateTime.now());
         postRepository.save(post);
-        return postMapper.toDto(postRepository.findById(postId).get());
+        return postMapper.toDto(post);
     }
 
     public PostDto updatePost(Long postId, PostDto postDto) {
@@ -47,12 +50,13 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
         post.setContent(postDto.content());
         postRepository.save(post);
-        return postMapper.toDto(postRepository.findById(postId).get());
+        return postMapper.toDto(post);
     }
 
     public Long deletePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
+        checkPostWasNotDeleted(post);
         post.setDeleted(true);
         postRepository.save(post);
         return post.getId();
@@ -65,6 +69,7 @@ public class PostService {
     }
 
     public List<PostDto> getDraftPostsForUser(Long idUser) {
+        checkUserExistById(idUser);
         return postRepository.findByAuthorId(idUser)
                 .stream()
                 .filter(post -> !post.isPublished() && !post.isDeleted())
@@ -74,6 +79,7 @@ public class PostService {
     }
 
     public List<PostDto> getDraftPostsForProject(Long idProject) {
+        checkProjectExistById(idProject);
         return postRepository.findByProjectId(idProject)
                 .stream()
                 .filter(post -> !post.isPublished() && !post.isDeleted())
@@ -83,6 +89,7 @@ public class PostService {
     }
 
     public List<PostDto> getPublishedPostsForUser(Long idUser) {
+        checkUserExistById(idUser);
         return postRepository.findByAuthorId(idUser)
                 .stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
@@ -92,6 +99,7 @@ public class PostService {
     }
 
     public List<PostDto> getPublishedPostForProject(Long idProject) {
+        checkProjectExistById(idProject);
         return postRepository.findByProjectId(idProject)
                 .stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
@@ -107,6 +115,16 @@ public class PostService {
         }
     }
 
+    private void checkPostIsNotPublishedAndNotDeleted(Post post) {
+        if (post.isPublished()) {
+            log.error("Post already published, id:" + post.getId());
+            throw new IllegalArgumentException("Post already published, id: " + post.getId());
+        }
+        if (post.isDeleted()) {
+            log.error("Post was deleted, id:" + post.getId());
+            throw new IllegalArgumentException("Post was deleted, id: " + post.getId());
+        }
+    }
 
     private void checkAuthorIdExist(Long idUser, Long idProject) {
         checkIdUserAndIdProjectNotEquals(idUser, idProject);
@@ -115,8 +133,8 @@ public class PostService {
             if (idUser != null) {
                 userServiceClient.getUser(idUser);
             } else if (idProject != null) {
-                projectServiceClient.getProject(idProject);
                 temp = "Project id: ";
+                projectServiceClient.getProject(idProject);
             }
         } catch (FeignException e) {
             switch (e.status()) {
@@ -130,6 +148,31 @@ public class PostService {
                     log.error(temp + idUser + "Error" + e.getMessage());
                     throw new IllegalArgumentException(temp + idUser + "Error" + e.getMessage());
             }
+        }
+    }
+
+    private void checkUserExistById(Long idUser) {
+        try {
+            userServiceClient.getUser(idUser);
+        } catch (FeignException e) {
+            log.error("User id:" + idUser + "Error" + e.getMessage());
+            throw new IllegalArgumentException("User id:" + idUser + "Error" + e.getMessage());
+        }
+    }
+
+    private void checkProjectExistById(Long idProject) {
+        try {
+            projectServiceClient.getProject(idProject);
+        } catch (FeignException e) {
+            log.error("Project id:" + idProject + "Error" + e.getMessage());
+            throw new IllegalArgumentException("Project id:" + idProject + "Error" + e.getMessage());
+        }
+    }
+
+    private void checkPostWasNotDeleted(Post post) {
+        if (post.isDeleted()) {
+            log.error("Post with id: " + post.getId() + " was deleted");
+            throw new IllegalArgumentException("Post with id: " + post.getId() + " was deleted");
         }
     }
 }
