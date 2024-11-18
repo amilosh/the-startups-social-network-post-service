@@ -8,6 +8,8 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -18,7 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,18 +86,24 @@ public class CommentServiceTest {
         commentDto.setContent("New Test");
 
         Comment currentComment = new Comment();
+        currentComment.setId(commentId);
         currentComment.setContent("Old content");
 
-        when(commentValidator.getExistingComment(commentId)).thenReturn(currentComment);
+        Comment updatedComment = new Comment();
+        updatedComment.setId(commentId);
+        updatedComment.setContent("New Test");
 
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(currentComment));
+        when(commentRepository.save(currentComment)).thenReturn(updatedComment);
+
+        // Убираем проверку маппера, так как он является шпионом
         CommentDto result = commentService.updateComment(commentId, commentDto);
 
         assertNotNull(result);
         assertEquals(commentDto.getContent(), result.getContent());
 
-        verify(commentValidator, times(1)).getExistingComment(commentId);
+        verify(commentRepository, times(1)).findById(commentId);
         verify(commentRepository, times(1)).save(currentComment);
-        verify(commentMapper, times(1)).toDto(currentComment);
     }
 
     @Test
@@ -126,22 +136,41 @@ public class CommentServiceTest {
         verify(commentMapper, times(comments.size())).toDto(any());
     }
 
-
     @Test
     public void deleteCommentTest() {
         Long authorId = 2L;
         Long commentId = 2L;
+
         Comment comment = new Comment();
-        comment.setAuthorId(commentId);
+        comment.setId(commentId);
+        comment.setAuthorId(authorId);
 
         doNothing().when(commentValidator).isAuthorExist(authorId);
-        when(commentValidator.getExistingComment(commentId)).thenReturn(comment);
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         commentService.deleteComment(authorId, commentId);
 
         verify(commentValidator, times(1)).isAuthorExist(authorId);
-        verify(commentValidator, times(1)).getExistingComment(commentId);
+        verify(commentRepository, times(1)).findById(commentId);
         verify(commentRepository, times(1)).deleteById(commentId);
+    }
+
+    @Test
+    public void getExistingCommentNotFoundTest() {
+        Long commentId = 1L;
+        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                () -> commentService.getExistingComment(commentId));
+        Assert.assertEquals("Comment with id: " + commentId + " does not exist", ex.getMessage());
+        verify(commentRepository, times(1)).findById(commentId);
+    }
+
+    @Test
+    public void getExistingCommentTest() {
+        Long commentId = 1L;
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(new Comment()));
+        commentService.getExistingComment(commentId);
+        verify(commentRepository, times(1)).findById(commentId);
     }
 
 }

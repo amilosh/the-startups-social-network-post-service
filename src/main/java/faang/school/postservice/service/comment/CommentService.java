@@ -6,6 +6,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class CommentService {
     }
 
     public CommentDto updateComment(Long commentId, CommentDto commentDto) {
-        Comment currentComment = commentValidator.getExistingComment(commentId);
+        Comment currentComment = getExistingComment(commentId);
         currentComment.setUpdatedAt(LocalDateTime.now());
         currentComment.setContent(commentDto.getContent());
         commentRepository.save(currentComment);
@@ -49,9 +50,17 @@ public class CommentService {
 
     public void deleteComment(Long authorId, Long commentId) {
         commentValidator.isAuthorExist(authorId);
-        if (commentValidator.getExistingComment(commentId).getAuthorId() == commentId) {
+        if (getExistingComment(commentId).getAuthorId() == commentId) {
             commentRepository.deleteById(commentId);
         }
+    }
+
+    public Comment getExistingComment(Long commentId) {
+        log.info("Searching for comment with ID: {}", commentId);
+        return commentRepository.findById(commentId).orElseThrow(() -> {
+            log.error("Comment with ID: {} not found", commentId);
+            return new EntityNotFoundException("Comment with id: " + commentId + " does not exist");
+        });
     }
 
 }
