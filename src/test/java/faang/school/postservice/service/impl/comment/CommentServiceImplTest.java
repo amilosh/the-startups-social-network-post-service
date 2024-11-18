@@ -12,6 +12,7 @@ import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.impl.comment.async.CommentServiceAsyncImpl;
 import faang.school.postservice.validator.comment.CommentValidator;
@@ -41,24 +42,21 @@ class CommentServiceImplTest {
 
     @Mock
     private CommentRepository commentRepository;
-
     @Spy
     private CommentMapperImpl commentMapper;
-
     @Mock
     private CommentValidator commentValidator;
-
     @Mock
     private CommentServiceAsyncImpl commentServiceAsync;
-
     @Mock
     private RedisBanMessagePublisher redisBanMessagePublisher;
-
     @Mock
     private CommentEventPublisher commentEventPublisher;
-
     @Mock
     private UserServiceClient userServiceClient;
+    @Mock
+    private KafkaCommentProducer kafkaCommentProducer;
+
 
     @InjectMocks
     private CommentServiceImpl commentService;

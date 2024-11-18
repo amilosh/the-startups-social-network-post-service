@@ -7,8 +7,10 @@ import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.dto.comment.CommentRequestDto;
 import faang.school.postservice.model.dto.comment.CommentResponseDto;
+import faang.school.postservice.model.event.kafka.PostCommentEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.service.CommentServiceAsync;
@@ -36,6 +38,7 @@ public class CommentServiceImpl implements CommentService {
     private final RedisBanMessagePublisher redisBanMessagePublisher;
     private final CommentServiceAsync commentServiceAsync;
     private final CommentEventPublisher commentEventPublisher;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     @Value("${comments.batch-size}")
     private int batchSize;
@@ -59,6 +62,12 @@ public class CommentServiceImpl implements CommentService {
                 .commentId(savedComment.getId())
                 .build();
         commentEventPublisher.publish(event);
+        PostCommentEvent kafkaEvent = PostCommentEvent.builder()
+                .id(savedComment.getId())
+                .authorId(savedComment.getAuthorId())
+                .postId(savedComment.getPost().getId())
+                .build();
+        kafkaCommentProducer.publish(kafkaEvent);
         return commentMapper.toResponseDto(savedComment);
     }
 
