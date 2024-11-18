@@ -43,24 +43,18 @@ public class AlbumService {
         return mapper.toAlbumResponseDto(album);
     }
 
-    public AlbumResponseDto addPost(AlbumRequestDto albumRequestDto, long postId) {
-        validator.validateAlbumForPost(albumRequestDto);
+    public AlbumResponseDto addPost(long albumId, long postId) {
         Post post = validator.validatePost(postId);
-        long albumId = albumRequestDto.getId();
         Album album = validator.validateAlbumExists(albumId);
-        validator.validateAuthorHasThisAlbum(album, albumRequestDto.getAuthorId());
         album.addPost(post);
         log.info("The post {} has been added to the album {}", postId, albumId);
         albumRepository.save(album);
         return mapper.toAlbumResponseDto(album);
     }
 
-    public void deletePost(AlbumRequestDto albumRequestDto, long postId) {
-        validator.validateAlbumForPost(albumRequestDto);
+    public void deletePost(long albumId, long postId) {
         Post post = validator.validatePost(postId);
-        long albumId = albumRequestDto.getId();
         Album album = validator.validateAlbumExists(albumId);
-        validator.validateAuthorHasThisAlbum(album, albumRequestDto.getAuthorId());
         album.removePost(post.getId());
         log.info("The post {} has been deleted from the album {}", postId, albumId);
         albumRepository.save(album);
@@ -122,8 +116,7 @@ public class AlbumService {
         return mapper.toAlbumResponseDtoList(albums.toList());
     }
 
-    public AlbumResponseDto updateAlbum(AlbumRequestUpdateDto albumRequestUpdateDto) {
-        long authorId = albumRequestUpdateDto.getAuthorId();
+    public AlbumResponseDto updateAlbum(AlbumRequestUpdateDto albumRequestUpdateDto, long authorId) {
         String title = albumRequestUpdateDto.getTitle();
         validator.validateAuthor(authorId);
         validator.validateAlbumWithSameTitleExists(authorId, title);
@@ -138,9 +131,8 @@ public class AlbumService {
     }
 
     public void deleteAlbum(long albumId, long authorId) {
-        Album album = validator.validateAlbumExists(albumId);
+        validator.validateAlbumExists(albumId);
         validator.validateAuthor(authorId);
-        validator.validateAuthorHasThisAlbum(album, authorId);
         albumRepository.deleteAlbum(albumId, authorId);
         log.info("The album {} has been deleted", albumId);
     }

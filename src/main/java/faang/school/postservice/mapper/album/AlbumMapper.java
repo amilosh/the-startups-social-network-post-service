@@ -17,7 +17,6 @@ public interface AlbumMapper {
     Album toAlbum(AlbumRequestDto albumRequestDto);
 
     @Mapping(source = "postsIds", target = "posts", ignore = true)
-    @Mapping(source = "authorId", target = "authorId", ignore = true)
     Album toAlbum(AlbumRequestUpdateDto albumRequestUpdateDto);
 
     @Mapping(source = "posts", target = "postsIds", qualifiedByName = "toIds")

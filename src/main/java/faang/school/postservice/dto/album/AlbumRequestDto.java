@@ -1,5 +1,7 @@
 package faang.school.postservice.dto.album;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,8 +14,13 @@ import lombok.NoArgsConstructor;
 public class AlbumRequestDto {
 
     private Long id;
+    @NotNull
+    @NotBlank
     private String title;
+    @NotNull
+    @NotBlank
     private String description;
+    @NotNull
     private Long authorId;
 
 }

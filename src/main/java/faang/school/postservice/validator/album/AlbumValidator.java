@@ -9,52 +9,41 @@ import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 public class AlbumValidator {
 
     private UserServiceClient userServiceClient;
     private AlbumRepository albumRepository;
     private PostRepository postRepository;
 
-    public void validateAlbum(AlbumRequestDto albumRequestDto) {
-        String title = albumRequestDto.getTitle();
-        String description = albumRequestDto.getDescription();
-        Long authorId = albumRequestDto.getAuthorId();
-        if (title == null || title.isEmpty()) {
-            throw new DataValidationException("Title is empty");
-        }
-        if (description == null || description.isEmpty()) {
-            throw new DataValidationException("Description is empty");
-        }
-        if (authorId == null) {
-            throw new DataValidationException("AuthorId is null");
-        }
-    }
-
-    public void validateAlbum(AlbumRequestUpdateDto albumRequestUpdateDto) {
-        String title = albumRequestUpdateDto.getTitle();
-        String description = albumRequestUpdateDto.getDescription();
-        Long authorId = albumRequestUpdateDto.getAuthorId();
-        if (title == null || title.isEmpty()) {
-            throw new DataValidationException("Title is empty");
-        }
-        if (description == null || description.isEmpty()) {
-            throw new DataValidationException("Description is empty");
-        }
-        if (authorId == null) {
-            throw new DataValidationException("AuthorId is null");
-        }
-    }
+//    public void validateAlbum(AlbumRequestUpdateDto albumRequestUpdateDto) {
+//        String title = albumRequestUpdateDto.getTitle();
+//        String description = albumRequestUpdateDto.getDescription();
+//        Long authorId = albumRequestUpdateDto.getAuthorId();
+//        if (title == null || title.isEmpty()) {
+//            throw new DataValidationException("Title is empty");
+//        }
+//        if (description == null || description.isEmpty()) {
+//            throw new DataValidationException("Description is empty");
+//        }
+//        if (authorId == null) {
+//            throw new DataValidationException("AuthorId is null");
+//        }
+//    }
 
     public void validateAuthor(long authorId) {
         UserDto author = userServiceClient.getUser(authorId);
         if (author == null) {
-            throw new DataValidationException("Author with id " + authorId + " not found");
+            log.error("Author {} not found", authorId);
+            throw new EntityNotFoundException("Author with id " + authorId + " not found");
         }
     }
 
@@ -65,27 +54,30 @@ public class AlbumValidator {
         }
     }
 
-    public void validateAlbumForPost(AlbumRequestDto albumRequestDto) {
-        Long authorId = albumRequestDto.getAuthorId();
-        Long id = albumRequestDto.getId();
-        if (authorId == null) {
-            throw new DataValidationException("AuthorId is null");
-        }
-        if (id == null) {
-            throw new DataValidationException("Id is null");
-        }
-    }
+//    public void validateAlbumForPost(AlbumRequestDto albumRequestDto) {
+//        Long authorId = albumRequestDto.getAuthorId();
+//        Long id = albumRequestDto.getId();
+//        if (authorId == null) {
+//            throw new DataValidationException("AuthorId is null");
+//        }
+//        if (id == null) {
+//            throw new DataValidationException("Id is null");
+//        }
+//    }
 
     public Post validatePost(long postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty()) {
-            throw new DataValidationException("Post with id " + postId + " not found");
+            log.error("Post with id {} not found", postId);
+            throw new EntityNotFoundException("Post with id " + postId + " not found");
         }
         return post.get();
     }
 
-    public void validateAuthorHasThisAlbum(Album album, long authorId) {
+    public void validateAuthorHasThisAlbum(long albumId, long authorId) {
+        Album album = validateAlbumExists(albumId);
         if (authorId != album.getAuthorId()) {
+            log.error("AuthorId {} is not the same as albumId {}", authorId, albumId);
             throw new DataValidationException("AuthorId " + authorId +
                     " is not the same as albumsAuthorId " + album.getAuthorId());
         }
@@ -94,7 +86,8 @@ public class AlbumValidator {
     public Album validateAlbumExists(long id) {
         Optional<Album> album = albumRepository.findById(id);
         if (album.isEmpty()) {
-            throw new DataValidationException("Album with id " + id + " not found");
+            log.error("Album with id {} not found", id);
+            throw new EntityNotFoundException("Album with id " + id + " not found");
         }
         return album.get();
     }

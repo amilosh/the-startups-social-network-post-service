@@ -1,5 +1,6 @@
 package faang.school.postservice.controller.album;
 
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.album.AlbumFilterDto;
 import faang.school.postservice.dto.album.AlbumRequestDto;
 import faang.school.postservice.dto.album.AlbumRequestUpdateDto;
@@ -21,36 +22,42 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/album")
+@RequestMapping("/api/v1/albums")
 public class AlbumController {
 
     private final AlbumService albumService;
     private final AlbumValidator validator;
+    private final UserContext userContext;
 
     @PostMapping
     public AlbumResponseDto createAlbum(@RequestBody AlbumRequestDto albumDto) {
-        validator.validateAlbum(albumDto);
         return albumService.createAlbum(albumDto);
     }
 
-    @GetMapping("/post/{postId}")
-    public AlbumResponseDto addPost(@RequestBody AlbumRequestDto albumDto, @PathVariable long postId) {
-        return albumService.addPost(albumDto, postId);
+    @GetMapping("/{albumId}/post/{postId}")
+    public AlbumResponseDto addPost(@PathVariable long albumId, @PathVariable long postId) {
+        validator.validateAuthorHasThisAlbum(albumId, userContext.getUserId());
+        return albumService.addPost(albumId, postId);
     }
 
-    @DeleteMapping("/post/{postId}")
-    public void deletePost(@RequestBody AlbumRequestDto albumDto, @PathVariable long postId) {
-        albumService.deletePost(albumDto, postId);
+    @DeleteMapping("/{albumId}/post/{postId}")
+    public void deletePost(@PathVariable long albumId, @PathVariable long postId) {
+        validator.validateAuthorHasThisAlbum(albumId, userContext.getUserId());
+        albumService.deletePost(albumId, postId);
     }
 
-    @PostMapping("/author/{authorId}/favorite/{albumId}")
-    public void addAlbumToFavoriteAlbums(@PathVariable long albumId, @PathVariable long authorId) {
-        albumService.addAlbumToFavoriteAlbums(albumId, authorId);
+    @PostMapping("/{albumId}/author/favorite")
+    public void addAlbumToFavoriteAlbums(@PathVariable long albumId) {
+        long userId = userContext.getUserId();
+        validator.validateAuthorHasThisAlbum(albumId, userId);
+        albumService.addAlbumToFavoriteAlbums(albumId, userId);
     }
 
-    @DeleteMapping("/author/{authorId}/favorite/{albumId}")
-    public void deleteAlbumFromFavoriteAlbums(@PathVariable long albumId, @PathVariable long authorId) {
-        albumService.deleteAlbumFromFavoriteAlbums(albumId, authorId);
+    @DeleteMapping("/{albumId}/author/favorite")
+    public void deleteAlbumFromFavoriteAlbums(@PathVariable long albumId) {
+        long userId = userContext.getUserId();
+        validator.validateAuthorHasThisAlbum(albumId, userId);
+        albumService.deleteAlbumFromFavoriteAlbums(albumId, userId);
     }
 
     @GetMapping("/{albumId}")
@@ -58,9 +65,9 @@ public class AlbumController {
         return albumService.getAlbum(albumId);
     }
 
-    @GetMapping("/author/{authorId}")
-    public List<AlbumResponseDto> getAllMyAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter, @PathVariable long authorId) {
-        return albumService.getAllMyAlbumsByFilter(albumFilter, authorId);
+    @GetMapping("/author")
+    public List<AlbumResponseDto> getAllMyAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter) {
+        return albumService.getAllMyAlbumsByFilter(albumFilter, userContext.getUserId());
     }
 
     @GetMapping
@@ -68,20 +75,21 @@ public class AlbumController {
         return albumService.getAllAlbumsByFilter(albumFilter);
     }
 
-    @GetMapping("/author/{authorId}/favorite")
-    public List<AlbumResponseDto> getAllFavoriteAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter, @PathVariable long authorId) {
-        return albumService.getAllFavoriteAlbumsByFilter(albumFilter, authorId);
+    @GetMapping("author/favorite")
+    public List<AlbumResponseDto> getAllFavoriteAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter) {
+        return albumService.getAllFavoriteAlbumsByFilter(albumFilter, userContext.getUserId());
     }
 
     @PutMapping
     public AlbumResponseDto updateAlbum(@RequestBody AlbumRequestUpdateDto albumRequestUpdateDto) {
-        validator.validateAlbum(albumRequestUpdateDto);
-        return albumService.updateAlbum(albumRequestUpdateDto);
+        return albumService.updateAlbum(albumRequestUpdateDto, userContext.getUserId());
     }
 
-    @DeleteMapping("/author/{authorId}/{albumId}")
-    public void deleteAlbum(@PathVariable long albumId, @PathVariable long authorId) {
-        albumService.deleteAlbum(albumId, authorId);
+    @DeleteMapping("/{albumId}")
+    public void deleteAlbum(@PathVariable long albumId) {
+        long userId = userContext.getUserId();
+        validator.validateAuthorHasThisAlbum(albumId, userId);
+        albumService.deleteAlbum(albumId, userId);
     }
 
 }

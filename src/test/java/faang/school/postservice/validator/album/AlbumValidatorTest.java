@@ -9,6 +9,7 @@ import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,45 +58,14 @@ public class AlbumValidatorTest {
                 .build();
         albumRequestUpdateDto = AlbumRequestUpdateDto.builder()
                 .id(10L)
-                .authorId(5L)
                 .postsIds(List.of(25L))
                 .build();
-    }
-
-
-    @Test
-    public void testValidateAlbumWithTitleNull() {
-        albumRequestDto.setTitle(null);
-        assertThrows(DataValidationException.class,
-                () -> validator.validateAlbum(albumRequestDto));
-    }
-
-    @Test
-    public void testValidateAlbumWithDescriptionNull() {
-        albumRequestDto.setDescription(null);
-        assertThrows(DataValidationException.class,
-                () -> validator.validateAlbum(albumRequestDto));
-    }
-
-    @Test
-    public void testValidateAlbumWithAuthorIdNull() {
-        albumRequestDto.setAuthorId(null);
-        assertThrows(DataValidationException.class,
-                () -> validator.validateAlbum(albumRequestDto));
-    }
-
-    @Test
-    public void testValidateAlbumSuccess() {
-        albumRequestDto.setAuthorId(5L);
-        albumRequestDto.setDescription("description");
-        albumRequestDto.setTitle("title");
-        assertDoesNotThrow(() -> validator.validateAlbum(albumRequestDto));
     }
 
     @Test
     public void testValidateAuthorWithAuthorNotExists() {
         when(userServiceClient.getUser(5L)).thenReturn(null);
-        assertThrows(DataValidationException.class,
+        assertThrows(EntityNotFoundException.class,
                 () -> validator.validateAuthor(5L));
     }
 
@@ -119,30 +89,9 @@ public class AlbumValidatorTest {
     }
 
     @Test
-    public void testValidateAlbumForPostWithNullAuthorId() {
-        albumRequestDto.setAuthorId(null);
-        assertThrows(DataValidationException.class,
-                () -> validator.validateAlbumForPost(albumRequestDto));
-    }
-
-    @Test
-    public void testValidateAlbumForPostWithNullId() {
-        albumRequestDto.setId(null);
-        assertThrows(DataValidationException.class,
-                () -> validator.validateAlbumForPost(albumRequestDto));
-    }
-
-    @Test
-    public void testValidateAlbumForPostSuccess() {
-        albumRequestDto.setId(1L);
-        albumRequestDto.setAuthorId(5L);
-        assertDoesNotThrow(() -> validator.validateAlbumForPost(albumRequestDto));
-    }
-
-    @Test
     public void testValidatePostWithPostNotExists() {
         when(postRepository.findById(25L)).thenReturn(Optional.empty());
-        assertThrows(DataValidationException.class,
+        assertThrows(EntityNotFoundException.class,
                 () -> validator.validatePost(25L));
     }
 
@@ -154,20 +103,22 @@ public class AlbumValidatorTest {
 
     @Test
     public void testValidateAuthorHasThisAlbumWithException() {
+        when(albumRepository.findById(10L)).thenReturn(Optional.of(album));
         assertThrows(DataValidationException.class,
-                () -> validator.validateAuthorHasThisAlbum(album, 5L));
+                () -> validator.validateAuthorHasThisAlbum(10L, 5L));
     }
 
     @Test
     public void testValidateAuthorHasThisAlbumSuccess() {
         album.setAuthorId(5L);
-        assertDoesNotThrow(() -> validator.validateAuthorHasThisAlbum(album, 5L));
+        when(albumRepository.findById(10L)).thenReturn(Optional.of(album));
+        assertDoesNotThrow(() -> validator.validateAuthorHasThisAlbum(10L, 5L));
     }
 
     @Test
     public void testValidateAlbumExistsWithException() {
         when(albumRepository.findById(13L)).thenReturn(Optional.empty());
-        assertThrows(DataValidationException.class,
+        assertThrows(EntityNotFoundException.class,
                 () -> validator.validateAlbumExists(13L));
     }
 
