@@ -10,7 +10,6 @@ import faang.school.postservice.validator.comment.CommentServiceValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
 import java.util.List;
@@ -28,7 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private final PostService postService;
 
     @Override
-    public CommentDto createComment(@Validated CommentDto commentDto) {
+    public CommentDto createComment(CommentDto commentDto) {
         validator.validateCreateComment(commentDto);
 
         Post post = postService.findPostById(commentDto.getPostId())
@@ -41,7 +40,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto updateComment(@Validated CommentDto commentDto) {
+    public CommentDto updateComment(CommentDto commentDto) {
         Comment comment = commentRepository.findById(commentDto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Comment with id %s not found".formatted(commentDto.getId())));
         commentMapper.update(commentDto, comment);
