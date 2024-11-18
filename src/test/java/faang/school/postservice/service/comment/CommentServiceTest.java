@@ -3,6 +3,7 @@ package faang.school.postservice.service.comment;
 import faang.school.postservice.dto.comment.CommentRequestDto;
 import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.repository.CommentRepository;
@@ -46,10 +47,14 @@ class CommentServiceTest {
             LocalDateTime.of(2023, 11, 10, 10, 0);
     private static final LocalDateTime CREATED_AT_FOR_NEWER_COMMENT =
             LocalDateTime.of(2024, 11, 11, 10, 0);
+    private static final UserDto VALID_USER_DTO =
+            new UserDto(1L, "John Doe", "JohnDoe@gmail.com", "1234567", 5);
 
     @Test
     void createComment_shouldCreateCommentSuccessfully() {
         CommentRequestDto commentRequestDto = new CommentRequestDto();
+        commentRequestDto.setPostId(VALID_COMMENT_ID);
+        commentRequestDto.setAuthorId(VALID_USER_DTO.getId());
 
         Comment comment = new Comment();
         CommentResponseDto expectedOutput = new CommentResponseDto();
@@ -59,7 +64,7 @@ class CommentServiceTest {
 
         CommentResponseDto actualOutput = commentService.createComment(commentRequestDto);
 
-        verify(commentValidator).validateAuthorExists(commentRequestDto);
+        verify(commentValidator).validateAuthorExists(commentRequestDto.getAuthorId());
         verify(commentValidator).validatePostExists(commentRequestDto.getPostId());
         verify(commentRepository).save(comment);
         assertEquals(expectedOutput, actualOutput);
@@ -82,7 +87,6 @@ class CommentServiceTest {
 
         CommentResponseDto actualOutput = commentService.updateComment(commentUpdateRequestDto);
 
-        verify(commentValidator).validateCommentExists(commentUpdateRequestDto.getCommentId());
         verify(commentRepository).save(existingComment);
         assertEquals(UPDATED_CONTENT, existingComment.getContent());
         assertEquals(expectedOutput, actualOutput);

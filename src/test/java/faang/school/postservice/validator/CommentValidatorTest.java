@@ -43,7 +43,7 @@ class CommentValidatorTest {
     private static final Long VALID_AUTHOR_ID = 1L;
     private static final Long VALID_POST_ID = 1L;
     private static final UserDto VALID_USER_DTO =
-            new UserDto(1L, "John Doe", "JohnDoe@gmail.com");
+            new UserDto(1L, "John Doe", "JohnDoe@gmail.com", "1234567", 5);
 
     @Test
     public void validateComment_shouldThrowException_whenContentIsNull() {
@@ -157,7 +157,7 @@ class CommentValidatorTest {
     @Test
     void validateCommentExists_shouldThrowException_whenCommentDoesNotExist() {
         Long commentId = VALID_COMMENT_ID;
-        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+        when(commentRepository.existsById(commentId)).thenReturn(false);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
             commentValidator.validateCommentExists(commentId);
@@ -171,7 +171,7 @@ class CommentValidatorTest {
         CommentRequestDto commentRequestDto = new CommentRequestDto();
         commentRequestDto.setPostId(2L);
 
-        when(postRepository.findById(2L)).thenReturn(java.util.Optional.empty());
+        when(postRepository.existsById(2L)).thenReturn(false);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
             commentValidator.validatePostExists(commentRequestDto.getPostId());
@@ -185,7 +185,7 @@ class CommentValidatorTest {
         CommentRequestDto commentRequestDto = new CommentRequestDto();
         commentRequestDto.setPostId(VALID_POST_ID);
 
-        when(postRepository.findById(commentRequestDto.getPostId())).thenReturn(java.util.Optional.of(new Post()));
+        when(postRepository.existsById(commentRequestDto.getPostId())).thenReturn(true);
 
         assertDoesNotThrow(() -> commentValidator.validatePostExists(commentRequestDto.getPostId()));
     }
@@ -199,7 +199,7 @@ class CommentValidatorTest {
                 .thenThrow(new IllegalArgumentException("User with id 1 does not exist"));
 
         DataValidationException exception = assertThrows(DataValidationException.class, () -> {
-            commentValidator.validateAuthorExists(commentRequestDto);
+            commentValidator.validateAuthorExists(commentRequestDto.getAuthorId());
         });
 
         assertEquals("User with id 1 does not exist", exception.getMessage());
@@ -212,6 +212,6 @@ class CommentValidatorTest {
 
         when(userServiceClient.getUser(1L)).thenReturn(VALID_USER_DTO);
 
-        assertDoesNotThrow(() -> commentValidator.validateAuthorExists(commentRequestDto));
+        assertDoesNotThrow(() -> commentValidator.validateAuthorExists(commentRequestDto.getAuthorId()));
     }
 }

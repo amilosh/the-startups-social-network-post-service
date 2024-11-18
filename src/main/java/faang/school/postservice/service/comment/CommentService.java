@@ -24,7 +24,7 @@ public class CommentService {
     private final CommentMapper commentMapper;
 
     public CommentResponseDto createComment(CommentRequestDto commentRequestDto) {
-        commentValidator.validateAuthorExists(commentRequestDto);
+        commentValidator.validateAuthorExists(commentRequestDto.getAuthorId());
         commentValidator.validatePostExists(commentRequestDto.getPostId());
 
         Comment comment = commentMapper.toEntity(commentRequestDto);
@@ -36,7 +36,6 @@ public class CommentService {
     }
 
     public CommentResponseDto updateComment(CommentUpdateRequestDto commentUpdateRequestDto) {
-        commentValidator.validateCommentExists(commentUpdateRequestDto.getCommentId());
         Comment commentToUpdate = commentRepository.getCommentById(commentUpdateRequestDto.getCommentId());
 
         String postContent = commentUpdateRequestDto.getContent();
