@@ -19,7 +19,13 @@ public interface AlbumRepository extends CrudRepository<Album, Long> {
     @Query("SELECT a FROM Album a LEFT JOIN FETCH a.posts WHERE a.id = :id")
     Optional<Album> findByIdWithPosts(long id);
 
-    @Query(nativeQuery = true, value = "INSERT INTO favorite_albums (album_id, user_id) VALUES (:albumId, :userId)")
+    @Query(nativeQuery = true, value = """
+            INSERT INTO favorite_albums (album_id, user_id)
+            SELECT :albumId, :userId
+            WHERE NOT EXISTS (
+                SELECT 1 FROM favorite_albums WHERE album_id = :albumId AND user_id = :userId
+            )
+            """)
     @Modifying
     void addAlbumToFavorites(long albumId, long userId);
 

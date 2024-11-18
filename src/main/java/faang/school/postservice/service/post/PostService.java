@@ -2,12 +2,13 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.exception.EntityNoyFoundException;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PostService {
+
+    private static final String POST = "Post";
 
     private final PostMapper postMapper;
     private final PostRepository postRepository;
@@ -110,9 +113,10 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    private Post getPost(Long postId) {
+    @Transactional
+    public Post getPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNoyFoundException("Post with id " + postId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException(POST, postId));
 
         log.info("Get post with id {}", postId);
         return post;
