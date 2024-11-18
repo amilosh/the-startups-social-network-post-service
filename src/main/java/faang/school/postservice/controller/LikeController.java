@@ -1,8 +1,6 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.config.redis.LikeEventPublisher;
 import faang.school.postservice.dto.like.LikeDto;
-import faang.school.postservice.dto.like.LikeEvent;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.service.like.LikeService;
 import jakarta.validation.Valid;
@@ -20,7 +18,7 @@ public class LikeController {
 
     private final LikeService likeService;
     @PostMapping("/post")
-    public LikeDto likePost(@RequestBody @Valid LikeDto likeDto) {
+    public LikeDto likePost(@RequestBody LikeDto likeDto) {
         return likeService.likePost(likeDto);
     }
 

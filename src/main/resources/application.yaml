@@ -22,8 +22,10 @@ spring:
       port: 6379
       host: localhost
       channels:
-        calculations_channel:
-          name: calculations_channel
+        calculations_channel: calculations_channel
+        comment_channel: comment_channel
+        like_channel: like_channel
+
 
 server:
   port: 8081
@@ -56,8 +58,11 @@ services:
     accessKey: user
     secretKey: password
     bucketName: corpbucket
+<<<<<<<<< Temporary merge branch 1
+=========
 
 redis:
   pubsub:
     topics:
       like-event
+>>>>>>>>> Temporary merge branch 2
