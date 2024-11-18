@@ -40,8 +40,12 @@ spring:
     kafka:
       port: 9092
       host: localhost
+      retries: 1
+      partitions: 1
+      replicasCount: 1
       channels:
         post-channel: post_channel
+        comment-channel: comment_channel
 
 server:
   port: 8081

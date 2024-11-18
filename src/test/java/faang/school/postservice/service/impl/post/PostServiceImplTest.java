@@ -3,7 +3,7 @@ package faang.school.postservice.service.impl.post;
 import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
-import faang.school.postservice.publisher.PostEventPublisher;
+import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.impl.post.async.PostServiceAsyncImpl;
