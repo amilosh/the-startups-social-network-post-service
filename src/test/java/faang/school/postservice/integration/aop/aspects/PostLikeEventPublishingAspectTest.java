@@ -1,10 +1,10 @@
-package faang.school.postservice.aop.aspects;
+package faang.school.postservice.integration.aop.aspects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.config.TestContainersConfig;
-import faang.school.postservice.config.TestListenerConfig;
+import faang.school.postservice.integration.config.TestContainersConfig;
+import faang.school.postservice.integration.config.TestListenerConfig;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.like.RedisPostLikeEvent;
 import faang.school.postservice.dto.user.UserDto;
@@ -68,7 +68,11 @@ public class PostLikeEventPublishingAspectTest extends TestContainersConfig {
         Long userId = 1L;
         Long postId = 1L;
         when(userContext.getUserId()).thenReturn(userId);
-        when(userServiceClient.getUser(userId)).thenReturn(new UserDto(userId, "username", "email"));
+        when(userServiceClient.getUser(userId)).thenReturn(UserDto.builder()
+                .id(userId)
+                .username("username")
+                .email("email")
+                .build());
         Like like = likeService.createPostLike(postId);
 
         try {

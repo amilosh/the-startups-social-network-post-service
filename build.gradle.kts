@@ -38,6 +38,7 @@ dependencies {
     implementation("redis.clients:jedis:4.3.2")
     runtimeOnly("org.postgresql:postgresql")
     implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
+    implementation("org.springframework.kafka:spring-kafka")
 
     /**
      * AWS S3
@@ -97,9 +98,15 @@ jacoco {
     reportsDirectory.set(layout.buildDirectory.dir("$buildDir/reports/jacoco"))
 }
 
-tasks.test {
+tasks.test { //      java/faang/school/postservice/integration
+    exclude("**/faang/school/postservice/integration/**")
     useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.register<Test>("integrationTest") {
+    group = "verification"
+    include("**/faang/school/postservice/integration/**")
 }
 
 tasks.jacocoTestReport {
@@ -108,6 +115,7 @@ tasks.jacocoTestReport {
         csv.required.set(false)
         html.required.set(true)
     }
+
     classDirectories.setFrom(
         fileTree(project.buildDir) {
             include(jacocoInclude)

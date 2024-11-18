@@ -28,4 +28,12 @@ public interface UserServiceClient {
     @PostMapping("/users/active")
     List<Long> getOnlyActiveUsersFromList(@RequestBody List<Long> ids);
 
+    @GetMapping("/users/followers-id/{userId}")
+    List<Long> getFollowersId(@PathVariable Long userId);
+
+    @GetMapping("/users/subscribes-id/{userId}")
+    List<Long> getSubscribesId(@PathVariable Long userId);
+
+    @GetMapping("/users/all-ids")
+    List<Long> getAllIds();
 }

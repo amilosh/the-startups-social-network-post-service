@@ -1,6 +1,7 @@
 package faang.school.postservice.service.post;
 
 import com.amazonaws.SdkClientException;
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.exception.ValidationException;
 import faang.school.postservice.exception.post.PostNotFoundException;
@@ -14,6 +15,8 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
+import faang.school.postservice.repository.cache.PostCacheRepository;
+import faang.school.postservice.repository.cache.UserCacheRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
@@ -60,6 +63,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -99,6 +103,12 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostCacheService postCacheService;
+    @Mock
+    private PostCacheRepository postCacheRepository;
+    @Mock
+    private UserServiceClient userServiceClient;
+    @Mock
+    private UserCacheRepository userCacheRepository;
     @Captor
     private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks
@@ -213,6 +223,8 @@ public class PostServiceTest {
 
     @Test
     void testSuccessPublishPost() {
+        PostCacheDto postCacheDto = mock(PostCacheDto.class);
+        when(postMapper.toPostCacheDto(any(Post.class))).thenReturn(postCacheDto);
         when(postRepository.findByIdAndNotDeleted(postForUpdate.getId()))
                 .thenReturn(Optional.ofNullable(foundPost));
 

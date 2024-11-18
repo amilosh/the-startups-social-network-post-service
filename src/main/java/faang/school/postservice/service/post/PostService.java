@@ -2,7 +2,11 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.annotations.SendPostCreatedEvent;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
+import faang.school.postservice.annotations.publisher.PublishEvent;
+import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
 import faang.school.postservice.exception.post.PostPublishedException;
@@ -15,6 +19,8 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
+import faang.school.postservice.repository.cache.PostCacheRepository;
+import faang.school.postservice.repository.cache.UserCacheRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
@@ -36,6 +42,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static faang.school.postservice.enums.publisher.PublisherType.NEW_POST;
+import static faang.school.postservice.enums.publisher.PublisherType.VIEW_POST;
 import static faang.school.postservice.model.VerificationPostStatus.REJECTED;
 import static faang.school.postservice.model.VerificationPostStatus.UNVERIFIED;
 import static faang.school.postservice.utils.ImageRestrictionRule.POST_IMAGES;
@@ -44,10 +52,11 @@ import static faang.school.postservice.utils.ImageRestrictionRule.POST_IMAGES;
 @Service
 @RequiredArgsConstructor
 public class PostService {
+    private final UserContext userContext;
     @Value("${post.images.bucket.name-prefix}")
     private String bucketNamePrefix;
 
-    @Value("${app.post.cache.number_of_top_in_cache}")
+    @Value("${app.post.cache.hash_tag.number_of_top_in_cache}")
     private int numberOfTopInCache;
 
     private final PostRepository postRepository;
@@ -59,6 +68,9 @@ public class PostService {
     private final PostCacheProcessExecutor postCacheProcessExecutor;
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
+    private final PostCacheRepository postCacheRepository;
+    private final UserServiceClient userServiceClient;
+    private final UserCacheRepository userCacheRepository;
 
     @Transactional
     @SendPostCreatedEvent
@@ -75,6 +87,7 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    @PublishEvent(type = NEW_POST)
     @Transactional
     public Post publish(Long id) {
         log.info("Publish post with id: {}", id);
@@ -89,7 +102,16 @@ public class PostService {
         postHashTagParser.updateHashTags(post);
         postRepository.save(post);
 
-        postCacheProcessExecutor.executeNewPostProcess(postMapper.toPostCacheDto(post));
+        PostCacheDto postCacheDto = postMapper.toPostCacheDto(post);
+        postCacheProcessExecutor.executeNewPostProcess(postCacheDto);
+
+        if (post.getAuthorId() != null) {
+            UserDto userDto = userServiceClient.getUser(post.getAuthorId());
+            postCacheDto.setAuthorDto(userDto);
+
+            postCacheRepository.save(postCacheDto);
+            userCacheRepository.save(userDto);
+        }
 
         return post;
     }
@@ -107,7 +129,9 @@ public class PostService {
         postRepository.save(post);
 
         if (!post.isDeleted() && post.isPublished()) {
-            postCacheProcessExecutor.executeUpdatePostProcess(postMapper.toPostCacheDto(post), primalTags);
+            PostCacheDto postCacheDto = postMapper.toPostCacheDto(post);
+            postCacheProcessExecutor.executeUpdatePostProcess(postCacheDto, primalTags);
+            postCacheRepository.save(postCacheDto);
         }
         return post;
     }
@@ -120,6 +144,8 @@ public class PostService {
         post.setDeleted(true);
         post.setUpdatedAt(LocalDateTime.now());
         postCacheProcessExecutor.executeDeletePostProcess(postMapper.toPostCacheDto(post), post.getHashTags());
+
+        postCacheRepository.deleteById(id);
 
         postRepository.save(post);
     }
@@ -148,14 +174,16 @@ public class PostService {
         return postRepository.findByIdAndNotDeleted(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    @Transactional(readOnly = true)
+    @PublishEvent(type = VIEW_POST)
     @SendPostViewEventToAnalytics(Post.class)
+    @Transactional(readOnly = true)
     public Post get(Long postId) {
         return findPostById(postId);
     }
 
-    @Transactional(readOnly = true)
+    @PublishEvent(type = VIEW_POST)
     @SendPostViewEventToAnalytics(List.class)
+    @Transactional(readOnly = true)
     public List<Post> searchByAuthor(Post filterPost) {
         List<Post> posts = postRepository.findByAuthorId(filterPost.getAuthorId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -164,8 +192,9 @@ public class PostService {
         return posts;
     }
 
-    @Transactional(readOnly = true)
+    @PublishEvent(type = VIEW_POST)
     @SendPostViewEventToAnalytics(List.class)
+    @Transactional(readOnly = true)
     public List<Post> searchByProject(Post filterPost) {
         List<Post> posts = postRepository.findByProjectId(filterPost.getProjectId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -275,5 +304,17 @@ public class PostService {
         });
         postRepository.saveAll(postList);
         log.info("Posts was published by scheduling: {}", postIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostCacheDto> getSetOfPosts(long userId, long offset, long limit) {
+        userContext.setUserId(userId);
+
+        List<Long> subscribesIds = userServiceClient.getSubscribesId(userId);
+        List<Post> posts = postRepository.findSetOfPostsByAuthorsId(offset, limit, subscribesIds);
+
+        return posts.stream()
+                .map(postMapper::toPostCacheDto)
+                .toList();
     }
 }

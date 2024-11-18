@@ -4,6 +4,7 @@ import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.dto.comment.CommentNotificationEvent;
 import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.post.serializable.CommentCacheDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import org.mapstruct.BeanMapping;
@@ -15,6 +16,7 @@ import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Mapper(
         componentModel = "spring",
@@ -43,6 +45,10 @@ public interface CommentMapper {
     @Mapping(target = "content", source = "savedComment.content")
     CommentNotificationEvent toNotificationEvent(Long postId, Comment savedComment, Long postAuthorId);
 
+    @Mapping(source = "likes", target = "likesCount", qualifiedByName = "mapLikes")
+    @Mapping(source = "post.id", target = "postId")
+    CommentCacheDto toCommentCacheDto(Comment comment);
+
     @Named("listOfLikesToIds")
     @BeanMapping
     default Collection<Long> listOfLikesToIds(Collection<Like> likes) {
@@ -50,5 +56,11 @@ public interface CommentMapper {
             return likes.stream().map(Like::getId).toList();
         }
         return new ArrayList<>();
+    }
+
+    @Named("mapLikes")
+    default Long mapLikes(List<Like> likes) {
+        if (likes == null) return 0L;
+        return (long) likes.size();
     }
 }

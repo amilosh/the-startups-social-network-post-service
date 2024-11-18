@@ -1,5 +1,6 @@
-package faang.school.postservice.config;
+package faang.school.postservice.integration.config;
 
+import faang.school.postservice.config.PostThreadPoolConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

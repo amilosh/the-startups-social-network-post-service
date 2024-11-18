@@ -8,7 +8,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
-@EnableAsync
 @Configuration
 public class PostCacheServiceAsyncConfig {
     @Value("${app.async-config.post-cache-service.core_pool_size}")

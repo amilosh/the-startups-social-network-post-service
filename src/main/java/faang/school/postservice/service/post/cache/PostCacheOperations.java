@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class PostCacheOperations {
-    @Value("${app.post.cache.post_id_prefix}")
+    @Value("${app.post.cache.hash_tag.prefix.post_id}")
     private String postIdPrefix;
 
     private final PostHashTagParser postHashTagParser;

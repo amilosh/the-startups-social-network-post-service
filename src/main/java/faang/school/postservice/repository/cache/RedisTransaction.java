@@ -1,0 +1,48 @@
+package faang.school.postservice.repository.cache;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+
+import java.util.List;
+import java.util.function.Function;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class RedisTransaction {
+    @SuppressWarnings("unchecked")
+    @Retryable(retryFor = OptimisticLockingFailureException.class,
+            maxAttemptsExpression = "#{@environment.getProperty('spring.data.redis.retry.opt_lock_max_attempt')}")
+    public void execute(RedisTemplate<?, ?> template, String key,
+                        Function<RedisOperations<?, ?>, List<Object>> function) {
+        template.execute(new SessionCallback<>() {
+            @Override
+            public Object execute(@NonNull RedisOperations operations) throws DataAccessException {
+                try {
+                    operations.watch(key);
+
+                    List<Object> result = function.apply(operations);
+
+                    log.info("////////////////////// EXECUTE RESULT: {}", result);
+
+                    if (result.isEmpty()) {
+                        throw new OptimisticLockingFailureException("Redis optimistic lock exception by key: " + key);
+                    }
+                    return result;
+                } catch (JedisConnectionException exception) {
+                    operations.discard();
+                    throw exception;
+                }
+            }
+        });
+    }
+}

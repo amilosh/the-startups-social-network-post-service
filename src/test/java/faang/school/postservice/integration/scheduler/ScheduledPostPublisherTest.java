@@ -1,9 +1,10 @@
-package faang.school.postservice.scheduler;
+package faang.school.postservice.integration.scheduler;
 
-import faang.school.postservice.config.TestContainersConfig;
+import faang.school.postservice.integration.config.TestContainersConfig;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.scheduler.ScheduledPostPublisher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

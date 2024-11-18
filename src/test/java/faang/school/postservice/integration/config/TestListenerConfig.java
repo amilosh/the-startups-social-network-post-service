@@ -1,4 +1,4 @@
-package faang.school.postservice.config;
+package faang.school.postservice.integration.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +10,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
-import static faang.school.postservice.config.TestContainersConfig.redisContainer;
+import static faang.school.postservice.integration.config.TestContainersConfig.redisContainer;
 
 @TestConfiguration
 public class TestListenerConfig {

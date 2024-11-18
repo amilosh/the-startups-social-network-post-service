@@ -26,6 +26,9 @@ class PostMapperTest {
     @Test
     @DisplayName("Given Post and map to PostCacheDto successful")
     void testToPostCacheDtoSuccessful() {
+        PostCacheDto postDto = postMapper.toPostCacheDto(post);
+        System.out.println(postCacheDto);
+        System.out.println(postDto);
         assertThat(postMapper.toPostCacheDto(post))
                 .usingRecursiveComparison()
                 .isEqualTo(postCacheDto);
