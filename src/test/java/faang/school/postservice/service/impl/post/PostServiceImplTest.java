@@ -5,6 +5,7 @@ import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
+import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
@@ -42,30 +43,24 @@ public class PostServiceImplTest {
 
     @InjectMocks
     private PostServiceImpl postService;
-
     @Mock
     private PostValidator postValidator;
-
     @Spy
     private PostMapperImpl postMapper;
-
     @Mock
     private PostRepository postRepository;
-
     @Mock
     private HashtagService hashtagService;
-
     @Mock
     private PostEventPublisher postEventPublisher;
-
     @Mock
     private PostServiceAsyncImpl postServiceAsync;
-
     @Mock
     private KafkaPostProducer kafkaPostProducer;
-
     @Mock
     private UserServiceClient userServiceClient;
+    @Mock
+    private KafkaPostViewProducer kafkaPostViewProducer;
 
     private PostDto examplePostDto;
     private Post examplePost;
