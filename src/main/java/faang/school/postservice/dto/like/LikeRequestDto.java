@@ -1,13 +1,17 @@
-package faang.school.postservice.dto.project;
+package faang.school.postservice.dto.like;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectDto {
+@Builder
+public class LikeRequestDto {
+
     private Long id;
-    private String title;
+    private Long userId;
+
 }
