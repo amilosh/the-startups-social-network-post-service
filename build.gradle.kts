@@ -1,10 +1,9 @@
-import groovy.json.JsonSlurper
-
 plugins {
     java
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
-    id("com.autonomousapps.dependency-analysis") version "1.22.0"
+    id("org.jsonschema2pojo") version "1.2.1"
+    checkstyle
 }
 
 group = "faang.school"
@@ -75,32 +74,28 @@ tasks.bootJar {
     archiveFileName.set("service.jar")
 }
 
-tasks.register("analyzeDependencies") {
-    group = "verification"
-    description = "Analyze unused dependencies"
+checkstyle {
+    toolVersion = "10.0"
+    configFile = file("config/checkstyle/checkstyle.xml")
+}
 
-    dependsOn("computeAdvice")
-
-    doLast {
-        val outputFile = file("${buildDir}/reports/dependency-analysis/advice-report.json")
-        if (outputFile.exists()) {
-            val jsonSlurper = JsonSlurper()
-            val advice = jsonSlurper.parse(outputFile) as Map<*, *>
-            val unusedDependencies = advice["unusedDependencies"] as? List<*> ?: emptyList<Any>()
-            if (unusedDependencies.isNotEmpty()) {
-                throw GradleException("Unused dependencies found! Check ${outputFile.path} for details.")
-            }
-        }
+tasks.checkstyleMain {
+    source = sourceSets.main.get().allJava
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
     }
 }
 
-
-dependencyAnalysis {
-    issues {
-        all {
-            onUnusedDependencies {
-                severity("fail")
-            }
-        }
+tasks.checkstyleTest {
+    source = sourceSets.test.get().allJava
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
     }
+}
+
+tasks.check {
+    dependsOn(tasks.checkstyleMain)
+    dependsOn(tasks.checkstyleTest)
 }

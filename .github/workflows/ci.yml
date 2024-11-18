@@ -26,12 +26,12 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: Check for unused dependencies
-        run: ./gradlew analyzeDependencies
+      - name: Run Checkstyle on changed files
+        run: ./gradlew checkstyleMain checkstyleTest
 
-      - name: Upload dependency analysis report
-        if: failure()
+      - name: Upload Checkstyle report
+        if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: dependency-analysis-report
-          path: build/reports/dependency-analysis/advice-report.json
+          name: checkstyle-report
+          path: build/reports/checkstyle/
