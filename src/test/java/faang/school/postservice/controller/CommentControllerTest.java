@@ -1,9 +1,9 @@
 package faang.school.postservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.ResponseCommentDto;
-import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
+import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.CommentValidator;
@@ -64,12 +64,12 @@ class CommentControllerTest {
 
     @Test
     public void testCreate() throws Exception {
-        RequestCommentDto input = new RequestCommentDto();
+        CommentRequestDto input = new CommentRequestDto();
         input.setContent(COMMENT_TEXT);
         input.setPostId(POST_ID_TWENTY_ONE);
         input.setAuthorId(AUTHOR_ID_THIRTY_0NE);
 
-        ResponseCommentDto expectedOutput = new ResponseCommentDto();
+        CommentResponseDto expectedOutput = new CommentResponseDto();
         expectedOutput.setId(COMMENT_ID_ONE);
         expectedOutput.setPostId(POST_ID_TWENTY_ONE);
 
@@ -88,11 +88,11 @@ class CommentControllerTest {
 
     @Test
     public void testUpdateComment() throws Exception {
-        RequestCommentUpdateDto updateDto = new RequestCommentUpdateDto();
+        CommentUpdateRequestDto updateDto = new CommentUpdateRequestDto();
         updateDto.setCommentId(COMMENT_ID_ONE);
         updateDto.setContent(COMMENT_TEXT);
 
-        ResponseCommentDto expectedOutput = new ResponseCommentDto();
+        CommentResponseDto expectedOutput = new CommentResponseDto();
         expectedOutput.setId(COMMENT_ID_ONE);
         expectedOutput.setContent(COMMENT_TEXT);
 
@@ -109,15 +109,15 @@ class CommentControllerTest {
 
     @Test
     public void testGetCommentsByPostId() throws Exception {
-        ResponseCommentDto responseCommentDtoOne = new ResponseCommentDto();
-        responseCommentDtoOne.setId(COMMENT_ID_ONE);
-        responseCommentDtoOne.setPostId(POST_ID_TWENTY_ONE);
+        CommentResponseDto commentResponseDtoOne = new CommentResponseDto();
+        commentResponseDtoOne.setId(COMMENT_ID_ONE);
+        commentResponseDtoOne.setPostId(POST_ID_TWENTY_ONE);
 
-        ResponseCommentDto responseCommentDtoTwo = new ResponseCommentDto();
-        responseCommentDtoTwo.setId(COMMENT_ID_TWO);
-        responseCommentDtoTwo.setPostId(POST_ID_TWENTY_ONE);
+        CommentResponseDto commentResponseDtoTwo = new CommentResponseDto();
+        commentResponseDtoTwo.setId(COMMENT_ID_TWO);
+        commentResponseDtoTwo.setPostId(POST_ID_TWENTY_ONE);
 
-        List<ResponseCommentDto> expectedComments = List.of(responseCommentDtoOne, responseCommentDtoTwo);
+        List<CommentResponseDto> expectedComments = List.of(commentResponseDtoOne, commentResponseDtoTwo);
 
         when(commentService.getCommentsByPostId(POST_ID_TWENTY_ONE)).thenReturn(expectedComments);
 

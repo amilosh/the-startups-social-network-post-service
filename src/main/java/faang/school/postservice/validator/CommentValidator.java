@@ -1,8 +1,8 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.Comment;
@@ -22,36 +22,36 @@ public class CommentValidator {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
-    public void validateCommentDtoInput(RequestCommentDto requestCommentDto) {
-        if (requestCommentDto.getContent() == null || requestCommentDto.getContent().isEmpty()) {
+    public void validateCommentDtoInput(CommentRequestDto commentRequestDto) {
+        if (commentRequestDto.getContent() == null || commentRequestDto.getContent().isEmpty()) {
             log.error("Data validation Exception - comment content is empty");
             throw new DataValidationException("Comment content is empty");
         }
-        if (requestCommentDto.getContent().length() > 4096) {
+        if (commentRequestDto.getContent().length() > 4096) {
             log.error("Data validation Exception - comment content too long");
             throw new DataValidationException("Comment content is too long");
         }
-        if (requestCommentDto.getAuthorId() == null) {
+        if (commentRequestDto.getAuthorId() == null) {
             log.error("Data validation Exception - comment author id is null");
             throw new DataValidationException("Comment must have an author");
         }
-        if (requestCommentDto.getPostId() == null) {
+        if (commentRequestDto.getPostId() == null) {
             log.error("Data validation Exception - comment post id is null");
             throw new DataValidationException("Comment must relate to a post");
         }
     }
 
-    public void validateCommentUpdateDto(RequestCommentUpdateDto requestCommentUpdateDto){
-        Long commentId = requestCommentUpdateDto.getCommentId();
-        if(commentId == null){
+    public void validateCommentUpdateDto(CommentUpdateRequestDto commentUpdateRequestDto) {
+        Long commentId = commentUpdateRequestDto.getCommentId();
+        if (commentId == null) {
             log.error("Data validation Exception - comment id is null");
             throw new DataValidationException("Comment must have an id");
         }
-        if (requestCommentUpdateDto.getContent() == null || requestCommentUpdateDto.getContent().isEmpty()) {
+        if (commentUpdateRequestDto.getContent() == null || commentUpdateRequestDto.getContent().isEmpty()) {
             log.error("Data validation Exception - comment content is empty on update");
             throw new DataValidationException("Comment content is empty");
         }
-        if (requestCommentUpdateDto.getContent().length() > 4096) {
+        if (commentUpdateRequestDto.getContent().length() > 4096) {
             log.error("Data validation Exception - comment content too long on update");
             throw new DataValidationException("Comment content is too long");
         }
@@ -59,7 +59,7 @@ public class CommentValidator {
 
     public void validateCommentExists(Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElse(null);
-        if(comment == null){
+        if (comment == null) {
             log.error("Data validation Exception - comment does not exist");
             throw new EntityNotFoundException("Comment with id " + commentId + " does not exist");
         }
@@ -73,7 +73,7 @@ public class CommentValidator {
         }
     }
 
-    public void validateAuthorExists(RequestCommentDto commentDto) {
+    public void validateAuthorExists(CommentRequestDto commentDto) {
         long authorId = commentDto.getAuthorId();
         try {
             UserDto userDto = userServiceClient.getUser(authorId);
@@ -84,14 +84,6 @@ public class CommentValidator {
         } catch (Exception e) {
             log.error("Error validating user existence: {}", e.getMessage());
             throw new DataValidationException("User with id " + authorId + " does not exist");
-        }
-    }
-
-    public void validateCommentIdIsNullForCreatingNewComment(RequestCommentDto commentDto) {
-        Long id = commentDto.getId();
-        if(id != null) {
-            log.error("Data validation Exception - id must be null to create new comment");
-            throw new DataValidationException("Comment id must be null to create a new comment");
         }
     }
 }

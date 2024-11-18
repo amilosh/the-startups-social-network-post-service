@@ -1,8 +1,8 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.ResponseCommentDto;
-import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
+import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.CommentValidator;
 import lombok.RequiredArgsConstructor;
@@ -26,20 +26,19 @@ public class CommentController {
     private final CommentValidator commentValidator;
 
     @PostMapping()
-    public ResponseCommentDto create(@RequestBody RequestCommentDto input) {
-        commentValidator.validateCommentIdIsNullForCreatingNewComment(input);
+    public CommentResponseDto create(@RequestBody CommentRequestDto input) {
         commentValidator.validateCommentDtoInput(input);
         return commentService.createComment(input);
     }
 
     @PutMapping()
-    public ResponseCommentDto update(@RequestBody RequestCommentUpdateDto updatingInput) {
+    public CommentResponseDto update(@RequestBody CommentUpdateRequestDto updatingInput) {
         commentValidator.validateCommentUpdateDto(updatingInput);
         return commentService.updateComment(updatingInput);
     }
 
     @GetMapping()
-    public List<ResponseCommentDto> getCommentsByPostId(@RequestParam Long postId) {
+    public List<CommentResponseDto> getCommentsByPostId(@RequestParam Long postId) {
         return commentService.getCommentsByPostId(postId);
     }
 

@@ -1,8 +1,8 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.ResponseCommentDto;
-import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
+import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.repository.CommentRepository;
@@ -23,11 +23,11 @@ public class CommentService {
     private final CommentValidator commentValidator;
     private final CommentMapper commentMapper;
 
-    public ResponseCommentDto createComment(RequestCommentDto requestCommentDto) {
-        commentValidator.validateAuthorExists(requestCommentDto);
-        commentValidator.validatePostExists(requestCommentDto.getPostId());
+    public CommentResponseDto createComment(CommentRequestDto commentRequestDto) {
+        commentValidator.validateAuthorExists(commentRequestDto);
+        commentValidator.validatePostExists(commentRequestDto.getPostId());
 
-        Comment comment = commentMapper.toEntity(requestCommentDto);
+        Comment comment = commentMapper.toEntity(commentRequestDto);
         comment.setLikes(new ArrayList<>());
 
         commentRepository.save(comment);
@@ -35,19 +35,19 @@ public class CommentService {
         return commentMapper.toDto(comment);
     }
 
-    public ResponseCommentDto updateComment(RequestCommentUpdateDto requestCommentUpdateDto) {
-        commentValidator.validateCommentExists(requestCommentUpdateDto.getCommentId());
-        Comment commentToUpdate = commentRepository.getCommentById(requestCommentUpdateDto.getCommentId());
+    public CommentResponseDto updateComment(CommentUpdateRequestDto commentUpdateRequestDto) {
+        commentValidator.validateCommentExists(commentUpdateRequestDto.getCommentId());
+        Comment commentToUpdate = commentRepository.getCommentById(commentUpdateRequestDto.getCommentId());
 
-        String postContent = requestCommentUpdateDto.getContent();
+        String postContent = commentUpdateRequestDto.getContent();
         commentToUpdate.setContent(postContent);
 
         commentRepository.save(commentToUpdate);
-        log.info("Comment with id: {} updated", requestCommentUpdateDto.getCommentId());
+        log.info("Comment with id: {} updated", commentUpdateRequestDto.getCommentId());
         return commentMapper.toDto(commentToUpdate);
     }
 
-    public List<ResponseCommentDto> getCommentsByPostId(Long postId) {
+    public List<CommentResponseDto> getCommentsByPostId(Long postId) {
         commentValidator.validatePostExists(postId);
 
         List<Comment> commentsByPostId = commentRepository.findAllByPostId(postId);

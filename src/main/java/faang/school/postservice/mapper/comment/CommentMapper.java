@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper.comment;
 
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.ResponseCommentDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import org.mapstruct.Mapper;
@@ -15,17 +15,17 @@ import java.util.List;
 public interface CommentMapper {
     @Mapping(source = "likes", target = "likeIds", qualifiedByName = "mapLikesToLikeIds")
     @Mapping(source = "post.id", target = "postId")
-    ResponseCommentDto toDto(Comment comment);
+    CommentResponseDto toDto(Comment comment);
 
     @Mapping(source = "likes", target = "likeIds", qualifiedByName = "mapLikesToLikeIds")
     @Mapping(source = "post.id", target = "postId")
-    List<ResponseCommentDto> toDto(List<Comment> comments);
+    List<CommentResponseDto> toDto(List<Comment> comments);
 
     @Mapping(source = "postId", target = "post.id")
-    Comment toEntity(RequestCommentDto commentDto);
+    Comment toEntity(CommentRequestDto commentDto);
 
     @Mapping(source = "postId", target = "post.id")
-    List<Comment> toEntity(List<ResponseCommentDto> commentDtos);
+    List<Comment> toEntity(List<CommentResponseDto> commentDtos);
 
     @Named("mapLikesToLikeIds")
     default List<Long> mapLikesToLikeIds(List<Like> likes) {

@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RequestCommentDto {
-    private Long id;
+public class CommentRequestDto {
     private String content;
     private Long authorId;
     private Long postId;

@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper.comment;
 
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.ResponseCommentDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
@@ -45,7 +45,7 @@ class CommentMapperTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        ResponseCommentDto dto = commentMapper.toDto(comment);
+        CommentResponseDto dto = commentMapper.toDto(comment);
 
         assertNotNull(dto);
         assertEquals(1L, dto.getId());
@@ -67,7 +67,7 @@ class CommentMapperTest {
 
         List<Comment> comments = List.of(comment1, comment2);
 
-        List<ResponseCommentDto> dtoList = commentMapper.toDto(comments);
+        List<CommentResponseDto> dtoList = commentMapper.toDto(comments);
 
         assertNotNull(dtoList);
         assertEquals(2, dtoList.size());
@@ -77,8 +77,7 @@ class CommentMapperTest {
 
     @Test
     void testToEntity() {
-        RequestCommentDto commentDto = new RequestCommentDto();
-        commentDto.setId(null);
+        CommentRequestDto commentDto = new CommentRequestDto();
         commentDto.setContent("New Comment");
         commentDto.setAuthorId(123L);
         commentDto.setPostId(1L);

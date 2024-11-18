@@ -1,8 +1,8 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.dto.comment.RequestCommentDto;
-import faang.school.postservice.dto.comment.ResponseCommentDto;
-import faang.school.postservice.dto.comment.RequestCommentUpdateDto;
+import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
+import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.repository.CommentRepository;
@@ -49,41 +49,40 @@ class CommentServiceTest {
 
     @Test
     void createComment_shouldCreateCommentSuccessfully() {
-        RequestCommentDto requestCommentDto = new RequestCommentDto();
-        requestCommentDto.setId(null);
+        CommentRequestDto commentRequestDto = new CommentRequestDto();
 
         Comment comment = new Comment();
-        ResponseCommentDto expectedOutput = new ResponseCommentDto();
+        CommentResponseDto expectedOutput = new CommentResponseDto();
 
-        when(commentMapper.toEntity(requestCommentDto)).thenReturn(comment);
+        when(commentMapper.toEntity(commentRequestDto)).thenReturn(comment);
         when(commentMapper.toDto(comment)).thenReturn(expectedOutput);
 
-        ResponseCommentDto actualOutput = commentService.createComment(requestCommentDto);
+        CommentResponseDto actualOutput = commentService.createComment(commentRequestDto);
 
-        verify(commentValidator).validateAuthorExists(requestCommentDto);
-        verify(commentValidator).validatePostExists(requestCommentDto.getPostId());
+        verify(commentValidator).validateAuthorExists(commentRequestDto);
+        verify(commentValidator).validatePostExists(commentRequestDto.getPostId());
         verify(commentRepository).save(comment);
         assertEquals(expectedOutput, actualOutput);
     }
 
     @Test
     void updateComment_shouldUpdateCommentSuccessfully() {
-        RequestCommentUpdateDto requestCommentUpdateDto = new RequestCommentUpdateDto();
-        requestCommentUpdateDto.setCommentId(VALID_COMMENT_ID);
-        requestCommentUpdateDto.setContent(UPDATED_CONTENT);
+        CommentUpdateRequestDto commentUpdateRequestDto = new CommentUpdateRequestDto();
+        commentUpdateRequestDto.setCommentId(VALID_COMMENT_ID);
+        commentUpdateRequestDto.setContent(UPDATED_CONTENT);
 
         Comment existingComment = new Comment();
         existingComment.setId(VALID_COMMENT_ID);
         existingComment.setContent(VALID_CONTENT);
 
-        ResponseCommentDto expectedOutput = new ResponseCommentDto();
+        CommentResponseDto expectedOutput = new CommentResponseDto();
 
-        when(commentRepository.getCommentById(requestCommentUpdateDto.getCommentId())).thenReturn(existingComment);
+        when(commentRepository.getCommentById(commentUpdateRequestDto.getCommentId())).thenReturn(existingComment);
         when(commentMapper.toDto(existingComment)).thenReturn(expectedOutput);
 
-        ResponseCommentDto actualOutput = commentService.updateComment(requestCommentUpdateDto);
+        CommentResponseDto actualOutput = commentService.updateComment(commentUpdateRequestDto);
 
-        verify(commentValidator).validateCommentExists(requestCommentUpdateDto.getCommentId());
+        verify(commentValidator).validateCommentExists(commentUpdateRequestDto.getCommentId());
         verify(commentRepository).save(existingComment);
         assertEquals(UPDATED_CONTENT, existingComment.getContent());
         assertEquals(expectedOutput, actualOutput);
@@ -103,13 +102,13 @@ class CommentServiceTest {
         comments.add(comment1);
         comments.add(comment2);
 
-        ResponseCommentDto dto1 = new ResponseCommentDto();
-        ResponseCommentDto dto2 = new ResponseCommentDto();
+        CommentResponseDto dto1 = new CommentResponseDto();
+        CommentResponseDto dto2 = new CommentResponseDto();
 
         when(commentRepository.findAllByPostId(postId)).thenReturn(comments);
         when(commentMapper.toDto(comments)).thenReturn(List.of(dto2, dto1)); // In reversed order
 
-        List<ResponseCommentDto> actualOutput = commentService.getCommentsByPostId(postId);
+        List<CommentResponseDto> actualOutput = commentService.getCommentsByPostId(postId);
 
         verify(commentValidator).validatePostExists(postId);
         comments.sort(Comparator.comparing(Comment::getCreatedAt).reversed());

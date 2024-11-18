@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResponseCommentDto {
+public class CommentResponseDto {
     private Long id;
     private String content;
     private long authorId;
