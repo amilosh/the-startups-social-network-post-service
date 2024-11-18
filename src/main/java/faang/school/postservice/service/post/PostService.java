@@ -3,6 +3,7 @@ package faang.school.postservice.service.post;
 import faang.school.postservice.annotations.SendPostCreatedEvent;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
+import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
 import faang.school.postservice.exception.post.PostPublishedException;
@@ -15,6 +16,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
+import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
@@ -59,6 +61,7 @@ public class PostService {
     private final PostCacheProcessExecutor postCacheProcessExecutor;
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
+    private final PostRedisRepository postRedisRepository;
 
     @Transactional
     @SendPostCreatedEvent
@@ -268,12 +271,15 @@ public class PostService {
     @Transactional
     public void processReadyToPublishPosts(List<Long> postIds) {
         List<Post> postList = postRepository.findPostsByIds(postIds);
-        LocalDateTime currentDateTime = LocalDateTime.now();
         postList.forEach(post -> {
-            post.setPublishedAt(currentDateTime);
+            post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
         });
         postRepository.saveAll(postList);
+
+        List<PostRedisEntity> postDtos = postMapper.mapToPostRedisDtos(postList);
+        postRedisRepository.saveAll(postDtos);
+
         log.info("Posts was published by scheduling: {}", postIds);
     }
 }

@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import com.amazonaws.SdkClientException;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
+import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ValidationException;
 import faang.school.postservice.exception.post.PostNotFoundException;
 import faang.school.postservice.exception.post.PostPublishedException;
@@ -14,6 +15,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
+import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
@@ -99,6 +101,8 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostCacheService postCacheService;
+    @Mock
+    private PostRedisRepository postRedisRepository;
     @Captor
     private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks
@@ -595,6 +599,7 @@ public class PostServiceTest {
         List<Post> postSublist = List.of(post1, post2);
 
         when(postRepository.findPostsByIds(postIds)).thenReturn(postSublist);
+        when(postRedisRepository.saveAll(anyList())).thenReturn(List.of());
         postService.processReadyToPublishPosts(postIds);
         verify(postRepository).saveAll(postListCaptor.capture());
 

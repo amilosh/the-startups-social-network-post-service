@@ -69,7 +69,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     from post
                     where published is false
                     	and deleted is false
-                    	and scheduled_at <= CURRENT_TIMESTAMP
+                    	and (scheduled_at is null or scheduled_at <= CURRENT_TIMESTAMP)
                     """,
             nativeQuery = true)
     List<Long> findReadyToPublishIds();
