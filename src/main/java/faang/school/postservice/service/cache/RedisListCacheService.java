@@ -10,7 +10,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,7 +22,7 @@ public class RedisListCacheService<T> implements ListCacheService<T> {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void put(String key, T value, Duration timeToLive) {
+    public void put(String key, T value) {
         redisTemplate.opsForList().leftPush(key, value);
     }
 
@@ -37,7 +36,7 @@ public class RedisListCacheService<T> implements ListCacheService<T> {
     @Retryable(retryFor = RedisTransactionException.class,
             maxAttemptsExpression = "${spring.data.redis.transaction.retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${spring.data.redis.transaction.retry.backoff.delay}"))
-    public void runInOptimisticLock(Runnable task, String key) {
+    public void runInOptimisticLock(Runnable task) {
         var operation = new SessionCallback<>() {
             public List<Object> execute(RedisOperations operations) {
                 try {

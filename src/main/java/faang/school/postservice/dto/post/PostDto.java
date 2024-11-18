@@ -17,15 +17,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostDto {
-        Long id;
-        Long authorId;
+
+        private Long id;
+        private Long authorId;
+
         @NotBlank(message = "The content is empty")
         @Size(min = 1, max = 4096, message = "The content size should be between 1 and 4096 characters")
-        String content;
+        private String content;
+
         @NotNull(message = "Likes list cannot be null")
-        List<LikeDto> likes;
-        Long projectId;
-        boolean published;
-        boolean deleted;
-        LocalDateTime scheduledAt;
+        private List<LikeDto> likes;
+
+        private Long projectId;
+        private boolean published;
+        private boolean deleted;
+        private LocalDateTime scheduledAt;
 }

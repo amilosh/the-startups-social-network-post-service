@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CachePostRepositoryTest {
+class AsyncCacheFeedRepositoryTest {
 
     @Mock
     private ListCacheService<Long> listCacheService;
@@ -29,7 +29,7 @@ class CachePostRepositoryTest {
     private CachePostProperties cachePostProperties;
 
     @InjectMocks
-    private CachePostRepository cachePostRepository;
+    private AsyncCacheFeedRepository asyncCacheFeedRepository;
 
     @Captor
     private ArgumentCaptor<Runnable> runnableArgumentCaptor;
@@ -55,9 +55,9 @@ class CachePostRepositoryTest {
     void save_shouldAddPostToCache() {
         when(listCacheService.size(userId)).thenReturn(4L);
 
-        cachePostRepository.save(userId, postId);
+        asyncCacheFeedRepository.save(userId, postId);
 
-        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), eq(userId));
+        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture());
         runnableArgumentCaptor.getValue().run();
         verify(listCacheService).put(userId, postId, ttl);
         verify(listCacheService).leftPop(userId, Long.class);
@@ -67,9 +67,9 @@ class CachePostRepositoryTest {
     void save_shouldRemoveOldestPostWhenSizeExceedsLimit() {
         when(listCacheService.size(userId)).thenReturn(0L);
 
-        cachePostRepository.save(userId, postId);
+        asyncCacheFeedRepository.save(userId, postId);
 
-        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), eq(userId));
+        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture());
         runnableArgumentCaptor.getValue().run();
         verify(listCacheService).put(userId, postId, ttl);
         verify(listCacheService, never()).leftPop(userId, Long.class);

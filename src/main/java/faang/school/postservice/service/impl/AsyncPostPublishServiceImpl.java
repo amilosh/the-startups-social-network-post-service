@@ -1,5 +1,6 @@
 package faang.school.postservice.service.impl;
 
+import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CachePostRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -17,13 +18,14 @@ public class AsyncPostPublishServiceImpl implements AsyncPostPublishService {
 
     private final PostRepository postRepository;
     private final CachePostRepository cachePostRepository;
+    private final PostMapper postMapper;
 
     @Async("publishedPostThreadPool")
     public void publishPost(List<Post> posts) {
         posts.forEach(post -> {
             post.setPublished(true);
             post.setPublishedAt(LocalDateTime.now());
-            cachePostRepository.save(post.getAuthorId().toString(), post.getId());
+            cachePostRepository.save(post.getId().toString(), postMapper.toDto(post));
         });
         postRepository.saveAll(posts);
     }

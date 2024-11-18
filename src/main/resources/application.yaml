@@ -44,9 +44,21 @@ spring:
         name: album-created_topic
         num-partitions: 3
         replication-factor: 1
+      post-for-feed:
+        name: post_for_feed_topic
+        num-partitions: 3
+        replication-factor: 1
 
 server:
   port: 8081
+  news:
+    feed:
+      thread:
+        pool:
+          corePoolSize: 4
+          maximumPoolSize: 10
+          keepAliveTime: 60
+          queueCapacity: 100
 
 logging:
   level:

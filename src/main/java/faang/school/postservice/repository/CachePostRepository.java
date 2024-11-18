@@ -1,29 +1,23 @@
 package faang.school.postservice.repository;
 
 import faang.school.postservice.config.CachePostProperties;
-import faang.school.postservice.service.cache.ListCacheService;
+import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.service.cache.RedisCacheService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 
-@Component
+@Repository
 @RequiredArgsConstructor
-public class CachePostRepository implements CacheRepository<Long> {
+public class CachePostRepository implements CacheRepository<PostDto> {
 
-    private final ListCacheService<Long> listCacheService;
+    private final RedisCacheService<PostDto> redisCacheService;
     private final CachePostProperties cachePostProperties;
 
     @Override
-    public void save(String userId, Long postId) {
-        Runnable runnable = () -> {
-            Duration timeToLive = Duration.ofHours(cachePostProperties.getCountHoursTimeToLive());
-            listCacheService.put(userId, postId, timeToLive);
-
-            if (listCacheService.size(userId) > cachePostProperties.getNewsFeedSize()) {
-                listCacheService.leftPop(userId, Long.class);
-            }
-        };
-        listCacheService.runInOptimisticLock(runnable, userId);
+    public void save(String key, PostDto post) {
+        Duration duration = Duration.ofHours(cachePostProperties.getCountHoursTimeToLive());
+        redisCacheService.put(key, post, duration);
     }
 }

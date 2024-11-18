@@ -1,5 +1,6 @@
 package faang.school.postservice.config.redis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,20 +20,22 @@ import java.sql.SQLException;
 @RequiredArgsConstructor
 @EnableTransactionManagement
 public class RedisConfiguration {
+
     private final RedisProperties redisProperties;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         template.setEnableTransactionSupport(true);
         return template;
     }
 
     @Bean
-    public PlatformTransactionManager transactionManager(DataSource dataSource) throws SQLException {
+    public PlatformTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
