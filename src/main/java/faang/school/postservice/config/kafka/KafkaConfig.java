@@ -58,13 +58,25 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic postPublishTopic() {
-        return new NewTopic(kafkaProperties.channels().get("post-channel"), partitions, (short) replicasCount);
+        return TopicBuilder.name(kafkaProperties.channels().get("post-channel"))
+                .partitions(partitions)
+                .replicas(replicasCount)
+                .build();
     }
 
     @Bean
     public NewTopic commentKafkaTopic() {
         return TopicBuilder
                 .name(kafkaProperties.channels().get("comment-channel"))
+                .partitions(partitions)
+                .replicas(replicasCount)
+                .build();
+    }
+
+    @Bean
+    public NewTopic postForNewsFeedTopic() {
+        return TopicBuilder
+                .name(kafkaProperties.channels().get("post-newsfeed"))
                 .partitions(partitions)
                 .replicas(replicasCount)
                 .build();
