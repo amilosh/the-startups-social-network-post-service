@@ -39,6 +39,10 @@ spring:
         name: album-created_topic
         num-partitions: 3
         replication-factor: 1
+      posts:
+        name: posts_topic
+        num-partitions: 3
+        replication-factor: 1
 
 server:
   port: 8081
