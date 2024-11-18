@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - cerberus-master-stream6 # Запуск при пуше в ветку
+      - n-feed-ostermal7
   pull_request:
     branches:
       - cerberus-master-stream6 # Запуск на pull request в ветку
+      - n-feed-ostermal7
 
 jobs:
   build:
