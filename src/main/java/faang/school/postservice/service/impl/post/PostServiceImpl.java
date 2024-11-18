@@ -6,7 +6,9 @@ import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.kafka.PostNFEvent;
+import faang.school.postservice.model.event.kafka.PostObservationEvent;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
+import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
@@ -39,6 +41,7 @@ public class PostServiceImpl implements PostService {
     private final PostEventPublisher postEventPublisher;
     private final KafkaPostProducer kafkaPostProducer;
     private final UserServiceClient userServiceClient;
+    private final KafkaPostViewProducer kafkaPostViewProducer;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -103,10 +106,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PostDto getPost(Long id) {
         Post post = getPostFromRepository(id);
-
+        PostObservationEvent observationEvent = new PostObservationEvent(post.getId());
+        kafkaPostViewProducer.publish(observationEvent);
         return postMapper.toDto(post);
     }
 

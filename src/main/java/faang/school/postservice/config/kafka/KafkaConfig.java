@@ -81,4 +81,13 @@ public class KafkaConfig {
                 .replicas(replicasCount)
                 .build();
     }
+
+    @Bean
+    public NewTopic postObservedTopic() {
+        return TopicBuilder
+                .name(kafkaProperties.channels().get("post-observed"))
+                .partitions(partitions)
+                .replicas(replicasCount)
+                .build();
+    }
 }
