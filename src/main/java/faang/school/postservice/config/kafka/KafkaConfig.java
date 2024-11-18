@@ -61,7 +61,15 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic albumCreatedTopic() {
-        Topic topic = properties.getTopics().get("album-created");
+        return getNewTopic(properties.getTopics().get("album-created"));
+    }
+
+    @Bean
+    public NewTopic commentForFeedTopic() {
+        return getNewTopic(properties.getTopics().get("comment-for-feed"));
+    }
+
+    private NewTopic getNewTopic(Topic topic) {
         return new NewTopic(topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor());
     }
 }

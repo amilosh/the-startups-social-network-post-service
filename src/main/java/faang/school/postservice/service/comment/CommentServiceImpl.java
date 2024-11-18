@@ -9,6 +9,7 @@ import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.publisher.EventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserServiceClient userServiceClient;
     private final CommentMapper commentMapper;
     private final CommentEventPublisher commentEventPublisher;
+    private final EventPublisher<CommentDto> commentFeedEventPublisher;
 
     @Override
     public CommentDto addComment(CommentDto commentDto) {
@@ -44,12 +46,11 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentMapper.toComment(commentDto);
         comment.setPost(post);
 
-        CommentEvent commentEvent = new CommentEvent(commentDto.getId(), commentDto.getAuthorId(),
-                commentDto.getPostId(), LocalDateTime.now());
-        commentEventPublisher.publish(commentEvent);
-        log.info("comment event published to topic, event: {}", commentEvent);
+        comment = commentRepository.save(comment);
+        CommentDto commentDtoWithId = commentMapper.toDto(comment);
+        publishEvents(commentDtoWithId);
 
-        return commentMapper.toDto(commentRepository.save(comment));
+        return commentDtoWithId;
     }
 
     @Override
@@ -76,5 +77,15 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(long commentId) {
         commentRepository.deleteById(commentId);
+    }
+
+    private void publishEvents(CommentDto commentDto) {
+        CommentEvent commentEvent = new CommentEvent(commentDto.getId(), commentDto.getAuthorId(),
+                commentDto.getPostId(), LocalDateTime.now());
+
+        commentEventPublisher.publish(commentEvent);
+        commentFeedEventPublisher.publish(commentDto);
+
+        log.info("comment event published to topic, event: {}", commentEvent);
     }
 }

@@ -2,12 +2,14 @@ package faang.school.postservice.client;
 
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.dto.user.UserFilterDto;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @FeignClient(name = "user-service", url = "${user-service.host}:${user-service.port}/api/v1")
+@ConditionalOnProperty(name = "mock.user-service.client.enabled", havingValue = "false")
 public interface UserServiceClient {
 
     @GetMapping("/{userId}")
