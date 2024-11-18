@@ -116,3 +116,6 @@ redis:
   banner:
     schedule: "0 0 0 * * ?"
     topic: "user_ban"
+
+feed:
+  posts-batch-size: 20

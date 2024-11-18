@@ -7,6 +7,65 @@
 	},
 	"item": [
 		{
+			"name": "feed",
+			"item": [
+				{
+					"name": "Get feed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/feed?postId=1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"feed"
+							],
+							"query": [
+								{
+									"key": "postId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add feed",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/feed/1/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"feed",
+								"1",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Update Album visibility",
 			"request": {
 				"method": "PUT",
