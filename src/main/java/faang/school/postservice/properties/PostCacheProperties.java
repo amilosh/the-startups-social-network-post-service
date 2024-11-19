@@ -9,10 +9,6 @@ import java.util.concurrent.TimeUnit;
 @ConfigurationProperties(prefix = "cache.post")
 public class PostCacheProperties {
     private int liveTime;
-    private String timeUnit;
+    private TimeUnit timeUnit;
     private String setKey;
-
-    public TimeUnit getTimeUnit() {
-        return TimeUnit.valueOf(timeUnit);
-    }
 }
