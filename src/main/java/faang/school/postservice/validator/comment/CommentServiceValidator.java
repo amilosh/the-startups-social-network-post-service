@@ -3,7 +3,7 @@ package faang.school.postservice.validator.comment;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.CommentDto;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.service.PostService;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

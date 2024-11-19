@@ -1,16 +1,17 @@
-package faang.school.postservice.service.post;
+package faang.school.postservice.service;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.filter.FilterDto;
-import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.filter.post.PostFilter;
-import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.sort.PostField;
 import faang.school.postservice.sort.SortBy;
 import faang.school.postservice.validator.PostServiceValidator;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,11 +35,14 @@ public class PostService {
         PostServiceValidator.checkDtoValidAuthorOrProjectId(postDto);
         PostServiceValidator.checkThatUserOrProjectIsExist(postDto, userServiceClient, projectServiceClient);
 
+
         Post post = postMapper.toEntity(postDto);
         post.setCreatedAt(LocalDateTime.now());
         post.setPublished(false);
         post.setDeleted(false);
         postRepository.save(post);
+
+
 
         return postMapper.toDto(post);
     }
@@ -94,17 +98,30 @@ public class PostService {
         return sort(posts, filterDto.getPostField());
     }
 
+    public Post getPost(long id) {
+        return postRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException(String.format("Post %d not found", id)));
+    }
+
+    public boolean existsPostById(Long id) {
+        if (id == null) return false;
+        return postRepository.existsById(id);
+    }
+
     private List<PostDto> sort(List<Post> posts, PostField postField) {
         Comparator<Post> comparator = sort.stream()
-                .filter(sortBy -> sortBy.getPostField() == postField)
+                .filter(sortBy -> sortBy.getPostField()==postField)
                 .findFirst()
                 .map(SortBy::getComparator)
-                .orElseThrow(() -> new IllegalStateException("Такого компаратора не существует"));
+                .orElseThrow(()->new IllegalStateException("Такого компаратора не существует"));
 
         return posts.stream()
                 .sorted(comparator)
                 .map(postMapper::toDto)
                 .toList();
+    }
+    private void addPostToProjectOrAuthor(){
+
     }
 
     private List<Post> getPostWithLikes(long id, boolean author) {
@@ -113,11 +130,6 @@ public class PostService {
         } else {
             return postRepository.findByProjectIdWithLikes(id);
         }
-    }
-
-    private Post getPost(long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Не существует поста с таким id"));
     }
 
     private void savePost(Post post) {

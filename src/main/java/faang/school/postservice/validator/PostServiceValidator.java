@@ -2,8 +2,8 @@ package faang.school.postservice.validator;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.dto.UserDto;
 import faang.school.postservice.model.Post;
 
 

@@ -3,28 +3,27 @@ package faang.school.postservice.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class CommentDto {
+public class PostDto {
     private Long id;
-    @NotBlank
-    @Size(max = 4096, message = "The size exceeds 4096 characters")
+
+    @NotBlank(message = "content must be not blank")
+    @NotNull(message = "content must be not null")
+    @Size(max = 1000, message = "content must be shorter than 1000 characters")
     private String content;
-    @NotNull
+
     private Long authorId;
-    @NotNull
+    private Long ProjectId;
     private List<Long> likeIds;
-    private Long postId;
+    private List<Long> commentIds;
+    private Boolean deleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime publishedAt;
+    private LocalDateTime scheduledAt;
 }

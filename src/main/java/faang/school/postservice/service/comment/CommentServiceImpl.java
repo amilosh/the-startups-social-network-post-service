@@ -5,7 +5,7 @@ import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.service.PostService;
 import faang.school.postservice.validator.comment.CommentServiceValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
