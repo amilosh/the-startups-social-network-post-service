@@ -1,4 +1,4 @@
-package faang.school.postservice.controller;
+package faang.school.postservice.controller.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.service.post.PostService;
@@ -20,7 +20,7 @@ import java.util.List;
 public class PostController {
    private final PostService postService;
 
-   @PostMapping("/create")
+   @PostMapping("")
     public PostDto createPost(@RequestBody PostDto postDto){
        return postService.create(postDto);
    }
@@ -30,7 +30,7 @@ public class PostController {
        return postService.publishPost(id);
    }
 
-   @PutMapping("/update")
+   @PutMapping("/")
     public PostDto updatePost(@RequestBody PostDto postDto){
        return postService.updatePost(postDto);
    }
