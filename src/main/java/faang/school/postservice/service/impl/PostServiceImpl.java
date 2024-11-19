@@ -6,7 +6,9 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.publisher.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRepository;
 import faang.school.postservice.service.AsyncPostPublishService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.validator.PostValidator;
@@ -35,6 +37,8 @@ public class PostServiceImpl implements PostService {
     private final PostValidator validator;
     private final PostMapper postMapper;
     private final AsyncPostPublishService asyncPostPublishService;
+    private final KafkaPostProducer kafkaPostProducer;
+    private final UserRepository userRepository;
 
     @Override
     public void createDraftPost(PostDto postDto) {

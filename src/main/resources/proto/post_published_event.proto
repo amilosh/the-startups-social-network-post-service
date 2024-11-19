@@ -1,8 +1,10 @@
 syntax = "proto3";
 
 option java_outer_classname = "PostPublishedEventProto";
+option java_package = "";
 
 message PostPublishedEvent {
   int64 postId = 1;
-  repeated int64 subscribersIds = 2;
+  int64 authorId = 2;
+  repeated int64 subscribersIds = 3;
 }
