@@ -132,6 +132,7 @@ public class AlbumService {
         return mapper.toAlbumResponseDto(newAlbum);
     }
 
+    @Transactional
     public void deleteAlbum(long albumId, long authorId) {
         validator.validateAlbumExists(albumId);
         validator.validateAuthor(authorId);
@@ -140,8 +141,7 @@ public class AlbumService {
     }
 
     private List<Post> getPosts(List<Long> postsIds) {
-      return postsIds.stream().map(validator::validatePost).toList();
+      return postsIds == null ? null : postsIds.stream().map(validator::validatePost).toList();
     }
-
 
 }

@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class AlbumRequestUpdateDto {
-
+    @NotNull
     private Long id;
     @NotNull
     @NotBlank

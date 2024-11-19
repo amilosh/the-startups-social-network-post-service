@@ -26,7 +26,7 @@ public interface AlbumMapper {
 
     @Named("toIds")
     default List<Long> toInternshipIds(List<Post> interns) {
-        return interns.stream().map(Post::getId).toList();
+        return interns == null ? null : interns.stream().map(Post::getId).toList();
     }
 
 }
