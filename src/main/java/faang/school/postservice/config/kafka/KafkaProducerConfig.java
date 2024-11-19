@@ -14,14 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaConfig {
-    @Value("${kafka.port}")
-    private String port;
+public class KafkaProducerConfig {
+    @Value("${kafka.server}")
+    private String server;
 
     @Bean
     public Map<String, Object> producerConfig() {
         Map<String, Object> configs = new HashMap<>();
-        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, port);
+        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, server);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return configs;
