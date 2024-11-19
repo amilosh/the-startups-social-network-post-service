@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @ToString
 @Getter
 @Setter
@@ -14,5 +17,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostKafkaDto {
-    private Long id;
+    private Long postId;
+    private List<Long> followerIds;
+    private LocalDateTime publishedAt;
 }

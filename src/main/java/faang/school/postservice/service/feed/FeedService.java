@@ -1,12 +1,13 @@
 package faang.school.postservice.service.feed;
 
+import faang.school.postservice.kafka.dto.PostKafkaDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -41,9 +42,12 @@ public class FeedService {
         Set<Long> postIds = feedZSetOperations.range(key, start, end);
     }
 
-    public void addFeed(Long userId, Long postId, LocalDateTime publishedAt) {
-        var score = publishedAt.toInstant(ZoneOffset.UTC).toEpochMilli();
-        feedZSetOperations.add(buildKey(userId), postId, score);
+    public void addFeed(PostKafkaDto postKafkaDto) {
+        Long postId = postKafkaDto.getPostId();
+        var score = postKafkaDto.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
+
+        List<Long> followerIds = postKafkaDto.getFollowerIds();
+        followerIds.forEach(id -> feedZSetOperations.add(buildKey(id), postId, score));
     }
 
     private String buildKey(Long userId) {
