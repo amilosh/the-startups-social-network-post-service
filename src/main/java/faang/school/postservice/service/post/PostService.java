@@ -27,8 +27,6 @@ public class PostService {
     public PostDto create(PostDto postDto) {
         postValidator.validateCreate(postDto);
 
-        postDto.setCreatedAt(LocalDateTime.now());
-
         Post post = postMapper.toEntity(postDto);
 
         post.setPublished(false);
@@ -44,15 +42,14 @@ public class PostService {
                 .orElseThrow(EntityExistsException::new);
         postValidator.validatePublish(post);
         post.setPublished(true);
-        post.setPublishedAt(LocalDateTime.now());
         return postMapper.toDto(postRepository.save(post));
     }
 
     public PostDto updatePost(PostDto postDto) {
+        postValidator.validateUpdate(postDto);
         Post post = postRepository.
                 findById(postDto.getId())
                 .orElseThrow(EntityNotFoundException::new);
-        post.setUpdatedAt(LocalDateTime.now());
         post.setContent(postDto.getContent());
         return postMapper.toDto(postRepository.save(post));
     }
@@ -67,9 +64,7 @@ public class PostService {
         post.setDeleted(true);
         postRepository.save(post);
 
-        PostDto postDto = postMapper.toDto(post);
-        postDto.setDeleted(true);
-        return postDto;
+        return postMapper.toDto(post);
     }
 
     public PostDto getPostById(Long id) {
@@ -78,24 +73,19 @@ public class PostService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public List<PostDto> getAllNonPublishedByAuthorId(Long id) {
-        postValidator.validateUserExist(id);
-        return postFilter.filterPostByTimeToDTo(postRepository.findByAuthorId(id), false);
-    }
+    public List<PostDto> getPosts(Long id, boolean published, String type) {
+        // Проверяем, что за тип фильтрации используется
+        switch (type.toLowerCase()) {
+            case "author":
+                postValidator.validateUserExist(id);
+                return postFilter.filterPostByTimeToDTo(postRepository.findByAuthorId(id), published);
 
-    public List<PostDto> getAllNonPublishPostByProjectId(Long id) {
-        postValidator.validateProjectExist(id);
-        return postFilter.filterPostByTimeToDTo(postRepository.findByAuthorId(id), false);
-    }
+            case "project":
+                postValidator.validateProjectExist(id);
+                return postFilter.filterPostByTimeToDTo(postRepository.findByProjectId(id), published);
 
-    public List<PostDto> getAllPublishedByAuthorId(Long id) {
-        postValidator.validateUserExist(id);
-        return postFilter.filterPostByTimeToDTo(postRepository.findByAuthorId(id), true);
+            default:
+                throw new IllegalArgumentException("Invalid type. Supported values: 'author', 'project'.");
+        }
     }
-
-    public List<PostDto> getAllPublishPostByProjectId(Long id) {
-        postValidator.validateProjectExist(id);
-        return postFilter.filterPostByTimeToDTo(postRepository.findByAuthorId(id), true);
-    }
-
 }
