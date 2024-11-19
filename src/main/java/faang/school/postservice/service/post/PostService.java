@@ -11,6 +11,7 @@ import faang.school.postservice.exception.post.image.DownloadImageFromPostExcept
 import faang.school.postservice.exception.post.image.UploadImageToPostException;
 import faang.school.postservice.exception.spelling_corrector.DontRepeatableServiceException;
 import faang.school.postservice.exception.spelling_corrector.RepeatableServiceException;
+import faang.school.postservice.kafka.KafkaPostProducer;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
@@ -62,6 +63,7 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
     private final PostRedisRepository postRedisRepository;
+    private final KafkaPostProducer kafkaPostProducer;
 
     @Transactional
     @SendPostCreatedEvent
@@ -280,6 +282,7 @@ public class PostService {
         List<PostRedisEntity> postDtos = postMapper.mapToPostRedisDtos(postList);
         postRedisRepository.saveAll(postDtos);
 
+        kafkaPostProducer.sendPostsToKafka(postList);
         log.info("Posts was published by scheduling: {}", postIds);
     }
 }

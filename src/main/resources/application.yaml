@@ -117,5 +117,12 @@ redis:
     schedule: "0 0 0 * * ?"
     topic: "user_ban"
 
+kafka:
+  port: localhost:9092
+  topic:
+    post-published-topic: post-published-topic
+  partitions: 1
+  replicas: 1
+
 feed:
   posts-batch-size: 20
