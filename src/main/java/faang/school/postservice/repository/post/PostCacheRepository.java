@@ -1,7 +1,5 @@
 package faang.school.postservice.repository.post;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.properties.PostCacheProperties;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,6 @@ import java.time.ZoneOffset;
 public class PostCacheRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostCacheProperties postCacheProperties;
-    private final ObjectMapper objectMapper;
 
     public PostDto cachePost(PostDto postDto) {
         long score = postDto.getCreatedAt().toEpochSecond(ZoneOffset.UTC);
@@ -26,6 +23,7 @@ public class PostCacheRepository {
         redisTemplate.opsForValue().set(postId, postDto, postCacheProperties.getLiveTime(),
                 postCacheProperties.getTimeUnit());
         redisTemplate.opsForZSet().add(postCacheProperties.getSetKey(), postId, score);
+        log.info("post with saved to cache: {}", postDto);
 
         return postDto;
     }
