@@ -8,6 +8,7 @@ import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.redis.RedisPostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.impl.post.async.PostServiceAsyncImpl;
 import faang.school.postservice.validator.post.PostValidator;
@@ -61,6 +62,8 @@ public class PostServiceImplTest {
     private UserServiceClient userServiceClient;
     @Mock
     private KafkaPostViewProducer kafkaPostViewProducer;
+    @Mock
+    private RedisPostRepository redisPostRepository;
 
     private PostDto examplePostDto;
     private Post examplePost;
