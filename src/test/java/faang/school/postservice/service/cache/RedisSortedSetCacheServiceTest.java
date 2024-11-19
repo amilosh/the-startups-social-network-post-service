@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class RedisListCacheServiceTest {
+class RedisSortedSetCacheServiceTest {
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -40,7 +40,7 @@ class RedisListCacheServiceTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private RedisListCacheService<Object> redisListCacheService;
+    private RedisSortedSetCacheService<Object> redisListCacheService;
 
     @Mock
     private ListOperations<String, Object> listOperations;

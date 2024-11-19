@@ -1,7 +1,7 @@
 package faang.school.postservice.repository;
 
 import faang.school.postservice.config.CachePostProperties;
-import faang.school.postservice.service.cache.ListCacheService;
+import faang.school.postservice.service.cache.SortedSetCacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 class AsyncCacheFeedRepositoryTest {
 
     @Mock
-    private ListCacheService<Long> listCacheService;
+    private SortedSetCacheService<Long> sortedSetCacheService;
 
     @Spy
     private CachePostProperties cachePostProperties;
@@ -53,25 +53,25 @@ class AsyncCacheFeedRepositoryTest {
 
     @Test
     void save_shouldAddPostToCache() {
-        when(listCacheService.size(userId)).thenReturn(4L);
+        when(sortedSetCacheService.size(userId)).thenReturn(4L);
 
         asyncCacheFeedRepository.save(userId, postId);
 
-        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
+        verify(sortedSetCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
-        verify(listCacheService).put(userId, postId, ttl);
-        verify(listCacheService).leftPop(userId, Long.class);
+        verify(sortedSetCacheService).put(userId, postId, ttl);
+        verify(sortedSetCacheService).leftPop(userId, Long.class);
     }
 
     @Test
     void save_shouldRemoveOldestPostWhenSizeExceedsLimit() {
-        when(listCacheService.size(userId)).thenReturn(0L);
+        when(sortedSetCacheService.size(userId)).thenReturn(0L);
 
         asyncCacheFeedRepository.save(userId, postId);
 
-        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
+        verify(sortedSetCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
-        verify(listCacheService).put(userId, postId, ttl);
-        verify(listCacheService, never()).leftPop(userId, Long.class);
+        verify(sortedSetCacheService).put(userId, postId, ttl);
+        verify(sortedSetCacheService, never()).leftPop(userId, Long.class);
     }
 }

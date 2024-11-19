@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -16,19 +17,19 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class RedisListCacheService<T> implements ListCacheService<T> {
+public class RedisSortedSetCacheService<T> implements SortedSetCacheService<T> {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
     @Override
-    public void put(String key, T value) {
-        redisTemplate.opsForList().leftPush(key, value);
+    public void put(String key, T value, double score) {
+        redisTemplate.opsForZSet().add(key, value, score);
     }
 
     @Override
     public long size(String key) {
-        Long size = redisTemplate.opsForList().size(key);
+        Long size = redisTemplate.opsForZSet().size(key);
         return Objects.requireNonNullElse(size, 0L);
     }
 
@@ -61,9 +62,10 @@ public class RedisListCacheService<T> implements ListCacheService<T> {
 
 
     @Override
-    public Optional<T> leftPop(String listKey, Class<T> clazz) {
-        Object leftValue = redisTemplate.opsForList().leftPop(listKey);
-        return Optional.ofNullable(leftValue)
+    public Optional<T> leftPop(String sortedSetKey, Class<T> clazz) {
+        ZSetOperations.TypedTuple<Object> tuple = redisTemplate.opsForZSet().popMin(sortedSetKey);
+        return Optional.ofNullable(tuple)
+                .map(ZSetOperations.TypedTuple::getValue)
                 .map(value -> objectMapper.convertValue(value, clazz));
     }
 }

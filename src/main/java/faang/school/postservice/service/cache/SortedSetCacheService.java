@@ -2,11 +2,11 @@ package faang.school.postservice.service.cache;
 
 import java.util.Optional;
 
-public interface ListCacheService<T> {
+public interface SortedSetCacheService<T> {
 
-    void put(String listKey, T value);
+    void put(String key, T value, double score);
 
-    Optional<T> leftPop(String listKey, Class<T> clazz);
+    Optional<T> leftPop(String sortedSetKey, Class<T> clazz);
 
     long size(String key);
 
