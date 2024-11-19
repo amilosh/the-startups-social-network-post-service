@@ -24,21 +24,6 @@ public class AlbumValidator {
     private AlbumRepository albumRepository;
     private PostRepository postRepository;
 
-//    public void validateAlbum(AlbumRequestUpdateDto albumRequestUpdateDto) {
-//        String title = albumRequestUpdateDto.getTitle();
-//        String description = albumRequestUpdateDto.getDescription();
-//        Long authorId = albumRequestUpdateDto.getAuthorId();
-//        if (title == null || title.isEmpty()) {
-//            throw new DataValidationException("Title is empty");
-//        }
-//        if (description == null || description.isEmpty()) {
-//            throw new DataValidationException("Description is empty");
-//        }
-//        if (authorId == null) {
-//            throw new DataValidationException("AuthorId is null");
-//        }
-//    }
-
     public void validateAuthor(long authorId) {
         UserDto author = userServiceClient.getUser(authorId);
         if (author == null) {
@@ -53,17 +38,6 @@ public class AlbumValidator {
             throw new DataValidationException("Title " + title + " already exists");
         }
     }
-
-//    public void validateAlbumForPost(AlbumRequestDto albumRequestDto) {
-//        Long authorId = albumRequestDto.getAuthorId();
-//        Long id = albumRequestDto.getId();
-//        if (authorId == null) {
-//            throw new DataValidationException("AuthorId is null");
-//        }
-//        if (id == null) {
-//            throw new DataValidationException("Id is null");
-//        }
-//    }
 
     public Post validatePost(long postId) {
         Optional<Post> post = postRepository.findById(postId);
