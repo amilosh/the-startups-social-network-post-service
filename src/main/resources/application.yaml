@@ -37,6 +37,9 @@ spring:
           name: post_like_event_channel
         post_channel:
           name: post_event_channel
+      cache:
+        ttl:
+          user-cache: 86400
 
   servlet:
     multipart:

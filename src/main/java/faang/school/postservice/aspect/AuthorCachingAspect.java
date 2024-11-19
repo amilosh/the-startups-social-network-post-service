@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,9 @@ public class AuthorCachingAspect {
     private final UserRedisRepository userRedisRepository;
     private final UserContext userContext;
 
+    @Value("${spring.data.redis.cache.ttl.user-cache}")
+    private Long userCacheTtl;
+
     @AfterReturning(pointcut = "@annotation(AuthorCaching)", returning = "post")
     @Async("treadPool")
     public void afterReturning(Post post) {
@@ -31,6 +35,8 @@ public class AuthorCachingAspect {
         userContext.setUserId(authorId);
         UserDto author = userServiceClient.getUser(authorId);
         UserCache userCache = userCacheMapper.toUserCache(author);
+        userCache.setTtl(userCacheTtl);
+
         userRedisRepository.save(userCache);
         log.info("Cache post author: {}", userCache);
     }

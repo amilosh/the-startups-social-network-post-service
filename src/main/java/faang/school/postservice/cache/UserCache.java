@@ -7,7 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 
 import java.io.Serializable;
 
@@ -20,7 +22,11 @@ import java.io.Serializable;
 @Builder
 @RedisHash("UserCache")
 public class UserCache implements Serializable {
+    @Id
     private Long id;
     private String username;
     private String avatarSmall;
+
+    @TimeToLive
+    private Long ttl;
 }
