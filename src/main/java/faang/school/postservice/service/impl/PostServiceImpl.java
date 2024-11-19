@@ -11,9 +11,11 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
+import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducerOld;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
@@ -56,8 +58,8 @@ public class PostServiceImpl implements PostService {
     private final ExecutorService schedulingThreadPoolExecutor;
     private final PostBatchService postBatchService;
     private final PostViewPublisher postViewPublisher;
-    private final KafkaCommentProducer kafkaCommentProducer;
     private final UserContext userContext;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -87,7 +89,8 @@ public class PostServiceImpl implements PostService {
 
         newPostPublisher.publish(result);
         // TODO tests don't work
-//        kafkaCommentProducer.sendEvent(new CommentEvent(savedPost.getId(), savedPost.getAuthorId()));
+        kafkaCommentProducer.sendEvent(new CommentEventKafka(savedPost.getId(),
+                savedPost.getAuthorId(), savedPost.getCreatedAt()));
         return result;
     }
 
