@@ -1,7 +1,6 @@
 package faang.school.postservice;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
@@ -10,7 +9,6 @@ import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.LikeService;
 import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,11 +37,6 @@ class PostServiceAppTests {
     @Mock
     private UserServiceClient userServiceClient;
 
-    @BeforeEach
-    public void setUp() {
-        UserDto userDto = new UserDto(1L, "Alex", "alex@mail.com", List.of(), List.of());
-
-    }
     @Test
     @DisplayName("Add like to post: check user exist")
     public void testAddToPostCheckUserExist() {
