@@ -139,14 +139,14 @@ public class PostService {
         } catch (FeignException e) {
             switch (e.status()) {
                 case 404:
-                    log.error(temp + idUser + " not found" + HttpStatus.NOT_FOUND);
+                    log.error(temp + idUser + " not found " + HttpStatus.NOT_FOUND);
                     throw new IllegalArgumentException(temp + idUser + " not found" + HttpStatus.NOT_FOUND);
                 case 500:
-                    log.error(temp + idUser + " Internal Server Error" + HttpStatus.INTERNAL_SERVER_ERROR);
+                    log.error(temp + idUser + " Internal Server Error " + HttpStatus.INTERNAL_SERVER_ERROR);
                     throw new IllegalArgumentException(temp + idUser + " Internal Server Error" + HttpStatus.INTERNAL_SERVER_ERROR);
                 default:
-                    log.error(temp + idUser + "Error" + e.getMessage());
-                    throw new IllegalArgumentException(temp + idUser + "Error" + e.getMessage());
+                    log.error(temp + idUser + " Error " + e.getMessage());
+                    throw new IllegalArgumentException(temp + idUser + " Error " + e.getMessage());
             }
         }
     }

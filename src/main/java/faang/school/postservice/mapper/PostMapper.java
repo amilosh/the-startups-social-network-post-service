@@ -27,5 +27,4 @@ public interface PostMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Post toEntity(PostDto postDto);
-
 }

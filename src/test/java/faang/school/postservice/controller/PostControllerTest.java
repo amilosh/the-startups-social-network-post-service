@@ -1,9 +1,8 @@
-package faang.school.postservice;
+package faang.school.postservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.controller.PostController;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.handler.ExceptionApiHandler;
 import faang.school.postservice.service.PostService;
