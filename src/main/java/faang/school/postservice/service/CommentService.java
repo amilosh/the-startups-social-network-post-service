@@ -10,6 +10,7 @@ import faang.school.postservice.validator.CommentValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -29,6 +30,10 @@ public class CommentService {
     public CommentDto createComment(CommentDto commentDto) {
         commentValidator.validateCreation(commentDto);
         Post post = postService.findEntityById(commentDto.getPostId());
+
+        commentDto.setCreatedAt(LocalDateTime.now());
+        commentDto.setUpdatedAt(LocalDateTime.now());
+
         Comment comment = commentMapper.toEntity(commentDto);
         comment.setPost(post);
         return commentMapper.toDto(commentRepository.save(comment));
@@ -40,6 +45,8 @@ public class CommentService {
         }
         Comment comment = findEntityById(commentDto.getId());
         commentValidator.validateUpdate(comment, commentDto);
+        commentDto.setUpdatedAt(LocalDateTime.now());
+
         commentMapper.update(comment, commentDto);
         commentRepository.save(comment);
         return commentMapper.toDto(comment);
