@@ -23,7 +23,7 @@ public class PostCacheRepository {
         redisTemplate.opsForValue().set(postId, postDto, postCacheProperties.getLiveTime(),
                 postCacheProperties.getTimeUnit());
         redisTemplate.opsForZSet().add(postCacheProperties.getSetKey(), postId, score);
-        log.info("post with saved to cache: {}", postDto);
+        log.info("post saved to cache: {}", postDto);
 
         return postDto;
     }
