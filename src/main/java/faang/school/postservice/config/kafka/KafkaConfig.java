@@ -53,9 +53,11 @@ public class KafkaConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<byte[], byte[]> messageListenerContainer() {
         ConcurrentKafkaListenerContainerFactory<byte[], byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
         ContainerProperties containerProperties = factory.getContainerProperties();
+
+        factory.setConsumerFactory(consumerFactory());
         containerProperties.setAckMode(ContainerProperties.AckMode.MANUAL);
+
         return factory;
     }
 
@@ -67,6 +69,11 @@ public class KafkaConfig {
     @Bean
     public NewTopic commentForFeedTopic() {
         return getNewTopic(properties.getTopics().get("comment-for-feed"));
+    }
+
+    @Bean
+    public NewTopic postForFeedTopic() {
+        return getNewTopic(properties.getTopics().get("post-for-feed"));
     }
 
     private NewTopic getNewTopic(Topic topic) {

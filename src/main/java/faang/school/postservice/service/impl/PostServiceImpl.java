@@ -2,10 +2,15 @@ package faang.school.postservice.service.impl;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.news.feed.FeedEvent;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.dto.user.UserFilterDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.protobuf.generate.FeedEventProto;
+import faang.school.postservice.publisher.EventPublisher;
 import faang.school.postservice.repository.CacheRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.AsyncPostPublishService;
@@ -20,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +44,7 @@ public class PostServiceImpl implements PostService {
     private final PostValidator validator;
     private final PostMapper postMapper;
     private final AsyncPostPublishService asyncPostPublishService;
+    private final EventPublisher<FeedEventProto.FeedEvent> postForFeedPublisher;
 
     @Override
     public void createDraftPost(PostDto postDto) {
@@ -71,6 +79,8 @@ public class PostServiceImpl implements PostService {
 
             postRepository.save(post);
             cachePostRepository.save(post.getId().toString(), postMapper.toDto(post));
+
+            publishForFeed(id, post);
         }
     }
 
@@ -134,5 +144,19 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Long> getAuthorsWithMoreFiveUnverifiedPosts() {
         return postRepository.findAuthorsWithMoreThanFiveUnverifiedPosts();
+    }
+
+    private void publishForFeed(long id, Post post) {
+        Iterable<Long> followers = userServiceClient.getFollowers(post.getAuthorId(), new UserFilterDto())
+                .stream()
+                .map(UserDto::getId)
+                .toList();
+
+        FeedEventProto.FeedEvent feedEvent = FeedEventProto.FeedEvent.newBuilder()
+                .setPostId(id)
+                .addAllFollowerIds(followers)
+                .build();
+
+        postForFeedPublisher.publish(feedEvent);
     }
 }

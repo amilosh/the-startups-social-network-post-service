@@ -1,7 +1,5 @@
 package faang.school.postservice.publisher;
 
-import faang.school.postservice.dto.comment.CommentDto;
-import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.protobuf.generate.FeedEventProto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,17 +8,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CommentFeedEventPublisher implements EventPublisher<CommentDto> {
+public class PostEventForFeedPublisher implements EventPublisher<FeedEventProto.FeedEvent> {
 
     private final KafkaTemplate<byte[], byte[]> kafkaTemplate;
-    private final CommentMapper commentMapper;
 
     @Value("${spring.kafka.topics.post-for-feed.name}")
     private String topicName;
 
     @Override
-    public void publish(CommentDto commentDto) {
-        FeedEventProto.FeedEvent event = commentMapper.toProto(commentDto);
+    public void publish(FeedEventProto.FeedEvent event) {
         byte[] byteEvent = event.toByteArray();
         kafkaTemplate.send(topicName, byteEvent);
     }

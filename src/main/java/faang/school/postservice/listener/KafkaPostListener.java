@@ -18,7 +18,9 @@ public class KafkaPostListener implements KafkaEventListener<byte[]> {
     private final AsyncCacheRepository<Long> asyncCacheFeedRepository;
 
     @Override
-    @KafkaListener(topics = "${spring.kafka.topics.post-for-feed.name}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "${spring.kafka.topics.post-for-feed.name}",
+            groupId = "${spring.kafka.consumer.group-id}",
+            containerFactory = "messageListenerContainer")
     public void onMessage(byte[] byteFeedEvent, Acknowledgment acknowledgment) throws InvalidProtocolBufferException {
         FeedEventProto.FeedEvent feedEvent = FeedEventProto.FeedEvent.parseFrom(byteFeedEvent);
         List<Long> followerIds = feedEvent.getFollowerIdsList();

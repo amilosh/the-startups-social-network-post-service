@@ -39,6 +39,7 @@ spring:
     consumer:
       group-id: "group"
       auto-offset-reset: earliest
+      enable-auto-commit: false
     topics:
       album-created:
         name: album-created_topic
