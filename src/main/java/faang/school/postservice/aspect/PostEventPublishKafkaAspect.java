@@ -1,5 +1,7 @@
 package faang.school.postservice.aspect;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.user.UserDto;
@@ -21,7 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class PostEventPublishKafkaAspect {
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
     private final UserServiceClient userServiceClient;
     private final UserContext userContext;
 
@@ -31,17 +34,21 @@ public class PostEventPublishKafkaAspect {
     @AfterReturning(pointcut = "@annotation(PostEventPublishKafka)", returning = "post")
     @Async("treadPool")
     public void publishPostAdvice(Post post) {
-        Long authorId = post.getAuthorId();
+        try {
+            Long authorId = post.getAuthorId();
+            userContext.setUserId(authorId);
+            UserDto author = userServiceClient.getUser(authorId);
+            List<Long> followerId = author.getFollowerIds();
 
-        userContext.setUserId(authorId);
-        UserDto author = userServiceClient.getUser(authorId);
-        List<Long> followerId = author.getFollowerIds();
+            PostPublishMessage postPublishMessage = new PostPublishMessage();
+            postPublishMessage.setPostId(post.getId());
+            postPublishMessage.setFollowersId(followerId);
 
-        PostPublishMessage postPublishMessage = new PostPublishMessage();
-        postPublishMessage.setPostId(post.getId());
-        postPublishMessage.setFollowersId(followerId);
-
-        kafkaTemplate.send(publishPostTopicName, postPublishMessage);
-        log.info("Message published to kafka broker: topic = {}, message = {}", publishPostTopicName, postPublishMessage);
+            String message = objectMapper.writeValueAsString(postPublishMessage);
+            kafkaTemplate.send(publishPostTopicName, message);
+            log.info("Message published to kafka broker: topic = {}, message = {}", publishPostTopicName, postPublishMessage);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
