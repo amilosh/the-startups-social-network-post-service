@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.TimeToLive;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +24,8 @@ public class PostCache implements Serializable {
     private String content;
     private Long authorId;
     private LocalDateTime publishedAt;
+    private List<Long> likesIds;
+    private List<Long> commentIds;
 
     @TimeToLive
     private Long ttl;

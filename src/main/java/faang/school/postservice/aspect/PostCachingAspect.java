@@ -27,10 +27,18 @@ public class PostCachingAspect {
     @Async("treadPool")
     public void cachingPost(Post post) {
         PostCache postCache = postCacheMapper.toPostCache(post);
+        postCache.setLikesIds(post.getLikes()
+                .stream()
+                .map(like -> like.getId())
+                .toList());
+        postCache.setCommentIds(post.getComments()
+                .stream()
+                .map(comment -> comment.getId())
+                .toList());
         postCache.setTtl(timeToLive);
         postRedisRepository.save(postCache);
 
-        log.info("Post '{}' cached", postCache.getId());
+        log.info("Post '{}' cached {}", postCache.getId(), postCache.getLikesIds());
         log.info("post exists: {}", postRedisRepository.existsById(postCache.getId()));
     }
 }
