@@ -99,7 +99,7 @@ class RedisListCacheServiceTest {
         when(redisTemplate.execute(callbackCaptor.capture())).thenReturn(Collections.emptyList());
         when(mockOperations.exec()).thenReturn(Collections.emptyList());
 
-        redisListCacheService.runInOptimisticLock(task);
+        redisListCacheService.runInOptimisticLock(task, );
 
         SessionCallback<?> capturedCallback = callbackCaptor.getValue();
         capturedCallback.execute(mockOperations);
@@ -115,7 +115,7 @@ class RedisListCacheServiceTest {
         when(redisTemplate.execute(callbackCaptor.capture())).thenThrow(new RedisTransactionException());
 
         assertThrows(RedisTransactionException.class,
-                () -> redisListCacheService.runInOptimisticLock(task));
+                () -> redisListCacheService.runInOptimisticLock(task, ));
 
         SessionCallback<?> capturedCallback = callbackCaptor.getValue();
         doThrow(new RuntimeException("Test Exception")).when(mockOperations).exec();

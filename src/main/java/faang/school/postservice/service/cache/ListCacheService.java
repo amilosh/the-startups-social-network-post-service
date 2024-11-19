@@ -10,5 +10,5 @@ public interface ListCacheService<T> {
 
     long size(String key);
 
-    void runInOptimisticLock(Runnable task);
+    void runInOptimisticLock(Runnable task, String key);
 }

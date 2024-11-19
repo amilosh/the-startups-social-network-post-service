@@ -19,14 +19,15 @@ public class AsyncCacheFeedRepository implements AsyncCacheRepository<Long> {
     @Async("newsFeedThreadPoolExecutor")
     public CompletableFuture<Long> save(String followerId, Long postId) {
         Runnable runnable = () -> {
-            listCacheService.put(followerId, postId);
+            String followerFeedKey = followerId + "::list";
+            listCacheService.put(followerFeedKey, postId);
 
-            if (listCacheService.size(followerId) > cachePostProperties.getNewsFeedSize()) {
-                listCacheService.leftPop(followerId, Long.class);
+            if (listCacheService.size(followerFeedKey) > cachePostProperties.getNewsFeedSize()) {
+                listCacheService.leftPop(followerFeedKey, Long.class);
             }
         };
 
-        listCacheService.runInOptimisticLock(runnable);
+        listCacheService.runInOptimisticLock(runnable, followerId);
         return CompletableFuture.completedFuture(postId);
     }
 }

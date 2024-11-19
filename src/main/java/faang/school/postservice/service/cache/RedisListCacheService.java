@@ -33,24 +33,32 @@ public class RedisListCacheService<T> implements ListCacheService<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     @Retryable(retryFor = RedisTransactionException.class,
             maxAttemptsExpression = "${spring.data.redis.transaction.retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${spring.data.redis.transaction.retry.backoff.delay}"))
-    public void runInOptimisticLock(Runnable task) {
+    public void runInOptimisticLock(Runnable task, String key) {
         var operation = new SessionCallback<>() {
             public List<Object> execute(RedisOperations operations) {
-                try {
-                    operations.multi();
-                    task.run();
-                    return operations.exec();
-                } catch (RuntimeException exception) {
+                operations.watch(key);
+                operations.multi();
+
+                task.run();
+
+                List<Object> result = operations.exec();
+                operations.unwatch();
+
+                if (result.isEmpty()) {
                     operations.discard();
                     throw new RedisTransactionException();
                 }
+                return result;
             }
         };
+
         redisTemplate.execute(operation);
     }
+
 
     @Override
     public Optional<T> leftPop(String listKey, Class<T> clazz) {

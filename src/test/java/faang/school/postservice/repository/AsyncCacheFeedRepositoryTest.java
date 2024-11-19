@@ -57,7 +57,7 @@ class AsyncCacheFeedRepositoryTest {
 
         asyncCacheFeedRepository.save(userId, postId);
 
-        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture());
+        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
         verify(listCacheService).put(userId, postId, ttl);
         verify(listCacheService).leftPop(userId, Long.class);
@@ -69,7 +69,7 @@ class AsyncCacheFeedRepositoryTest {
 
         asyncCacheFeedRepository.save(userId, postId);
 
-        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture());
+        verify(listCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
         verify(listCacheService).put(userId, postId, ttl);
         verify(listCacheService, never()).leftPop(userId, Long.class);
