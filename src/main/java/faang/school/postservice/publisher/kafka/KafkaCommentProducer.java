@@ -11,15 +11,15 @@ import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Component
-public class KafkaCommentProducer  {
+public class KafkaCommentProducer {
 
     private final KafkaTemplate<String, Object> multiTypeKafkaTemplate;
 
     @Value(value = "${spring.kafka.topics.comment}")
     private String commentTopic;
 
-    public void sendMessage(String topic, String message) {
-        CompletableFuture<SendResult<String, Object>> future = multiTypeKafkaTemplate.send(topic,new CommentEvent(4L,5L));
+    public void sendEvent(CommentEvent commentEvent) {
+        CompletableFuture<SendResult<String, Object>> future = multiTypeKafkaTemplate.send(commentTopic, commentEvent);
 //        future.whenComplete((result, ex) -> {
 //            System.out.println("Send message but before timeout 5 seconds");
 //            try {
