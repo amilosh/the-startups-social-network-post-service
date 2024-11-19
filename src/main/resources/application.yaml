@@ -38,6 +38,16 @@ spring:
         post_channel:
           name: post_event_channel
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+    topic:
+      post-publisher: post_publisher
+
   servlet:
     multipart:
       max-file-size: 50MB

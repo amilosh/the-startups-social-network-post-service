@@ -1,4 +1,4 @@
-package faang.school.postservice.publis.aspect.post;
+package faang.school.postservice.aspect;
 
 
 import java.lang.annotation.ElementType;
@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface PostEventPublish {
+public @interface PostEventPublishKafka {
 }

@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.aspect.PostEventPublishKafka;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
@@ -9,7 +10,7 @@ import faang.school.postservice.event.EventType;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publis.aspect.post.PostEventPublish;
+import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.tools.YandexSpeller;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,8 @@ public class PostService {
     }
 
     @Transactional
-    @PostEventPublish
+    @PostEventPublishRedis
+    @PostEventPublishKafka
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
         if (existingPost.isPublished()) {
