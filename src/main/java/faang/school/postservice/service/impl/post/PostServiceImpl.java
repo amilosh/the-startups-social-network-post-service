@@ -11,6 +11,7 @@ import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.redis.RedisPostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.service.PostServiceAsync;
@@ -42,6 +43,7 @@ public class PostServiceImpl implements PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final UserServiceClient userServiceClient;
     private final KafkaPostViewProducer kafkaPostViewProducer;
+    private final RedisPostRepository redisPostRepository;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -74,7 +76,7 @@ public class PostServiceImpl implements PostService {
                 .build();
         sendPostEventForNewsFeed(publishedPost);
         postEventPublisher.publish(event);
-
+        redisPostRepository.save(postMapper.toRedis(publishedPost));
         return postMapper.toDto(post);
     }
 
