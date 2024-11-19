@@ -1,5 +1,6 @@
 package faang.school.postservice.scheduler;
 
+import faang.school.postservice.model.Post;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +22,11 @@ public class ScheduledPostPublisher {
     @Scheduled(cron = "${post.publisher.scheduler.cron}")
     public void scheduledPostPublish() {
         List<Long> readyToPublishIds = postService.getReadyToPublishIds();
-        List<List<Long>> subLists = listOfSubLists(readyToPublishIds);
+        List<List<Long>> subLists = getListOfBatches(readyToPublishIds);
         subLists.forEach(postService::processReadyToPublishPosts);
     }
 
-    private List<List<Long>> listOfSubLists(List<Long> list) {
+    private List<List<Long>> getListOfBatches(List<Long> list) {
         List<List<Long>> result = IntStream.range(0, list.size())
                 .filter(i -> i % postPublishBatchSize == 0)
                 .mapToObj(i -> list.subList(i, Math.min(i + postPublishBatchSize, list.size())))

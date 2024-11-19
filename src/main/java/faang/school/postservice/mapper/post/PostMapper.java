@@ -5,6 +5,8 @@ import faang.school.postservice.dto.post.FilterPostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.UpdatePostRequestDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
+import faang.school.postservice.dto.redis.PostRedisEntity;
+import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
@@ -18,7 +20,10 @@ import org.mapstruct.ReportingPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = {CommentMapper.class})
 public interface PostMapper {
     @Mapping(source = "resources", target = "resourceIds", qualifiedByName = "mapResourcesToResourceIds")
     @Mapping(target = "likes", expression = "java(post.getLikes() != null ? post.getLikes().size() : 0)")
@@ -56,6 +61,11 @@ public interface PostMapper {
 
     List<PostCacheDto> mapToPostCacheDtos(List<Post> posts);
 
+    @Mapping(target = "likes", source = "likes", qualifiedByName = "mapPostLikesToNumber")
+    PostRedisEntity mapToPostRedisDto(Post post);
+
+    List<PostRedisEntity> mapToPostRedisDtos(List<Post> posts);
+
     @Named("mapLikes")
     default List<Long> mapLikes(List<Like> likes) {
         return likes
@@ -86,5 +96,13 @@ public interface PostMapper {
                 .stream()
                 .map(Resource::getId)
                 .toList();
+    }
+
+    @Named("mapPostLikesToNumber")
+    default Integer mapPostLikesToNumber(List<Like> likes) {
+        if (likes == null) {
+            return 0;
+        }
+        return likes.size();
     }
 }
