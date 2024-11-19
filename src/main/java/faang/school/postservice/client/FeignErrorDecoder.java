@@ -11,7 +11,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
     @Override
     public Exception decode(String methodKey, Response response) {
         if (response.status() == 404) {
-            return new EntityNotFoundException("User not found");
+            return new EntityNotFoundException("Resource not found");
         }
         return new Default().decode(methodKey, response);
     }
