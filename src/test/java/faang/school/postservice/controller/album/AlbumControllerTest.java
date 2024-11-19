@@ -2,8 +2,11 @@ package faang.school.postservice.controller.album;
 
 import com.google.gson.Gson;
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.album.AlbumFilterDto;
 import faang.school.postservice.dto.album.AlbumRequestDto;
+import faang.school.postservice.dto.album.AlbumRequestUpdateDto;
 import faang.school.postservice.dto.album.AlbumResponseDto;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.service.album.AlbumService;
 import faang.school.postservice.validator.album.AlbumValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,10 +20,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +43,11 @@ public class AlbumControllerTest {
 
     private AlbumResponseDto albumResponseDto;
     private AlbumRequestDto albumRequestDto;
+    private AlbumRequestUpdateDto albumRequestUpdateDto;
+    private AlbumResponseDto firstAlbum;
+    private AlbumResponseDto secondAlbum;
+    private Post post;
+    private List<AlbumResponseDto> albums;
 
     @BeforeEach
     public void setUp() {
@@ -57,6 +66,22 @@ public class AlbumControllerTest {
                 .description("description")
                 .authorId(5L)
                 .build();
+        albumRequestUpdateDto = AlbumRequestUpdateDto.builder()
+                .id(56L)
+                .title("Заголовок")
+                .build();
+        post = Post.builder()
+                .id(25L)
+                .build();
+        firstAlbum = AlbumResponseDto.builder()
+                .id(3L)
+                .title("title1")
+                .build();
+        secondAlbum = AlbumResponseDto.builder()
+                .id(4L)
+                .title("title2")
+                .build();
+        albums = new ArrayList<>(List.of(firstAlbum,secondAlbum));
     }
 
     @Test
@@ -73,6 +98,98 @@ public class AlbumControllerTest {
                 .andExpect(jsonPath("$.title", is("title")))
                 .andExpect(jsonPath("$.description", is("description")))
                 .andExpect(jsonPath("$.authorId", is(5)));
+    }
+
+    @Test
+    public void testAddPost() throws Exception {
+        albumResponseDto.getPostsIds().add(post.getId());
+        when(albumService.addPost(1L, 25L)).thenReturn(albumResponseDto);
+
+        mockMvc.perform(get("/api/v1/albums/1/post/25"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.title", is("title")))
+                .andExpect(jsonPath("$.description", is("description")));
+
+    }
+
+    @Test
+    public void testDeletePost() throws Exception {
+
+        mockMvc.perform(delete("/api/v1/albums/1/post/25"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testAddAlbumToFavoriteAlbums() throws Exception {
+        mockMvc.perform(post("/api/v1/albums/1/author/favorite"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testDeleteAlbumFromFavoriteAlbums() throws Exception {
+        mockMvc.perform(delete("/api/v1/albums/1/author/favorite"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetAlbum() throws Exception {
+        when(albumService.getAlbum(1L)).thenReturn(albumResponseDto);
+        mockMvc.perform(get("/api/v1/albums/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.title", is("title")))
+                .andExpect(jsonPath("$.description", is("description")));
+    }
+
+    @Test
+    public void testGetAllMyAlbumsByFilter() throws Exception {
+        when(albumController.getAllMyAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+
+        mockMvc.perform(get("/api/v1/albums/author"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title", is("title1")))
+                .andExpect(jsonPath("$[1].title", is("title2")));
+    }
+
+    @Test
+    public void testGetAllAlbumsByFilter() throws Exception {
+        when(albumController.getAllAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+
+        mockMvc.perform(get("/api/v1/albums"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title", is("title1")))
+                .andExpect(jsonPath("$[1].title", is("title2")));
+    }
+
+    @Test
+    public void testGetAllFavoriteAlbumsByFilter() throws Exception {
+        when(albumController.getAllFavoriteAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+
+        mockMvc.perform(get("/api/v1/albums/author/favorite"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title", is("title1")))
+                .andExpect(jsonPath("$[1].title", is("title2")));
+    }
+
+    @Test
+    public void testUpdateAlbum() throws Exception {
+        when(albumController.updateAlbum(albumRequestUpdateDto)).thenReturn(albumResponseDto);
+
+        String albumRequestUpdateDtoJson = new Gson().toJson(albumRequestUpdateDto);
+
+        mockMvc.perform(put("/api/v1/albums")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(albumRequestUpdateDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.title", is("title")));
+    }
+
+    @Test
+    public void testDeleteAlbum() throws Exception {
+        mockMvc.perform(delete("/api/v1/albums/1"))
+                .andExpect(status().isOk());
     }
 
 
