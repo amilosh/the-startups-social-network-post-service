@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.aspect.AuthorCaching;
 import faang.school.postservice.aspect.PostEventPublishKafka;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
@@ -43,6 +44,7 @@ public class PostService {
     @Transactional
     @PostEventPublishRedis
     @PostEventPublishKafka
+    @AuthorCaching
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
         if (existingPost.isPublished()) {
