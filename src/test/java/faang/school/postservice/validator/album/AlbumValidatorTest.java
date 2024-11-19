@@ -123,6 +123,13 @@ public class AlbumValidatorTest {
     }
 
     @Test
+    public void testValidateAlbumDoesNotExistsWithException() {
+        when(albumRepository.findById(13L)).thenReturn(Optional.of(album));
+        assertThrows(EntityNotFoundException.class,
+                () -> validator.validateAlbumDoesNotExist(13L));
+    }
+
+    @Test
     public void testValidateAlbumExistsSuccess() {
         when(albumRepository.findById(10L)).thenReturn(Optional.of(album));
         assertDoesNotThrow(() -> validator.validateAlbumExists(10L));

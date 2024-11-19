@@ -14,6 +14,7 @@ import faang.school.postservice.validator.album.AlbumValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class AlbumService {
         validator.validateAlbumWithSameTitleExists(authorId, title);
         Album album = mapper.toAlbum(albumRequestDto);
         album.setPosts(new ArrayList<>());
-        validator.validateAlbumExists(album.getId());
+        validator.validateAlbumDoesNotExist(album.getId());
         albumRepository.save(album);
         log.info("Album saved: {}", album.getId());
         log.info("Album created: {}", album.getId());
@@ -60,6 +61,7 @@ public class AlbumService {
         albumRepository.save(album);
     }
 
+    @Transactional(readOnly = true)
     public void addAlbumToFavoriteAlbums(long albumId, long authorId) {
         validator.validateAlbumExists(albumId);
         validator.validateAuthor(authorId);
@@ -140,5 +142,6 @@ public class AlbumService {
     private List<Post> getPosts(List<Long> postsIds) {
       return postsIds.stream().map(validator::validatePost).toList();
     }
+
 
 }

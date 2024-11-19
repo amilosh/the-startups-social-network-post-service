@@ -10,6 +10,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +19,12 @@ import java.util.stream.Stream;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class AlbumValidator {
 
-    private UserServiceClient userServiceClient;
-    private AlbumRepository albumRepository;
-    private PostRepository postRepository;
+    private final UserServiceClient userServiceClient;
+    private final AlbumRepository albumRepository;
+    private final PostRepository postRepository;
 
     public void validateAuthor(long authorId) {
         UserDto author = userServiceClient.getUser(authorId);
@@ -64,6 +66,14 @@ public class AlbumValidator {
             throw new EntityNotFoundException("Album with id " + id + " not found");
         }
         return album.get();
+    }
+
+    public void validateAlbumDoesNotExist(long id) {
+        Optional<Album> album = albumRepository.findById(id);
+        if (album.isPresent()) {
+            log.error("Album with id {} already exists", id);
+            throw new EntityNotFoundException("Album with id " + id + " already exists");
+        }
     }
 
     public boolean validateFavoritesHasThisAlbum(long albumId, long authorId) {
