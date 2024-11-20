@@ -20,6 +20,7 @@ spring:
     bootstrap-servers: localhost:9092
     topics:
       comment: comment_topic
+      comment-partitions-num: 5
 
 
   jpa:

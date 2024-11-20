@@ -19,6 +19,9 @@ public class KafkaTopicConfig {
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
+    @Value(value = "${spring.kafka.topics.comment-partitions-num}")
+    private int partitionsNum;
+
     @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
@@ -27,7 +30,7 @@ public class KafkaTopicConfig {
     }
 
     @Bean
-    public NewTopic testTopic() {
-        return new NewTopic(commentTopic, 5, (short) 1);
+    public NewTopic commentKafkaTopic() {
+        return new NewTopic(commentTopic, partitionsNum, (short) 1);
     }
 }
