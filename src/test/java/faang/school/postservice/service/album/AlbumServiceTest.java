@@ -320,16 +320,26 @@ class AlbumServiceTest {
         LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
         LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
         Stream<Album> albums = Stream.of(
-                createAlbum("Summer Holidays", "Amazing summer vacation photos!", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 9, 9)), // этот подойдет
-                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 7, 20)),
-                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", VisibilityAlbums.ALL_USERS, LocalDate.of(2023, 12, 5)),
-                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 2, 15)),
-                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 12, 25)),
-                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 5, 14)),
-                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 18)),
-                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 25)),
-                createAlbum("Summer Holidays", "More summer vacation pictures!", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 30)),// и этот подойдет
-                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 20))
+                createAlbum("Summer Holidays", "Amazing summer vacation photos!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 9, 9)),
+                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 7, 20)),
+                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2023, 12, 5)),
+                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 2, 15)),
+                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 12, 25)),
+                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 5, 14)),
+                createAlbum("Family Holidays", "Precious moments from our family summer holidays.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 18)),
+                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 25)),
+                createAlbum("Summer Holidays", "More summer vacation pictures!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 30)),
+                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 20))
         );
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
@@ -548,16 +558,26 @@ class AlbumServiceTest {
         LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
         LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
         Stream<Album> albums = Stream.of(
-                createAlbum("Summer Holidays", "Amazing summer vacation photos!", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 9, 9)), // этот подойдет
-                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 7, 20)),
-                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", VisibilityAlbums.ALL_USERS, LocalDate.of(2023, 12, 5)),
-                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 2, 15)),
-                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 12, 25)),
-                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 5, 14)),
-                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 18)),
-                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 25)),
-                createAlbum("Summer Holidays", "More summer vacation pictures!", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 30)),// и этот подойдет
-                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 20))
+                createAlbum("Summer Holidays", "Amazing summer vacation photos!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 9, 9)),
+                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 7, 20)),
+                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2023, 12, 5)),
+                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 2, 15)),
+                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 12, 25)),
+                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 5, 14)),
+                createAlbum("Family Holidays", "Precious moments from our family summer holidays.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 18)),
+                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 25)),
+                createAlbum("Summer Holidays", "More summer vacation pictures!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 30)),
+                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 20))
         );
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
