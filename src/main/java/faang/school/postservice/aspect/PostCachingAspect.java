@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import static faang.school.postservice.mapper.PostCacheMapper.mapCommentToIds;
+import static faang.school.postservice.mapper.PostCacheMapper.mapLikeToIds;
+
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -27,15 +30,10 @@ public class PostCachingAspect {
     @Async("treadPool")
     public void cachingPost(Post post) {
         PostCache postCache = postCacheMapper.toPostCache(post);
-        postCache.setLikesIds(post.getLikes()
-                .stream()
-                .map(like -> like.getId())
-                .toList());
-        postCache.setCommentIds(post.getComments()
-                .stream()
-                .map(comment -> comment.getId())
-                .toList());
+        postCache.setLikesIds(mapLikeToIds(post.getLikes()));
+        postCache.setCommentIds(mapCommentToIds(post.getComments()));
         postCache.setTtl(timeToLive);
+
         postRedisRepository.save(postCache);
 
         log.info("Post '{}' cached {}", postCache.getId(), postCache.getLikesIds());
