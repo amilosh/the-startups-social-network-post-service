@@ -74,6 +74,10 @@ post:
   thread-pool:
     count_pool: 10
 
+feed:
+  cache:
+    count: 500
+
 user-service:
   host: localhost
   port: 8080

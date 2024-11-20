@@ -8,6 +8,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Configuration
@@ -27,6 +28,14 @@ public class RedisConfig {
         var serializer = new Jackson2JsonRedisSerializer<>(List.class);
         redisTemplate.setConnectionFactory(connection);
         redisTemplate.setValueSerializer(serializer);
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<Long, LinkedHashSet<Long>> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<Long, LinkedHashSet<Long>> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(LinkedHashSet.class));
         return redisTemplate;
     }
 }

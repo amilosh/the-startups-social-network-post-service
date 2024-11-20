@@ -21,14 +21,9 @@ public class KafkaPostConsumer implements KafkaConsumer<byte[]> {
 
     @Override
     @KafkaListener(topics = {"${spring.kafka.topics.posts.name}"})
-    public void processEvent(byte[] message) {
-        try {
-            PostPublishedEvent event = mapper.toEvent(PostPublishedEventProto
-                    .PostPublishedEvent.newBuilder().mergeFrom(message).build());
-            service.distributePostsToUsersFeeds(event);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-
+    public void processEvent(byte[] message) throws InvalidProtocolBufferException {
+        PostPublishedEvent event = mapper.toEvent(PostPublishedEventProto
+                .PostPublishedEvent.newBuilder().mergeFrom(message).build());
+        service.distributePostsToUsersFeeds(event);
     }
 }
