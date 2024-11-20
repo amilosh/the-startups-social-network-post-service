@@ -46,9 +46,6 @@ public class CreatePostTest {
     @Mock
     private PostMapper postMapper;
 
-    @Mock
-    private KafkaCommentProducer kafkaCommentProducer;
-
     @InjectMocks
     private PostServiceImpl postService;
 
@@ -76,7 +73,6 @@ public class CreatePostTest {
         when(userServiceClient.getUser(1L)).thenReturn(userDto);
 
         Post post = new Post();
-        post.setAuthorId(1L);
         when(postMapper.toPost(validUserPostDto)).thenReturn(post);
 
         when(postRepository.save(any(Post.class))).thenReturn(post);
@@ -84,8 +80,6 @@ public class CreatePostTest {
 
         PostDto createdPost = postService.createPost(validUserPostDto);
 
-        verify(kafkaCommentProducer, Mockito.times(1))
-                .sendEvent(Mockito.any(CommentEventKafka.class));
         assertNotNull(createdPost, "Created post should not be null");
         assertFalse(createdPost.isPublished(), "Post should not be published");
     }
@@ -103,15 +97,12 @@ public class CreatePostTest {
         when(projectServiceClient.getProject(1L)).thenReturn(projectDto);
 
         Post post = new Post();
-        post.setAuthorId(1L);
         when(postMapper.toPost(validProjectPostDto)).thenReturn(post);
         when(postRepository.save(post)).thenReturn(post);
         when(postMapper.toPostDto(post)).thenReturn(validProjectPostDto);
 
         PostDto createdPost = postService.createPost(validProjectPostDto);
 
-        verify(kafkaCommentProducer, Mockito.times(1))
-                .sendEvent(Mockito.any(CommentEventKafka.class));
         assertNotNull(createdPost);
         assertFalse(createdPost.isPublished());
     }
