@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: kafka
+  data:
+    kafka:
+      bootstrap-servers: localhost:9092
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.JsonSerializer
+        retries: 3
+        interval: 1000L
+      channels:
+        post-channel: post_channel
+        like-channel: like_channel
+

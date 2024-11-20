@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: kafka
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres
@@ -37,11 +39,7 @@ spring:
         ad-bought-channel:
           name: ad_bought_channel
 
-    kafka:
-      port: 9092
-      host: localhost
-      channels:
-        post-channel: post_channel
+
 
 server:
   port: 8081
