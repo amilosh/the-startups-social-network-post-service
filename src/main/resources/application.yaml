@@ -21,6 +21,7 @@ spring:
     topics:
       comment: comment_topic
 
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

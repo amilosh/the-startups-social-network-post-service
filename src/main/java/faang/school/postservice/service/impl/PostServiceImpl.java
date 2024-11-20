@@ -15,7 +15,6 @@ import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
-import faang.school.postservice.publisher.kafka.KafkaCommentProducerOld;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
@@ -88,7 +87,6 @@ public class PostServiceImpl implements PostService {
         PostDto result = postMapper.toPostDto(savedPost);
 
         newPostPublisher.publish(result);
-        // TODO tests don't work
         kafkaCommentProducer.sendEvent(new CommentEventKafka(savedPost.getId(),
                 savedPost.getAuthorId(), savedPost.getCreatedAt()));
         return result;
