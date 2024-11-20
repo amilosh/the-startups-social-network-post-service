@@ -1,9 +1,9 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.exception.EntityNotFoundException;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.mapper.CommentMapper;
+import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
@@ -60,7 +60,7 @@ public class CommentService {
     }
 
     public void addLikeToComment(Long commentId, Like like) {
-        Comment comment = getComment(commentId);
+        Comment comment = getExistingComment(commentId);
         comment.getLikes().add(like);
 
         log.info("Adding like to comment with ID: {}", comment.getId());
@@ -68,7 +68,7 @@ public class CommentService {
     }
 
     public void removeLikeFromComment(Long commentId, Like like) {
-        Comment comment = getComment(commentId);
+        Comment comment = getExistingComment(commentId);
         comment.getLikes().remove(like);
 
         log.info("Removing like from comment with ID: {}", comment.getId());

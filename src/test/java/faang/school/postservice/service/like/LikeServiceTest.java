@@ -114,7 +114,7 @@ class LikeServiceTest {
         when(likeRepository.findByCommentId(commentId)).thenReturn(new ArrayList<>());
         Like likeToCheckPost = new Like();
         when(likeRepository.findById(likeId)).thenReturn(Optional.of(likeToCheckPost));
-        when(commentService.getEntityComment(commentId)).thenReturn(commentOfLike);
+        when(commentService.getExistingComment(commentId)).thenReturn(commentOfLike);
 
         likeService.addLikeToComment(likeDto);
 
@@ -152,7 +152,7 @@ class LikeServiceTest {
         when(likeRepository.findById(userId)).thenReturn(Optional.of(likeToRemove));
         doNothing().when(likeValidator).validateThisUserAddThisLike(userId, likeToRemove);
 
-        likeService.removeLikeFromPost(likeDto);
+        likeService.removeLikeFromPost(likeID, likeDto);
 
         verify(likeRepository).findById(userId);
         verify(likeValidator).validateThisUserAddThisLike(userId, likeToRemove);
@@ -178,7 +178,7 @@ class LikeServiceTest {
         when(likeRepository.findById(userId)).thenReturn(Optional.of(likeToRemove));
         doNothing().when(likeValidator).validateThisUserAddThisLike(userId, likeToRemove);
 
-        likeService.removeLikeFromComment(likeDto);
+        likeService.removeLikeFromComment(likeID, likeDto);
 
         verify(likeRepository).findById(userId);
         verify(likeValidator).validateThisUserAddThisLike(userId, likeToRemove);

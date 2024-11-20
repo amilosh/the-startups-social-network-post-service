@@ -1,16 +1,15 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.exception.EntityNotFoundException;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.mapper.CommentMapper;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -24,12 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
@@ -85,7 +83,7 @@ public class CommentServiceTest {
     }
 
     @Test
-    public void updateComment() {
+    public void updateCommentTest() {
         Long commentId = 1L;
         CommentDto commentDto = new CommentDto();
         commentDto.setContent("New Test");
@@ -101,7 +99,6 @@ public class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(currentComment));
         when(commentRepository.save(currentComment)).thenReturn(updatedComment);
 
-        // Убираем проверку маппера, так как он является шпионом
         CommentDto result = commentService.updateComment(commentId, commentDto);
 
         assertNotNull(result);
@@ -112,7 +109,7 @@ public class CommentServiceTest {
     }
 
     @Test
-    public void getAllComments() {
+    public void getAllCommentsTest() {
         Long postId = 1L;
 
         when(postService.getPostById(postId)).thenReturn(new PostDto());
@@ -166,7 +163,7 @@ public class CommentServiceTest {
         when(commentRepository.findById(id)).thenThrow(faang.school.postservice.exception.EntityNotFoundException.class);
 
         assertThrows(EntityNotFoundException.class,
-                () -> commentService.getEntityComment(id));
+                () -> commentService.getExistingComment(id));
     }
 
     @Test

@@ -60,7 +60,7 @@ public class LikeService {
         Like likeToCheckPost = getLikeOrEmptyLike(likeDto.getId());
         likeValidator.validateLikeWasNotPutToPost(likeDto, likeToCheckPost);
 
-        Comment commentOfLike = commentService.getEntityComment(likeDto.getCommentId());
+        Comment commentOfLike = commentService.getExistingComment(likeDto.getCommentId());
         Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setComment(commentOfLike);
 
@@ -79,7 +79,7 @@ public class LikeService {
         postService.removeLikeFromPost(likeDto.getPostId(), likeToRemove);
     }
 
-    public void removeLikeFromComment(Long likeId,LikeDto likeDto) {
+    public void removeLikeFromComment(Long likeId, LikeDto likeDto) {
         validateUserExistence(likeDto.getUserId());
         Like likeToRemove = getLike(likeId);
         likeValidator.validateThisUserAddThisLike(likeDto.getUserId(), likeToRemove);
@@ -99,6 +99,6 @@ public class LikeService {
 
     private Like getLike(long likeId) {
         return likeRepository.findById(likeId).orElseThrow(() ->
-                new EntityNotFoundException(LIKE,likeId));
+                new EntityNotFoundException(LIKE, likeId));
     }
 }
