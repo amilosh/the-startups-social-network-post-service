@@ -7,7 +7,7 @@ import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.model.Users;
+import faang.school.postservice.model.User;
 import faang.school.postservice.publisher.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.UserRepository;
@@ -74,7 +74,7 @@ public class PostServiceImpl implements PostService {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
             postRepository.save(post);
-            publishPostPublishedEvent(post);
+            //publishPostPublishedEvent(post);
         }
     }
 
@@ -141,13 +141,13 @@ public class PostServiceImpl implements PostService {
     }
 
     private void publishPostPublishedEvent(Post post) {
-        Users user = userRepository.getReferenceById(post.getAuthorId());
+        User user = userRepository.getReferenceById(post.getAuthorId());
 
         PostPublishedEvent event = new PostPublishedEvent();
         event.setPostId(post.getId());
         event.setAuthorId(post.getAuthorId());
         event.setSubscribersIds(user.getSubscribers().stream()
-                .map(Users::getId)
+                .map(User::getId)
                 .toList());
 
         kafkaPostProducer.publish(event);

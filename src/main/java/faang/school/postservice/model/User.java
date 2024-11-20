@@ -21,7 +21,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "users")
-public class Users {
+public class User {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -83,6 +83,6 @@ public class Users {
             joinColumns = {@JoinColumn(name = "followee_id")},
             inverseJoinColumns = {@JoinColumn(name = "follower_id")}
     )
-    private List<Users> subscribers;
+    private List<User> subscribers;
 
 }

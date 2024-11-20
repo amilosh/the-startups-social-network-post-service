@@ -4,24 +4,32 @@ import faang.school.postservice.dto.like.LikeDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Builder
+@NoArgsConstructor
 @Data
 public class PostDto {
-        Long id;
-        Long authorId;
-        @NotBlank(message = "The content is empty")
-        @Size(min = 1, max = 4096, message = "The content size should be between 1 and 4096 characters")
-        String content;
-        @NotNull(message = "Likes list cannot be null")
-        List<LikeDto> likes;
-        Long projectId;
-        boolean published;
-        boolean deleted;
-        LocalDateTime scheduledAt;
+    private Long id;
+    private Long authorId;
+
+    @NotBlank(message = "The content is empty")
+    @Size(min = 1, max = 4096, message = "The content size should be between 1 and 4096 characters")
+    private String content;
+
+    @NotNull(message = "Likes list cannot be null")
+    private List<LikeDto> likes;
+
+    private Long projectId;
+
+    private boolean published;
+
+    private boolean deleted;
+
+    private LocalDateTime scheduledAt;
 }

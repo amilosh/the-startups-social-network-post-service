@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,13 +22,13 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @ManyToOne(targetEntity = Users.class)
-    @Column(name = "follower_id")
-    private Users followerId;
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(name = "follower_id")
+    private User followerId;
 
-    @ManyToOne(targetEntity = Users.class)
-    @Column(name = "followee_id")
-    private Users followeeId;
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(name = "followee_id")
+    private User followeeId;
 
     @Column(name = "created_at")
     @CreationTimestamp
