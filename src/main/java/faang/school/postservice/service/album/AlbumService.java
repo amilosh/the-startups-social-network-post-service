@@ -242,13 +242,12 @@ public class AlbumService {
     }
 
     private boolean checkAlbumVisibility(Long userId, Album album) {
-        boolean result = switch (album.getVisibility()) {
+        return switch (album.getVisibility()) {
             case ALL_USERS -> true;
             case SUBSCRIBERS -> checkUserFollower(userId, album.getAuthorId());
             case SELECTED_USERS -> checkUserBeholder(userId, album.getAuthorId(), album.getBeholdersIds());
             case ONLY_AUTHOR ->  checkUserToAuthor(userId, album.getAuthorId());
         };
-        return result;
     }
 
     private boolean checkUserToAuthor(Long userId, Long authorId) {
