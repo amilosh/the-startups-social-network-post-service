@@ -8,6 +8,7 @@ import faang.school.postservice.model.event.LikeEvent;
 import java.util.List;
 
 public interface LikeService {
+
     List<UserDto> getUsersLikedPost(long postId);
 
     void addLikeToPost(LikeDto likeDto, long postId);
@@ -21,5 +22,6 @@ public interface LikeService {
     void deleteLikeFromComment(LikeDto likeDto, long commentId);
 
     List<LikeDto> findLikesOfPublishedPost(long postId);
+
     void publish(LikeEvent likeEvent) throws JsonProcessingException;
 }

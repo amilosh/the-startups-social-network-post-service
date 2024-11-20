@@ -31,7 +31,7 @@ public class LikeController {
     }
 
     @PutMapping("/like_post/{postId}")
-    public void addLikeToPost(@Valid LikeDto likeDto, @PathVariable("postId") long postId) {
+    public void addLikeToPost(@Valid @RequestBody LikeDto likeDto, @PathVariable("postId") long postId) {
         service.addLikeToPost(likeDto, postId);
     }
 

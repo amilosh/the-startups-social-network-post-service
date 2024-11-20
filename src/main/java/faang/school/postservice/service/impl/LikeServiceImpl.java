@@ -10,24 +10,22 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.event.LikeEvent;
+import faang.school.postservice.publisher.EventPublisher;
 import faang.school.postservice.publisher.LikeEventPublisherImpl;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.LikeService;
 import feign.FeignException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
-@Validated
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
     private final PostRepository postRepository;
@@ -37,14 +35,16 @@ public class LikeServiceImpl implements LikeService {
     private final UserServiceClient client;
     private final UserServiceClient userServiceClient;
     private final LikeEventPublisherImpl likeEventPublisher;
+    private final EventPublisher<LikeEvent> eventForFeedPublisher;
 
     @Override
     public void publish(LikeEvent likeEvent) {
         likeEventPublisher.publishLikeEvent(likeEvent);
+        eventForFeedPublisher.publish(likeEvent);
     }
 
     @Override
-    public void addLikeToPost(@Valid LikeDto likeDto, long postId) {
+    public void addLikeToPost(LikeDto likeDto, long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new DataValidationException("There is no such post"));
         Like like = likeMapper.toLike(likeDto);
@@ -59,11 +59,11 @@ public class LikeServiceImpl implements LikeService {
         validatePostAndCommentLikes(post, like);
         like.setPost(post);
         likeRepository.save(like);
-        likeEventPublisher.publishLikeEvent(likeEvent);
+        publish(likeEvent);
     }
 
     @Override
-    public void deleteLikeFromPost(@Valid LikeDto likeDto, long postId) {
+    public void deleteLikeFromPost(LikeDto likeDto, long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new DataValidationException("There is no such post"));
         Like like = likeMapper.toLike(likeDto);
@@ -93,7 +93,7 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public void addLikeToComment(@Valid LikeDto likeDto, long commentId) {
+    public void addLikeToComment(LikeDto likeDto, long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new DataValidationException("There is no such comment"));
         Like like = likeMapper.toLike(likeDto);
@@ -105,7 +105,7 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public void deleteLikeFromComment(@Valid LikeDto likeDto, long commentId) {
+    public void deleteLikeFromComment(LikeDto likeDto, long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new DataValidationException("There is no such comment"));
         Like like = likeMapper.toLike(likeDto);

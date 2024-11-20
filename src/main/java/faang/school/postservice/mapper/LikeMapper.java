@@ -2,6 +2,7 @@ package faang.school.postservice.mapper;
 
 import faang.school.postservice.dto.like.LikeDto;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.model.event.LikeEvent;
 import faang.school.postservice.protobuf.generate.FeedEventProto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,4 +17,7 @@ public interface LikeMapper {
 
     @Mapping(target = "userId", source = "authorLikeId")
     LikeDto toLikeDto(FeedEventProto.FeedEvent feedEvent);
+
+    @Mapping(target = "authorLikeId", source = "userId")
+    FeedEventProto.FeedEvent toProto(LikeEvent likeEvent);
 }
