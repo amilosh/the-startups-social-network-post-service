@@ -17,8 +17,4 @@ public interface PostMapper {
     ResponsePostDto toDto(Post post);
 
     Post toEntity(CreatePostDto createPostDto);
-
-    PostDto postToDto (Post post);
-
-    Post postDtotoEntity (PostDto postDto);
 }
