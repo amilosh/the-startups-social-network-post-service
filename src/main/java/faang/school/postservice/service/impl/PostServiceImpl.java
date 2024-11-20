@@ -3,9 +3,11 @@ package faang.school.postservice.service.impl;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.model.Users;
 import faang.school.postservice.publisher.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.UserRepository;
@@ -63,6 +65,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public void publishPost(long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("There is no post with ID " + id));
@@ -71,6 +74,7 @@ public class PostServiceImpl implements PostService {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
             postRepository.save(post);
+            publishPostPublishedEvent(post);
         }
     }
 
@@ -134,5 +138,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Long> getAuthorsWithMoreFiveUnverifiedPosts() {
         return postRepository.findAuthorsWithMoreThanFiveUnverifiedPosts();
+    }
+
+    private void publishPostPublishedEvent(Post post) {
+        Users user = userRepository.getReferenceById(post.getAuthorId());
+
+        PostPublishedEvent event = new PostPublishedEvent();
+        event.setPostId(post.getId());
+        event.setAuthorId(post.getAuthorId());
+        event.setSubscribersIds(user.getSubscribers().stream()
+                .map(Users::getId)
+                .toList());
+
+        kafkaPostProducer.publish(event);
     }
 }
