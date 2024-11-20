@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - cerberus-master-stream6 # Запуск на pull request в ветку
+      - NF-fragmatik
 
 jobs:
   build:
