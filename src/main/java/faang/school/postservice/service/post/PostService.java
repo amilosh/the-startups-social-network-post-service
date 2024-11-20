@@ -6,8 +6,6 @@ import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.mapper.PostMapper;
-import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
@@ -130,10 +128,6 @@ public class PostService {
 
         log.info("Removing like from post with id {}", postId);
         postRepository.save(post);
-    }
-
-    public Post getPostEntity(Long postId) {
-        return getPost(postId);
     }
 
     @Transactional

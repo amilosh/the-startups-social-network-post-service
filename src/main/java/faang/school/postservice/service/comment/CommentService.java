@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CommentService {
 
+    private final String COMMENT = "Comment";
+
     private final CommentRepository commentRepository;
 
     public Comment getEntityComment(Long commentId) {
@@ -39,6 +41,6 @@ public class CommentService {
         log.info("Try to get comment by id: {}", commentId);
 
         return commentRepository.findById(commentId).orElseThrow(()
-                -> new EntityNotFoundException(String.format("Comment with id %s not found", commentId)));
+                -> new EntityNotFoundException(COMMENT, commentId));
     }
 }

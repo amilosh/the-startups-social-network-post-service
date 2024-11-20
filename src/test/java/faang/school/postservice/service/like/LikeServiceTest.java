@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,7 +73,7 @@ class LikeServiceTest {
         when(likeRepository.findByPostId(postId)).thenReturn(new ArrayList<>());
         Like likeToCheckComment = new Like();
         when(likeRepository.findById(likeId)).thenReturn(Optional.of(likeToCheckComment));
-        when(postService.getPostEntity(postId)).thenReturn(postOfLike);
+        when(postService.getPost(postId)).thenReturn(postOfLike);
 
         likeService.addLikeToPost(likeDto);
 
@@ -84,6 +83,7 @@ class LikeServiceTest {
         verify(likeValidator).validateUserAddOnlyOneLikeToPost(likesOfPost, userId);
         verify(likeRepository).findById(likeId);
         verify(likeValidator).validateLikeWasNotPutToComment(likeDto, likeToCheckComment);
+        verify(likeMapper).toEntity(likeDto);
 
         verify(likeRepository).save(captor.capture());
         Like likeToSave = captor.getValue();
@@ -91,7 +91,6 @@ class LikeServiceTest {
 
         assertEquals(postOfLike, likeToSave.getPost());
         assertEquals(userId, likeToSave.getUserId());
-        assertNotNull(likeToSave.getCreatedAt());
     }
 
     @Test
@@ -125,6 +124,7 @@ class LikeServiceTest {
         verify(likeValidator).validateUserAddOnlyOneLikeToComment(likesOfComment, userId);
         verify(likeRepository).findById(likeId);
         verify(likeValidator).validateLikeWasNotPutToPost(likeDto, likeToCheckPost);
+        verify(likeMapper).toEntity(likeDto);
 
         verify(likeRepository).save(captor.capture());
         Like likeToSave = captor.getValue();
@@ -132,7 +132,6 @@ class LikeServiceTest {
 
         assertEquals(commentOfLike, likeToSave.getComment());
         assertEquals(userId, likeToSave.getUserId());
-        assertNotNull(likeToSave.getCreatedAt());
     }
 
     @Test

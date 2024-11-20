@@ -363,7 +363,7 @@ public class PostServiceTest {
         when(postRepository.findById(postId)).thenThrow(EntityNotFoundException.class);
 
         assertThrows(EntityNotFoundException.class,
-                () -> postService.getPostEntity(postId));
+                () -> postService.getPost(postId));
     }
 
     @Test
@@ -373,7 +373,7 @@ public class PostServiceTest {
         post.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-        Post result = postService.getPostEntity(postId);
+        Post result = postService.getPost(postId);
 
         verify(postRepository, times(1)).findById(postId);
         assertEquals(postId, result.getId());

@@ -22,6 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LikeService {
 
+    private static final String LIKE = "Like";
+
     private final LikeRepository likeRepository;
     private final UserServiceClient userServiceClient;
     private final PostService postService;
@@ -39,7 +41,7 @@ public class LikeService {
         Like likeToCheckComment = getLikeOrEmptyLike(likeDto.getId());
         likeValidator.validateLikeWasNotPutToComment(likeDto, likeToCheckComment);
 
-        Post postOfLike = postService.getPostEntity(likeDto.getPostId());
+        Post postOfLike = postService.getPost(likeDto.getPostId());
         Like likeToSave = likeMapper.toEntity(likeDto);
         likeToSave.setPost(postOfLike);
 
@@ -97,6 +99,6 @@ public class LikeService {
 
     private Like getLike(long likeId) {
         return likeRepository.findById(likeId).orElseThrow(() ->
-                new EntityNotFoundException(String.format("Like with ID: %s not found", likeId)));
+                new EntityNotFoundException(LIKE,likeId));
     }
 }
