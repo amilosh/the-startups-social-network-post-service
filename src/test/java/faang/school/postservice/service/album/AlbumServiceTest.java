@@ -5,6 +5,7 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.album.AlbumCreateUpdateDto;
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
+import faang.school.postservice.enums.VisibilityAlbums;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.FeignClientException;
@@ -80,7 +81,10 @@ class AlbumServiceTest {
     @Test
     void createAlbumNotExistingUserTest() {
         long userId = 1L;
-        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto("Title", "Description");
+        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto();
+        createDto.setTitle("Title");
+        createDto.setDescription("Description");
+        createDto.setVisibility(VisibilityAlbums.ALL_USERS);
         when(userContext.getUserId()).thenReturn(userId);
         when(userServiceClient.getUser(userId)).thenThrow(FeignException.NotFound.class);
 
@@ -93,7 +97,10 @@ class AlbumServiceTest {
     @Test
     void createAlbumFeignClientExceptionTest() {
         long userId = 1L;
-        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto("Title", "Description");
+        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto();
+        createDto.setTitle("Title");
+        createDto.setDescription("Description");
+        createDto.setVisibility(VisibilityAlbums.ALL_USERS);
         when(userContext.getUserId()).thenReturn(userId);
         when(userServiceClient.getUser(userId)).thenThrow(FeignException.class);
 
@@ -108,7 +115,10 @@ class AlbumServiceTest {
         long userId = 1L;
         String title = "Title";
         String description = "Description";
-        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto(title, description);
+        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto();
+        createDto.setTitle(title);
+        createDto.setDescription(description);
+        createDto.setVisibility(VisibilityAlbums.ALL_USERS);
 
         when(userContext.getUserId()).thenReturn(userId);
         when(albumRepository.existsByTitleAndAuthorId(title, userId)).thenReturn(true);
@@ -125,7 +135,10 @@ class AlbumServiceTest {
         long userId = 1L;
         String title = "Title";
         String description = "Description";
-        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto(title, description);
+        AlbumCreateUpdateDto createDto = new AlbumCreateUpdateDto();
+        createDto.setTitle(title);
+        createDto.setDescription(description);
+        createDto.setVisibility(VisibilityAlbums.ALL_USERS);
         Album album = albumMapper.toEntity(createDto);
         album.setAuthorId(userId);
 
@@ -250,6 +263,7 @@ class AlbumServiceTest {
         long authorId = 2L;
         Album album = new Album();
         album.setAuthorId(authorId);
+        album.setVisibility(VisibilityAlbums.ALL_USERS);
 
         when(userContext.getUserId()).thenReturn(authorId);
         when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
@@ -267,6 +281,7 @@ class AlbumServiceTest {
         long authorId = 2L;
         Album album = new Album();
         album.setAuthorId(authorId);
+        album.setVisibility(VisibilityAlbums.ALL_USERS);
 
         when(userContext.getUserId()).thenReturn(authorId);
         when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
@@ -287,6 +302,7 @@ class AlbumServiceTest {
         album.setId(albumId);
         album.setTitle(title);
         album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.ALL_USERS);
         when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
 
         AlbumDto responseDto = albumService.getAlbumById(albumId);
@@ -304,16 +320,26 @@ class AlbumServiceTest {
         LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
         LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
         Stream<Album> albums = Stream.of(
-                createAlbum("Summer Holidays", "Amazing summer vacation photos!", LocalDate.of(2024, 9, 9)), // этот подойдет
-                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", LocalDate.of(2024, 7, 20)),
-                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", LocalDate.of(2023, 12, 5)),
-                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", LocalDate.of(2024, 2, 15)),
-                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", LocalDate.of(2024, 12, 25)),
-                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", LocalDate.of(2024, 5, 14)),
-                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", LocalDate.of(2024, 6, 18)),
-                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", LocalDate.of(2024, 6, 25)),
-                createAlbum("Summer Holidays", "More summer vacation pictures!", LocalDate.of(2024, 8, 30)),// и этот подойдет
-                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", LocalDate.of(2024, 8, 20))
+                createAlbum("Summer Holidays", "Amazing summer vacation photos!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 9, 9)),
+                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 7, 20)),
+                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2023, 12, 5)),
+                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 2, 15)),
+                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 12, 25)),
+                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 5, 14)),
+                createAlbum("Family Holidays", "Precious moments from our family summer holidays.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 18)),
+                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 25)),
+                createAlbum("Summer Holidays", "More summer vacation pictures!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 30)),
+                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 20))
         );
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
@@ -349,6 +375,128 @@ class AlbumServiceTest {
                 (repository, albums) -> when(repository.findFavoriteAlbumsByUserId(anyLong())).thenReturn(albums)
         );
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(anyLong());
+    }
+
+    @Test
+    void getAlbumByIdVisibilityToSubscribersTest() {
+        long albumId = 1L;
+        String title = "Title";
+        String description = "Description";
+        Album album = new Album();
+        album.setId(albumId);
+        album.setAuthorId(1L);
+        album.setTitle(title);
+        album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.SUBSCRIBERS);
+        when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
+        when(userContext.getUserId()).thenReturn(2L);
+        when(userServiceClient.checkFollowerOfFollowee(1L, 2L)).thenReturn(true);
+
+        AlbumDto responseDto = albumService.getAlbumById(albumId);
+
+        verify(albumRepository, times(1)).findById(albumId);
+        verify(userServiceClient, times(1)).checkFollowerOfFollowee(1L, 2L);
+        assertEquals(albumId, responseDto.getId());
+        assertEquals(title, responseDto.getTitle());
+        assertEquals(description, responseDto.getDescription());
+    }
+
+    @Test
+    void getAlbumByIdVisibilityToNotSubscribersTest() {
+        long albumId = 1L;
+        String title = "Title";
+        String description = "Description";
+        Album album = new Album();
+        album.setId(albumId);
+        album.setAuthorId(1L);
+        album.setTitle(title);
+        album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.SUBSCRIBERS);
+        when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
+        when(userContext.getUserId()).thenReturn(2L);
+        when(userServiceClient.checkFollowerOfFollowee(1L, 2L)).thenReturn(false);
+
+        assertThrows(ForbiddenException.class, () -> albumService.getAlbumById(albumId));
+    }
+
+    @Test
+    void getAlbumByIdVisibilityToSelectedUsersTest() {
+        long albumId = 1L;
+        String title = "Title";
+        String description = "Description";
+        Album album = new Album();
+        album.setId(albumId);
+        album.setAuthorId(1L);
+        album.setTitle(title);
+        album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.SELECTED_USERS);
+        album.setBeholdersIds(List.of(1L, 2L, 3L));
+        when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
+        when(userContext.getUserId()).thenReturn(2L);
+
+        AlbumDto responseDto = albumService.getAlbumById(albumId);
+
+        verify(albumRepository, times(1)).findById(albumId);
+        assertEquals(albumId, responseDto.getId());
+        assertEquals(title, responseDto.getTitle());
+        assertEquals(description, responseDto.getDescription());
+    }
+
+    @Test
+    void getAlbumByIdVisibilityToNotSelectedUsersTest() {
+        long albumId = 1L;
+        String title = "Title";
+        String description = "Description";
+        Album album = new Album();
+        album.setId(albumId);
+        album.setAuthorId(1L);
+        album.setTitle(title);
+        album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.SELECTED_USERS);
+        album.setBeholdersIds(List.of(1L, 2L, 3L));
+        when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
+        when(userContext.getUserId()).thenReturn(4L);
+
+        assertThrows(ForbiddenException.class, () -> albumService.getAlbumById(albumId));
+    }
+
+    @Test
+    void getAlbumByIdVisibilityToOnlyAuthorTest() {
+        long albumId = 1L;
+        String title = "Title";
+        String description = "Description";
+        Album album = new Album();
+        album.setId(albumId);
+        album.setAuthorId(1L);
+        album.setTitle(title);
+        album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.ONLY_AUTHOR);
+        when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
+        when(userContext.getUserId()).thenReturn(1L);
+
+        AlbumDto responseDto = albumService.getAlbumById(albumId);
+
+        verify(albumRepository, times(1)).findById(albumId);
+        assertEquals(albumId, responseDto.getId());
+        assertEquals(title, responseDto.getTitle());
+        assertEquals(description, responseDto.getDescription());
+    }
+
+    @Test
+    void getAlbumByIdVisibilityToNoAuthorTest() {
+        long albumId = 1L;
+        String title = "Title";
+        String description = "Description";
+        Album album = new Album();
+        album.setId(albumId);
+        album.setAuthorId(1L);
+        album.setTitle(title);
+        album.setDescription(description);
+        album.setVisibility(VisibilityAlbums.ONLY_AUTHOR);
+        when(albumRepository.findById(albumId)).thenReturn(Optional.of(album));
+        when(userContext.getUserId()).thenReturn(2L);
+
+        assertThrows(ForbiddenException.class, () -> albumService.getAlbumById(albumId));
     }
 
     @Test
@@ -403,23 +551,33 @@ class AlbumServiceTest {
     }
 
     private void filterUserAlbums(BiFunction<Long, AlbumFilterDto, List<AlbumDto>> method,
-                              BiConsumer<AlbumRepository, Stream<Album>> repositoryWhenAction) {
+                                  BiConsumer<AlbumRepository, Stream<Album>> repositoryWhenAction) {
         long albumAuthorUserId = 1L;
         String titlePattern = "Holiday";
         String descriptionPattern = "Vacation";
         LocalDateTime createdBefore = LocalDateTime.of(2024, 9, 10, 0, 0, 0);
         LocalDateTime createdAfter = LocalDateTime.of(2024, 8, 2, 0, 0, 0);
         Stream<Album> albums = Stream.of(
-                createAlbum("Summer Holidays", "Amazing summer vacation photos!", LocalDate.of(2024, 9, 9)), // этот подойдет
-                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.", LocalDate.of(2024, 7, 20)),
-                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.", LocalDate.of(2023, 12, 5)),
-                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.", LocalDate.of(2024, 2, 15)),
-                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.", LocalDate.of(2024, 12, 25)),
-                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.", LocalDate.of(2024, 5, 14)),
-                createAlbum("Family Holidays", "Precious moments from our family summer holidays.", LocalDate.of(2024, 6, 18)),
-                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.", LocalDate.of(2024, 6, 25)),
-                createAlbum("Summer Holidays", "More summer vacation pictures!", LocalDate.of(2024, 8, 30)),// и этот подойдет
-                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.", LocalDate.of(2024, 8, 20))
+                createAlbum("Summer Holidays", "Amazing summer vacation photos!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 9, 9)),
+                createAlbum("Holiday Memories", "Fun moments from various holidays and vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 7, 20)),
+                createAlbum("Winter Wonderland", "Beautiful winter scenery photos from our mountain trip.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2023, 12, 5)),
+                createAlbum("Birthday Bash", "Celebrating John's birthday party with friends and family.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 2, 15)),
+                createAlbum("Party Time", "Enjoy the holiday season with great parties and celebrations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 12, 25)),
+                createAlbum("Vacation Spots", "Photos of our favorite family vacation spots.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 5, 14)),
+                createAlbum("Family Holidays", "Precious moments from our family summer holidays.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 18)),
+                createAlbum("Reunited Again", "Another family reunion filled with fun and laughter.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 6, 25)),
+                createAlbum("Summer Holidays", "More summer vacation pictures!",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 30)),
+                createAlbum("Adventurous Escapades", "Thrilling holiday adventures and exciting vacations.",
+                        VisibilityAlbums.ALL_USERS, LocalDate.of(2024, 8, 20))
         );
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
@@ -438,10 +596,11 @@ class AlbumServiceTest {
         assertTrue(filteredAlbums.stream().allMatch(album -> album.getCreatedAt().isBefore(createdBefore)));
     }
 
-    private Album createAlbum(String title, String description, LocalDate createdDate) {
+    private Album createAlbum(String title, String description, VisibilityAlbums visibilityAlbums, LocalDate createdDate) {
         Album album = new Album();
         album.setTitle(title);
         album.setDescription(description);
+        album.setVisibility(visibilityAlbums);
         album.setCreatedAt(createdDate.atStartOfDay());
         return album;
     }

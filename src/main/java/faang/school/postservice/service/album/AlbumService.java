@@ -5,6 +5,7 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.album.AlbumCreateUpdateDto;
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
+import faang.school.postservice.enums.VisibilityAlbums;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.FeignClientException;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -51,6 +53,9 @@ public class AlbumService {
         validateAlbumTitle(createDto.getTitle(), requesterUserId);
         Album albumToSave = albumMapper.toEntity(createDto);
         albumToSave.setAuthorId(requesterUserId);
+        if (albumToSave.getVisibility() == null) {
+            albumToSave.setVisibility(VisibilityAlbums.ALL_USERS);
+        }
         Album savedAlbum = albumRepository.save(albumToSave);
 
         log.info("User with ID {} successfully created album with ID {} titled '{}'", requesterUserId, savedAlbum.getId(), createDto.getTitle());
@@ -94,8 +99,13 @@ public class AlbumService {
         long requesterUserId = userContext.getUserId();
         log.info("User with ID {} is attempting to add album with ID: {} to favorites", requesterUserId, albumId);
 
-        getAlbum(albumId);
-        albumRepository.addAlbumToFavorites(albumId, requesterUserId);
+        Album album = getAlbum(albumId);
+        validateAlbumAuthor(album, requesterUserId, "add album to favorites with ID %d".formatted(albumId));
+        if (checkAlbumVisibility(requesterUserId, album)) {
+            albumRepository.addAlbumToFavorites(albumId, requesterUserId);
+        } else {
+            throw new ForbiddenException(requesterUserId, "add album to favorites with ID %d".formatted(album.getId()));
+        }
 
         log.info("User with ID {} added album with ID {} to favorites", requesterUserId, albumId);
     }
@@ -105,26 +115,38 @@ public class AlbumService {
         long requesterUserId = userContext.getUserId();
         log.info("User with ID {} is attempting to remove album with ID: {} to favorites", requesterUserId, albumId);
 
-        getAlbum(albumId);
-        albumRepository.deleteAlbumFromFavorites(albumId, requesterUserId);
+        Album album = getAlbum(albumId);
+        validateAlbumAuthor(album, requesterUserId, "delete album to favorites with ID %d".formatted(albumId));
+        if (checkAlbumVisibility(requesterUserId, album)) {
+            albumRepository.deleteAlbumFromFavorites(albumId, requesterUserId);
+        } else {
+            throw new ForbiddenException(requesterUserId, "delete album from favorites with ID %d".formatted(album.getId()));
+        }
 
         log.info("User with ID {} removed album with ID {} from favorites", requesterUserId, albumId);
     }
 
     @Transactional
     public AlbumDto getAlbumById(long albumId) {
+        long userId = userContext.getUserId();
         log.info("User with ID {} is fetching album with ID {}", userContext.getUserId(), albumId);
         Album album = getAlbum(albumId);
+        if (!checkAlbumVisibility(userId, album)) {
+            throw new ForbiddenException(userId, "get album with ID %d".formatted(album.getId()));
+        }
         log.info("Album with ID {} successfully fetched", albumId);
         return albumMapper.toDtoList(album);
     }
 
     @Transactional
     public List<AlbumDto> getAllAlbums(AlbumFilterDto filterDto) {
+        long userId = userContext.getUserId();
         log.info("User with ID {} is fetching all albums with applied filters", userContext.getUserId());
 
         Stream<Album> albums = StreamSupport.stream(albumRepository.findAll().spliterator(), false);
-        List<Album> filteredAlbums = filterAlbums(albums, filterDto);
+        List<Album> filteredAlbums = filterAlbums(albums, filterDto).stream()
+                .filter(album -> checkAlbumVisibility(userId, album))
+                .toList();
 
         log.info("Found {} albums after applying filters", filteredAlbums.size());
         return albumMapper.toDtoList(filteredAlbums);
@@ -217,5 +239,33 @@ public class AlbumService {
     private Album getAlbum(long albumId) {
         return albumRepository.findById(albumId)
                 .orElseThrow(() -> new EntityNotFoundException(ALBUM, albumId));
+    }
+
+    private boolean checkAlbumVisibility(Long userId, Album album) {
+        return switch (album.getVisibility()) {
+            case ALL_USERS -> true;
+            case SUBSCRIBERS -> checkUserFollower(userId, album.getAuthorId());
+            case SELECTED_USERS -> checkUserBeholder(userId, album.getAuthorId(), album.getBeholdersIds());
+            case ONLY_AUTHOR ->  checkUserToAuthor(userId, album.getAuthorId());
+        };
+    }
+
+    private boolean checkUserToAuthor(Long userId, Long authorId) {
+        return authorId == userId;
+    }
+
+    private boolean checkUserFollower(Long userId, Long authorId) {
+        if (checkUserToAuthor(userId, authorId)) {
+            return true;
+        }
+        return userServiceClient.checkFollowerOfFollowee(authorId, userId);
+    }
+
+    private boolean checkUserBeholder(Long userId, Long authorId, List<Long> beholdersIds) {
+        if (checkUserToAuthor(userId, authorId)) {
+            return true;
+        }
+        return beholdersIds.stream()
+                .anyMatch(beholderId -> Objects.equals(beholderId, userId));
     }
 }

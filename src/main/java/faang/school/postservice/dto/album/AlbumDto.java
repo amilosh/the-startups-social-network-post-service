@@ -1,6 +1,8 @@
 package faang.school.postservice.dto.album;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import faang.school.postservice.enums.VisibilityAlbums;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +24,11 @@ public class AlbumDto {
     private String description;
     private long authorId;
     private List<Long> postIds;
+
+    @NotEmpty
+    private VisibilityAlbums visibility;
+
+    private List<Long> beholdersIds;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
