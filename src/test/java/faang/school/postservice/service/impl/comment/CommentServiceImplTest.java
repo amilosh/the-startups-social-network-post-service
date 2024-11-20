@@ -109,7 +109,7 @@ class CommentServiceImplTest {
 
         var commentEvent = CommentEvent.builder()
                 .commentAuthorId(commentResponseDto.authorId())
-                .username(user.username())
+                .username(user.getUsername())
                 .postAuthorId(post.getAuthorId())
                 .postId(post.getId())
                 .content(commentResponseDto.content())

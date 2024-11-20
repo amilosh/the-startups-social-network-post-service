@@ -11,7 +11,7 @@ import org.springframework.data.redis.core.RedisHash;
 import java.io.Serializable;
 import java.util.List;
 
-@RedisHash("Post")
+@RedisHash("Posts")
 @Data
 @Builder
 @NoArgsConstructor

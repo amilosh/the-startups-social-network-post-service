@@ -2,6 +2,7 @@ package faang.school.postservice.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.redis.PostRedis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,9 +76,11 @@ public class RedisConfig {
     public class CustomKeySpaceConfiguration extends KeyspaceConfiguration {
         @Override
         protected Iterable<KeyspaceSettings> initialConfiguration() {
-            KeyspaceSettings postKeyspaceSetting = new KeyspaceSettings(PostRedis.class, "Post");
+            KeyspaceSettings postKeyspaceSetting = new KeyspaceSettings(PostRedis.class, "Posts");
             postKeyspaceSetting.setTimeToLive(ttl);
-            return List.of(postKeyspaceSetting);
+            KeyspaceSettings userKeyspaceSetting = new KeyspaceSettings(UserDto.class, "Users");
+            userKeyspaceSetting.setTimeToLive(ttl);
+            return List.of(postKeyspaceSetting, userKeyspaceSetting);
         }
     }
 
