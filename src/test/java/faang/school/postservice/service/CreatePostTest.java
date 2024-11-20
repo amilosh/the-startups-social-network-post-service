@@ -8,19 +8,24 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
+import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.impl.PostServiceImpl;
+import org.apache.kafka.clients.KafkaClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +45,9 @@ public class CreatePostTest {
 
     @Mock
     private PostMapper postMapper;
+
+    @Mock
+    private KafkaCommentProducer kafkaCommentProducer;
 
     @InjectMocks
     private PostServiceImpl postService;
@@ -68,6 +76,7 @@ public class CreatePostTest {
         when(userServiceClient.getUser(1L)).thenReturn(userDto);
 
         Post post = new Post();
+        post.setAuthorId(1L);
         when(postMapper.toPost(validUserPostDto)).thenReturn(post);
 
         when(postRepository.save(any(Post.class))).thenReturn(post);
@@ -75,6 +84,8 @@ public class CreatePostTest {
 
         PostDto createdPost = postService.createPost(validUserPostDto);
 
+        verify(kafkaCommentProducer, Mockito.times(1))
+                .sendEvent(Mockito.any(CommentEventKafka.class));
         assertNotNull(createdPost, "Created post should not be null");
         assertFalse(createdPost.isPublished(), "Post should not be published");
     }
@@ -92,12 +103,15 @@ public class CreatePostTest {
         when(projectServiceClient.getProject(1L)).thenReturn(projectDto);
 
         Post post = new Post();
+        post.setAuthorId(1L);
         when(postMapper.toPost(validProjectPostDto)).thenReturn(post);
         when(postRepository.save(post)).thenReturn(post);
         when(postMapper.toPostDto(post)).thenReturn(validProjectPostDto);
 
         PostDto createdPost = postService.createPost(validProjectPostDto);
 
+        verify(kafkaCommentProducer, Mockito.times(1))
+                .sendEvent(Mockito.any(CommentEventKafka.class));
         assertNotNull(createdPost);
         assertFalse(createdPost.isPublished());
     }

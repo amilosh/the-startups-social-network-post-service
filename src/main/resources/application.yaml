@@ -16,6 +16,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres
     username: user
     password: password
+  kafka:
+    bootstrap-servers: localhost:9092
+    topics:
+      comment: comment_topic
+      comment-partitions-num: 5
+
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

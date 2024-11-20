@@ -3,16 +3,18 @@ package faang.school.postservice.service.impl;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.model.enums.AuthorType;
+import faang.school.postservice.exception.DataValidationException;
+import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.ProjectDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.exception.DataValidationException;
-import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.publisher.NewPostPublisher;
+import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
+import faang.school.postservice.model.event.kafka.CommentEventKafka;
+import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
@@ -56,6 +58,7 @@ public class PostServiceImpl implements PostService {
     private final PostBatchService postBatchService;
     private final PostViewPublisher postViewPublisher;
     private final UserContext userContext;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -84,6 +87,8 @@ public class PostServiceImpl implements PostService {
         PostDto result = postMapper.toPostDto(savedPost);
 
         newPostPublisher.publish(result);
+        kafkaCommentProducer.sendEvent(new CommentEventKafka(savedPost.getId(),
+                savedPost.getAuthorId(), savedPost.getCreatedAt()));
         return result;
     }
 
