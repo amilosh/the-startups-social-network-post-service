@@ -87,8 +87,6 @@ public class PostServiceImpl implements PostService {
         PostDto result = postMapper.toPostDto(savedPost);
 
         newPostPublisher.publish(result);
-        kafkaCommentProducer.sendEvent(new CommentEventKafka(savedPost.getId(),
-                savedPost.getAuthorId(), savedPost.getCreatedAt()));
         return result;
     }
 
