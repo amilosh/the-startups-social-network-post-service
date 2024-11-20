@@ -19,5 +19,6 @@ public class PostFeedResponseDto {
     private String content;
     private Long authorId;
     private Integer likes;
+    private Integer views;
     List<CommentFeedResponseDto> comments;
 }

@@ -63,6 +63,7 @@ public interface PostMapper {
     List<PostCacheDto> mapToPostCacheDtos(List<Post> posts);
 
     @Mapping(target = "likes", source = "likes", qualifiedByName = "mapPostLikesToNumber")
+    @Mapping(target = "views", constant = "0")
     PostRedisEntity mapToPostRedisDto(Post post);
 
     List<PostRedisEntity> mapToPostRedisDtos(List<Post> posts);

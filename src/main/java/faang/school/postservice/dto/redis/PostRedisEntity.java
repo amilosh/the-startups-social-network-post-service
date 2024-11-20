@@ -21,5 +21,6 @@ public class PostRedisEntity implements Serializable {
     private String content;
     private Long authorId;
     private Integer likes;
+    private Integer views;
     private List<CommentRedisDto> comments;
 }

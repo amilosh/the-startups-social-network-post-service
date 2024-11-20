@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +68,7 @@ public class PostService {
     private final PostCacheService postCacheService;
     private final PostRedisRepository postRedisRepository;
     private final KafkaPostProducer kafkaPostProducer;
+    private final RedisTemplate<String, Object> commonRedisTemplate;
 
     @Transactional
     @SendPostCreatedEvent
@@ -296,5 +298,9 @@ public class PostService {
         Iterable<PostRedisEntity> posts = postRedisRepository.findAllById(postIds);
         return StreamSupport.stream(posts.spliterator(), false)
                 .toList();
+    }
+
+    public void incrementView(Long postId) {
+        commonRedisTemplate.opsForHash().increment("PostRedisEntity:" + postId, "views", 1L);
     }
 }
