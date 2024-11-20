@@ -1,11 +1,12 @@
 package faang.school.postservice.dto.post;
 
-import faang.school.postservice.model.Comment;
-import faang.school.postservice.model.Like;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-import java.util.List;
-
-public record PostDto(String content,
-                      Long userId,
-                      Long projectId) {
+public record PostDto(
+        @NotBlank(message = "Content should not be blank")
+        @Size(max = 255, message = "Content must not exceed 255 characters")
+        String content,
+        Long userId,
+        Long projectId) {
 }
