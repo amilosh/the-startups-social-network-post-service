@@ -17,6 +17,7 @@ public class CachePostRepository implements CacheRepository<PostDto> {
 
     @Override
     public void save(String key, PostDto post) {
+        key += "::post";
         Duration duration = Duration.ofHours(newsFeedProperties.getCountHoursTimeToLive());
         redisCacheService.put(key, post, duration);
     }

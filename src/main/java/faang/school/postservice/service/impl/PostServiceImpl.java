@@ -75,6 +75,7 @@ public class PostServiceImpl implements PostService {
             post.setPublished(true);
 
             postRepository.save(post);
+
             cachePostRepository.save(post.getId().toString(), postMapper.toDto(post));
 
             publishForFeed(id, post);

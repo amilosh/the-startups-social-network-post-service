@@ -5,8 +5,8 @@ option java_outer_classname = "FeedEventProto";
 message FeedEvent {
   int64 post_id = 1;
   int64 author_comment_id = 2;
-  string comment_content = 3;
-  int32 count_likes_on_post = 4;
+  int64 author_like_id = 3;
+  string comment_content = 4;
   int32 count_likes_on_comment = 5;
   repeated int64 follower_ids = 6;
 }

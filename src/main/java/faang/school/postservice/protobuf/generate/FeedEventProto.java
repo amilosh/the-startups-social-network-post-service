@@ -42,22 +42,22 @@ public final class FeedEventProto {
     long getAuthorCommentId();
 
     /**
-     * <code>string comment_content = 3;</code>
+     * <code>int64 author_like_id = 3;</code>
+     * @return The authorLikeId.
+     */
+    long getAuthorLikeId();
+
+    /**
+     * <code>string comment_content = 4;</code>
      * @return The commentContent.
      */
     java.lang.String getCommentContent();
     /**
-     * <code>string comment_content = 3;</code>
+     * <code>string comment_content = 4;</code>
      * @return The bytes for commentContent.
      */
     com.google.protobuf.ByteString
         getCommentContentBytes();
-
-    /**
-     * <code>int32 count_likes_on_post = 4;</code>
-     * @return The countLikesOnPost.
-     */
-    int getCountLikesOnPost();
 
     /**
      * <code>int32 count_likes_on_comment = 5;</code>
@@ -143,11 +143,22 @@ public final class FeedEventProto {
       return authorCommentId_;
     }
 
-    public static final int COMMENT_CONTENT_FIELD_NUMBER = 3;
+    public static final int AUTHOR_LIKE_ID_FIELD_NUMBER = 3;
+    private long authorLikeId_ = 0L;
+    /**
+     * <code>int64 author_like_id = 3;</code>
+     * @return The authorLikeId.
+     */
+    @java.lang.Override
+    public long getAuthorLikeId() {
+      return authorLikeId_;
+    }
+
+    public static final int COMMENT_CONTENT_FIELD_NUMBER = 4;
     @SuppressWarnings("serial")
     private volatile java.lang.Object commentContent_ = "";
     /**
-     * <code>string comment_content = 3;</code>
+     * <code>string comment_content = 4;</code>
      * @return The commentContent.
      */
     @java.lang.Override
@@ -164,7 +175,7 @@ public final class FeedEventProto {
       }
     }
     /**
-     * <code>string comment_content = 3;</code>
+     * <code>string comment_content = 4;</code>
      * @return The bytes for commentContent.
      */
     @java.lang.Override
@@ -180,17 +191,6 @@ public final class FeedEventProto {
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
-    }
-
-    public static final int COUNT_LIKES_ON_POST_FIELD_NUMBER = 4;
-    private int countLikesOnPost_ = 0;
-    /**
-     * <code>int32 count_likes_on_post = 4;</code>
-     * @return The countLikesOnPost.
-     */
-    @java.lang.Override
-    public int getCountLikesOnPost() {
-      return countLikesOnPost_;
     }
 
     public static final int COUNT_LIKES_ON_COMMENT_FIELD_NUMBER = 5;
@@ -255,11 +255,11 @@ public final class FeedEventProto {
       if (authorCommentId_ != 0L) {
         output.writeInt64(2, authorCommentId_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(commentContent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, commentContent_);
+      if (authorLikeId_ != 0L) {
+        output.writeInt64(3, authorLikeId_);
       }
-      if (countLikesOnPost_ != 0) {
-        output.writeInt32(4, countLikesOnPost_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(commentContent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, commentContent_);
       }
       if (countLikesOnComment_ != 0) {
         output.writeInt32(5, countLikesOnComment_);
@@ -288,12 +288,12 @@ public final class FeedEventProto {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, authorCommentId_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(commentContent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, commentContent_);
-      }
-      if (countLikesOnPost_ != 0) {
+      if (authorLikeId_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, countLikesOnPost_);
+          .computeInt64Size(3, authorLikeId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(commentContent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, commentContent_);
       }
       if (countLikesOnComment_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -332,10 +332,10 @@ public final class FeedEventProto {
           != other.getPostId()) return false;
       if (getAuthorCommentId()
           != other.getAuthorCommentId()) return false;
+      if (getAuthorLikeId()
+          != other.getAuthorLikeId()) return false;
       if (!getCommentContent()
           .equals(other.getCommentContent())) return false;
-      if (getCountLikesOnPost()
-          != other.getCountLikesOnPost()) return false;
       if (getCountLikesOnComment()
           != other.getCountLikesOnComment()) return false;
       if (!getFollowerIdsList()
@@ -357,10 +357,11 @@ public final class FeedEventProto {
       hash = (37 * hash) + AUTHOR_COMMENT_ID_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getAuthorCommentId());
+      hash = (37 * hash) + AUTHOR_LIKE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getAuthorLikeId());
       hash = (37 * hash) + COMMENT_CONTENT_FIELD_NUMBER;
       hash = (53 * hash) + getCommentContent().hashCode();
-      hash = (37 * hash) + COUNT_LIKES_ON_POST_FIELD_NUMBER;
-      hash = (53 * hash) + getCountLikesOnPost();
       hash = (37 * hash) + COUNT_LIKES_ON_COMMENT_FIELD_NUMBER;
       hash = (53 * hash) + getCountLikesOnComment();
       if (getFollowerIdsCount() > 0) {
@@ -500,8 +501,8 @@ public final class FeedEventProto {
         bitField0_ = 0;
         postId_ = 0L;
         authorCommentId_ = 0L;
+        authorLikeId_ = 0L;
         commentContent_ = "";
-        countLikesOnPost_ = 0;
         countLikesOnComment_ = 0;
         followerIds_ = emptyLongList();
         return this;
@@ -544,10 +545,10 @@ public final class FeedEventProto {
           result.authorCommentId_ = authorCommentId_;
         }
         if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.commentContent_ = commentContent_;
+          result.authorLikeId_ = authorLikeId_;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.countLikesOnPost_ = countLikesOnPost_;
+          result.commentContent_ = commentContent_;
         }
         if (((from_bitField0_ & 0x00000010) != 0)) {
           result.countLikesOnComment_ = countLikesOnComment_;
@@ -576,13 +577,13 @@ public final class FeedEventProto {
         if (other.getAuthorCommentId() != 0L) {
           setAuthorCommentId(other.getAuthorCommentId());
         }
+        if (other.getAuthorLikeId() != 0L) {
+          setAuthorLikeId(other.getAuthorLikeId());
+        }
         if (!other.getCommentContent().isEmpty()) {
           commentContent_ = other.commentContent_;
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000008;
           onChanged();
-        }
-        if (other.getCountLikesOnPost() != 0) {
-          setCountLikesOnPost(other.getCountLikesOnPost());
         }
         if (other.getCountLikesOnComment() != 0) {
           setCountLikesOnComment(other.getCountLikesOnComment());
@@ -634,16 +635,16 @@ public final class FeedEventProto {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 16
-              case 26: {
-                commentContent_ = input.readStringRequireUtf8();
+              case 24: {
+                authorLikeId_ = input.readInt64();
                 bitField0_ |= 0x00000004;
                 break;
-              } // case 26
-              case 32: {
-                countLikesOnPost_ = input.readInt32();
+              } // case 24
+              case 34: {
+                commentContent_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000008;
                 break;
-              } // case 32
+              } // case 34
               case 40: {
                 countLikesOnComment_ = input.readInt32();
                 bitField0_ |= 0x00000010;
@@ -746,9 +747,41 @@ public final class FeedEventProto {
         return this;
       }
 
+      private long authorLikeId_ ;
+      /**
+       * <code>int64 author_like_id = 3;</code>
+       * @return The authorLikeId.
+       */
+      @java.lang.Override
+      public long getAuthorLikeId() {
+        return authorLikeId_;
+      }
+      /**
+       * <code>int64 author_like_id = 3;</code>
+       * @param value The authorLikeId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAuthorLikeId(long value) {
+
+        authorLikeId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 author_like_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAuthorLikeId() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        authorLikeId_ = 0L;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object commentContent_ = "";
       /**
-       * <code>string comment_content = 3;</code>
+       * <code>string comment_content = 4;</code>
        * @return The commentContent.
        */
       public java.lang.String getCommentContent() {
@@ -764,7 +797,7 @@ public final class FeedEventProto {
         }
       }
       /**
-       * <code>string comment_content = 3;</code>
+       * <code>string comment_content = 4;</code>
        * @return The bytes for commentContent.
        */
       public com.google.protobuf.ByteString
@@ -781,7 +814,7 @@ public final class FeedEventProto {
         }
       }
       /**
-       * <code>string comment_content = 3;</code>
+       * <code>string comment_content = 4;</code>
        * @param value The commentContent to set.
        * @return This builder for chaining.
        */
@@ -789,22 +822,22 @@ public final class FeedEventProto {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         commentContent_ = value;
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
-       * <code>string comment_content = 3;</code>
+       * <code>string comment_content = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearCommentContent() {
         commentContent_ = getDefaultInstance().getCommentContent();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
         return this;
       }
       /**
-       * <code>string comment_content = 3;</code>
+       * <code>string comment_content = 4;</code>
        * @param value The bytes for commentContent to set.
        * @return This builder for chaining.
        */
@@ -813,39 +846,7 @@ public final class FeedEventProto {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         commentContent_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private int countLikesOnPost_ ;
-      /**
-       * <code>int32 count_likes_on_post = 4;</code>
-       * @return The countLikesOnPost.
-       */
-      @java.lang.Override
-      public int getCountLikesOnPost() {
-        return countLikesOnPost_;
-      }
-      /**
-       * <code>int32 count_likes_on_post = 4;</code>
-       * @param value The countLikesOnPost to set.
-       * @return This builder for chaining.
-       */
-      public Builder setCountLikesOnPost(int value) {
-
-        countLikesOnPost_ = value;
         bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>int32 count_likes_on_post = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearCountLikesOnPost() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        countLikesOnPost_ = 0;
         onChanged();
         return this;
       }
@@ -1031,12 +1032,12 @@ public final class FeedEventProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\020feed_event.proto\"\243\001\n\tFeedEvent\022\017\n\007post" +
-      "_id\030\001 \001(\003\022\031\n\021author_comment_id\030\002 \001(\003\022\027\n\017" +
-      "comment_content\030\003 \001(\t\022\033\n\023count_likes_on_" +
-      "post\030\004 \001(\005\022\036\n\026count_likes_on_comment\030\005 \001" +
-      "(\005\022\024\n\014follower_ids\030\006 \003(\003B\020B\016FeedEventPro" +
-      "tob\006proto3"
+      "\n\020feed_event.proto\"\236\001\n\tFeedEvent\022\017\n\007post" +
+      "_id\030\001 \001(\003\022\031\n\021author_comment_id\030\002 \001(\003\022\026\n\016" +
+      "author_like_id\030\003 \001(\003\022\027\n\017comment_content\030" +
+      "\004 \001(\t\022\036\n\026count_likes_on_comment\030\005 \001(\005\022\024\n" +
+      "\014follower_ids\030\006 \003(\003B\020B\016FeedEventProtob\006p" +
+      "roto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1047,7 +1048,7 @@ public final class FeedEventProto {
     internal_static_FeedEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_FeedEvent_descriptor,
-        new java.lang.String[] { "PostId", "AuthorCommentId", "CommentContent", "CountLikesOnPost", "CountLikesOnComment", "FollowerIds", });
+        new java.lang.String[] { "PostId", "AuthorCommentId", "AuthorLikeId", "CommentContent", "CountLikesOnComment", "FollowerIds", });
     descriptor.resolveAllFeaturesImmutable();
   }
 

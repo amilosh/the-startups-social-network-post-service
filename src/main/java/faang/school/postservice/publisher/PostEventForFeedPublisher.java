@@ -1,6 +1,5 @@
 package faang.school.postservice.publisher;
 
-import faang.school.postservice.protobuf.generate.FeedEventProto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;

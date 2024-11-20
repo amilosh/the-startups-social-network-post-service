@@ -60,7 +60,6 @@ public class RedisZSetCacheService<T> implements SortedSetCacheService<T> {
         redisTemplate.execute(operation);
     }
 
-
     @Override
     public Optional<T> popMin(String sortedSetKey, Class<T> clazz) {
         var tuple = redisTemplate.opsForZSet().popMin(sortedSetKey);
