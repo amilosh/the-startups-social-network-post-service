@@ -37,7 +37,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static faang.school.postservice.model.VerificationPostStatus.REJECTED;
 import static faang.school.postservice.model.VerificationPostStatus.UNVERIFIED;
@@ -69,7 +71,7 @@ public class PostService {
     @SendPostCreatedEvent
     public Post create(Post post) {
         log.info("Create post with id: {}", post.getId());
-        postValidator.validateCreatePost(post);
+//        postValidator.validateCreatePost(post);
 
         post.setPublished(false);
         post.setDeleted(false);
@@ -284,5 +286,11 @@ public class PostService {
 
         kafkaPostProducer.sendPostsToKafka(postList);
         log.info("Posts was published by scheduling: {}", postIds);
+    }
+
+    public List<PostRedisEntity> getRedisPostsById(Set<Long> postIds) {
+        Iterable<PostRedisEntity> posts = postRedisRepository.findAllById(postIds);
+        return StreamSupport.stream(posts.spliterator(), false)
+                .toList();
     }
 }

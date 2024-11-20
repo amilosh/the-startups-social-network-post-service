@@ -2,6 +2,7 @@ package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.post.CreatePostRequestDto;
 import faang.school.postservice.dto.post.FilterPostRequestDto;
+import faang.school.postservice.dto.post.PostFeedResponseDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.UpdatePostRequestDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
@@ -65,6 +66,10 @@ public interface PostMapper {
     PostRedisEntity mapToPostRedisDto(Post post);
 
     List<PostRedisEntity> mapToPostRedisDtos(List<Post> posts);
+
+    PostFeedResponseDto toPostFeedResponseDto(PostRedisEntity postRedisEntity);
+
+    List<PostFeedResponseDto> toPostFeedResponseDto(List<PostRedisEntity> postRedisEntity);
 
     @Named("mapLikes")
     default List<Long> mapLikes(List<Like> likes) {

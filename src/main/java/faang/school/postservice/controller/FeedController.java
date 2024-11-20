@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -22,7 +21,6 @@ public class FeedController {
     @GetMapping
     public List<PostFeedResponseDto> loadNextPosts(@RequestParam(required = false) Long postId) {
         long userId = userContext.getUserId();
-        feedService.getFeed(userId, postId);
-        return new ArrayList<>();
+        return feedService.getFeed(userId, postId);
     }
 }

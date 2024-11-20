@@ -1,6 +1,10 @@
 package faang.school.postservice.service.feed;
 
+import faang.school.postservice.dto.post.PostFeedResponseDto;
+import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.kafka.dto.PostKafkaDto;
+import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -16,14 +20,16 @@ public class FeedService {
     private static final String KEY = "user:";
 
     @Value("${feed.posts-batch-size}")
-    long batchSize;
+    private long batchSize;
 
-    @Value("{redis.feed.max-size:500}")
+    @Value("${redis.feed.max-size:500}")
     private int feedMaxSize;
 
     private final ZSetOperations<String, Long> feedZSetOperations;
+    private final PostService postService;
+    private final PostMapper postMapper;
 
-    public void getFeed(long userId, Long postId) {
+    public List<PostFeedResponseDto> getFeed(long userId, Long postId) {
         String key = buildKey(userId);
 
         long start;
@@ -43,6 +49,8 @@ public class FeedService {
         }
 
         Set<Long> postIds = feedZSetOperations.range(key, start, end);
+        List<PostRedisEntity> posts = postService.getRedisPostsById(postIds);
+        return postMapper.toPostFeedResponseDto(posts);
     }
 
     public void addFeed(PostKafkaDto postKafkaDto) {
