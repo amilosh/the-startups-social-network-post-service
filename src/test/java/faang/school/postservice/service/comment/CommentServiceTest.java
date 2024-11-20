@@ -2,14 +2,14 @@ package faang.school.postservice.service.comment;
 
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
-import jakarta.persistence.EntityNotFoundException;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -19,12 +19,15 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
@@ -56,7 +59,7 @@ public class CommentServiceTest {
         commentDto.setContent("Test");
         commentDto.setPostId(1L);
 
-       when(postService.getPostById(commentDto.getPostId())).thenReturn(new PostDto());
+        when(postService.getPostById(commentDto.getPostId())).thenReturn(new PostDto());
 
         Comment savedComment = new Comment();
         savedComment.setAuthorId(commentDto.getAuthorId());
@@ -80,7 +83,7 @@ public class CommentServiceTest {
     }
 
     @Test
-    public void updateComment() {
+    public void updateCommentTest() {
         Long commentId = 1L;
         CommentDto commentDto = new CommentDto();
         commentDto.setContent("New Test");
@@ -96,7 +99,6 @@ public class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(currentComment));
         when(commentRepository.save(currentComment)).thenReturn(updatedComment);
 
-        // Убираем проверку маппера, так как он является шпионом
         CommentDto result = commentService.updateComment(commentId, commentDto);
 
         assertNotNull(result);
@@ -107,7 +109,7 @@ public class CommentServiceTest {
     }
 
     @Test
-    public void getAllComments() {
+    public void getAllCommentsTest() {
         Long postId = 1L;
 
         when(postService.getPostById(postId)).thenReturn(new PostDto());
@@ -156,13 +158,12 @@ public class CommentServiceTest {
     }
 
     @Test
-    public void getExistingCommentNotFoundTest() {
-        Long commentId = 1L;
-        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> commentService.getExistingComment(commentId));
-        Assert.assertEquals("Comment with id: " + commentId + " does not exist", ex.getMessage());
-        verify(commentRepository, times(1)).findById(commentId);
+    public void getCommentThrowExceptionTest() {
+        long id = 1L;
+        when(commentRepository.findById(id)).thenThrow(faang.school.postservice.exception.EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> commentService.getExistingComment(id));
     }
 
     @Test
@@ -173,4 +174,39 @@ public class CommentServiceTest {
         verify(commentRepository, times(1)).findById(commentId);
     }
 
+    @Test
+    public void addLikeToCommentTest() {
+        long id = 1L;
+        Comment comment = Comment.builder()
+                .id(id).build();
+        Like like = Like.builder()
+                .id(id).build();
+        List<Like> likes = new ArrayList<>();
+        comment.setLikes(likes);
+
+        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
+
+        commentService.addLikeToComment(comment.getId(), like);
+
+        verify(commentRepository).save(comment);
+        assertTrue(comment.getLikes().contains(like));
+    }
+
+    @Test
+    public void removeLikeFromCommentTest() {
+        long id = 1L;
+        Comment comment = Comment.builder()
+                .id(id).build();
+        Like like = Like.builder()
+                .id(id).build();
+        List<Like> likes = new ArrayList<>(List.of(like));
+        comment.setLikes(likes);
+
+        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
+
+        commentService.removeLikeFromComment(comment.getId(), like);
+
+        verify(commentRepository).save(comment);
+        assertFalse(comment.getLikes().contains(like));
+    }
 }

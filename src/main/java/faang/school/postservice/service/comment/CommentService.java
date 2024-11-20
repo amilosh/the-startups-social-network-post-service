@@ -1,12 +1,13 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.mapper.CommentMapper;
 import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.validator.comment.CommentValidator;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CommentService {
+
+    private final String COMMENT = "Comment";
+
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final CommentValidator commentValidator;
@@ -55,13 +59,27 @@ public class CommentService {
         }
     }
 
+    public void addLikeToComment(Long commentId, Like like) {
+        Comment comment = getExistingComment(commentId);
+        comment.getLikes().add(like);
+
+        log.info("Adding like to comment with ID: {}", comment.getId());
+        commentRepository.save(comment);
+    }
+
+    public void removeLikeFromComment(Long commentId, Like like) {
+        Comment comment = getExistingComment(commentId);
+        comment.getLikes().remove(like);
+
+        log.info("Removing like from comment with ID: {}", comment.getId());
+        commentRepository.save(comment);
+    }
+
     public Comment getExistingComment(Long commentId) {
         log.info("Searching for comment with ID: {}", commentId);
         return commentRepository.findById(commentId).orElseThrow(() -> {
             log.error("Comment with ID: {} not found", commentId);
-            return new EntityNotFoundException("Comment with id: " + commentId + " does not exist");
+            return new EntityNotFoundException(COMMENT, commentId);
         });
     }
-
 }
-

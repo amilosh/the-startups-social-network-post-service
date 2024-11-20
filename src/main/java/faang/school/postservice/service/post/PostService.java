@@ -2,9 +2,10 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.exception.PostException;
-import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.exception.EntityNotFoundException;
+import faang.school.postservice.exception.PostException;
+import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
@@ -94,7 +95,7 @@ public class PostService {
     }
 
     public List<PostDto> getAllPostsByUserId(Long userId) {
-        List<Post> posts = postRepository.findByAuthorId(userId).stream()
+        List<Post> posts = postRepository.findByAuthorIdWithLikes(userId).stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
                 .toList();
@@ -104,13 +105,29 @@ public class PostService {
     }
 
     public List<PostDto> getAllPostsByProjectId(Long projectId) {
-        List<Post> posts = postRepository.findByProjectId(projectId).stream()
+        List<Post> posts = postRepository.findByProjectIdWithLikes(projectId).stream()
                 .filter(post -> post.isPublished() && !post.isDeleted())
                 .sorted(Comparator.comparing(Post::getPublishedAt).reversed())
                 .toList();
 
         log.info("Get all posts with project id {}", projectId);
         return postMapper.toDto(posts);
+    }
+
+    public void addLikeToPost(long postId, Like like) {
+        Post post = getPost(postId);
+        post.getLikes().add(like);
+
+        log.info("Adding like to post with id {}", postId);
+        postRepository.save(post);
+    }
+
+    public void removeLikeFromPost(long postId, Like like) {
+        Post post = getPost(postId);
+        post.getLikes().remove(like);
+
+        log.info("Removing like from post with id {}", postId);
+        postRepository.save(post);
     }
 
     @Transactional

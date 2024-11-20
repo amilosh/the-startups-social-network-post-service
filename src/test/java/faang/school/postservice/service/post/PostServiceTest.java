@@ -4,7 +4,8 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.PostException;
-import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
@@ -19,6 +20,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -238,66 +242,176 @@ public class PostServiceTest {
     }
 
     @Test
-    public void getAllPostByUserIdTest() {
-        Post firstPost = new Post();
-        firstPost.setId(1L);
-        firstPost.setAuthorId(1L);
-        firstPost.setContent("Hello world!");
-        firstPost.setPublished(false);
-        firstPost.setDeleted(false);
-        firstPost.setPublishedAt(LocalDateTime.now());
-        Post secondPost = new Post();
-        secondPost.setId(2L);
-        secondPost.setAuthorId(1L);
-        secondPost.setContent("Bye world!");
-        secondPost.setPublished(true);
-        secondPost.setDeleted(false);
-        secondPost.setPublishedAt(LocalDateTime.now().plusSeconds(1));
-        Post thirdPost = new Post();
-        thirdPost.setId(3L);
-        thirdPost.setAuthorId(1L);
-        thirdPost.setContent("Bye, bye!");
-        thirdPost.setPublished(true);
-        thirdPost.setDeleted(false);
-        thirdPost.setPublishedAt(LocalDateTime.now().plusSeconds(2));
-        when(postRepository.findByAuthorId(1L)).thenReturn(List.of(firstPost, secondPost, thirdPost));
+    void getAllPostByUserIdTest() {
+        long id = 1L;
+        List<Like> likes = new ArrayList<>(List.of(new Like(), new Like()));
+        Post newestPost = Post.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45))
+                .published(true)
+                .deleted(false)
+                .likes(likes)
+                .build();
+        Post olderPost = Post.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45).minusMinutes(1))
+                .published(true)
+                .deleted(false)
+                .build();
+        Post notPublishedPost = Post.builder()
+                .published(false)
+                .deleted(false)
+                .build();
+        Post deletedPost = Post.builder()
+                .deleted(true)
+                .published(true)
+                .build();
 
-        List<PostDto> posts = postService.getAllPostsByUserId(1L);
+        List<Post> posts = new ArrayList<>(List.of(olderPost, newestPost, notPublishedPost, deletedPost));
 
-        assertEquals(2, posts.size());
-        assertEquals(secondPost.getId(), posts.get(1).getId());
-        assertEquals(thirdPost.getId(), posts.get(0).getId());
+        PostDto newestPostDto = PostDto.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45))
+                .published(true)
+                .deleted(false)
+                .likesCount(2)
+                .build();
+        PostDto olderPostDto = PostDto.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45).minusMinutes(1))
+                .published(true)
+                .deleted(false)
+                .build();
+        PostDto notPublishedPostDto = PostDto.builder()
+                .published(false)
+                .deleted(false)
+                .build();
+        PostDto deletedPostDto = PostDto.builder()
+                .published(true)
+                .deleted(true)
+                .build();
+        when(postRepository.findByAuthorIdWithLikes(id)).thenReturn(posts);
+
+        List<PostDto> result = postService.getAllPostsByUserId(id);
+
+        verify(postRepository, times(1)).findByAuthorIdWithLikes(id);
+        assertEquals(2, result.size());
+        assertEquals(newestPostDto, result.get(0));
+        assertEquals(olderPostDto, result.get(1));
+        assertEquals(2, result.get(0).getLikesCount());
+        assertFalse(result.contains(notPublishedPostDto));
+        assertFalse(result.contains(deletedPostDto));
     }
 
     @Test
     public void getAllPostByProjectIdTest() {
-        Post firstPost = new Post();
-        firstPost.setId(1L);
-        firstPost.setProjectId(1L);
-        firstPost.setContent("Hello world!");
-        firstPost.setPublished(false);
-        firstPost.setDeleted(false);
-        firstPost.setPublishedAt(LocalDateTime.now());
-        Post secondPost = new Post();
-        secondPost.setId(2L);
-        secondPost.setProjectId(1L);
-        secondPost.setContent("Bye world!");
-        secondPost.setPublished(true);
-        secondPost.setDeleted(false);
-        secondPost.setPublishedAt(LocalDateTime.now().plusSeconds(1));
-        Post thirdPost = new Post();
-        thirdPost.setId(3L);
-        thirdPost.setProjectId(1L);
-        thirdPost.setContent("Bye, bye!");
-        thirdPost.setPublished(true);
-        thirdPost.setDeleted(false);
-        thirdPost.setPublishedAt(LocalDateTime.now().plusSeconds(2));
-        when(postRepository.findByProjectId(1L)).thenReturn(List.of(firstPost, secondPost, thirdPost));
+        long id = 1L;
+        List<Like> likes = new ArrayList<>(List.of(new Like(), new Like()));
+        Post newestPost = Post.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45))
+                .published(true)
+                .deleted(false)
+                .likes(likes)
+                .build();
+        Post olderPost = Post.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45).minusMinutes(1))
+                .published(true)
+                .deleted(false)
+                .build();
+        Post notPublishedPost = Post.builder()
+                .published(false)
+                .deleted(false)
+                .build();
+        Post deletedPost = Post.builder()
+                .deleted(true)
+                .published(true)
+                .build();
 
-        List<PostDto> posts = postService.getAllPostsByProjectId(1L);
+        List<Post> posts = new ArrayList<>(List.of(olderPost, newestPost, notPublishedPost, deletedPost));
 
-        assertEquals(2, posts.size());
-        assertEquals(secondPost.getId(), posts.get(1).getId());
-        assertEquals(thirdPost.getId(), posts.get(0).getId());
+        PostDto newestPostDto = PostDto.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45))
+                .published(true)
+                .deleted(false)
+                .likesCount(2)
+                .build();
+        PostDto olderPostDto = PostDto.builder()
+                .publishedAt(LocalDateTime.of(2023, 11, 13, 14, 30, 45).minusMinutes(1))
+                .published(true)
+                .deleted(false)
+                .build();
+        PostDto notPublishedPostDto = PostDto.builder()
+                .published(false)
+                .deleted(false)
+                .build();
+        PostDto deletedPostDto = PostDto.builder()
+                .published(true)
+                .deleted(true)
+                .build();
+        when(postRepository.findByProjectIdWithLikes(id)).thenReturn(posts);
+
+        List<PostDto> result = postService.getAllPostsByProjectId(id);
+
+        verify(postRepository, times(1)).findByProjectIdWithLikes(id);
+        assertEquals(2, result.size());
+        assertEquals(newestPostDto, result.get(0));
+        assertEquals(olderPostDto, result.get(1));
+        assertEquals(2, result.get(0).getLikesCount());
+        assertFalse(result.contains(notPublishedPostDto));
+        assertFalse(result.contains(deletedPostDto));
+    }
+
+    @Test
+    public void getPostEntityThrowExceptionTest() {
+        long postId = 1L;
+        when(postRepository.findById(postId)).thenThrow(EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> postService.getPost(postId));
+    }
+
+    @Test
+    public void getPostEntityTest() {
+        long postId = 1L;
+        Post post = new Post();
+        post.setId(postId);
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        Post result = postService.getPost(postId);
+
+        verify(postRepository, times(1)).findById(postId);
+        assertEquals(postId, result.getId());
+        assertEquals(post, result);
+    }
+
+    @Test
+    public void addLikeToPostTest() {
+        long id = 1L;
+        Post post = Post.builder()
+                .id(id).build();
+        Like like = Like.builder()
+                .id(id).build();
+        List<Like> likes = new ArrayList<>();
+        post.setLikes(likes);
+
+        when(postRepository.findById(id)).thenReturn(Optional.of(post));
+
+        postService.addLikeToPost(post.getId(), like);
+
+        verify(postRepository).save(post);
+        assertTrue(post.getLikes().contains(like));
+    }
+
+    @Test
+    public void removeLikeFromPostTest() {
+        long id = 1L;
+        Post post = Post.builder()
+                .id(id).build();
+        Like like = Like.builder()
+                .id(id).build();
+        List<Like> likes = new ArrayList<>(List.of(like));
+        post.setLikes(likes);
+        when(postRepository.findById(id)).thenReturn(Optional.of(post));
+
+        postService.removeLikeFromPost(post.getId(), like);
+
+        verify(postRepository).save(post);
+        assertFalse(post.getLikes().contains(like));
     }
 }
