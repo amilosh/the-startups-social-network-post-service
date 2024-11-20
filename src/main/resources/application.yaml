@@ -27,7 +27,6 @@ spring:
       channels:
         calculations_channel:
           name: calculations_channel
-
 server:
   port: 8081
 
