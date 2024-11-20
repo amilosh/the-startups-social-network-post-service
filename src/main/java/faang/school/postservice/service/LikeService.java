@@ -5,12 +5,18 @@ import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class LikeService {
     private static final int BATCH_SIZE = 100;
@@ -41,12 +47,32 @@ public class LikeService {
             userIdBatches.add(userIds.subList(i, endIndex));
         }
 
-        List<UserDto> userDtos = new ArrayList<>();
+        List<CompletableFuture<List<UserDto>>> futures = userIdBatches.stream()
+                .map(batch -> CompletableFuture.supplyAsync(() -> fetchUserDtosSafely(batch)))
+                .toList();
 
-        for (List<Long> batch : userIdBatches) {
-            List<UserDto> batchResults = userServiceClient.getUsersByIds(batch);
-            userDtos.addAll(batchResults);
+        return collectResultsFromFutures(futures);
+
+    }
+
+    private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
+        try {
+            return userServiceClient.getUsersByIds(batch);
+        } catch (Exception e) {
+            log.error("Error fetching users for batch {}: {}", batch, e.getMessage(), e);
+            return Collections.emptyList();
         }
-        return userDtos;
+    }
+
+    private List<UserDto> collectResultsFromFutures(List<CompletableFuture<List<UserDto>>> futures) {
+        try {
+            return futures.stream()
+                    .map(CompletableFuture::join)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+        } catch (CompletionException e) {
+            log.error("Error while joining CompletableFuture: {}", e.getMessage(), e);
+            throw new RuntimeException("Error retrieving user DTOs", e.getCause());
+        }
     }
 }
