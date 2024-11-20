@@ -7,6 +7,7 @@ import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.post.PostRepository;
+import faang.school.postservice.repository.post.RedisPostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
+    private final RedisPostRepository redisPostRepository;
 
     @Override
     public PostDto createPost(PostDto postDto) {
@@ -34,6 +36,8 @@ public class PostServiceImpl implements PostService {
         post.setDeleted(false);
 
         postRepository.save(post);
+        redisPostRepository.cachePost(postDto);
+
         return postDto;
     }
 
