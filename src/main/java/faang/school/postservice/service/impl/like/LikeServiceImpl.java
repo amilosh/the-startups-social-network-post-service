@@ -83,7 +83,7 @@ public class LikeServiceImpl implements LikeService {
                 .postAuthorId(post.getAuthorId())
                 .likedTime(timeFormat.localDateTime(LocalDateTime.now()))
                 .build();
-        likeEventPublisher.publishByKafka(likeEvent);
+        likeEventPublisher.publish(likeEvent);
 
         log.info("Created a like with ID {} from a user with ID {} to a post with ID {}",
                 saveLike.getId(),

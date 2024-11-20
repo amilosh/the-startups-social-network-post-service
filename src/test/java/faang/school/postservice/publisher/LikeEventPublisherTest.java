@@ -1,14 +1,14 @@
 package faang.school.postservice.publisher;
 
 import faang.school.postservice.model.event.LikeEvent;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -17,10 +17,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 class LikeEventPublisherTest {
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Mock
-    private ChannelTopic topic;
+    private NewTopic likePublishTopic;
 
     @InjectMocks
     private LikeEventPublisher publisher;
@@ -30,7 +30,7 @@ class LikeEventPublisherTest {
     void testPublish() {
         var likeEvent = LikeEvent.builder().build();
         publisher.publish(likeEvent);
-        verify(redisTemplate).convertAndSend(topic.getTopic(), likeEvent);
-        verifyNoMoreInteractions(redisTemplate);
+        verify(kafkaTemplate).send(likePublishTopic.name(), likeEvent);
+        verifyNoMoreInteractions(kafkaTemplate);
     }
 }

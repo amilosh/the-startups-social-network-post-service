@@ -2,17 +2,18 @@ package faang.school.postservice.service.impl.like;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.model.dto.like.LikeDto;
-import faang.school.postservice.model.event.LikeEvent;
-import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.mapper.like.LikeMapper;
+import faang.school.postservice.model.dto.like.LikeDto;
+import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.LikeEvent;
 import faang.school.postservice.publisher.LikeEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.util.DateAndTimeFormat;
 import faang.school.postservice.validator.like.LikeValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,9 +23,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +52,8 @@ class LikeServiceImplTest {
     private LikeEventPublisher likeEventPublisher;
     @InjectMocks
     private LikeServiceImpl likeService;
+    @Mock
+    private DateAndTimeFormat timeFormat;
 
     private long commentId;
     private long userId;
@@ -136,7 +142,7 @@ class LikeServiceImplTest {
         verify(likeRepository).save(any(Like.class));
         verify(likeMapper).toLikeDto(any(Like.class));
         verify(likeEventPublisher).publish(any(LikeEvent.class));
-
+        verify(timeFormat, times(1)).localDateTime(any(LocalDateTime.class));
         Assertions.assertEquals(likeDto, result);
     }
 
