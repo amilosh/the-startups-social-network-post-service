@@ -25,4 +25,6 @@ public class CommentDto {
 
     @NotNull
     private Long postId;
+
+    private Integer countLikes;
 }

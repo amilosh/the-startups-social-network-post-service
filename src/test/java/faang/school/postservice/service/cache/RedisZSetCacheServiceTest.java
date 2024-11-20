@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class RedisSortedSetCacheServiceTest {
+class RedisZSetCacheServiceTest {
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -40,7 +40,7 @@ class RedisSortedSetCacheServiceTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private RedisSortedSetCacheService<Object> redisListCacheService;
+    private RedisZSetCacheService<Object> redisListCacheService;
 
     @Mock
     private ListOperations<String, Object> listOperations;
@@ -130,12 +130,12 @@ class RedisSortedSetCacheServiceTest {
     }
 
     @Test
-    void testLeftPop_WhenValueExists() {
+    void testPopMin_WhenValueExists() {
         Object expectedObject = new Object();
         when(redisTemplate.opsForList().leftPop(key)).thenReturn(value);
         when(objectMapper.convertValue(value, Object.class)).thenReturn(expectedObject);
 
-        Optional<Object> result = redisListCacheService.leftPop(key, Object.class);
+        Optional<Object> result = redisListCacheService.popMin(key, Object.class);
 
         assertTrue(result.isPresent());
         assertEquals(expectedObject, result.get());
@@ -144,11 +144,11 @@ class RedisSortedSetCacheServiceTest {
     }
 
     @Test
-    void testLeftPop_WhenValueDoesNotExist() {
+    void testPopMin_WhenValueDoesNotExist() {
         when(redisTemplate.opsForList()).thenReturn(listOperations);
         when(listOperations.leftPop(key)).thenReturn(null);
 
-        Optional<Object> result = redisListCacheService.leftPop(key, Object.class);
+        Optional<Object> result = redisListCacheService.popMin(key, Object.class);
 
         assertTrue(result.isEmpty());
         verify(redisTemplate.opsForList()).leftPop(key);

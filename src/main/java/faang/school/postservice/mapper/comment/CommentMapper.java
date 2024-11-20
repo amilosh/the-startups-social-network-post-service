@@ -22,5 +22,6 @@ public interface CommentMapper {
 
     @Mapping(target = "commentContent", source = "content")
     @Mapping(target = "authorCommentId", source = "authorId")
+    @Mapping(target = "countLikesOnComment", source = "countLikes")
     FeedEventProto.FeedEvent toProto(CommentDto commentDto);
 }

@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class RedisSortedSetCacheService<T> implements SortedSetCacheService<T> {
+public class RedisZSetCacheService<T> implements SortedSetCacheService<T> {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -62,8 +62,8 @@ public class RedisSortedSetCacheService<T> implements SortedSetCacheService<T> {
 
 
     @Override
-    public Optional<T> leftPop(String sortedSetKey, Class<T> clazz) {
-        ZSetOperations.TypedTuple<Object> tuple = redisTemplate.opsForZSet().popMin(sortedSetKey);
+    public Optional<T> popMin(String sortedSetKey, Class<T> clazz) {
+        var tuple = redisTemplate.opsForZSet().popMin(sortedSetKey);
         return Optional.ofNullable(tuple)
                 .map(ZSetOperations.TypedTuple::getValue)
                 .map(value -> objectMapper.convertValue(value, clazz));

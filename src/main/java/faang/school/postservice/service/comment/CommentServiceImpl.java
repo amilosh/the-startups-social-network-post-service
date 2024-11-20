@@ -7,10 +7,12 @@ import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.exception.comment.CommentException;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.EventPublisher;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -32,6 +34,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final CommentEventPublisher commentEventPublisher;
     private final EventPublisher<CommentDto> commentFeedEventPublisher;
+    private final LikeRepository likeRepository;
 
     @Override
     public CommentDto addComment(CommentDto commentDto) {
@@ -82,8 +85,10 @@ public class CommentServiceImpl implements CommentService {
     private void publishEvents(CommentDto commentDto) {
         CommentEvent commentEvent = new CommentEvent(commentDto.getId(), commentDto.getAuthorId(),
                 commentDto.getPostId(), LocalDateTime.now());
-
         commentEventPublisher.publish(commentEvent);
+
+        int countLikes = likeRepository.countByCommentId(commentDto.getId());
+        commentDto.setCountLikes(countLikes);
         commentFeedEventPublisher.publish(commentDto);
 
         log.info("comment event published to topic, event: {}", commentEvent);

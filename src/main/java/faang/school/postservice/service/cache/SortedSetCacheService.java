@@ -6,7 +6,7 @@ public interface SortedSetCacheService<T> {
 
     void put(String key, T value, double score);
 
-    Optional<T> leftPop(String sortedSetKey, Class<T> clazz);
+    Optional<T> popMin(String sortedSetKey, Class<T> clazz);
 
     long size(String key);
 

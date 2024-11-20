@@ -35,6 +35,7 @@ public class PostEventForFeedListener implements KafkaEventListener<byte[]> {
 
             CompletableFuture.allOf(completableFutures).join();
             acknowledgment.acknowledge();
+
         } catch (InvalidProtocolBufferException exception) {
             log.error("Error while parsing feedEvent", exception);
             throw new RuntimeException(exception);

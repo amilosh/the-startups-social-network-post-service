@@ -1,6 +1,6 @@
 package faang.school.postservice.repository;
 
-import faang.school.postservice.config.CachePostProperties;
+import faang.school.postservice.config.NewsFeedProperties;
 import faang.school.postservice.service.cache.SortedSetCacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class AsyncCacheFeedRepositoryTest {
     private SortedSetCacheService<Long> sortedSetCacheService;
 
     @Spy
-    private CachePostProperties cachePostProperties;
+    private NewsFeedProperties newsFeedProperties;
 
     @InjectMocks
     private AsyncCacheFeedRepository asyncCacheFeedRepository;
@@ -43,8 +43,8 @@ class AsyncCacheFeedRepositoryTest {
         int newsFeedSize = 3;
         int countHoursTimeToLive = 24;
 
-        cachePostProperties.setNewsFeedSize(newsFeedSize);
-        cachePostProperties.setCountHoursTimeToLive(countHoursTimeToLive);
+        newsFeedProperties.setNewsFeedSize(newsFeedSize);
+        newsFeedProperties.setCountHoursTimeToLive(countHoursTimeToLive);
 
         userId = "user123";
         postId = 42L;
@@ -60,7 +60,7 @@ class AsyncCacheFeedRepositoryTest {
         verify(sortedSetCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
         verify(sortedSetCacheService).put(userId, postId, ttl);
-        verify(sortedSetCacheService).leftPop(userId, Long.class);
+        verify(sortedSetCacheService).popMin(userId, Long.class);
     }
 
     @Test
@@ -72,6 +72,6 @@ class AsyncCacheFeedRepositoryTest {
         verify(sortedSetCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
         verify(sortedSetCacheService).put(userId, postId, ttl);
-        verify(sortedSetCacheService, never()).leftPop(userId, Long.class);
+        verify(sortedSetCacheService, never()).popMin(userId, Long.class);
     }
 }
