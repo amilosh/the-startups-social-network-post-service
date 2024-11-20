@@ -47,14 +47,14 @@ public class AlbumController {
         albumService.deletePost(albumId, postId);
     }
 
-    @PostMapping("/{albumId}/author/favorite")
+    @PostMapping("/{albumId}/favorite")
     public void addAlbumToFavoriteAlbums(@PathVariable long albumId) {
         long userId = userContext.getUserId();
         validator.validateAuthorHasThisAlbum(albumId, userId);
         albumService.addAlbumToFavoriteAlbums(albumId, userId);
     }
 
-    @DeleteMapping("/{albumId}/author/favorite")
+    @DeleteMapping("/{albumId}/favorite")
     public void deleteAlbumFromFavoriteAlbums(@PathVariable long albumId) {
         long userId = userContext.getUserId();
         validator.validateAuthorHasThisAlbum(albumId, userId);

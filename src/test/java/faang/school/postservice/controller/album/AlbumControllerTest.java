@@ -122,13 +122,13 @@ public class AlbumControllerTest {
 
     @Test
     public void testAddAlbumToFavoriteAlbums() throws Exception {
-        mockMvc.perform(post("/api/v1/albums/1/author/favorite"))
+        mockMvc.perform(post("/api/v1/albums/1/favorite"))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void testDeleteAlbumFromFavoriteAlbums() throws Exception {
-        mockMvc.perform(delete("/api/v1/albums/1/author/favorite"))
+        mockMvc.perform(delete("/api/v1/albums/1/favorite"))
                 .andExpect(status().isOk());
     }
 
