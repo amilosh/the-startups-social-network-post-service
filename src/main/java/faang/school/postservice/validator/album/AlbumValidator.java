@@ -51,7 +51,7 @@ public class AlbumValidator {
     }
 
     public void validateAuthorHasThisAlbum(long albumId, long authorId) {
-        Album album = validateAlbumExists(albumId);
+        Album album = validateAlbum(albumId);
         if (authorId != album.getAuthorId()) {
             log.error("AuthorId {} is not the same as albumId {}", authorId, albumId);
             throw new DataValidationException("AuthorId " + authorId +
@@ -59,21 +59,13 @@ public class AlbumValidator {
         }
     }
 
-    public Album validateAlbumExists(long id) {
+    public Album validateAlbum(long id) {
         Optional<Album> album = albumRepository.findById(id);
         if (album.isEmpty()) {
             log.error("Album with id {} not found", id);
             throw new EntityNotFoundException("Album with id " + id + " not found");
         }
         return album.get();
-    }
-
-    public void validateAlbumDoesNotExist(long id) {
-        Optional<Album> album = albumRepository.findById(id);
-        if (album.isPresent()) {
-            log.error("Album with id {} already exists", id);
-            throw new EntityNotFoundException("Album with id " + id + " already exists");
-        }
     }
 
     public boolean validateFavoritesHasThisAlbum(long albumId, long authorId) {

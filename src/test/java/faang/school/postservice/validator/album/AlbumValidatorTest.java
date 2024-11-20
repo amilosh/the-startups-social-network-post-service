@@ -50,7 +50,6 @@ public class AlbumValidatorTest {
                 .id(25L)
                 .build();
         albumRequestDto = AlbumRequestDto.builder()
-                .id(10L)
                 .build();
         album = Album.builder()
                 .id(10L)
@@ -119,20 +118,13 @@ public class AlbumValidatorTest {
     public void testValidateAlbumExistsWithException() {
         when(albumRepository.findById(13L)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class,
-                () -> validator.validateAlbumExists(13L));
-    }
-
-    @Test
-    public void testValidateAlbumDoesNotExistsWithException() {
-        when(albumRepository.findById(13L)).thenReturn(Optional.of(album));
-        assertThrows(EntityNotFoundException.class,
-                () -> validator.validateAlbumDoesNotExist(13L));
+                () -> validator.validateAlbum(13L));
     }
 
     @Test
     public void testValidateAlbumExistsSuccess() {
         when(albumRepository.findById(10L)).thenReturn(Optional.of(album));
-        assertDoesNotThrow(() -> validator.validateAlbumExists(10L));
+        assertDoesNotThrow(() -> validator.validateAlbum(10L));
     }
 
     @Test

@@ -7,6 +7,7 @@ import faang.school.postservice.dto.album.AlbumRequestUpdateDto;
 import faang.school.postservice.dto.album.AlbumResponseDto;
 import faang.school.postservice.service.album.AlbumService;
 import faang.school.postservice.validator.album.AlbumValidator;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,11 +31,11 @@ public class AlbumController {
     private final UserContext userContext;
 
     @PostMapping
-    public AlbumResponseDto createAlbum(@RequestBody AlbumRequestDto albumDto) {
+    public AlbumResponseDto createAlbum(@Valid @RequestBody AlbumRequestDto albumDto) {
         return albumService.createAlbum(albumDto);
     }
 
-    @GetMapping("/{albumId}/post/{postId}")
+    @PostMapping("/{albumId}/post/{postId}")
     public AlbumResponseDto addPost(@PathVariable long albumId, @PathVariable long postId) {
         validator.validateAuthorHasThisAlbum(albumId, userContext.getUserId());
         return albumService.addPost(albumId, postId);
@@ -81,7 +82,7 @@ public class AlbumController {
     }
 
     @PutMapping
-    public AlbumResponseDto updateAlbum(@RequestBody AlbumRequestUpdateDto albumRequestUpdateDto) {
+    public AlbumResponseDto updateAlbum(@Valid @RequestBody AlbumRequestUpdateDto albumRequestUpdateDto) {
         return albumService.updateAlbum(albumRequestUpdateDto, userContext.getUserId());
     }
 

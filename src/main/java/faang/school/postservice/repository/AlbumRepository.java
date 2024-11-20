@@ -27,10 +27,6 @@ public interface AlbumRepository extends CrudRepository<Album, Long> {
     @Modifying
     void deleteAlbumFromFavorites(long albumId, long userId);
 
-    @Query(nativeQuery = true, value = "DELETE FROM album WHERE album_id = :albumId AND user_id = :userId")
-    @Modifying
-    void deleteAlbum(long albumId, long userId);
-
     @Query(nativeQuery = true, value = """
             SELECT * FROM album
             WHERE id IN (

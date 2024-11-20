@@ -64,7 +64,6 @@ public class AlbumServiceTest {
                 .id(25L)
                 .build();
         albumRequestDto = AlbumRequestDto.builder()
-                .id(10L)
                 .title("title")
                 .authorId(5L)
                 .build();
@@ -95,7 +94,7 @@ public class AlbumServiceTest {
     @Test
     public void testAddPostSuccess() {
         when(validator.validatePost(25L)).thenReturn(post);
-        when(validator.validateAlbumExists(10L)).thenReturn(album);
+        when(validator.validateAlbum(10L)).thenReturn(album);
         albumService.addPost(10L, 25L);
         verify(albumRepository).save(album);
         assertEquals(post, album.getPosts().get(0));
@@ -105,7 +104,7 @@ public class AlbumServiceTest {
     public void testDeletePostSuccess() {
         album.getPosts().add(post);
         when(validator.validatePost(25L)).thenReturn(post);
-        when(validator.validateAlbumExists(10L)).thenReturn(album);
+        when(validator.validateAlbum(10L)).thenReturn(album);
         albumService.deletePost(10L, 25L);
         verify(albumRepository).save(album);
         assertTrue(album.getPosts().isEmpty());
@@ -143,7 +142,7 @@ public class AlbumServiceTest {
 
     @Test
     public void testGetAlbumSuccess() {
-        when(validator.validateAlbumExists(10L)).thenReturn(album);
+        when(validator.validateAlbum(10L)).thenReturn(album);
         assertEquals(albumResponseDto, albumService.getAlbum(10L));
     }
 
@@ -188,7 +187,7 @@ public class AlbumServiceTest {
 
     @Test
     public void testUpdateAlbumSuccess() {
-        when(validator.validateAlbumExists(10L)).thenReturn(album);
+        when(validator.validateAlbum(10L)).thenReturn(album);
         when(validator.validatePost(25L)).thenReturn(post);
         albumService.updateAlbum(albumRequestUpdateDto, 5L);
         verify(albumRepository).save(albumCaptor.capture());
@@ -196,9 +195,9 @@ public class AlbumServiceTest {
 
     @Test
     public void testDeleteAlbumSuccess() {
-        when(validator.validateAlbumExists(10L)).thenReturn(album);
+        when(validator.validateAlbum(10L)).thenReturn(album);
         albumService.deleteAlbum(10L, 5L);
-        verify(albumRepository).deleteAlbum(10L, 5L);
+        verify(albumRepository).deleteById(10L);
     }
 
 }

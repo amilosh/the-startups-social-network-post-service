@@ -37,56 +37,53 @@ public class AlbumService {
         validator.validateAlbumWithSameTitleExists(authorId, title);
         Album album = mapper.toAlbum(albumRequestDto);
         album.setPosts(new ArrayList<>());
-        validator.validateAlbumDoesNotExist(album.getId());
         albumRepository.save(album);
-        log.info("Album saved: {}", album.getId());
         log.info("Album created: {}", album.getId());
         return mapper.toAlbumResponseDto(album);
     }
 
     public AlbumResponseDto addPost(long albumId, long postId) {
         Post post = validator.validatePost(postId);
-        Album album = validator.validateAlbumExists(albumId);
+        Album album = validator.validateAlbum(albumId);
         album.addPost(post);
-        log.info("The post {} has been added to the album {}", postId, albumId);
         albumRepository.save(album);
+        log.info("The post {} has been added to the album {}", postId, albumId);
         return mapper.toAlbumResponseDto(album);
     }
 
     public void deletePost(long albumId, long postId) {
         Post post = validator.validatePost(postId);
-        Album album = validator.validateAlbumExists(albumId);
+        Album album = validator.validateAlbum(albumId);
         album.removePost(post.getId());
-        log.info("The post {} has been deleted from the album {}", postId, albumId);
         albumRepository.save(album);
+        log.info("The post {} has been deleted from the album {}", postId, albumId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void addAlbumToFavoriteAlbums(long albumId, long authorId) {
-        validator.validateAlbumExists(albumId);
+        validator.validateAlbum(albumId);
         validator.validateAuthor(authorId);
         boolean result = validator.validateFavoritesHasThisAlbum(albumId, authorId);
         if (result) {
             throw new DataValidationException("Favorite album with id " + albumId + " already exists");
         }
-        log.info("The album {} has been added to favorites", albumId);
         albumRepository.addAlbumToFavorites(albumId, authorId);
+        log.info("The album {} has been added to favorites", albumId);
     }
 
     public void deleteAlbumFromFavoriteAlbums(long albumId, long authorId) {
-        validator.validateAlbumExists(albumId);
+        validator.validateAlbum(albumId);
         validator.validateAuthor(authorId);
         boolean result = validator.validateFavoritesHasThisAlbum(albumId, authorId);
-        System.out.println(result);
         if (!result) {
             throw new DataValidationException("Favorite album with id " + albumId + " does not exist");
         }
-        log.info("The album {} has been deleted from favorites", albumId);
         albumRepository.deleteAlbumFromFavorites(albumId, authorId);
+        log.info("The album {} has been deleted from favorites", albumId);
     }
 
     public AlbumResponseDto getAlbum(long albumId) {
-       Album album = validator.validateAlbumExists(albumId);
+       Album album = validator.validateAlbum(albumId);
        log.info("The album {} has been found", albumId);
        return mapper.toAlbumResponseDto(album);
     }
@@ -122,7 +119,7 @@ public class AlbumService {
         String title = albumRequestUpdateDto.getTitle();
         validator.validateAuthor(authorId);
         validator.validateAlbumWithSameTitleExists(authorId, title);
-        Album oldAlbum = validator.validateAlbumExists(albumRequestUpdateDto.getId());
+        Album oldAlbum = validator.validateAlbum(albumRequestUpdateDto.getId());
         Album newAlbum = mapper.toAlbum(albumRequestUpdateDto);
         List<Post> posts = getPosts(albumRequestUpdateDto.getPostsIds());
         newAlbum.setPosts(posts);
@@ -134,9 +131,9 @@ public class AlbumService {
 
     @Transactional
     public void deleteAlbum(long albumId, long authorId) {
-        validator.validateAlbumExists(albumId);
+        validator.validateAlbum(albumId);
         validator.validateAuthor(authorId);
-        albumRepository.deleteAlbum(albumId, authorId);
+        albumRepository.deleteById(albumId);
         log.info("The album {} has been deleted", albumId);
     }
 

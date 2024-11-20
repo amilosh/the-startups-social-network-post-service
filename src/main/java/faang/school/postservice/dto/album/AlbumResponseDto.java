@@ -18,7 +18,7 @@ public class AlbumResponseDto {
     private String title;
     private String description;
     private Long authorId;
-    List<Long> postsIds;
-    LocalDateTime createdAt;
+    private List<Long> postsIds;
+    private LocalDateTime createdAt;
 
 }

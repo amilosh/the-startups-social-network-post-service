@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AlbumRequestDto {
 
-    private Long id;
     @NotNull
     @NotBlank
     private String title;

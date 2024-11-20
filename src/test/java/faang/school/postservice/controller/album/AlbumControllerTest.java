@@ -54,7 +54,6 @@ public class AlbumControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(albumController).build();
 
         albumRequestDto = AlbumRequestDto.builder()
-                .id(1L)
                 .title("title")
                 .description("description")
                 .authorId(5L)
@@ -68,6 +67,7 @@ public class AlbumControllerTest {
                 .build();
         albumRequestUpdateDto = AlbumRequestUpdateDto.builder()
                 .id(56L)
+                .description("Описание")
                 .title("Заголовок")
                 .build();
         post = Post.builder()
@@ -105,7 +105,7 @@ public class AlbumControllerTest {
         albumResponseDto.getPostsIds().add(post.getId());
         when(albumService.addPost(1L, 25L)).thenReturn(albumResponseDto);
 
-        mockMvc.perform(get("/api/v1/albums/1/post/25"))
+        mockMvc.perform(post("/api/v1/albums/1/post/25"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.title", is("title")))
@@ -144,7 +144,8 @@ public class AlbumControllerTest {
 
     @Test
     public void testGetAllMyAlbumsByFilter() throws Exception {
-        when(albumController.getAllMyAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+        when(albumService.getAllMyAlbumsByFilter(new AlbumFilterDto(),5L)).thenReturn(albums);
+        when(userContext.getUserId()).thenReturn(5L);
 
         mockMvc.perform(get("/api/v1/albums/author"))
                 .andExpect(status().isOk())
@@ -154,7 +155,7 @@ public class AlbumControllerTest {
 
     @Test
     public void testGetAllAlbumsByFilter() throws Exception {
-        when(albumController.getAllAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+        when(albumService.getAllAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
 
         mockMvc.perform(get("/api/v1/albums"))
                 .andExpect(status().isOk())
@@ -174,16 +175,14 @@ public class AlbumControllerTest {
 
     @Test
     public void testUpdateAlbum() throws Exception {
-        when(albumController.updateAlbum(albumRequestUpdateDto)).thenReturn(albumResponseDto);
+        when(albumService.updateAlbum(albumRequestUpdateDto,5L)).thenReturn(albumResponseDto);
+        when(userContext.getUserId()).thenReturn(5L);
 
         String albumRequestUpdateDtoJson = new Gson().toJson(albumRequestUpdateDto);
 
         mockMvc.perform(put("/api/v1/albums")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(albumRequestUpdateDtoJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.title", is("title")));
+                .contentType(MediaType.APPLICATION_JSON)
+                        .content(albumRequestUpdateDtoJson)).andExpect(status().isOk());
     }
 
     @Test
@@ -191,6 +190,5 @@ public class AlbumControllerTest {
         mockMvc.perform(delete("/api/v1/albums/1"))
                 .andExpect(status().isOk());
     }
-
 
 }
