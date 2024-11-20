@@ -123,6 +123,7 @@ kafka:
   server: localhost:9092
   topic:
     post-published-topic: post-published-topic
+    post-viewed-topic: post-viewed-topic
   partitions: 1
   replicas: 1
   consumer:

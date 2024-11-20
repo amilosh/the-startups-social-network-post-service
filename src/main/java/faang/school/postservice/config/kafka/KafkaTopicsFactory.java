@@ -17,9 +17,20 @@ public class KafkaTopicsFactory {
     @Value("${kafka.topic.post-published-topic}")
     private String postPublishedTopic;
 
+    @Value("${kafka.topic.post-viewed-topic}")
+    private String postViewedTopic;
+
     @Bean
     public NewTopic postPublishedTopic() {
         return TopicBuilder.name(postPublishedTopic)
+                .partitions(partitions)
+                .replicas(replicas)
+                .build();
+    }
+
+    @Bean
+    public NewTopic postViewedTopic() {
+        return TopicBuilder.name(postViewedTopic)
                 .partitions(partitions)
                 .replicas(replicas)
                 .build();

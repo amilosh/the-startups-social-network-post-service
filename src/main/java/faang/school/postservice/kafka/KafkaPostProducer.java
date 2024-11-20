@@ -20,7 +20,6 @@ public class KafkaPostProducer {
     private final UserServiceClient userServiceClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-
     public void sendPostsToKafka(List<Post> posts) {
         for (Post post : posts) {
             PostKafkaDto postKafkaDto = build(post);

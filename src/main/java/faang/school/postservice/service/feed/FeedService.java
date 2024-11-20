@@ -1,5 +1,6 @@
 package faang.school.postservice.service.feed;
 
+import faang.school.postservice.annotations.SendPostViewEventToKafka;
 import faang.school.postservice.dto.post.PostFeedResponseDto;
 import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.kafka.dto.PostKafkaDto;
@@ -29,6 +30,7 @@ public class FeedService {
     private final PostService postService;
     private final PostMapper postMapper;
 
+    @SendPostViewEventToKafka(value = List.class, elementType = PostFeedResponseDto.class)
     public List<PostFeedResponseDto> getFeed(long userId, Long postId) {
         String key = buildKey(userId);
 

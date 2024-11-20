@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.annotations.SendPostCreatedEvent;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
+import faang.school.postservice.annotations.SendPostViewEventToKafka;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ResourceNotFoundException;
@@ -157,12 +158,14 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(Post.class)
+    @SendPostViewEventToKafka(Post.class)
     public Post get(Long postId) {
         return findPostById(postId);
     }
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(List.class)
+    @SendPostViewEventToKafka(value = List.class, elementType = Post.class)
     public List<Post> searchByAuthor(Post filterPost) {
         List<Post> posts = postRepository.findByAuthorId(filterPost.getAuthorId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -173,6 +176,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(List.class)
+    @SendPostViewEventToKafka(value = List.class, elementType = Post.class)
     public List<Post> searchByProject(Post filterPost) {
         List<Post> posts = postRepository.findByProjectId(filterPost.getProjectId());
         posts = applyFiltersAndSorted(posts, filterPost)
