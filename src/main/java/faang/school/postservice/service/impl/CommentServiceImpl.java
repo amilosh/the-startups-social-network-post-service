@@ -42,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
         CommentDto savedCommentDto = mapper.mapToCommentDto(commentRepository.save(comment));
         commentEventPublisher.publish(createCommentEvent(savedCommentDto));
         kafkaCommentProducer.sendEvent(new CommentEventKafka(savedCommentDto.getId(), savedCommentDto.getAuthorId(),
-                commentDto.getCreatedAt()));
+                savedCommentDto.getCreatedAt()));
         return savedCommentDto;
     }
 

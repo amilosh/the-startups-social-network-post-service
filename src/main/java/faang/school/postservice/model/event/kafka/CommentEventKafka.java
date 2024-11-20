@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 public class CommentEventKafka {
-    private long postId;
+    private long commentId;
     private long authorId;
     LocalDateTime createdAt;
 }
