@@ -7,7 +7,7 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.CommentEvent;
-import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.redis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.impl.CommentServiceImpl;

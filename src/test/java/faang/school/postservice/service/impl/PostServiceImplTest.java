@@ -5,7 +5,7 @@ import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.publisher.PostViewPublisher;
+import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.util.moderation.ModerationDictionary;

@@ -1,7 +1,7 @@
 package faang.school.postservice.config;
 
 
-import faang.school.postservice.listener.HashtagListener;
+import faang.school.postservice.redis.listener.HashtagListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

@@ -9,7 +9,7 @@ import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.redis.publisher.LikeEventPublisher;
 import faang.school.postservice.service.impl.LikeServiceImpl;
 import faang.school.postservice.util.ExceptionThrowingValidator;
 import faang.school.postservice.validator.LikeValidator;

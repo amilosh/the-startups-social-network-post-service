@@ -1,4 +1,4 @@
-package faang.school.postservice.listener;
+package faang.school.postservice.redis.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.model.dto.PostDto;

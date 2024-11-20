@@ -35,6 +35,17 @@ spring:
       max-request-size: 100MB
       max-file-size: 10MB
 
+  kafka:
+    admin:
+      auto-create-topics: true
+      client-id: post-service-kafka-admin
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 server:
   port: 8081
 
@@ -106,6 +117,10 @@ redis:
     user_ban: user_ban_channel
     comment_channel: comment_channel
 
+kafka:
+  topics:
+    post: post_topic
+
 scheduler:
   cron:
-    ban-users: "0 0 0 * * ?" # every day at midnight
+    ban-users: "0 0 0 * * ?"

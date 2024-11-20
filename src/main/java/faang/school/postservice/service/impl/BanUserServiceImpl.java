@@ -3,7 +3,7 @@ package faang.school.postservice.service.impl;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.model.event.BanedUserEvent;
-import faang.school.postservice.publisher.BanedUserEventPublisher;
+import faang.school.postservice.redis.publisher.BanedUserEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BanUserService;
 import lombok.RequiredArgsConstructor;
