@@ -2,11 +2,13 @@ package faang.school.postservice.model.event.kafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @Data
+@NoArgsConstructor
 public class CommentEventKafka {
     private long postId;
     private long authorId;
