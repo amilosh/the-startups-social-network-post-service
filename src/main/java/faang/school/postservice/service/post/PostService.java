@@ -6,9 +6,12 @@ import faang.school.postservice.exception.EntityNotFoundException;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,10 +19,12 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PostService {
+
+    private static final String POST = "Post";
 
     private final PostMapper postMapper;
     private final PostRepository postRepository;
@@ -111,10 +116,6 @@ public class PostService {
         return postMapper.toDto(posts);
     }
 
-    public Post getPostEntity(Long postId) {
-        return getPost(postId);
-    }
-
     public void addLikeToPost(long postId, Like like) {
         Post post = getPost(postId);
         post.getLikes().add(like);
@@ -131,9 +132,14 @@ public class PostService {
         postRepository.save(post);
     }
 
-    private Post getPost(Long postId) {
+    public Post getPostEntity(Long postId) {
+        return getPost(postId);
+    }
+
+    @Transactional
+    public Post getPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Post with id " + postId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException(POST, postId));
 
         log.info("Get post with id {}", postId);
         return post;
