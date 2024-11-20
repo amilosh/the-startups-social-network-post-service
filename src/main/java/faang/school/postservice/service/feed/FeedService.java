@@ -18,6 +18,9 @@ public class FeedService {
     @Value("${feed.posts-batch-size}")
     long batchSize;
 
+    @Value("{redis.feed.max-size:500}")
+    private int feedMaxSize;
+
     private final ZSetOperations<String, Long> feedZSetOperations;
 
     public void getFeed(long userId, Long postId) {
@@ -44,10 +47,19 @@ public class FeedService {
 
     public void addFeed(PostKafkaDto postKafkaDto) {
         Long postId = postKafkaDto.getPostId();
-        var score = postKafkaDto.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
+        long score = postKafkaDto.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
 
         List<Long> followerIds = postKafkaDto.getFollowerIds();
-        followerIds.forEach(id -> feedZSetOperations.add(buildKey(id), postId, score));
+        followerIds.forEach(id -> addPostToFeed(buildKey(id), postId, score));
+    }
+
+    private void addPostToFeed(String key, Long postId, long score) {
+        feedZSetOperations.add(key, postId, score);
+
+        var feedSize = feedZSetOperations.zCard(key);
+        if (feedSize != null && feedSize > feedMaxSize) {
+            feedZSetOperations.removeRange(key, 0, feedSize - feedMaxSize);
+        }
     }
 
     private String buildKey(Long userId) {
