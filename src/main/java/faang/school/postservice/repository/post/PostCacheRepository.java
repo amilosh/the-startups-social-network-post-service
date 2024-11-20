@@ -27,4 +27,15 @@ public class PostCacheRepository {
 
         return postDto;
     }
+
+    public Long cacheAuthorId(Long id) {
+        String authorId = id.toString();
+
+        redisTemplate.opsForValue().set(authorId, authorId, postCacheProperties.getAuthor().getLiveTime(),
+                postCacheProperties.getTimeUnit());
+        redisTemplate.opsForSet().add(postCacheProperties.getAuthor().getSetKey(), authorId);
+        log.info("saved to cache post author id: {}", id);
+
+        return id;
+    }
 }

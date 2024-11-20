@@ -11,4 +11,12 @@ public class PostCacheProperties {
     private int liveTime;
     private TimeUnit timeUnit;
     private String setKey;
+    private Author author;
+
+    @Data
+    public static class Author {
+        private int liveTime;
+        private TimeUnit timeUnit;
+        private String setKey;
+    }
 }

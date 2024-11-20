@@ -64,3 +64,7 @@ cache:
     live-time: 1
     time-unit: DAYS
     set-key: posts
+    author:
+      live-time: 1
+      time-unit: DAYS
+      set-key: authors

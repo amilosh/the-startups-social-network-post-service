@@ -54,6 +54,7 @@ public class PostServiceImpl implements PostService {
 
         PostDto postDto = postMapper.toDto(post);
         postCacheRepository.cachePost(postDto);
+        postCacheRepository.cacheAuthorId(postDto.getAuthorId());
         return postDto;
     }
 
