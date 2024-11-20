@@ -21,7 +21,7 @@ public class LikeValidator {
     public <T, R extends JpaRepository<T, Long>> T validateCommentOrPost(long commentAndPostId, R repository) {
         return repository.findById(commentAndPostId).orElseThrow(() -> {
             log.error("The comment with ID {}  does not exist", commentAndPostId);
-            return new DataValidationException("Комментарий не существует " + commentAndPostId);
+            return new DataValidationException("The comment does not exist " + commentAndPostId);
         });
     }
 

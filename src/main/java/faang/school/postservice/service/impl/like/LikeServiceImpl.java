@@ -2,18 +2,19 @@ package faang.school.postservice.service.impl.like;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.model.event.LikeEvent;
 import faang.school.postservice.mapper.like.LikeMapper;
+import faang.school.postservice.model.dto.like.LikeDto;
+import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.model.dto.like.LikeDto;
-import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.event.LikeEvent;
 import faang.school.postservice.publisher.LikeEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.LikeService;
+import faang.school.postservice.util.DateAndTimeFormat;
 import faang.school.postservice.validator.like.LikeValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class LikeServiceImpl implements LikeService {
     private final UserServiceClient userServiceClient;
     private final UserContext userContext;
     private final LikeEventPublisher likeEventPublisher;
+    private final DateAndTimeFormat timeFormat;
 
     @Override
     @Transactional
@@ -75,11 +77,13 @@ public class LikeServiceImpl implements LikeService {
         log.info("Creating a like for a post with ID {}", postId);
 
         Like saveLike = saveLikePost(post, userId);
-        LikeEvent likeEventDto = new LikeEvent(post.getAuthorId(),
-                userId,
-                postId,
-                LocalDateTime.now());
-        likeEventPublisher.publish(likeEventDto);
+        LikeEvent likeEvent = LikeEvent.builder()
+                .postId(postId)
+                .likeAuthorId(userId)
+                .postAuthorId(post.getAuthorId())
+                .likedTime(timeFormat.localDateTime(LocalDateTime.now()))
+                .build();
+        likeEventPublisher.publishByKafka(likeEvent);
 
         log.info("Created a like with ID {} from a user with ID {} to a post with ID {}",
                 saveLike.getId(),
