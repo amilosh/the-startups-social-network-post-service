@@ -79,7 +79,7 @@ public class User {
 
     @ManyToMany(cascade = {CascadeType.PERSIST})
     @JoinTable(
-            name = "subscriptions",
+            name = "subscription",
             joinColumns = {@JoinColumn(name = "followee_id")},
             inverseJoinColumns = {@JoinColumn(name = "follower_id")}
     )

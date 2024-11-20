@@ -74,7 +74,7 @@ public class PostServiceImpl implements PostService {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
             postRepository.save(post);
-            //publishPostPublishedEvent(post);
+            publishPostPublishedEvent(post);
         }
     }
 
