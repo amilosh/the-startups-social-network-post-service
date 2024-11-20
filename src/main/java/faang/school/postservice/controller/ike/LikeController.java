@@ -5,6 +5,7 @@ import faang.school.postservice.service.like.LikeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,13 +28,13 @@ public class LikeController {
         likeService.addLikeToComment(likeDto);
     }
 
-    @DeleteMapping("/posts")
-    public void removeLikeFromPost(@RequestBody @Valid LikeDto likeDto) {
-        likeService.removeLikeFromPost(likeDto);
+    @DeleteMapping("/posts/{likeId}")
+    public void removeLikeFromPost(@PathVariable Long likeId, @RequestBody @Valid LikeDto likeDto) {
+        likeService.removeLikeFromPost(likeId, likeDto);
     }
 
-    @DeleteMapping("/comments")
-    public void removeLikeFromComment(@RequestBody @Valid LikeDto likeDto) {
-        likeService.removeLikeFromComment(likeDto);
+    @DeleteMapping("/comments/{likeId}")
+    public void removeLikeFromComment(@PathVariable Long likeId, @RequestBody @Valid LikeDto likeDto) {
+        likeService.removeLikeFromComment(likeId, likeDto);
     }
 }

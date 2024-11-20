@@ -69,22 +69,22 @@ public class LikeService {
         commentService.addLikeToComment(likeDto.getCommentId(), likeToSave);
     }
 
-    public void removeLikeFromPost(LikeDto likeDto) {
+    public void removeLikeFromPost(Long likeId, LikeDto likeDto) {
         validateUserExistence(likeDto.getUserId());
-        Like likeToRemove = getLike(likeDto.getId());
+        Like likeToRemove = getLike(likeId);
         likeValidator.validateThisUserAddThisLike(likeDto.getUserId(), likeToRemove);
 
-        log.info("Remove like with ID: {} ", likeDto.getId());
+        log.info("Remove like with ID: {} ", likeId);
         likeRepository.delete(likeToRemove);
         postService.removeLikeFromPost(likeDto.getPostId(), likeToRemove);
     }
 
-    public void removeLikeFromComment(LikeDto likeDto) {
+    public void removeLikeFromComment(Long likeId,LikeDto likeDto) {
         validateUserExistence(likeDto.getUserId());
-        Like likeToRemove = getLike(likeDto.getId());
+        Like likeToRemove = getLike(likeId);
         likeValidator.validateThisUserAddThisLike(likeDto.getUserId(), likeToRemove);
 
-        log.info("Remove like with ID: {}", likeDto.getId());
+        log.info("Remove like with ID: {}", likeId);
         likeRepository.delete(likeToRemove);
         commentService.removeLikeFromComment(likeDto.getCommentId(), likeToRemove);
     }
