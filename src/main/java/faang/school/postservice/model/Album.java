@@ -1,12 +1,15 @@
 package faang.school.postservice.model;
 
+import faang.school.postservice.enums.VisibilityAlbums;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +38,14 @@ public class Album {
     @ManyToMany
     @JoinTable(name = "post_album", joinColumns = @JoinColumn(name = "album_id"), inverseJoinColumns = @JoinColumn(name = "post_id"))
     private List<Post> posts;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "visibility", nullable = false)
+    private VisibilityAlbums visibility;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "beholders_ids")
+    private List<Long> beholdersIds;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
