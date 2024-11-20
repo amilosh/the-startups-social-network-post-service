@@ -26,10 +26,10 @@ public class LikeService {
 
     @Transactional
     public LikePostDto createLikePost(long postId, long userId) {
-        log.info("Creating like with userId={} and postId={}", userId, postId);
+        log.info("Creating like with ownerLikeId={} and postId={}", userId, postId);
 
         validateUserExists(userId);
-        checkPostExists(postId);
+        validatePostExists(postId);
         validatePostLiked(postId, userId);
 
         Like like = Like.builder()
@@ -83,7 +83,7 @@ public class LikeService {
           }
     }
 
-    private void checkPostExists(long postId) {
+    private void validatePostExists(long postId) {
         if (postService.isPostNotExist(postId)) {
             log.error("PostId={} does not exist", postId);
             throw new EntityNotFoundException("This post does not exist");

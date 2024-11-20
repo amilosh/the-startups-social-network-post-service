@@ -40,14 +40,14 @@ public class LikeController {
         return likeService.createLikeComment(commentId, userId);
     }
 
-    @DeleteMapping("/delete/post/{postId}")
+    @DeleteMapping("/post/{postId}")
     public void deleteLikeFromPost(@PathVariable @Positive long postId) {
         long userId = userContext.getUserId();
         validateUserId(userId);
         likeService.deleteLikeFromPost(postId, userId);
     }
 
-    @DeleteMapping("/delete/comment/{commentId}")
+    @DeleteMapping("/comment/{commentId}")
     public void deleteLikeFromComment(@PathVariable @Positive long commentId) {
         long userId = userContext.getUserId();
         validateUserId(userId);
