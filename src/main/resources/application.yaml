@@ -43,6 +43,9 @@ spring:
         name: posts_topic
         num-partitions: 3
         replication-factor: 1
+    listener:
+      concurrency: 5
+      poll-timeout: 5000
 
 server:
   port: 8081

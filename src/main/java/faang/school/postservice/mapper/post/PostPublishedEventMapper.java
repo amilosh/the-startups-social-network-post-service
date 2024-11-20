@@ -8,4 +8,6 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PostPublishedEventMapper {
     PostPublishedEventProto.PostPublishedEvent toProto(PostPublishedEvent event);
+
+    PostPublishedEvent toEvent(PostPublishedEventProto.PostPublishedEvent postPublishedEvent);
 }
