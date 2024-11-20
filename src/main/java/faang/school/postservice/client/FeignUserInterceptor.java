@@ -17,7 +17,8 @@ public class FeignUserInterceptor implements RequestInterceptor {
     private final Map<String, Map<String, List<String>>> endpointRequiredHeaders;
     private final Map<String, Supplier<String>> headerMapping = new HashMap<>();
 
-    public FeignUserInterceptor(UserContext userContext, Map<String, Map<String, List<String>>> endpointRequiredHeaders) {
+    public FeignUserInterceptor(UserContext userContext, Map<String,
+            Map<String, List<String>>> endpointRequiredHeaders) {
         this.userContext = userContext;
         this.endpointRequiredHeaders = endpointRequiredHeaders;
         initializeHeaderMapping();

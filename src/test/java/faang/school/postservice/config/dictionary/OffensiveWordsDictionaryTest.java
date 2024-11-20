@@ -18,27 +18,27 @@ class OffensiveWordsDictionaryTest {
 
     private OffensiveWordsDictionary offensiveWordsDictionary;
 
-    private final String GOOD_WORD = "TEST";
-    private final String BAD_WORD_ONE = "TEST1";
-    private final String BAD_WORD_TWO = "TEST2";
+    private final String goodWord = "TEST";
+    private final String badWordOne = "TEST1";
+    private final String badWordTwo = "TEST2";
 
-    private final List<String> INITIAL_WORDS = List.of(BAD_WORD_ONE, BAD_WORD_TWO);
+    private final List<String> initialWords = List.of(badWordOne, badWordTwo);
 
     @BeforeEach
     public void setUp() {
-        offensiveWordsDictionary = new OffensiveWordsDictionary(INITIAL_WORDS);
+        offensiveWordsDictionary = new OffensiveWordsDictionary(initialWords);
     }
 
     @Test
     @DisplayName("If word contains in dictionary then return true")
     public void whenWordContainsInDictionaryThenReturnTrue() {
-        assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(BAD_WORD_ONE));
+        assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(badWordOne));
     }
 
     @Test
     @DisplayName("If word not contains in dictionary then return false")
     public void whenWordContainsInDictionaryThenReturnFalse() {
-        assertFalse(offensiveWordsDictionary.isWordContainsInDictionary(GOOD_WORD));
+        assertFalse(offensiveWordsDictionary.isWordContainsInDictionary(goodWord));
     }
 
     @Test
@@ -49,11 +49,10 @@ class OffensiveWordsDictionaryTest {
         String wordNotContains = "NOT";
 
         offensiveWordsDictionary.addWordsToDictionary(List.of(word, anotherWord));
-
-        assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(BAD_WORD_ONE));
-        assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(BAD_WORD_TWO));
+        assertFalse(offensiveWordsDictionary.isWordContainsInDictionary(wordNotContains));
+        assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(badWordOne));
+        assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(badWordTwo));
         assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(word));
         assertTrue(offensiveWordsDictionary.isWordContainsInDictionary(anotherWord));
-        assertFalse(offensiveWordsDictionary.isWordContainsInDictionary(wordNotContains));
     }
 }

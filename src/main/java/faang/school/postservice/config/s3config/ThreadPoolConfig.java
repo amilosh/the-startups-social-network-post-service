@@ -15,13 +15,13 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class ThreadPoolConfig {
 
-  private final ThreadPoolProperties threadPoolProperties;
+    private final ThreadPoolProperties threadPoolProperties;
 
     @Bean
     public ExecutorService executorService() {
         BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(threadPoolProperties.getCapacity());
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                threadPoolProperties.getCorePoolSize(),threadPoolProperties.getMaximumPoolSize(),
+                threadPoolProperties.getCorePoolSize(), threadPoolProperties.getMaximumPoolSize(),
                 threadPoolProperties.getKeepAliveTime(), TimeUnit.SECONDS,
                 queue,
                 new ThreadPoolExecutor.AbortPolicy()

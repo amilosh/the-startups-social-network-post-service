@@ -72,7 +72,7 @@ class CommentServiceTest {
     private CreateCommentRequest createCommentRequest;
     private Comment commentForDto;
     private Post post;
-    private Comment commentForDB;
+    private Comment commentForDb;
     private CommentDto commentDto;
     private CommentDto commentDto1;
     private CommentDto commentDto2;
@@ -101,7 +101,7 @@ class CommentServiceTest {
 
         commentForDto = initializingComment(CONTENT, AUTHOR_ID);
 
-        commentForDB = initializingComment(COMMENT_ID, CONTENT, AUTHOR_ID, post, CREATED_AT, UPDATED_AT);
+        commentForDb = initializingComment(COMMENT_ID, CONTENT, AUTHOR_ID, post, CREATED_AT, UPDATED_AT);
 
         comment = initializingComment(COMMENT_ID, CONTENT, AUTHOR_ID, post, CREATED_AT, UPDATED_AT);
         comment1 = initializingComment(2L, CONTENT, 2L, post,
@@ -133,23 +133,23 @@ class CommentServiceTest {
             when(userServiceClient.getUser(createCommentRequest.getAuthorId())).thenReturn(userDto);
             when(commentMapper.toComment(createCommentRequest)).thenReturn(commentForDto);
             when(postRepository.findById(POST_ID)).thenReturn(Optional.of(post));
-            when(commentRepository.save(commentForDto)).thenReturn(commentForDB);
-            when(commentMapper.toCommentDto(commentForDB)).thenReturn(commentDto);
+            when(commentRepository.save(commentForDto)).thenReturn(commentForDb);
+            when(commentMapper.toCommentDto(commentForDb)).thenReturn(commentDto);
 
             CommentDto result = commentService.createComment(POST_ID, createCommentRequest);
-
+            assertEquals(result.getId(), commentForDb.getId());
+            assertEquals(result.getContent(), commentForDb.getContent());
+            assertEquals(result.getAuthorId(), commentForDb.getAuthorId());
+            assertEquals(result.getContent(), createCommentRequest.getContent());
+            assertEquals(result.getAuthorId(), createCommentRequest.getAuthorId());
             verify(userServiceClient).getUser(createCommentRequest.getAuthorId());
             verify(commentMapper).toComment(createCommentRequest);
             verify(postRepository).findById(POST_ID);
             verify(commentRepository).save(commentForDto);
-            verify(commentMapper).toCommentDto(commentForDB);
+            verify(commentMapper).toCommentDto(commentForDb);
 
             assertNotNull(commentForDto.getPost());
-            assertEquals(result.getId(), commentForDB.getId());
-            assertEquals(result.getContent(), commentForDB.getContent());
-            assertEquals(result.getAuthorId(), commentForDB.getAuthorId());
-            assertEquals(result.getContent(), createCommentRequest.getContent());
-            assertEquals(result.getAuthorId(), createCommentRequest.getAuthorId());
+
         }
 
         @Test
@@ -159,24 +159,22 @@ class CommentServiceTest {
             doNothing().when(commentValidator).checkingForCompliance(comment, updateCommentRequest);
             when(commentMapper.toComment(updateCommentRequest)).thenReturn(commentForDto);
             when(postRepository.findById(POST_ID)).thenReturn(Optional.of(post));
-            when(commentRepository.save(commentForDto)).thenReturn(commentForDB);
-            when(commentMapper.toCommentDto(commentForDB)).thenReturn(commentDto);
+            when(commentRepository.save(commentForDto)).thenReturn(commentForDb);
+            when(commentMapper.toCommentDto(commentForDb)).thenReturn(commentDto);
 
             CommentDto result = commentService.updateComment(POST_ID, 1L, updateCommentRequest);
-
+            assertEquals(result.getId(), commentForDb.getId());
+            assertEquals(result.getContent(), commentForDb.getContent());
+            assertEquals(result.getAuthorId(), commentForDb.getAuthorId());
+            assertEquals(result.getContent(), createCommentRequest.getContent());
+            assertEquals(result.getAuthorId(), createCommentRequest.getAuthorId());
             verify(commentRepository).findById(COMMENT_ID);
             verify(commentValidator).checkingForCompliance(comment, updateCommentRequest);
             verify(commentMapper).toComment(updateCommentRequest);
             verify(postRepository).findById(POST_ID);
             assertNotNull(commentForDto.getPost());
             verify(commentRepository).save(commentForDto);
-            verify(commentMapper).toCommentDto(commentForDB);
-
-            assertEquals(result.getId(), commentForDB.getId());
-            assertEquals(result.getContent(), commentForDB.getContent());
-            assertEquals(result.getAuthorId(), commentForDB.getAuthorId());
-            assertEquals(result.getContent(), createCommentRequest.getContent());
-            assertEquals(result.getAuthorId(), createCommentRequest.getAuthorId());
+            verify(commentMapper).toCommentDto(commentForDb);
         }
 
         @Test

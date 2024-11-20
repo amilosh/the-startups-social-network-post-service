@@ -1,4 +1,4 @@
-package faang.school.postservice.validator.postImages;
+package faang.school.postservice.validator.images;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,7 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +34,7 @@ class PostImageValidatorTest {
 
     @Nested
     class ValidatorTests {
+
         @Test
         @DisplayName("Success if the size is equal to the allowed size")
         void whenImageSizeExceededAllowedSizeThenSuccess() {
@@ -61,10 +65,18 @@ class PostImageValidatorTest {
         void whenListImagesSizeThenSuccess() {
             int allowedSize = 10;
 
-            List<MultipartFile> images = new ArrayList<>(10){{
-                add(image);add(image);add(image);add(image);add(image);
-                add(image);add(image);add(image);add(image);add(image);
-            }};
+            List<MultipartFile> images = new ArrayList<>(10) {{
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                    add(image);
+                }};
 
             assertEquals(allowedSize, images.size());
 

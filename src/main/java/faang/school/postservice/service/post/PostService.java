@@ -36,7 +36,7 @@ public class PostService {
     private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
 
-    public PostResponseDto getPost(long postId){
+    public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
 
         publishEvent(postId, post.getAuthorId());
@@ -54,7 +54,7 @@ public class PostService {
 
     public Post findById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(()-> new EntityNotFoundException("Post service. Post not found. id: " + postId));
+                .orElseThrow(() -> new EntityNotFoundException("Post service. Post not found. id: " + postId));
     }
 
     public List<PostResponseDto> getPostsByAuthorWithLikes(long authorId) {

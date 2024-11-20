@@ -18,17 +18,14 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@SpringBootTest(
-        classes = {
-                PostServiceApp.class
-        }
-)
+@SpringBootTest(classes = {PostServiceApp.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
 @Testcontainers
 @AutoConfigureMockMvc
 public class BaseContextTest {
+
     @Autowired
     protected MockMvc mockMvc;
 

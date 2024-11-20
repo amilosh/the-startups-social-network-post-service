@@ -12,8 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "User entity with it's id full username and email")
 public class UserDto {
+
     @Schema(description = "User's identification number", example = "1",
-    accessMode = Schema.AccessMode.READ_ONLY)
+            accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
     @Schema(description = "User's full name", example = "Vasiliy Petrov")
     private String username;
