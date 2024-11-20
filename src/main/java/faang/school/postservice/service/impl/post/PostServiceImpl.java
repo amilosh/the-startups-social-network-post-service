@@ -3,6 +3,7 @@ package faang.school.postservice.service.impl.post;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.kafka.PostNFEvent;
@@ -12,6 +13,7 @@ import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.redis.RedisPostRepository;
+import faang.school.postservice.repository.redis.RedisUserRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.service.PostServiceAsync;
@@ -44,6 +46,7 @@ public class PostServiceImpl implements PostService {
     private final UserServiceClient userServiceClient;
     private final KafkaPostViewProducer kafkaPostViewProducer;
     private final RedisPostRepository redisPostRepository;
+    private final RedisUserRepository redisUserRepository;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -67,9 +70,11 @@ public class PostServiceImpl implements PostService {
         postValidator.publishPostValidator(post);
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-
         Post publishedPost = postRepository.save(post);
+
         hashtagService.createHashtags(post);
+        UserDto author = userServiceClient.getUser(publishedPost.getAuthorId());
+
         PostEvent event = PostEvent.builder()
                 .authorId(publishedPost.getAuthorId())
                 .postId(publishedPost.getId())
@@ -77,6 +82,7 @@ public class PostServiceImpl implements PostService {
         sendPostEventForNewsFeed(publishedPost);
         postEventPublisher.publish(event);
         redisPostRepository.save(postMapper.toRedis(publishedPost));
+        redisUserRepository.save(author);
         return postMapper.toDto(post);
     }
 

@@ -55,7 +55,7 @@ public class CommentServiceImpl implements CommentService {
         Comment savedComment = commentRepository.save(comment);
         CommentEvent event = CommentEvent.builder()
                 .commentAuthorId(savedComment.getAuthorId())
-                .username(user.username())
+                .username(user.getUsername())
                 .postAuthorId(post.getAuthorId())
                 .postId(savedComment.getPost().getId())
                 .content(savedComment.getContent())
