@@ -8,6 +8,7 @@ import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.impl.CommentServiceImpl;
@@ -56,6 +57,9 @@ class CommentServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    KafkaCommentProducer kafkaCommentProducer;
 
     @InjectMocks
     private CommentServiceImpl commentService;
