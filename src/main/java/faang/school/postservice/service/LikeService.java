@@ -7,6 +7,7 @@ import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +75,12 @@ public class LikeService {
     }
 
     private void validateUserExists(long userId) {
-            userServiceClient.getUser(userId);
+          try {
+              userServiceClient.getUser(userId);
+          }catch (FeignException e){
+              log.error("User not exist with userID={}", userId);
+              throw new EntityNotFoundException("User not exist");
+          }
     }
 
     private void checkPostExists(long postId) {
