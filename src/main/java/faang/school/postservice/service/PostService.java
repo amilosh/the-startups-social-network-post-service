@@ -8,12 +8,10 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -23,7 +21,6 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @Service
-@Validated
 @RequiredArgsConstructor
 public class PostService {
 
@@ -32,7 +29,7 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
 
-    public Long createDraftPost(@Valid PostDto postDto) {
+    public Long createDraftPost(PostDto postDto) {
         checkAuthorIdExist(postDto.userId(), postDto.projectId());
         Post post = postRepository.save(postMapper.toEntity(postDto));
         return post.getId();
@@ -48,7 +45,7 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public PostDto updatePost(Long postId, @Valid PostDto postDto) {
+    public PostDto updatePost(Long postId, PostDto postDto) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
         post.setContent(postDto.content());

@@ -3,8 +3,8 @@ package faang.school.postservice.controller;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.utilities.UrlUtils;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Long> draftPost(@RequestBody @NotNull PostDto postDto) {
+    public ResponseEntity<Long> draftPost(@RequestBody @Valid PostDto postDto) {
         checkPostDtoContainsContent(postDto);
         checkIdUserOrIdProjectNotNull(postDto);
         Long postId = postService.createDraftPost(postDto);
@@ -39,7 +39,7 @@ public class PostController {
     }
 
     @PutMapping(UrlUtils.ID)
-    public ResponseEntity<PostDto> updatePost(@PathVariable("id") @Min(1) Long postId, @RequestBody @NotNull PostDto postDto) {
+    public ResponseEntity<PostDto> updatePost(@PathVariable("id") @Min(1) Long postId, @RequestBody @Valid PostDto postDto) {
         checkIdUserOrIdProjectNotNull(postDto);
         PostDto postDtoUpdated = postService.updatePost(postId, postDto);
         return ResponseEntity.ok().body(postDtoUpdated);
