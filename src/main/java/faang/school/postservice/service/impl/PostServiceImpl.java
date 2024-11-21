@@ -36,6 +36,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final CacheRepository<PostDto> cachePostRepository;
+    private final CacheRepository<UserDto> cacheUserRepository;
     private final ProjectServiceClient projectServiceClient;
     private final UserServiceClient userServiceClient;
     private final PostValidator validator;
@@ -69,15 +70,13 @@ public class PostServiceImpl implements PostService {
     public void publishPost(long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("There is no post with ID " + id));
+        UserDto user = userServiceClient.getUser(post.getAuthorId());
 
         if (!post.isPublished()) {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
 
-            postRepository.save(post);
-
-            cachePostRepository.save(post.getId().toString(), postMapper.toDto(post));
-
+            save(post, user);
             publishForFeed(id, post);
         }
     }
@@ -142,6 +141,12 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Long> getAuthorsWithMoreFiveUnverifiedPosts() {
         return postRepository.findAuthorsWithMoreThanFiveUnverifiedPosts();
+    }
+
+    private void save(Post post, UserDto user) {
+        postRepository.save(post);
+        cachePostRepository.save(post.getId().toString(), postMapper.toDto(post));
+        cacheUserRepository.save(user.getId().toString(), user);
     }
 
     private void publishForFeed(long id, Post post) {
