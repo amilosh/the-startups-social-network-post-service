@@ -2,6 +2,7 @@ package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.redis.PostRedis;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
@@ -14,4 +15,6 @@ public interface PostMapper {
     Post toEntity(PostDto postDto);
 
     List<PostDto> toDto(List<Post> posts);
+
+    PostRedis toRedis(Post post);
 }

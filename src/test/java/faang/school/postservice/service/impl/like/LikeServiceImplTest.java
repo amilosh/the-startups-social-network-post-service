@@ -74,7 +74,7 @@ class LikeServiceImplTest {
         post.setAuthorId(1L);
         likeDto = new LikeDto();
         like = new Like();
-        userDto = new UserDto(1L, "david", "david228", "david228@mail.ru");
+        userDto = new UserDto(1L, "david", "david228", "david228@mail.ru", null);
     }
 
     @Test

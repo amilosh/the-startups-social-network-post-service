@@ -4,8 +4,10 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.event.PostEvent;
+import faang.school.postservice.model.redis.PostRedis;
 import faang.school.postservice.publisher.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.service.PostServiceAsync;
@@ -34,6 +36,7 @@ public class PostServiceImpl implements PostService {
     private final PostValidator postValidator;
     private final PostServiceAsync postServiceAsync;
     private final PostEventPublisher postEventPublisher;
+    private final PostRedisRepository postRedisRepository;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -62,12 +65,15 @@ public class PostServiceImpl implements PostService {
 
         Post publishedPost = postRepository.save(post);
         hashtagService.createHashtags(post);
+
         PostEvent event = PostEvent.builder()
                 .authorId(publishedPost.getAuthorId())
                 .postId(publishedPost.getId())
                 .build();
-//        postEventPublisher.publish(event);
-        postEventPublisher.publishByKafka(event);
+
+        PostRedis postRedis = postMapper.toRedis(publishedPost);
+        postRedisRepository.savePost(postRedis, publishedPost.getId());
+        postEventPublisher.publish(event);
 
         return postMapper.toDto(post);
     }
