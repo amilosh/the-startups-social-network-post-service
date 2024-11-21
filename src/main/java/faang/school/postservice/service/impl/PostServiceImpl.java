@@ -15,6 +15,8 @@ import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
+import faang.school.postservice.redis.service.AuthorCacheService;
+import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
@@ -30,6 +32,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.LocaleResolver;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostServiceImpl implements PostService {
 
+    private final LocaleResolver localeResolver;
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
 
@@ -59,6 +63,8 @@ public class PostServiceImpl implements PostService {
     private final PostViewPublisher postViewPublisher;
     private final UserContext userContext;
     private final KafkaCommentProducer kafkaCommentProducer;
+    private final AuthorCacheService authorCacheService;
+    private final PostCacheService postCacheService;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -102,9 +108,14 @@ public class PostServiceImpl implements PostService {
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-        postRepository.save(post);
 
-        return postMapper.toPostDto(post);
+        Post savedPost = postRepository.save(post);
+        PostDto postDto = postMapper.toPostDto(savedPost);
+
+        authorCacheService.saveAuthorToCache(postDto.getAuthorId());
+        postCacheService.savePostToCache(postDto);
+
+        return postDto;
     }
 
     @Override
