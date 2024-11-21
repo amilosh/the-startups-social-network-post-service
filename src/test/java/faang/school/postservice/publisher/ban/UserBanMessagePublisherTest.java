@@ -1,6 +1,6 @@
 package faang.school.postservice.publisher.ban;
 
-import faang.school.postservice.event.ban.UserBanEvent;
+import faang.school.postservice.dto.event.ban.UserBanEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

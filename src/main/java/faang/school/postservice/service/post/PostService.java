@@ -1,11 +1,16 @@
 package faang.school.postservice.service.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.dto.event.PostViewEvent;
+import faang.school.postservice.dto.event.post.PostCreateEvent;
+import faang.school.postservice.dto.event.post.PostViewEvent;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
+import faang.school.postservice.producer.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,7 +22,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -29,14 +36,16 @@ public class PostService {
     @Value("${post.moderation.sublist.length}")
     private Long sublistLength;
 
-    private final PostRepository postRepository;
     private final PostMapper postMapper;
-    private final ModerationDictionary moderationDictionary;
-    private final ExecutorService executor;
-    private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
+    private final ExecutorService executor;
+    private final PostRepository postRepository;
+    private final UserServiceClient userServiceClient;
+    private final KafkaPostProducer kafkaPostProducer;
+    private final ModerationDictionary moderationDictionary;
+    private final PostViewEventPublisher postViewEventPublisher;
 
-    public PostResponseDto getPost(long postId){
+    public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
 
         publishEvent(postId, post.getAuthorId());
@@ -54,7 +63,7 @@ public class PostService {
 
     public Post findById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(()-> new EntityNotFoundException("Post service. Post not found. id: " + postId));
+                .orElseThrow(() -> new EntityNotFoundException("Post service. Post not found. id: " + postId));
     }
 
     public List<PostResponseDto> getPostsByAuthorWithLikes(long authorId) {
@@ -75,6 +84,17 @@ public class PostService {
         return postRepository.findAuthorsWithUnverifiedPosts(limit, fromDate);
     }
 
+    public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        log.info("start createPost with {}", postRequestDto);
+
+        Post post = postRepository.save(buildPost(postRequestDto));
+        log.info("save post in DB: {}", post);
+
+        sendPostEvent(post);
+
+        return postMapper.toDto(post);
+    }
+
     @Async("executor")
     public void moderatePostsContent() {
         List<Post> unverifiedPosts = postRepository.findReadyToVerified();
@@ -89,6 +109,13 @@ public class PostService {
         }
     }
 
+    private Post buildPost(PostRequestDto postRequestDto) {
+        return Post.builder()
+                .content(postRequestDto.getContent())
+                .authorId(userContext.getUserId())
+                .build();
+    }
+
     private void publishEvent(Long postId, Long postAuthorId) {
         PostViewEvent postViewEvent = PostViewEvent.builder()
                 .postId(postId)
@@ -100,6 +127,25 @@ public class PostService {
             postViewEventPublisher.publish(postViewEvent);
         } catch (Exception ex) {
             log.error("Failed to send notification with postViewEvent: {}", postViewEvent.toString(), ex);
+        }
+    }
+
+    private void sendPostEvent(Post post) {
+        PostCreateEvent postCreateEvent = PostCreateEvent.builder()
+                .postId(post.getId())
+                .authorId(post.getAuthorId())
+                .subscribers(Optional.ofNullable(userServiceClient
+                                .getUser(userContext.getUserId())
+                                .getFollowers())
+                        .orElseGet(ArrayList::new)
+                        .stream()
+                        .map(UserDto::getId)
+                        .toList())
+                .build();
+        try {
+            kafkaPostProducer.sendEvent(postCreateEvent);
+        } catch (Exception ex) {
+            log.error("Failed to send postCreateEvent: {}", postCreateEvent.toString(), ex);
         }
     }
 }

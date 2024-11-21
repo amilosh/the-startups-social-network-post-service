@@ -1,15 +1,19 @@
 package faang.school.postservice.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "User entity with it's id full username and email")
 public class UserDto {
     @Schema(description = "User's identification number", example = "1",
@@ -24,4 +28,5 @@ public class UserDto {
     private Long countryId;
     private String city;
     private String userProfilePicId;
+    private List<UserDto> followers;
 }
