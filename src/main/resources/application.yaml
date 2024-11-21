@@ -118,6 +118,8 @@ redis:
     comment_channel: comment_channel
 
 kafka:
+  batch-size:
+    follower: 1000
   topics:
     post: post_topic
 

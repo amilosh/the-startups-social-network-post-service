@@ -1,6 +1,8 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.model.dto.UserWithFollowersDto;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
@@ -13,8 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,12 +39,19 @@ public class PublishPostTest {
     @Mock
     PostViewPublisher postViewPublisher;
 
+    @Mock
+    private UserServiceClient userServiceClient;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @InjectMocks
     private PostServiceImpl postService;
 
     private Post unpublishedPost;
     private Post publishedPost;
     private PostDto publishedPostDto;
+    private UserWithFollowersDto userWithFollowersDto;
 
     @BeforeEach
     void setUp() {
@@ -48,22 +59,29 @@ public class PublishPostTest {
         unpublishedPost.setId(1L);
         unpublishedPost.setPublished(false);
         unpublishedPost.setContent("Here is the unpublished post");
+        unpublishedPost.setAuthorId(1L);
 
         publishedPost = new Post();
         publishedPost.setId(2L);
         publishedPost.setPublished(true);
         publishedPost.setContent("Here is the already published post");
         publishedPost.setPublishedAt(LocalDateTime.now());
+        publishedPost.setAuthorId(1L);
 
         publishedPostDto = new PostDto();
         publishedPostDto.setId(1L);
         publishedPostDto.setPublished(true);
         publishedPostDto.setContent("Here is the published post");
+
+        userWithFollowersDto = new UserWithFollowersDto();
+        userWithFollowersDto.setId(1L);
+        userWithFollowersDto.setFollowerIds(List.of(2L, 3L));
     }
 
     @Test
     void shouldPublishPostSuccessfully() {
         when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(unpublishedPost));
+        when(userServiceClient.getUserWithFollowers(1L)).thenReturn(userWithFollowersDto);
         when(postRepository.save(any(Post.class))).thenAnswer(i -> {
             Post savedPost = i.getArgument(0);
             unpublishedPost.setPublished(savedPost.isPublished());

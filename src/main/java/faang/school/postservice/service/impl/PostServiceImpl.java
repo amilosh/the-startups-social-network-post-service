@@ -3,15 +3,19 @@ package faang.school.postservice.service.impl;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.model.enums.AuthorType;
+import faang.school.postservice.exception.DataValidationException;
+import faang.school.postservice.kafka.producer.PostProducer;
+import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.ProjectDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.exception.DataValidationException;
-import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.model.dto.UserWithFollowersDto;
+import faang.school.postservice.model.dto.kafka.KafkaPostDto;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.redis.publisher.NewPostPublisher;
+import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
+import faang.school.postservice.model.event.kafka.PostCreatedEvent;
+import faang.school.postservice.redis.publisher.NewPostPublisher;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
@@ -21,12 +25,15 @@ import faang.school.postservice.util.moderation.ModerationDictionary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -45,6 +52,9 @@ public class PostServiceImpl implements PostService {
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
 
+    @Value("${kafka.batch-size.follower:1000}")
+    private int followerBatchSize;
+
     private final PostRepository postRepository;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
@@ -56,6 +66,8 @@ public class PostServiceImpl implements PostService {
     private final PostBatchService postBatchService;
     private final PostViewPublisher postViewPublisher;
     private final UserContext userContext;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final PostProducer postProducer;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -88,6 +100,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public PostDto publishPost(Long id) {
         Post post = getPostById(id);
 
@@ -99,7 +112,33 @@ public class PostServiceImpl implements PostService {
         post.setPublishedAt(LocalDateTime.now());
         postRepository.save(post);
 
-        return postMapper.toPostDto(post);
+        PostDto postDto = postMapper.toPostDto(post);
+        UserWithFollowersDto userWithFollowers = userServiceClient.getUserWithFollowers(post.getAuthorId());
+        KafkaPostDto kafkaPostDto = new KafkaPostDto(
+                postDto.getAuthorId(),
+                postDto.getAuthorType(),
+                postDto.getContent(),
+                postDto.getCreatedAt());
+        PostCreatedEvent postCreatedEvent = new PostCreatedEvent(kafkaPostDto, userWithFollowers.getFollowerIds());
+        applicationEventPublisher.publishEvent(postCreatedEvent);
+        return postDto;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onRequestCompleted(PostCreatedEvent postCreatedEvent) {
+        List<Long> followerIds = postCreatedEvent.getFollowerIds();
+
+        if (followerIds.isEmpty()) {
+            return;
+        }
+
+        KafkaPostDto kafkaPostDto = postCreatedEvent.getKafkaPostDto();
+
+        for (int indexFrom = 0; indexFrom < followerIds.size(); indexFrom += followerBatchSize) {
+            int indexTo = Math.min(indexFrom + followerBatchSize, followerIds.size());
+            PostCreatedEvent subEvent = new PostCreatedEvent(kafkaPostDto, followerIds.subList(indexFrom, indexTo));
+            postProducer.sendEvent(subEvent);
+        }
     }
 
     @Override

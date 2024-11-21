@@ -2,6 +2,9 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.service.PostService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
@@ -36,6 +39,8 @@ public class PostController {
         return ResponseEntity.ok(postService.createPost(postDto));
     }
 
+    @Parameter(name = "x-user-id", in = ParameterIn.HEADER, required = true,
+            description = "ID of the user making the request", schema = @Schema(type = "string"))
     @PostMapping("/publish/{id}")
     public ResponseEntity<PostDto> publishPost(@NotNull @PathVariable Long id) {
         return ResponseEntity.ok(postService.publishPost(id));
