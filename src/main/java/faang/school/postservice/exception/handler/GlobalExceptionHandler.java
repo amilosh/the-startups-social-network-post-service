@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DataValidationException.class)
+    @ExceptionHandler({DataValidationException.class, PostException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleDataValidationException(DataValidationException e) {
-        log.error("DataValidationException", e);
+    public ErrorResponse handleDataValidationExceptionAndPostException(Exception e) {
+        log.error("Exception handled: {}", e.getClass().getSimpleName(), e);
         return ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .error(e.getClass().getName())
@@ -66,17 +66,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
     public ErrorResponse handleFeignClientException(FeignClientException e) {
         log.error("FeignClientException", e);
-        return ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .error(e.getClass().getName())
-                .message(e.getMessage())
-                .build();
-    }
-
-    @ExceptionHandler(PostException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handlePostException(PostException e) {
-        log.error("PostException", e);
         return ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .error(e.getClass().getName())
