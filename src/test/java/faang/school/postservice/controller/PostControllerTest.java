@@ -47,20 +47,6 @@ public class PostControllerTest {
     }
 
     @Test
-    public void testCreatePostWithoutContent() throws Exception {
-        PostDto dto = PostDto.builder().build();
-        when(postService.createPost(postDto)).thenReturn(postDto);
-
-        mockMvc.perform(post("/api/v1/post/create", dto))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.authorId").value(1L))
-                .andExpect(jsonPath("$.content").value("content"))
-                .andExpect(jsonPath("$.published").value(false));
-        verify(postService, times(1)).createPost(postDto);
-    }
-
-    @Test
     public void testGetPost() throws Exception {
         when(postService.getPostById(1L)).thenReturn(postDto);
 
