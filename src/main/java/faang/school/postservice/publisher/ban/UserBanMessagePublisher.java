@@ -1,6 +1,6 @@
 package faang.school.postservice.publisher.ban;
 
-import faang.school.postservice.event.ban.UserBanEvent;
+import faang.school.postservice.dto.event.ban.UserBanEvent;
 import faang.school.postservice.publisher.MessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

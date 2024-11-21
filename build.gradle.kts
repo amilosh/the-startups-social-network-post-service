@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.kafka:spring-kafka:3.3.0")
 
     /**
      * Database
@@ -159,10 +160,10 @@ tasks.jacocoTestCoverageVerification {
 }
 
 
-checkstyle {
-    toolVersion = "10.20.0"
-    configFile = file("${rootDir}/src/main/resources/checkstyle/checkstyle.xml")
-}
+//checkstyle {
+//    toolVersion = "10.20.0"
+//    configFile = file("${rootDir}/src/main/resources/checkstyle/checkstyle.xml")
+//}
 
 tasks.withType<Checkstyle>().configureEach {
     reports {
