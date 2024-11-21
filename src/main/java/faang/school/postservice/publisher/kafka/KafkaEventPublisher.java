@@ -13,6 +13,6 @@ public class KafkaEventPublisher<T> {
 
     public void publishEvent(T event, String topic) {
         kafkaTemplate.send(topic, event)
-                .thenRunAsync(() -> log.info("Event published: {}\nTo topic: {}", event, topic));
+                .thenRunAsync(() -> log.info("Event published: {}\nto topic: {}", event, topic));
     }
 }
