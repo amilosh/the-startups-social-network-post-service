@@ -2,14 +2,12 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.properties.KafkaTopics;
 import faang.school.postservice.publisher.kafka.KafkaEventPublisher;
-import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.post.PostCacheRepository;
 import faang.school.postservice.repository.post.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
