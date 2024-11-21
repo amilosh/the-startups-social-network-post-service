@@ -52,7 +52,6 @@ public class LikeService {
                 .toList();
 
         return collectResultsFromFutures(futures);
-
     }
 
     private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
