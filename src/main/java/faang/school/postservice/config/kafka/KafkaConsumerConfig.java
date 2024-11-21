@@ -4,6 +4,7 @@ package faang.school.postservice.config.kafka;
 //import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
+import faang.school.postservice.model.event.kafka.PostEventKafka;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +55,7 @@ public class KafkaConsumerConfig {
         typeMapper.addTrustedPackages("*");
         Map<String, Class<?>> mappings = new HashMap<>();
         mappings.put("comment_event", CommentEventKafka.class);
-//        mappings.put("farewell", Farewell.class);
+        mappings.put("post_event", PostEventKafka.class);
         typeMapper.setIdClassMapping(mappings);
         converter.setTypeMapper(typeMapper);
         return converter;
