@@ -24,6 +24,7 @@ public class ViewPostEventListener implements KafkaEventListener<byte[]> {
             String stringPostId = Long.toString(feedEvent.getPostId());
             long authorId = feedEvent.getAuthorId();
             cacheRepository.save(stringPostId, authorId);
+            acknowledgment.acknowledge();
 
         } catch (InvalidProtocolBufferException exception) {
             throw new RuntimeException(exception);

@@ -43,6 +43,7 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final AsyncPostPublishService asyncPostPublishService;
     private final EventPublisher<FeedEventProto.FeedEvent> postForFeedPublisher;
+    private final EventPublisher<PostDto> viewPostPublisher;
 
     @Override
     public void createDraftPost(PostDto postDto) {
@@ -161,5 +162,6 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         postForFeedPublisher.publish(feedEvent);
+        viewPostPublisher.publish(postMapper.toDto(post));
     }
 }
