@@ -143,19 +143,8 @@ public class AlbumControllerTest {
     }
 
     @Test
-    public void testGetAllMyAlbumsByFilter() throws Exception {
-        when(albumService.getAllMyAlbumsByFilter(new AlbumFilterDto(),5L)).thenReturn(albums);
-        when(userContext.getUserId()).thenReturn(5L);
-
-        mockMvc.perform(get("/api/v1/albums/author"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title", is("title1")))
-                .andExpect(jsonPath("$[1].title", is("title2")));
-    }
-
-    @Test
     public void testGetAllAlbumsByFilter() throws Exception {
-        when(albumService.getAllAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+        when(albumService.getAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
 
         mockMvc.perform(get("/api/v1/albums"))
                 .andExpect(status().isOk())

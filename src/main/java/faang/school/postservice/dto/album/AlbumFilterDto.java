@@ -16,6 +16,7 @@ public class AlbumFilterDto {
 
     private String titlePattern;
     private String descriptionPattern;
+    private Long authorId;
     private List<Long> posts;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

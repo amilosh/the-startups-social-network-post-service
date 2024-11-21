@@ -88,16 +88,7 @@ public class AlbumService {
        return mapper.toAlbumResponseDto(album);
     }
 
-    public List<AlbumResponseDto> getAllMyAlbumsByFilter(AlbumFilterDto albumFilter, long authorId) {
-        Stream<Album> albums = albumRepository.findByAuthorId(authorId);
-        filters.stream()
-                .filter(filter -> filter.isApplicable(albumFilter))
-                .forEach(filter -> filter.apply(albums, albumFilter));
-        log.info("Retrieved an albums from the user's {} album list using filters", authorId);
-        return mapper.toAlbumResponseDtoList(albums.toList());
-    }
-
-    public List<AlbumResponseDto> getAllAlbumsByFilter(AlbumFilterDto albumFilter) {
+    public List<AlbumResponseDto> getAlbumsByFilter(AlbumFilterDto albumFilter) {
         Stream<Album> albums = albumRepository.findAllAlbums();
         filters.stream()
                 .filter(filter -> filter.isApplicable(albumFilter))

@@ -66,17 +66,12 @@ public class AlbumController {
         return albumService.getAlbum(albumId);
     }
 
-    @GetMapping("/author")
-    public List<AlbumResponseDto> getAllMyAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter) {
-        return albumService.getAllMyAlbumsByFilter(albumFilter, userContext.getUserId());
-    }
-
     @GetMapping
-    public List<AlbumResponseDto> getAllAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter) {
-        return albumService.getAllAlbumsByFilter(albumFilter);
+    public List<AlbumResponseDto> getAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter) {
+        return albumService.getAlbumsByFilter(albumFilter);
     }
 
-    @GetMapping("author/favorite")
+    @GetMapping("favorite")
     public List<AlbumResponseDto> getAllFavoriteAlbumsByFilter(@ModelAttribute AlbumFilterDto albumFilter) {
         return albumService.getAllFavoriteAlbumsByFilter(albumFilter, userContext.getUserId());
     }

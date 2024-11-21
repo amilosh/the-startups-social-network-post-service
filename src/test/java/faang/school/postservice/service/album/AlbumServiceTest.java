@@ -147,26 +147,13 @@ public class AlbumServiceTest {
     }
 
     @Test
-    public void testGetAllMyAlbumsByFilterSuccess() {
-        List<Album> albums = Collections.singletonList(album);
-        when(albumRepository.findByAuthorId(5L)).thenReturn(albums.stream());
-        when(filters.get(0).isApplicable(new AlbumFilterDto())).thenReturn(true);
-        when(filters.get(0).apply(any(), any())).thenReturn(List.of(album));
-
-        List<AlbumResponseDto> realList = albumService.getAllMyAlbumsByFilter(new AlbumFilterDto(),5L);
-
-        verify(albumRepository).findByAuthorId(5L);
-        assertEquals(realList,mapper.toAlbumResponseDtoList(Collections.singletonList(album)));
-    }
-
-    @Test
     public void testGetAllAlbumsByFilterFilterSuccess() {
         List<Album> albums = Collections.singletonList(album);
         when(albumRepository.findAllAlbums()).thenReturn(albums.stream());
         when(filters.get(0).isApplicable(new AlbumFilterDto())).thenReturn(true);
         when(filters.get(0).apply(any(), any())).thenReturn(List.of(album));
 
-        List<AlbumResponseDto> realList = albumService.getAllAlbumsByFilter(new AlbumFilterDto());
+        List<AlbumResponseDto> realList = albumService.getAlbumsByFilter(new AlbumFilterDto());
 
         verify(albumRepository).findAllAlbums();
         assertEquals(realList,mapper.toAlbumResponseDtoList(Collections.singletonList(album)));
