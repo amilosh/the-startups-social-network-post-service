@@ -57,6 +57,7 @@ spring:
       ack-mode: manual
     topic:
       post-publisher: post_publisher
+      comment-publisher: comment_publisher
 
   servlet:
     multipart:
