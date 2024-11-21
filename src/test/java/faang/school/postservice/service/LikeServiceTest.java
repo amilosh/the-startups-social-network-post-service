@@ -34,7 +34,6 @@ public class LikeServiceTest {
     @InjectMocks
     private LikeService likeService;
 
-
     @Test
     void testGetUsersWhoLikePostByPostId_NoLikes() {
         when(likeRepository.findByPostId(anyLong())).thenReturn(List.of());

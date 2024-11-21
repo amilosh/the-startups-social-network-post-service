@@ -30,4 +30,5 @@ public class LikeController {
         log.info("Request for users by comment id: {}", commentId);
         return likeService.getUsersWhoLikeComments(commentId);
     }
+
 }

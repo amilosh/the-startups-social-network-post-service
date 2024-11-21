@@ -34,7 +34,6 @@ public class LikeService {
         return mapLikesToUserDtos(usersWhoLikedComment);
     }
 
-
     private List<UserDto> mapLikesToUserDtos(List<Like> usersWhoLiked) {
         List<Long> userIds = usersWhoLiked.stream()
                 .map(Like::getUserId)
