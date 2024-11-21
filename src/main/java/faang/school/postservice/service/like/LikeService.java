@@ -1,7 +1,9 @@
 package faang.school.postservice.service.like;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.like.LikeRequestDto;
 import faang.school.postservice.dto.like.LikeResponseDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.like.LikeMapper;
 import faang.school.postservice.model.Comment;
@@ -11,12 +13,14 @@ import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.like.LikeValidator;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +34,9 @@ public class LikeService {
     private final CommentRepository commentRepository;
     private final LikeMapper likeMapper;
     private final LikeValidator validator;
+    private final UserServiceClient userServiceClient;
 
+    private static final int BATCH_SIZE = 100;
 
     public LikeResponseDto postLike(LikeRequestDto acceptanceLikeDto, long postId) {
         Long userId = acceptanceLikeDto.getUserId();
@@ -117,5 +123,45 @@ public class LikeService {
 
     private void deleteLike(List<Like> likes, long userId) {
         likes.removeIf(like -> like.getUserId().equals(userId));
+    }
+
+    public List<UserDto> getUsersByPostId(long postId) {
+        List<Long> userIds = likeRepository.findUserIdsByPostId(postId);
+        List<List<Long>> batches = splitIntoBatches(userIds, BATCH_SIZE);
+        List<UserDto> allUsers = new ArrayList<>();
+
+        for (List<Long> batch : batches) {
+            try {
+                List<UserDto> users = userServiceClient.getUsersByIds(batch);
+                allUsers.addAll(users);
+            } catch (FeignException e) {
+                System.err.println("Error when requesting user_service: " + e.getMessage());
+            }
+        }
+        return allUsers;
+    }
+
+    public List<UserDto> getUsersByCommentId(long commentId) {
+        List<Long> userIds = likeRepository.findUserIdsByCommentId(commentId);
+        List<List<Long>> batches = splitIntoBatches(userIds, BATCH_SIZE);
+        List<UserDto> allUsers = new ArrayList<>();
+
+        for (List<Long> batch : batches) {
+            try {
+                List<UserDto> users = userServiceClient.getUsersByIds(batch);
+                allUsers.addAll(users);
+            } catch (FeignException e) {
+                System.err.println("Error when requesting user_service: " + e.getMessage());
+            }
+        }
+        return allUsers;
+    }
+
+    private List<List<Long>> splitIntoBatches(List<Long> userIds, int batchSize) {
+        List<List<Long>> batches = new ArrayList<>();
+        for (int i = 0; i < userIds.size(); i += batchSize) {
+            batches.add(userIds.subList(i, Math.min(i + batchSize, userIds.size())));
+        }
+        return batches;
     }
 }
