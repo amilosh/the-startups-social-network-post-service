@@ -13,4 +13,10 @@ spring:
       channels:
         post-channel: post_channel
         like-channel: like_channel
+      consumer:
+        groups:
+          like-id: like_event
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringSerializer
+        value-deserializer: org.apache.kafka.common.serialization.JsonSerializer
 
