@@ -62,12 +62,20 @@ server:
   port: 8081
   news:
     feed:
+      news-feed-size: 500
+      limit-comments-on-post: 3
       thread:
         pool:
           corePoolSize: 4
           maximumPoolSize: 10
           keepAliveTime: 60
           queueCapacity: 100
+  cache:
+    post:
+      count-hours-time-to-live: 24
+    user:
+      count-hours-time-to-live: 24
+
 mock:
   user-service:
     client:
@@ -78,10 +86,6 @@ logging:
     root: info
 
 post:
-  cache:
-    count-hours-time-to-live: 24
-    news-feed-size: 500
-    limit-comments-on-post: 3
   publisher:
     scheduler:
       cron: "0 0/1 * 1/1 * ?" # every minute

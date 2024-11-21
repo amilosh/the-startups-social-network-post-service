@@ -4,7 +4,5 @@ import java.time.Duration;
 
 public interface CacheService<T> {
 
-    void put(String key, T value, Duration time);
-
-    long incrementAndGet(String key);
+    void set(String key, T value, Duration time);
 }

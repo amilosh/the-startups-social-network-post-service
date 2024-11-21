@@ -4,9 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@ConfigurationProperties("post.cache")
+@ConfigurationProperties("server.news.feed")
 public class NewsFeedProperties {
-    private int countHoursTimeToLive;
     private int newsFeedSize;
     private int limitCommentsOnPost;
 }

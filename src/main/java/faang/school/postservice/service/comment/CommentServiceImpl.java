@@ -4,12 +4,14 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.comment.CommentException;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.EventPublisher;
+import faang.school.postservice.repository.CacheRepository;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,10 +34,11 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final CommentEventPublisher commentEventPublisher;
     private final EventPublisher<CommentDto> commentFeedEventPublisher;
+    private final CacheRepository<UserDto> userCacheRepository;
 
     @Override
     public CommentDto addComment(CommentDto commentDto) {
-        userServiceClient.getUser(commentDto.getAuthorId());
+        UserDto userDto = userServiceClient.getUser(commentDto.getAuthorId());
 
         Post post = postRepository
                 .findById(commentDto.getPostId())
@@ -47,6 +50,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setPost(post);
 
         comment = commentRepository.save(comment);
+        userCacheRepository.save(userDto.getId().toString(), userDto);
         CommentDto commentDtoWithId = commentMapper.toDto(comment);
         publishEvents(commentDtoWithId);
 
