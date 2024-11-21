@@ -13,6 +13,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  cache:
+    type: redis
+    redis:
+      time-to-live: 86400000 #сутки
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
@@ -22,8 +26,6 @@ spring:
       port: 6379
       host: localhost
       channels:
-        calculations_channel:
-          name: calculations_channel
         user-ban:
           name: user_ban
         like-channel:
@@ -32,8 +34,6 @@ spring:
           name: comment_event_channel
         post-channel:
           name: post_channel
-        comment-receiving:
-          name: comment-receiving-topic
         ad-bought-channel:
           name: ad_bought_channel
 
@@ -106,12 +106,6 @@ moderation:
 
 comments:
   batch-size: 100
-
-posts:
-  batch-size: 100
-
-premium:
-  pool-size: 3
 
 thread-pool:
   fixed:
