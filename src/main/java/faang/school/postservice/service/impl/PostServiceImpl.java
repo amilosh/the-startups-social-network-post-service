@@ -45,6 +45,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostServiceImpl implements PostService {
 
+    @Value("${spring.kafka.followers-batch-size}")
+    private int followersBatchSize;
+
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
 
@@ -103,13 +106,24 @@ public class PostServiceImpl implements PostService {
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
         post = postRepository.save(post);
+
+        // TODO asdfsdeg
         List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
-        PostEventKafka postEventKafka = PostEventKafka.builder()
-                .postId(post.getId())
-                .authorId(post.getAuthorId())
-                .createdAt(post.getCreatedAt())
-                .followerIds(followersIds).build();
-        kafkaPostProducer.sendEvent(postEventKafka);
+        List<List<Long>> followersLists = new ArrayList<>();
+        for (int i = 0; i < followersIds.size(); i += followersBatchSize) {
+            List<Long> batch = new ArrayList<>(followersIds.subList(i, Math.min(followersIds.size(), i + followersBatchSize)));
+            followersLists.add(batch);
+        }
+        Post finalPost = post;
+        followersLists.forEach(list -> {
+            PostEventKafka postEventKafka = PostEventKafka.builder()
+                    .postId(finalPost.getId())
+                    .authorId(finalPost.getAuthorId())
+                    .createdAt(finalPost.getCreatedAt())
+                    .followerIds(list).build();
+            kafkaPostProducer.sendEvent(postEventKafka);
+        });
+
 
         return postMapper.toPostDto(post);
     }
