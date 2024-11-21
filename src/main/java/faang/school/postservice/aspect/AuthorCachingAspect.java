@@ -5,6 +5,7 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.UserCacheMapper;
+import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.UserRedisRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,13 +33,23 @@ public class AuthorCachingAspect {
     @Async("treadPool")
     public void afterReturning(Post post) {
         Long authorId = post.getAuthorId();
+        toCacheUser(authorId);
+    }
+
+    @AfterReturning(pointcut = "@annotation(AuthorCaching)", returning = "comment")
+    @Async("treadPool")
+    public void afterReturning(Comment comment) {
+        Long authorId = comment.getAuthorId();
+        toCacheUser(authorId);
+    }
+
+    private void toCacheUser(Long authorId) {
         userContext.setUserId(authorId);
         UserDto author = userServiceClient.getUser(authorId);
         UserCache userCache = userCacheMapper.toUserCache(author);
         userCache.setTtl(userCacheTtl);
 
         userRedisRepository.save(userCache);
-        log.info("Cache post author: {}", userCache);
-        log.info("Author is cached? {}", userRedisRepository.existsById(authorId));
+        log.info("Cache author: {}", userCache);
     }
 }
