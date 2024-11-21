@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,17 +82,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
+    @Retryable()
     public PostDto updatePost(PostDto postDto) {
         Post post = getPostOrThrowException(postDto.id());
-
         postValidator.updatePostValidator(post, postDto);
-
         post.setTitle(postDto.title());
         post.setContent(postDto.content());
-
-        postRepository.save(post);
+        post = postRepository.save(post);
         hashtagService.updateHashtags(post);
-
         return postMapper.toDto(post);
     }
 

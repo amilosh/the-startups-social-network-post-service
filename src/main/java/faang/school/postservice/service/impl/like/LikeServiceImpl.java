@@ -9,7 +9,9 @@ import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.like.LikeDto;
 import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.event.newsfeed.LikeNewsFeedEvent;
 import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.publisher.LikeNewsFeedProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -34,6 +36,7 @@ public class LikeServiceImpl implements LikeService {
     private final UserServiceClient userServiceClient;
     private final UserContext userContext;
     private final LikeEventPublisher likeEventPublisher;
+    private final LikeNewsFeedProducer likeNewsFeedProducer;
 
     @Override
     @Transactional
@@ -71,21 +74,22 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     public LikeDto createLikePost(Long postId) {
         long userId = getUserId();
-        Post post = likeValidator.validate(postId, userId, postRepository);
-        log.info("Creating a like for a post with ID {}", postId);
-
-        Like saveLike = saveLikePost(post, userId);
-        LikeEvent likeEventDto = new LikeEvent(post.getAuthorId(),
-                userId,
-                postId,
-                LocalDateTime.now());
-        likeEventPublisher.publish(likeEventDto);
-
-        log.info("Created a like with ID {} from a user with ID {} to a post with ID {}",
-                saveLike.getId(),
-                userId,
-                postId);
-        return likeMapper.toLikeDto(saveLike);
+        var post = likeValidator.validate(postId, userId, postRepository);
+        var savedLike = saveLikePost(post, userId);
+        var likeEvent = LikeEvent.builder()
+                .postId(post.getId())
+                .likeAuthorId(userId)
+                .postAuthorId(post.getAuthorId())
+                .likedTime(LocalDateTime.now())
+                .likeAuthorId(userId)
+                .build();
+        var likeNFEvent = LikeNewsFeedEvent.builder()
+                .postId(post.getId())
+                .authorID(post.getAuthorId())
+                .build();
+        likeEventPublisher.publish(likeEvent);
+        likeNewsFeedProducer.produce(likeNFEvent);
+        return likeMapper.toLikeDto(savedLike);
     }
 
     private Like saveLikePost(Post post, long userId) {
@@ -101,7 +105,7 @@ public class LikeServiceImpl implements LikeService {
     public void deleteLikePost(Long postId) {
         likeValidator.validateCommentOrPost(postId, postRepository);
         likeRepository.deleteByPostIdAndUserId(postId, getUserId());
-        log.info("The comment was deleted from the {}", postId);
+        log.info("The like was deleted from the {}", postId);
     }
 
     private long getUserId() {
