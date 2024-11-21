@@ -1,10 +1,14 @@
 package faang.school.postservice.service.impl.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.event.PostEvent;
+import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
+import faang.school.postservice.publisher.PostNewsFeedEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
@@ -23,17 +27,18 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PostServiceImpl implements PostService {
-
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final HashtagService hashtagService;
     private final PostValidator postValidator;
     private final PostServiceAsync postServiceAsync;
     private final PostEventPublisher postEventPublisher;
+    private final UserServiceClient userServiceClient;
+    private final PostNewsFeedEventPublisher postNewsFeedEventPublisher;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -42,33 +47,32 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostDto createDraftPost(PostDto postDto) {
         postValidator.createDraftPostValidator(postDto);
-
         Post post = postMapper.toEntity(postDto);
-
         post.setPublished(false);
-
         return postMapper.toDto(postRepository.save(post));
     }
 
     @Override
     @Transactional
     public PostDto publishPost(PostDto postDto) {
-        Post post = getPostFromRepository(postDto.id());
-
+        var post = getPostFromRepository(postDto.id());
         postValidator.publishPostValidator(post);
-
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
 
-        Post publishedPost = postRepository.save(post);
+        var publishedPost = postRepository.save(post);
         hashtagService.createHashtags(post);
-        PostEvent event = PostEvent.builder()
+
+        var event = PostEvent.builder()
                 .authorId(publishedPost.getAuthorId())
                 .postId(publishedPost.getId())
                 .build();
-//        postEventPublisher.publish(event);
-        postEventPublisher.publishByKafka(event);
-
+        var postNFEVent = PostNewsFeedEvent.builder()
+                .postId(publishedPost.getId())
+                .subscribers(getFollowers(publishedPost))
+                .build();
+        postEventPublisher.publish(event);
+        postNewsFeedEventPublisher.publish(postNFEVent);
         return postMapper.toDto(post);
     }
 
@@ -194,5 +198,12 @@ public class PostServiceImpl implements PostService {
     private Post getPostFromRepository(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
+    }
+
+    private List<Long> getFollowers(Post post) {
+        List<UserDto> followers = userServiceClient.getFollowers(post.getAuthorId());
+        return followers.stream()
+                .map(UserDto::id)
+                .toList();
     }
 }
