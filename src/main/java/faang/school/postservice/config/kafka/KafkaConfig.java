@@ -28,11 +28,11 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic postPublishTopic() {
-        return new NewTopic(kafkaProperties.channels().get("post-channel"), 1, (short) 1);
+        return new NewTopic(kafkaProperties.channels().get("post-channel"), 50, (short) 1);
     }
 
     @Bean
     public NewTopic likePublishTopic() {
-        return new NewTopic(kafkaProperties.channels().get("like-channel"), 1, (short) 1);
+        return new NewTopic(kafkaProperties.channels().get("like-channel"), 50, (short) 1);
     }
 }

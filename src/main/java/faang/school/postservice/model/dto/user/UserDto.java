@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record UserDto(
@@ -24,6 +26,7 @@ public record UserDto(
         @NotBlank(message = "E-mail can not be null or empty")
         @Email
         @Max(64)
-        String email
+        String email,
+        List<Long> subscriptionIds
 ) {
 }
