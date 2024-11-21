@@ -2,9 +2,9 @@ package faang.school.postservice.service.impl.post;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
@@ -14,17 +14,18 @@ import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.service.PostServiceAsync;
 import faang.school.postservice.validator.post.PostValidator;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @Slf4j
@@ -39,6 +40,7 @@ public class PostServiceImpl implements PostService {
     private final PostEventPublisher postEventPublisher;
     private final UserServiceClient userServiceClient;
     private final PostNewsFeedEventPublisher postNewsFeedEventPublisher;
+    private final CacheManager cacheManager;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -55,31 +57,32 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDto publishPost(PostDto postDto) {
-        var post = getPostFromRepository(postDto.id());
+        var post = getPostOrThrowException(postDto.id());
         postValidator.publishPostValidator(post);
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-
-        var publishedPost = postRepository.save(post);
+        post = postRepository.save(post);
         hashtagService.createHashtags(post);
 
         var event = PostEvent.builder()
-                .authorId(publishedPost.getAuthorId())
-                .postId(publishedPost.getId())
+                .authorId(post.getAuthorId())
+                .postId(post.getId())
                 .build();
         var postNFEVent = PostNewsFeedEvent.builder()
-                .postId(publishedPost.getId())
-                .subscribers(getFollowers(publishedPost))
+                .postId(post.getId())
+                .subscribers(getFollowers(post))
                 .build();
+        var postCache = postMapper.toPostRedis(post);
         postEventPublisher.publish(event);
         postNewsFeedEventPublisher.publish(postNFEVent);
+        Objects.requireNonNull(cacheManager.getCache("posts")).put(post.getId(), postCache);
         return postMapper.toDto(post);
     }
 
     @Override
     @Transactional
     public PostDto updatePost(PostDto postDto) {
-        Post post = getPostFromRepository(postDto.id());
+        Post post = getPostOrThrowException(postDto.id());
 
         postValidator.updatePostValidator(post, postDto);
 
@@ -95,7 +98,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDto softDeletePost(Long postId) {
-        Post post = getPostFromRepository(postId);
+        Post post = getPostOrThrowException(postId);
 
         post.setPublished(false);
         post.setDeleted(true);
@@ -106,7 +109,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDto getPost(Long id) {
-        Post post = getPostFromRepository(id);
+        Post post = getPostOrThrowException(id);
 
         return postMapper.toDto(post);
     }
@@ -195,9 +198,9 @@ public class PostServiceImpl implements PostService {
         batches.forEach(postServiceAsync::moderatePostsByBatches);
     }
 
-    private Post getPostFromRepository(Long postId) {
+    private Post getPostOrThrowException(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
+                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + postId));
     }
 
     private List<Long> getFollowers(Post post) {

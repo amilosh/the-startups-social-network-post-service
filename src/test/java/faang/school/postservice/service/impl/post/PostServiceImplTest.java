@@ -5,6 +5,7 @@ import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.entity.redis.PostRedis;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
@@ -21,6 +22,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -61,6 +64,12 @@ public class PostServiceImplTest {
 
     @Mock
     private PostNewsFeedEventPublisher postNewsFeedEventPublisher;
+
+    @Mock
+    private CacheManager cacheManager;
+
+    @Mock
+    private RedisCache cache;
 
     private PostDto examplePostDto;
     private Post examplePost;
@@ -129,6 +138,7 @@ public class PostServiceImplTest {
         when(postRepository.findById(1L)).thenReturn(Optional.ofNullable(examplePost));
         when(postRepository.save(any(Post.class))).thenReturn(examplePost);
         doReturn(usersDto).when(userServiceClient).getFollowers(anyLong());
+        doReturn(cache).when(cacheManager).getCache("posts");
 
         // Act
         postService.publishPost(examplePostDto);
@@ -142,6 +152,8 @@ public class PostServiceImplTest {
         verify(userServiceClient).getFollowers(anyLong());
         verify(postNewsFeedEventPublisher).publish(any(PostNewsFeedEvent.class));
         verify(postEventPublisher).publish(any(PostEvent.class));
+        verify(cacheManager).getCache("posts");
+        verify(cache).put(anyLong(), any(PostRedis.class));
     }
 
     @Test

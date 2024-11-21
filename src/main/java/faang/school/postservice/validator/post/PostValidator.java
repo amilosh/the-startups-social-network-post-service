@@ -2,10 +2,9 @@ package faang.school.postservice.validator.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.exception.DataValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +17,6 @@ public class PostValidator {
 
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
-    private final UserContext userContext;
 
     public void createDraftPostValidator(PostDto postDto) {
         boolean userExists = postDto.authorId() != null;
@@ -63,7 +61,7 @@ public class PostValidator {
     }
 
     private void validateSingleCreator(boolean userExists, boolean projectExists) {
-         if (userExists && projectExists) {
+        if (userExists && projectExists) {
             throw new DataValidationException("Post can not be created by user and project at the same time");
         }
         if (!userExists && !projectExists) {

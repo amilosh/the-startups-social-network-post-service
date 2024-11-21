@@ -29,7 +29,7 @@ public record PostDto(
         String content,
         boolean published,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         @JsonSerialize(using = LocalDateTimeSerializer.class)
         LocalDateTime publishedAt,
@@ -38,17 +38,17 @@ public record PostDto(
         @Size(max = 150)
         String title,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         @JsonSerialize(using = LocalDateTimeSerializer.class)
         LocalDateTime createdAt,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         @JsonSerialize(using = LocalDateTimeSerializer.class)
         LocalDateTime updatedAt,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         @JsonSerialize(using = LocalDateTimeSerializer.class)
         LocalDateTime scheduledAt
