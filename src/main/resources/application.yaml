@@ -82,3 +82,8 @@ cache:
       live-time: 1
       time-unit: DAYS
       set-key: authors
+  comment:
+    live-time: 1
+    time-unit: DAYS
+    set-key: authors
+

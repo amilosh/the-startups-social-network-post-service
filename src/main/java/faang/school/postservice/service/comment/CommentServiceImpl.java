@@ -9,7 +9,8 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.properties.KafkaTopics;
 import faang.school.postservice.publisher.kafka.KafkaEventPublisher;
-import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.repository.cache.CommentCacheRepository;
+import faang.school.postservice.repository.cache.CommentRepository;
 import faang.school.postservice.repository.post.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.List;
 public class CommentServiceImpl implements CommentService {
     private final KafkaEventPublisher<CommentDto> kafkaEventPublisher;
     private final KafkaTopics kafkaTopics;
+    private final CommentCacheRepository cacheRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final CommentMapper mapper;
@@ -38,6 +40,7 @@ public class CommentServiceImpl implements CommentService {
         kafkaEventPublisher.publishEvent(commentDto,
                 kafkaTopics.getComment().getPublished()
         );
+        cacheRepository.cacheCommentAuthor(commentDto.getId());
 
         return mapper.toDto(comment);
     }
