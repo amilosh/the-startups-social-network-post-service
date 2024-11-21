@@ -11,13 +11,15 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
-import faang.school.postservice.model.event.kafka.CommentEventKafka;
+import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
@@ -32,7 +34,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.LocaleResolver;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,11 +48,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostServiceImpl implements PostService {
 
-    private final LocaleResolver localeResolver;
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
 
     private final PostRepository postRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostMapper postMapper;
@@ -61,6 +62,7 @@ public class PostServiceImpl implements PostService {
     private final ExecutorService schedulingThreadPoolExecutor;
     private final PostBatchService postBatchService;
     private final PostViewPublisher postViewPublisher;
+    private final KafkaPostProducer kafkaPostProducer;
     private final UserContext userContext;
     private final KafkaCommentProducer kafkaCommentProducer;
     private final AuthorCacheService authorCacheService;
@@ -93,8 +95,6 @@ public class PostServiceImpl implements PostService {
         PostDto result = postMapper.toPostDto(savedPost);
 
         newPostPublisher.publish(result);
-        kafkaCommentProducer.sendEvent(new CommentEventKafka(savedPost.getId(),
-                savedPost.getAuthorId(), savedPost.getCreatedAt()));
         return result;
     }
 
@@ -108,9 +108,16 @@ public class PostServiceImpl implements PostService {
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
+        post = postRepository.save(post);
+        List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
+        PostEventKafka postEventKafka = PostEventKafka.builder()
+                .postId(post.getId())
+                .authorId(post.getAuthorId())
+                .createdAt(post.getCreatedAt())
+                .followerIds(followersIds).build();
+        kafkaPostProducer.sendEvent(postEventKafka);
 
-        Post savedPost = postRepository.save(post);
-        PostDto postDto = postMapper.toPostDto(savedPost);
+        PostDto postDto = postMapper.toPostDto(post);
 
         authorCacheService.saveAuthorToCache(postDto.getAuthorId());
         postCacheService.savePostToCache(postDto);
@@ -142,7 +149,6 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostDto getPost(Long id) {
         Post post = getPostById(id);
-        System.out.println("yyyyyyyyyyy");
         postViewPublisher.publish(createPostViewEvent(post));
         return postMapper.toPostDto(post);
     }

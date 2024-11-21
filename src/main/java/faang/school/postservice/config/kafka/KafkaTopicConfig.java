@@ -16,6 +16,9 @@ public class KafkaTopicConfig {
     @Value(value = "${spring.kafka.topics.comment}")
     private String commentTopic;
 
+    @Value(value = "${spring.kafka.topics.posts}")
+    private String postsTopic;
+
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
@@ -32,5 +35,10 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic commentKafkaTopic() {
         return new NewTopic(commentTopic, partitionsNum, (short) 1);
+    }
+
+    @Bean
+    public NewTopic postKafkaTopic() {
+        return new NewTopic(postsTopic, partitionsNum, (short) 1);
     }
 }

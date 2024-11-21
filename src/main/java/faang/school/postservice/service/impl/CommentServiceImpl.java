@@ -6,7 +6,9 @@ import faang.school.postservice.model.dto.CommentDto;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.CommentEvent;
+import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.CommentService;
@@ -29,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper mapper;
     private final UserServiceClient userServiceClient;
     private final CommentEventPublisher commentEventPublisher;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     @Override
     @Transactional
@@ -38,6 +41,8 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = mapper.mapToComment(commentDto);
         CommentDto savedCommentDto = mapper.mapToCommentDto(commentRepository.save(comment));
         commentEventPublisher.publish(createCommentEvent(savedCommentDto));
+        kafkaCommentProducer.sendEvent(new CommentEventKafka(savedCommentDto.getId(), savedCommentDto.getAuthorId(),
+                commentDto.getCreatedAt()));
         return savedCommentDto;
     }
 
