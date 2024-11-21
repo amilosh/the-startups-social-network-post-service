@@ -8,7 +8,6 @@ import faang.school.postservice.dto.album.AlbumRequestUpdateDto;
 import faang.school.postservice.dto.album.AlbumResponseDto;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.service.album.AlbumService;
-import faang.school.postservice.validator.album.AlbumValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,8 +36,6 @@ public class AlbumControllerTest {
     @Mock
     private AlbumService albumService;
     @Mock
-    private AlbumValidator validator;
-    @Mock
     private UserContext userContext;
 
     private AlbumResponseDto albumResponseDto;
@@ -56,7 +53,6 @@ public class AlbumControllerTest {
         albumRequestDto = AlbumRequestDto.builder()
                 .title("title")
                 .description("description")
-                .authorId(5L)
                 .build();
         albumResponseDto = AlbumResponseDto.builder()
                 .id(1L)
@@ -86,7 +82,8 @@ public class AlbumControllerTest {
 
     @Test
     public void testCreateAlbum() throws Exception {
-        when(albumService.createAlbum(albumRequestDto)).thenReturn(albumResponseDto);
+        when(albumService.createAlbum(albumRequestDto,5L)).thenReturn(albumResponseDto);
+        when(userContext.getUserId()).thenReturn(5L);
 
         String albumRequestDtoJson = new Gson().toJson(albumRequestDto);
 
@@ -103,7 +100,8 @@ public class AlbumControllerTest {
     @Test
     public void testAddPost() throws Exception {
         albumResponseDto.getPostsIds().add(post.getId());
-        when(albumService.addPost(1L, 25L)).thenReturn(albumResponseDto);
+        when(userContext.getUserId()).thenReturn(5L);
+        when(albumService.addPost(1L, 25L, 5L)).thenReturn(albumResponseDto);
 
         mockMvc.perform(post("/api/v1/albums/1/post/25"))
                 .andExpect(status().isOk())
@@ -154,9 +152,10 @@ public class AlbumControllerTest {
 
     @Test
     public void testGetAllFavoriteAlbumsByFilter() throws Exception {
-        when(albumController.getAllFavoriteAlbumsByFilter(new AlbumFilterDto())).thenReturn(albums);
+        when(albumService.getAllFavoriteAlbumsByFilter(new AlbumFilterDto(), 5L)).thenReturn(albums);
+        when(userContext.getUserId()).thenReturn(5L);
 
-        mockMvc.perform(get("/api/v1/albums/author/favorite"))
+        mockMvc.perform(get("/api/v1/albums/favorite"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title", is("title1")))
                 .andExpect(jsonPath("$[1].title", is("title2")));

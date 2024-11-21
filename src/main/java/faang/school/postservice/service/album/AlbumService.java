@@ -30,8 +30,7 @@ public class AlbumService {
     private final AlbumValidator validator;
     private final List<AlbumFilter> filters;
 
-    public AlbumResponseDto createAlbum(AlbumRequestDto albumRequestDto) {
-        long authorId = albumRequestDto.getAuthorId();
+    public AlbumResponseDto createAlbum(AlbumRequestDto albumRequestDto, long authorId) {
         String title = albumRequestDto.getTitle();
         validator.validateAuthor(authorId);
         validator.validateAlbumWithSameTitleExists(authorId, title);
@@ -42,7 +41,8 @@ public class AlbumService {
         return mapper.toAlbumResponseDto(album);
     }
 
-    public AlbumResponseDto addPost(long albumId, long postId) {
+    public AlbumResponseDto addPost(long albumId, long postId, long authorId) {
+        validator.validateAuthorHasThisAlbum(albumId, authorId);
         Post post = validator.validatePost(postId);
         Album album = validator.validateAlbum(albumId);
         album.addPost(post);
@@ -51,7 +51,8 @@ public class AlbumService {
         return mapper.toAlbumResponseDto(album);
     }
 
-    public void deletePost(long albumId, long postId) {
+    public void deletePost(long albumId, long postId, long authorId) {
+        validator.validateAuthorHasThisAlbum(albumId, authorId);
         Post post = validator.validatePost(postId);
         Album album = validator.validateAlbum(albumId);
         album.removePost(post.getId());
@@ -61,6 +62,7 @@ public class AlbumService {
 
     @Transactional
     public void addAlbumToFavoriteAlbums(long albumId, long authorId) {
+        validator.validateAuthorHasThisAlbum(albumId, authorId);
         validator.validateAlbum(albumId);
         validator.validateAuthor(authorId);
         boolean result = validator.validateFavoritesHasThisAlbum(albumId, authorId);
@@ -72,6 +74,7 @@ public class AlbumService {
     }
 
     public void deleteAlbumFromFavoriteAlbums(long albumId, long authorId) {
+        validator.validateAuthorHasThisAlbum(albumId, authorId);
         validator.validateAlbum(albumId);
         validator.validateAuthor(authorId);
         boolean result = validator.validateFavoritesHasThisAlbum(albumId, authorId);
@@ -83,25 +86,21 @@ public class AlbumService {
     }
 
     public AlbumResponseDto getAlbum(long albumId) {
-       Album album = validator.validateAlbum(albumId);
-       log.info("The album {} has been found", albumId);
-       return mapper.toAlbumResponseDto(album);
+        Album album = validator.validateAlbum(albumId);
+        log.info("The album {} has been found", albumId);
+        return mapper.toAlbumResponseDto(album);
     }
 
     public List<AlbumResponseDto> getAlbumsByFilter(AlbumFilterDto albumFilter) {
         Stream<Album> albums = albumRepository.findAllAlbums();
-        filters.stream()
-                .filter(filter -> filter.isApplicable(albumFilter))
-                .forEach(filter -> filter.apply(albums, albumFilter));
+        filter(albumFilter, albums);
         log.info("Retrieved an albums using filters");
         return mapper.toAlbumResponseDtoList(albums.toList());
     }
 
     public List<AlbumResponseDto> getAllFavoriteAlbumsByFilter(AlbumFilterDto albumFilter, long authorId) {
         Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(authorId);
-        filters.stream()
-                .filter(filter -> filter.isApplicable(albumFilter))
-                .forEach(filter -> filter.apply(albums, albumFilter));
+        filter(albumFilter, albums);
         log.info("Retrieved albums from the user's {} favorite albums list using filters", authorId);
         return mapper.toAlbumResponseDtoList(albums.toList());
     }
@@ -122,6 +121,7 @@ public class AlbumService {
 
     @Transactional
     public void deleteAlbum(long albumId, long authorId) {
+        validator.validateAuthorHasThisAlbum(albumId, authorId);
         validator.validateAlbum(albumId);
         validator.validateAuthor(authorId);
         albumRepository.deleteById(albumId);
@@ -129,7 +129,13 @@ public class AlbumService {
     }
 
     private List<Post> getPosts(List<Long> postsIds) {
-      return postsIds == null ? null : postsIds.stream().map(validator::validatePost).toList();
+        return postsIds == null ? null : postsIds.stream().map(validator::validatePost).toList();
+    }
+
+    private void filter(AlbumFilterDto albumFilter, Stream<Album> albums) {
+        filters.stream()
+                .filter(filter -> filter.isApplicable(albumFilter))
+                .forEach(filter -> filter.apply(albums, albumFilter));
     }
 
 }

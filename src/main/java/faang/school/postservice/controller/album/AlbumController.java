@@ -27,37 +27,32 @@ import java.util.List;
 public class AlbumController {
 
     private final AlbumService albumService;
-    private final AlbumValidator validator;
     private final UserContext userContext;
 
     @PostMapping
     public AlbumResponseDto createAlbum(@Valid @RequestBody AlbumRequestDto albumDto) {
-        return albumService.createAlbum(albumDto);
+        return albumService.createAlbum(albumDto, userContext.getUserId());
     }
 
     @PostMapping("/{albumId}/post/{postId}")
     public AlbumResponseDto addPost(@PathVariable long albumId, @PathVariable long postId) {
-        validator.validateAuthorHasThisAlbum(albumId, userContext.getUserId());
-        return albumService.addPost(albumId, postId);
+        return albumService.addPost(albumId, postId, userContext.getUserId());
     }
 
     @DeleteMapping("/{albumId}/post/{postId}")
     public void deletePost(@PathVariable long albumId, @PathVariable long postId) {
-        validator.validateAuthorHasThisAlbum(albumId, userContext.getUserId());
-        albumService.deletePost(albumId, postId);
+        albumService.deletePost(albumId, postId, userContext.getUserId());
     }
 
     @PostMapping("/{albumId}/favorite")
     public void addAlbumToFavoriteAlbums(@PathVariable long albumId) {
         long userId = userContext.getUserId();
-        validator.validateAuthorHasThisAlbum(albumId, userId);
         albumService.addAlbumToFavoriteAlbums(albumId, userId);
     }
 
     @DeleteMapping("/{albumId}/favorite")
     public void deleteAlbumFromFavoriteAlbums(@PathVariable long albumId) {
         long userId = userContext.getUserId();
-        validator.validateAuthorHasThisAlbum(albumId, userId);
         albumService.deleteAlbumFromFavoriteAlbums(albumId, userId);
     }
 
@@ -84,7 +79,6 @@ public class AlbumController {
     @DeleteMapping("/{albumId}")
     public void deleteAlbum(@PathVariable long albumId) {
         long userId = userContext.getUserId();
-        validator.validateAuthorHasThisAlbum(albumId, userId);
         albumService.deleteAlbum(albumId, userId);
     }
 

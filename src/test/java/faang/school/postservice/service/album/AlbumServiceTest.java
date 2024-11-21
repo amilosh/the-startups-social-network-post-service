@@ -65,7 +65,6 @@ public class AlbumServiceTest {
                 .build();
         albumRequestDto = AlbumRequestDto.builder()
                 .title("title")
-                .authorId(5L)
                 .build();
         album = Album.builder()
                 .id(10L)
@@ -85,7 +84,7 @@ public class AlbumServiceTest {
 
     @Test
     public void testCreateAlbumSuccess() {
-        albumService.createAlbum(albumRequestDto);
+        albumService.createAlbum(albumRequestDto,5L);
         verify(albumRepository).save(albumCaptor.capture());
         Album album = albumCaptor.getValue();
         assertTrue(album.getPosts().isEmpty());
@@ -95,7 +94,7 @@ public class AlbumServiceTest {
     public void testAddPostSuccess() {
         when(validator.validatePost(25L)).thenReturn(post);
         when(validator.validateAlbum(10L)).thenReturn(album);
-        albumService.addPost(10L, 25L);
+        albumService.addPost(10L, 25L,5L);
         verify(albumRepository).save(album);
         assertEquals(post, album.getPosts().get(0));
     }
@@ -105,7 +104,7 @@ public class AlbumServiceTest {
         album.getPosts().add(post);
         when(validator.validatePost(25L)).thenReturn(post);
         when(validator.validateAlbum(10L)).thenReturn(album);
-        albumService.deletePost(10L, 25L);
+        albumService.deletePost(10L, 25L,5L);
         verify(albumRepository).save(album);
         assertTrue(album.getPosts().isEmpty());
     }

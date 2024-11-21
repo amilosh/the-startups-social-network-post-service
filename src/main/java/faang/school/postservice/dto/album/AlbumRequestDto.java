@@ -19,7 +19,5 @@ public class AlbumRequestDto {
     @NotNull
     @NotBlank
     private String description;
-    @NotNull
-    private Long authorId;
 
 }
