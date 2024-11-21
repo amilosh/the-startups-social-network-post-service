@@ -16,6 +16,7 @@ import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
@@ -48,6 +49,7 @@ public class PostServiceImpl implements PostService {
     private int correcterBatchSize;
 
     private final PostRepository postRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostMapper postMapper;
@@ -101,8 +103,13 @@ public class PostServiceImpl implements PostService {
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
         post = postRepository.save(post);
-        kafkaPostProducer.sendEvent(new PostEventKafka(post.getId(), post.getAuthorId(), post.getCreatedAt()));
-
+        List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
+        PostEventKafka postEventKafka = PostEventKafka.builder()
+                .postId(post.getId())
+                .authorId(post.getAuthorId())
+                .createdAt(post.getCreatedAt())
+                .followerIds(followersIds).build();
+        kafkaPostProducer.sendEvent(postEventKafka);
 
         return postMapper.toPostDto(post);
     }

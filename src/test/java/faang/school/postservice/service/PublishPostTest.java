@@ -1,12 +1,14 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.impl.PostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,9 @@ public class PublishPostTest {
 
     @Mock
     private KafkaPostProducer kafkaPostProducer;
+
+    @Mock
+    private SubscriptionRepository postSubscriptionRepository;
 
     @InjectMocks
     private PostServiceImpl postService;
@@ -85,6 +90,7 @@ public class PublishPostTest {
         assertNotNull(unpublishedPost.getPublishedAt());
 
         verify(postRepository).save(argThat(post -> post.isPublished() && post.getId() == 1L));
+        verify(kafkaPostProducer,times(1)).sendEvent(any(PostEventKafka.class));
 
         assertTrue(unpublishedPost.isPublished());
     }
