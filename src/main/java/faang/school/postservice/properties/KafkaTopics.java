@@ -19,5 +19,6 @@ public class KafkaTopics {
     @Data
     public static class Post {
         private String published;
+        private String views;
     }
 }

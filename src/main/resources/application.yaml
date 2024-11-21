@@ -39,6 +39,7 @@ spring:
           published: comment-published-topic
         post:
           published: post-published-topic
+          views: post-views
 
 server:
   port: 8081

@@ -60,6 +60,9 @@ public class PostServiceImpl implements PostService {
         kafkaEventPublisher.publishEvent(postDto,
                 kafkaTopics.getPost().getPublished()
         );
+        kafkaEventPublisher.publishEvent(postDto,
+                kafkaTopics.getPost().getViews()
+                );
         postCacheRepository.cachePost(postDto);
         postCacheRepository.cacheAuthorId(postDto.getAuthorId());
 
