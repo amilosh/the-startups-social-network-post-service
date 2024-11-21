@@ -1,9 +1,11 @@
 package faang.school.postservice.service.impl.post;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.mapper.post.PostMapperImpl;
-import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.mapper.comment.CommentMapper;
+import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -33,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -48,7 +52,8 @@ public class PostServiceImplTest {
     @Mock
     private PostValidator postValidator;
     @Spy
-    private PostMapperImpl postMapper;
+    @InjectMocks
+    private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
     @Mock
     private PostRepository postRepository;
     @Mock
@@ -65,6 +70,8 @@ public class PostServiceImplTest {
     private KafkaPostViewProducer kafkaPostViewProducer;
     @Mock
     private RedisPostRepository redisPostRepository;
+    @Spy
+    private CommentMapper commentMapper = Mappers.getMapper(CommentMapper.class);
     @Mock
     private RedisUserRepository redisUserRepository;
 
@@ -102,7 +109,6 @@ public class PostServiceImplTest {
     @Test
     void createDraftPost_shouldReturnPostDto() {
         // Arrange
-        when(postMapper.toEntity(any(PostDto.class))).thenReturn(examplePost);
         when(postRepository.save(any(Post.class))).thenReturn(examplePost);
 
         // Act
@@ -120,7 +126,7 @@ public class PostServiceImplTest {
         // Arrange
         when(postRepository.findById(1L)).thenReturn(Optional.ofNullable(examplePost));
         when(postRepository.save(any(Post.class))).thenReturn(examplePost);
-
+        when(userServiceClient.getUser(anyLong())).thenReturn(UserDto.builder().id(2L).build());
         // Act
         postService.publishPost(examplePostDto);
 
