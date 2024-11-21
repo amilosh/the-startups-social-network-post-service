@@ -1,5 +1,6 @@
 package faang.school.postservice.mapper.post;
 
+import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
@@ -11,7 +12,7 @@ import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = {CommentMapper.class})
 public interface PostMapper {
     PostDto toDto(Post post);
 

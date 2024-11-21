@@ -90,4 +90,13 @@ public class KafkaConfig {
                 .replicas(replicasCount)
                 .build();
     }
+
+    @Bean
+    public NewTopic postLikeEventTopic() {
+        return TopicBuilder
+                .name(kafkaProperties.channels().get("post-like"))
+                .partitions(partitions)
+                .replicas(replicasCount)
+                .build();
+    }
 }

@@ -9,7 +9,9 @@ import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.like.LikeDto;
 import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.event.kafka.PostLikeEvent;
 import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.publisher.kafka.KafkaLikeProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -34,6 +36,7 @@ public class LikeServiceImpl implements LikeService {
     private final UserServiceClient userServiceClient;
     private final UserContext userContext;
     private final LikeEventPublisher likeEventPublisher;
+    private final KafkaLikeProducer kafkaLikeProducer;
 
     @Override
     @Transactional
@@ -80,11 +83,16 @@ public class LikeServiceImpl implements LikeService {
                 postId,
                 LocalDateTime.now());
         likeEventPublisher.publish(likeEventDto);
-
         log.info("Created a like with ID {} from a user with ID {} to a post with ID {}",
                 saveLike.getId(),
                 userId,
                 postId);
+
+        PostLikeEvent postLikeEvent = PostLikeEvent.builder()
+                .postId(postId)
+                .authorId(userId)
+                .build();
+        kafkaLikeProducer.publish(postLikeEvent);
         return likeMapper.toLikeDto(saveLike);
     }
 

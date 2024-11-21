@@ -49,6 +49,7 @@ spring:
         comment-channel: comments
         post-newsfeed: posts
         post-observed: post_views
+        post-like: likes
 
 server:
   port: 8081
