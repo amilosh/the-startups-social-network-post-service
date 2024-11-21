@@ -49,9 +49,8 @@ public class PostService {
         if (post.isPublished()) {
             throw new DataValidationException("Post is already published");
         }
-        if (post.isDeleted()) {
-            throw new DataValidationException("It is not possible to publish a deleted post");
-        }
+        validateThatPostDeleted(post);
+
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
         log.info("Post {} published", post);
@@ -62,9 +61,8 @@ public class PostService {
     public PostDto updatePost(UpdatePostDto updatePostDto) {
         Post post = findPostById(updatePostDto.id());
         log.info("Request to update a post: {}", post);
-        if (post.isDeleted()) {
-            throw new DataValidationException("It is not possible to update a deleted post");
-        }
+        validateThatPostDeleted(post);
+
         post.setContent(updatePostDto.content());
         log.info("Post with id {} has been updated", post.getId());
         return postMapper.toDto(post);
@@ -74,9 +72,8 @@ public class PostService {
     public PostDto deletePost(long id) {
         Post post = findPostById(id);
         log.info("Request to delete a post: {}", post);
-        if (post.isDeleted()) {
-            throw new DataValidationException("It is not possible to delete a deleted post");
-        }
+        validateThatPostDeleted(post);
+
         post.setDeleted(true);
         log.info("Post with id {} has been deleted", id);
         return postMapper.toDto(post);
@@ -142,5 +139,11 @@ public class PostService {
 
     public PostDto getPostById(long id) {
         return postMapper.toDto(findPostById(id));
+    }
+
+    private void validateThatPostDeleted(Post post) {
+        if (post.isDeleted()) {
+            throw new DataValidationException("It is not possible to update a deleted post");
+        }
     }
 }
