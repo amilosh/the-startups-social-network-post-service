@@ -82,7 +82,9 @@ public class PostServiceImpl implements PostService {
         sendPostEventForNewsFeed(publishedPost);
         postEventPublisher.publish(event);
         redisPostRepository.save(postMapper.toRedis(publishedPost));
+        log.info("Post with id {} was sent to redis", publishedPost.getId());
         redisUserRepository.save(author);
+        log.info("User with id {} was sent to redis", author.getId());
         return postMapper.toDto(post);
     }
 

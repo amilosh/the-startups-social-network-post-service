@@ -10,6 +10,7 @@ import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.publisher.kafka.KafkaLikeProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -46,6 +47,8 @@ class LikeServiceImplTest {
     private UserContext userContext;
     @Mock
     private LikeEventPublisher likeEventPublisher;
+    @Mock
+    private KafkaLikeProducer kafkaLikeProducer;
     @InjectMocks
     private LikeServiceImpl likeService;
 
