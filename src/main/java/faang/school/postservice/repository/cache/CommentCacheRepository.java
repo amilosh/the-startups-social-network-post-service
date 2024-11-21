@@ -6,9 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-
 @Repository
 @Slf4j
 @RequiredArgsConstructor
@@ -18,12 +15,9 @@ public class CommentCacheRepository {
 
     public void cacheCommentAuthor(Long id) {
         String idToCache = id.toString();
-        String setName = commentCacheProperties.getSetKey();
-        long score = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
 
         redisTemplate.opsForValue().set(idToCache, idToCache, commentCacheProperties.getLiveTime(),
                 commentCacheProperties.getTimeUnit());
-        redisTemplate.opsForZSet().add(setName, idToCache, score);
         log.info("comment author cached: {}", idToCache);
     }
 }
