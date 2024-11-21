@@ -34,7 +34,10 @@ spring:
     kafka:
       bootstrap-servers: localhost:29092
       topics:
-        comment: comment-topic
+        comment:
+          published: comment-published-topic
+        post:
+          published: post-published-topic
 
 
 server:
