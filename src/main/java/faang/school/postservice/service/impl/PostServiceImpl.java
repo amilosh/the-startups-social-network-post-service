@@ -15,6 +15,9 @@ import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
+import faang.school.postservice.redis.service.AuthorCacheService;
+import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.BatchProcessService;
@@ -64,6 +67,9 @@ public class PostServiceImpl implements PostService {
     private final PostViewPublisher postViewPublisher;
     private final KafkaPostProducer kafkaPostProducer;
     private final UserContext userContext;
+    private final KafkaCommentProducer kafkaCommentProducer;
+    private final AuthorCacheService authorCacheService;
+    private final PostCacheService postCacheService;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -125,7 +131,12 @@ public class PostServiceImpl implements PostService {
         });
 
 
-        return postMapper.toPostDto(post);
+        PostDto postDto = postMapper.toPostDto(post);
+
+        authorCacheService.saveAuthorToCache(postDto.getAuthorId());
+        postCacheService.savePostToCache(postDto);
+
+        return postDto;
     }
 
     @Override

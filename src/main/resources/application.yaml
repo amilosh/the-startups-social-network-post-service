@@ -117,3 +117,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type: ERROR
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+cache:
+  author-ttl: 86400
+  post-ttl: 86400
