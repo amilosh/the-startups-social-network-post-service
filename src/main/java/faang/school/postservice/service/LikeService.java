@@ -1,6 +1,7 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.annotation.like.NotificationEvent;
+import faang.school.postservice.aspect.LikeEventPublishKafka;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Comment;
@@ -30,6 +31,7 @@ public class LikeService {
 
     @Transactional
     @NotificationEvent(NotificationEventType.POST_LIKE)
+    @LikeEventPublishKafka
     public Like addToPost(Long postId, Like tempLike) {
         checkUserExist(tempLike.getUserId());
 
