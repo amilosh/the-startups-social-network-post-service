@@ -15,9 +15,9 @@ public interface LikeMapper {
 
     LikeDto toLikeDto(Like like);
 
-    @Mapping(target = "userId", source = "authorLikeId")
+    @Mapping(target = "userId", source = "authorId")
     LikeDto toLikeDto(FeedEventProto.FeedEvent feedEvent);
 
-    @Mapping(target = "authorLikeId", source = "userId")
+    @Mapping(target = "authorId", source = "userId")
     FeedEventProto.FeedEvent toProto(LikeEvent likeEvent);
 }
