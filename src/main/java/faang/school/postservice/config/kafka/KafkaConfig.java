@@ -1,7 +1,6 @@
 package faang.school.postservice.config.kafka;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-@RequiredArgsConstructor
 public class KafkaConfig {
 
     @Value("${spring.data.kafka.host}")
@@ -27,15 +25,13 @@ public class KafkaConfig {
     @Value("${spring.data.kafka.port}")
     private int port;
 
-    private final KafkaProperties kafkaProperties;
-
     @Bean
     public Map<String, Object> producerProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "%s:%s".formatted(host, port));
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return props;
     }
 
@@ -47,10 +43,5 @@ public class KafkaConfig {
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
-    }
-
-    @Bean
-    public NewTopic postPublishTopic() {
-        return new NewTopic(kafkaProperties.channels().get("post-channel"), 1, (short) 1);
     }
 }

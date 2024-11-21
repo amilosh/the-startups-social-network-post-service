@@ -1,9 +1,14 @@
 package faang.school.postservice.service.impl.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.post.PostMapperImpl;
-import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.PostEvent;
+import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
+import faang.school.postservice.publisher.PostNewsFeedEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.impl.post.async.PostServiceAsyncImpl;
@@ -22,18 +27,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceImplTest {
@@ -59,9 +56,16 @@ public class PostServiceImplTest {
     @Mock
     private PostServiceAsyncImpl postServiceAsync;
 
+    @Mock
+    private UserServiceClient userServiceClient;
+
+    @Mock
+    private PostNewsFeedEventPublisher postNewsFeedEventPublisher;
+
     private PostDto examplePostDto;
     private Post examplePost;
     private LocalDateTime timeInstance;
+    private List<UserDto> usersDto;
 
     @BeforeEach
     void setUp() {
@@ -87,6 +91,19 @@ public class PostServiceImplTest {
                 .verifiedDate(null)
                 .build();
 
+        usersDto = List.of(
+                UserDto.builder()
+                        .id(1L)
+                        .email("test-1@test.com")
+                        .username("test-username-1")
+                        .build(),
+                UserDto.builder()
+                        .id(2L)
+                        .email("test-2@test.com")
+                        .username("test-username-2")
+                        .build()
+        );
+
         ReflectionTestUtils.setField(postService, "batchSize", 1);
     }
 
@@ -111,6 +128,7 @@ public class PostServiceImplTest {
         // Arrange
         when(postRepository.findById(1L)).thenReturn(Optional.ofNullable(examplePost));
         when(postRepository.save(any(Post.class))).thenReturn(examplePost);
+        doReturn(usersDto).when(userServiceClient).getFollowers(anyLong());
 
         // Act
         postService.publishPost(examplePostDto);
@@ -121,6 +139,9 @@ public class PostServiceImplTest {
         verify(postRepository, times(1)).findById(1L);
         verify(postValidator, times(1)).publishPostValidator(examplePost);
         verify(postRepository, times(1)).save(examplePost);
+        verify(userServiceClient).getFollowers(anyLong());
+        verify(postNewsFeedEventPublisher).publish(any(PostNewsFeedEvent.class));
+        verify(postEventPublisher).publish(any(PostEvent.class));
     }
 
     @Test
@@ -326,7 +347,7 @@ public class PostServiceImplTest {
     }
 
     @Test
-    void testModeratePosts(){
+    void testModeratePosts() {
         Post badPost = Post.builder().content("here is bad word babushka").verified(null).verifiedDate(null).build();
         List<Post> posts = List.of(examplePost, badPost);
 

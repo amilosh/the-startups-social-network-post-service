@@ -5,9 +5,13 @@ on:
   push:
     branches:
       - cerberus-master-stream6 # Запуск при пуше в ветку
+      - viktor-dev-BJS2-43368
+      - viktor-news-feed
   pull_request:
     branches:
       - cerberus-master-stream6 # Запуск на pull request в ветку
+      - viktor-dev-BJS2-43368
+      - viktor-news-feed
 
 jobs:
   build:

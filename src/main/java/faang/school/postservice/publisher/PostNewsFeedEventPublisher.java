@@ -1,6 +1,6 @@
 package faang.school.postservice.publisher;
 
-import faang.school.postservice.model.event.PostEvent;
+import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PostEventPublisher {
+public class PostNewsFeedEventPublisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final NewTopic postPublishTopic;
+    private final NewTopic postNFTopic;
 
-    public void publish(PostEvent event) {
-        kafkaTemplate.send(postPublishTopic.name(), event);
+    public void publish(PostNewsFeedEvent event) {
+        kafkaTemplate.send(postNFTopic.name(), event);
     }
 }
