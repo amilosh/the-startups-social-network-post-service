@@ -51,7 +51,7 @@ public class PostValidator {
         try {
             userServiceClient.getUser(userId);
         } catch (FeignException e) {
-            throw new DataValidationException("Project id is not exist");
+            throw new DataValidationException("User id is not exist");
         }
     }
 
