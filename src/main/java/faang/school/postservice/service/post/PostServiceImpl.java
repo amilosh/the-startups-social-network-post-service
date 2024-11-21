@@ -10,6 +10,8 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.properties.KafkaTopics;
 import faang.school.postservice.publisher.kafka.KafkaEventPublisher;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostCacheRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.List;
 public class PostServiceImpl implements PostService {
     private final KafkaEventPublisher<PostDto> kafkaEventPublisher;
     private final KafkaTopics kafkaTopics;
+    private final PostCacheRepository postCacheRepository;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
@@ -59,6 +62,8 @@ public class PostServiceImpl implements PostService {
         kafkaEventPublisher.publishEvent(postDto,
                 kafkaTopics.getPost().getPublished()
         );
+        postCacheRepository.cachePost(postDto);
+        postCacheRepository.cacheAuthorId(postDto.getAuthorId());
 
         return postDto;
     }

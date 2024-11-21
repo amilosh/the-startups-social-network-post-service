@@ -10,7 +10,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.properties.KafkaTopics;
 import faang.school.postservice.publisher.kafka.KafkaEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

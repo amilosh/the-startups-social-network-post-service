@@ -71,3 +71,13 @@ services:
     accessKey: user
     secretKey: password
     bucketName: corpbucket
+
+cache:
+  post:
+    live-time: 1
+    time-unit: DAYS
+    set-key: posts
+    author:
+      live-time: 1
+      time-unit: DAYS
+      set-key: authors
