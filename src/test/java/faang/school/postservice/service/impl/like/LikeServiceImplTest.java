@@ -9,7 +9,9 @@ import faang.school.postservice.mapper.like.LikeMapper;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.newsfeed.LikeNewsFeedEvent;
 import faang.school.postservice.publisher.LikeEventPublisher;
+import faang.school.postservice.publisher.LikeNewsFeedProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -32,20 +34,31 @@ import static org.mockito.Mockito.when;
 class LikeServiceImplTest {
     @Mock
     private LikeRepository likeRepository;
+
     @Mock
     private LikeMapper likeMapper;
+
     @Mock
     private CommentRepository commentRepository;
+
     @Mock
     private PostRepository postRepository;
+
     @Mock
     private LikeValidator likeValidator;
+
     @Mock
     private UserServiceClient userServiceClient;
+
     @Mock
     private UserContext userContext;
+
     @Mock
     private LikeEventPublisher likeEventPublisher;
+
+    @Mock
+    private LikeNewsFeedProducer likeNewsFeedProducer;
+
     @InjectMocks
     private LikeServiceImpl likeService;
 
@@ -122,9 +135,7 @@ class LikeServiceImplTest {
 
         when(userContext.getUserId()).thenReturn(userId);
         when(userServiceClient.getUser(userId)).thenReturn(userDto);
-
-        when(likeValidator.validate(postId, userId, postRepository))
-                .thenReturn(post);
+        when(likeValidator.validate(postId, userId, postRepository)).thenReturn(post);
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(likeMapper.toLikeDto(any(Like.class))).thenReturn(likeDto);
 
@@ -136,6 +147,7 @@ class LikeServiceImplTest {
         verify(likeRepository).save(any(Like.class));
         verify(likeMapper).toLikeDto(any(Like.class));
         verify(likeEventPublisher).publish(any(LikeEvent.class));
+        verify(likeNewsFeedProducer).produce(any(LikeNewsFeedEvent.class));
 
         Assertions.assertEquals(likeDto, result);
     }

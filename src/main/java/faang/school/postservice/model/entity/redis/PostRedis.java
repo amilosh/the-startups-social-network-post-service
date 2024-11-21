@@ -23,4 +23,5 @@ public class PostRedis implements Serializable {
     private Long likes;
     private List<CommentResponseDto> comments;
     private Long views;
+    private Long version = 0L;
 }

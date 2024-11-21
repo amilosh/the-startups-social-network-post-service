@@ -41,7 +41,9 @@ spring:
       port: 9092
       host: localhost
       channels:
-        post-channel: post_channel
+        post-channel: post-NF-channel
+        like-nf-channel: like-NF-channel
+        post-publish-topic: post-publish-topic
 
 server:
   port: 8081
