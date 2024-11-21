@@ -1,17 +1,20 @@
 package faang.school.postservice.service.impl.comment;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.model.event.BanEvent;
-import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.mapper.comment.CommentMapper;
-import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.dto.comment.CommentRequestDto;
 import faang.school.postservice.model.dto.comment.CommentResponseDto;
+import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.entity.Comment;
+import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.BanEvent;
+import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.model.event.kafka.PostCommentEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.repository.redis.RedisUserRepository;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.service.CommentServiceAsync;
 import faang.school.postservice.validator.comment.CommentValidator;
@@ -39,6 +42,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentServiceAsync commentServiceAsync;
     private final CommentEventPublisher commentEventPublisher;
     private final KafkaCommentProducer kafkaCommentProducer;
+    private final RedisUserRepository redisUserRepository;
 
     @Value("${comments.batch-size}")
     private int batchSize;
@@ -53,21 +57,13 @@ public class CommentServiceImpl implements CommentService {
         comment.setAuthorId(userId);
         comment.setPost(post);
         Comment savedComment = commentRepository.save(comment);
-        CommentEvent event = CommentEvent.builder()
-                .commentAuthorId(savedComment.getAuthorId())
-                .username(user.getUsername())
-                .postAuthorId(post.getAuthorId())
-                .postId(savedComment.getPost().getId())
-                .content(savedComment.getContent())
-                .commentId(savedComment.getId())
-                .build();
+        CommentEvent event = getCommentEvent(savedComment, user, post);
+        PostCommentEvent kafkaEvent = getPostCommentEvent(savedComment);
         commentEventPublisher.publish(event);
-        PostCommentEvent kafkaEvent = PostCommentEvent.builder()
-                .id(savedComment.getId())
-                .authorId(savedComment.getAuthorId())
-                .postId(savedComment.getPost().getId())
-                .build();
         kafkaCommentProducer.publish(kafkaEvent);
+        redisUserRepository.save(user);
+        log.info("Comment author with id {} was saved in redis", user.getId());
+
         return commentMapper.toResponseDto(savedComment);
     }
 
@@ -95,6 +91,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void commentersBanCheck(int unverifiedCommentsLimit) {
         Map<Long, Long> unverifiedAuthorsAndCommentsCount = commentRepository.findAllByVerifiedFalse().stream()
                 .collect(Collectors.groupingBy(Comment::getAuthorId, Collectors.counting()));
@@ -115,5 +112,26 @@ public class CommentServiceImpl implements CommentService {
         List<List<Comment>> batches = ListUtils.partition(unverifiedPosts, batchSize);
 
         batches.forEach(commentServiceAsync::moderateCommentsByBatches);
+    }
+
+    private static CommentEvent getCommentEvent(Comment savedComment, UserDto user, Post post) {
+        CommentEvent event = CommentEvent.builder()
+                .commentAuthorId(savedComment.getAuthorId())
+                .username(user.getUsername())
+                .postAuthorId(post.getAuthorId())
+                .postId(savedComment.getPost().getId())
+                .content(savedComment.getContent())
+                .commentId(savedComment.getId())
+                .build();
+        return event;
+    }
+
+    private static PostCommentEvent getPostCommentEvent(Comment savedComment) {
+        PostCommentEvent kafkaEvent = PostCommentEvent.builder()
+                .id(savedComment.getId())
+                .authorId(savedComment.getAuthorId())
+                .postId(savedComment.getPost().getId())
+                .build();
+        return kafkaEvent;
     }
 }

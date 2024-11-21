@@ -14,6 +14,7 @@ import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.repository.redis.RedisUserRepository;
 import faang.school.postservice.service.impl.comment.async.CommentServiceAsyncImpl;
 import faang.school.postservice.validator.comment.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,8 @@ class CommentServiceImplTest {
     private UserServiceClient userServiceClient;
     @Mock
     private KafkaCommentProducer kafkaCommentProducer;
+    @Mock
+    private RedisUserRepository redisUserRepository;
 
 
     @InjectMocks
