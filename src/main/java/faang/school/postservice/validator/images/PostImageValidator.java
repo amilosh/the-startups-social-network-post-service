@@ -1,4 +1,4 @@
-package faang.school.postservice.validator.postImages;
+package faang.school.postservice.validator.images;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

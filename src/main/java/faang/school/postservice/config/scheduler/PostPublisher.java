@@ -43,15 +43,15 @@ public class PostPublisher {
         }
     }
 
-    private void publishAndSavePosts(List<Post> postsFromDB) {
-        if (postsFromDB.isEmpty()) {
+    private void publishAndSavePosts(List<Post> postsFromDb) {
+        if (postsFromDb.isEmpty()) {
             log.info("No unpublished posts found.");
             return;
         }
 
-        postsFromDB.forEach(post -> post.setPublished(true));
+        postsFromDb.forEach(post -> post.setPublished(true));
 
-        List<List<Post>> subLists = partition(postsFromDB, 10);
+        List<List<Post>> subLists = partition(postsFromDb, 10);
 
         List<CompletableFuture<Void>> futures = subLists.stream()
                 .map(subList -> CompletableFuture.runAsync(() -> savePostBatch(subList), executorService)

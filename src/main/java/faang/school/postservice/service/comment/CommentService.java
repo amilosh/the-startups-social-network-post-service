@@ -49,11 +49,12 @@ public class CommentService {
 
     public CommentDto createComment(long postId, CreateCommentRequest createCommentRequest) {
         userServiceClient.getUser(createCommentRequest.getAuthorId());
-        log.info("[{}] Validation successful for postId: {}, createCommentRequest: {}", "createComment", postId, createCommentRequest);
+        log.info("[{}] Validation successful for postId: {}, createCommentRequest: {}", "createComment",
+                postId, createCommentRequest);
 
         Comment comment = commentMapper.toComment(createCommentRequest);
-        log.info(" [{}] Mapping of CommentDto to Comment entity successful for postId: {}, " +
-                "createCommentRequest'{}', comment: {}", "createComment", postId, createCommentRequest, comment);
+        log.info(" [{}] Mapping of CommentDto to Comment entity successful for postId: {}, "
+                + "createCommentRequest'{}', comment: {}", "createComment", postId, createCommentRequest, comment);
 
         Post post = postRepository.findById(postId).orElseThrow(() ->
                 new EntityNotFoundException("Post with id " + postId + " not found"));
@@ -71,11 +72,12 @@ public class CommentService {
         Comment oldComment = commentRepository.findById(commentId).orElseThrow(() ->
                 new DataValidationException("Comment is null"));
         commentValidator.checkingForCompliance(oldComment, updateCommentRequest);
-        log.info("[{}] Validation successful for postId: {}, updateCommentRequest: {}", "updateComment", postId, updateCommentRequest);
+        log.info("[{}] Validation successful for postId: {}, updateCommentRequest: {}", "updateComment",
+                postId, updateCommentRequest);
 
         Comment comment = commentMapper.toComment(updateCommentRequest);
-        log.info(" [{}] Mapping of CommentDto to Comment entity successful for postId: {}, " +
-                "updateCommentRequest: '{}', comment: {}", "updateComment", postId, updateCommentRequest, comment);
+        log.info(" [{}] Mapping of CommentDto to Comment entity successful for postId: {}, "
+                + "updateCommentRequest: '{}', comment: {}", "updateComment", postId, updateCommentRequest, comment);
 
         Post post = postRepository.findById(postId).orElseThrow(() ->
                 new EntityNotFoundException("Post with id " + postId + " not found"));
@@ -96,8 +98,8 @@ public class CommentService {
         }
 
         comments.sort(Comparator.comparing(Comment::getCreatedAt).reversed());
-        log.info("[{}] we have successfully read the list of comments:/n {}  " +
-                "from the database and sorted the list.", "getAllComments", comments);
+        log.info("[{}] we have successfully read the list of comments:/n {}  "
+                + "from the database and sorted the list.", "getAllComments", comments);
 
         return comments.stream()
                 .map(commentMapper::toCommentDto)

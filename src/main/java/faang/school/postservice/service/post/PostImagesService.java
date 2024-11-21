@@ -3,9 +3,9 @@ package faang.school.postservice.service.post;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.S3.S3Service;
+import faang.school.postservice.service.s3.S3Service;
 import faang.school.postservice.service.resource.ResourceService;
-import faang.school.postservice.validator.postImages.PostImageValidator;
+import faang.school.postservice.validator.images.PostImageValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class PostImagesService {
     private final ResourceService resourceService;
     private final DimensionChanger dimensionChanger;
     private final PostService postService;
-    private final S3Service S3Service;
+    private final S3Service s3service;
     private final PostRepository postRepository;
     private final PostImageValidator postImageValidator;
 
@@ -31,7 +31,7 @@ public class PostImagesService {
 
         validateImages(images);
 
-        List<Resource> resources = S3Service.uploadFiles(images, postId);
+        List<Resource> resources = s3service.uploadFiles(images, postId);
 
         resourceService.saveResources(resources);
 
@@ -44,7 +44,7 @@ public class PostImagesService {
 
         validateImages(images);
 
-        List<Resource> resources = S3Service.uploadFiles(images, postId);
+        List<Resource> resources = s3service.uploadFiles(images, postId);
 
         resourceService.deleteResources(postResources);
 
@@ -59,7 +59,7 @@ public class PostImagesService {
 
         resourceService.deleteResource(resourceId);
 
-        S3Service.deleteFile(resource.getName());
+        s3service.deleteFile(resource.getName());
     }
 
     private void validateImages(List<MultipartFile> images) {

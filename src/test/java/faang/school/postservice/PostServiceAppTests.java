@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PostServiceAppTests {
 
-    private final static String FOLDER_PATH = "faang.school.postservice";
+    private static final String FOLDER_PATH = "faang.school.postservice";
 
-    private final static int ZERO_DUPS = 0;
+    private static final int ZERO_DUPS = 0;
 
     @Test
     void contextLoads() {

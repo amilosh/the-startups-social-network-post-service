@@ -97,8 +97,8 @@ public class PostServiceTest {
             verify(postRepository).findById(ID);
             verify(postMapper).toResponseDto(eq(post), anyInt());
             verify(postViewEventPublisher).publish(argThat(event ->
-                    event.getPostId() == ID &&
-                            event.getAuthorId().equals(ID)));
+                    event.getPostId() == ID
+                            && event.getAuthorId().equals(ID)));
         }
 
         @Test

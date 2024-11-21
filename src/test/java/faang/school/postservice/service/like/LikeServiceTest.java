@@ -92,19 +92,18 @@ public class LikeServiceTest {
             LikeResponseDto likeResponseDto = new LikeResponseDto();
             when(likeMapper.toResponseDto(like)).thenReturn(likeResponseDto);
 
-            // Мокаем вызов валидатора и проверки пользователя
-            doNothing().when(likeValidator).validateLikeForPostExists(likeRequestDto.getPostId(), likeRequestDto.getUserId());
-            when(userContext.getUserId()).thenReturn(userId); // Предполагаем, что пользователь существует
+            doNothing().when(likeValidator).validateLikeForPostExists(likeRequestDto.getPostId(),
+                    likeRequestDto.getUserId());
+            when(userContext.getUserId()).thenReturn(userId);
 
             LikeResponseDto result = likeService.addLike(likeRequestDto);
-
+            assertEquals(likeResponseDto, result);
             verify(likeRepository).save(like);
             verify(postRepository).findById(likeRequestDto.getPostId());
             verify(likeValidator).validateLikeForPostExists(likeRequestDto.getPostId(), likeRequestDto.getUserId());
             verify(userServiceClient).getUser(likeRequestDto.getUserId());
             verify(likePostEventPublisher).publish(any());
             verify(likePostEventPublisher).publish(any());
-            assertEquals(likeResponseDto, result);
         }
 
 
@@ -121,17 +120,17 @@ public class LikeServiceTest {
             LikeResponseDto likeResponseDto = new LikeResponseDto();
             when(likeMapper.toResponseDto(like)).thenReturn(likeResponseDto);
 
-            // Мокаем вызов валидатора и проверки пользователя
-            doNothing().when(likeValidator).validateLikeForCommentExists(likeRequestDto.getCommentId(), likeRequestDto.getUserId());
-            when(userContext.getUserId()).thenReturn(userId); // Предполагаем, что пользователь существует
+            doNothing().when(likeValidator).validateLikeForCommentExists(likeRequestDto.getCommentId(),
+                    likeRequestDto.getUserId());
+            when(userContext.getUserId()).thenReturn(userId);
 
             LikeResponseDto result = likeService.addLike(likeRequestDto);
-
+            assertEquals(likeResponseDto, result);
             verify(likeRepository).save(like);
             verify(commentRepository).findById(likeRequestDto.getCommentId());
-            verify(likeValidator).validateLikeForCommentExists(likeRequestDto.getCommentId(), likeRequestDto.getUserId());
+            verify(likeValidator).validateLikeForCommentExists(likeRequestDto.getCommentId(),
+                    likeRequestDto.getUserId());
             verify(userServiceClient).getUser(likeRequestDto.getUserId());
-            assertEquals(likeResponseDto, result);
         }
 
 
@@ -139,7 +138,7 @@ public class LikeServiceTest {
         @DisplayName("Должен удалить лайк по ID")
         void shouldRemoveLikeById() {
             long likeId = 1L;
-            when(likeRepository.existsById(likeId)).thenReturn(true);  // Мокаем существование лайка
+            when(likeRepository.existsById(likeId)).thenReturn(true);
 
             likeService.removeLike(likeId);
 
@@ -186,7 +185,8 @@ public class LikeServiceTest {
         @Test
         @DisplayName("Должен выбросить исключение, если пользователь не найден")
         void shouldThrowExceptionWhenUserNotFound() {
-            when(userServiceClient.getUser(userId)).thenThrow(new EntityNotFoundException("User not found with ID: " + userId));
+            when(userServiceClient.getUser(userId)).thenThrow(new EntityNotFoundException("User not found with ID: "
+                    + userId));
 
             EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
                 likeService.addLike(likeRequestDto);

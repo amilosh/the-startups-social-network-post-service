@@ -82,8 +82,8 @@ public class LikeServiceTest {
         }
 
         @Test
-        @DisplayName("When more than 100 people liked comment " +
-                "than it goes by batches to user service and returns back")
+        @DisplayName("When more than 100 people liked comment "
+                + "than it goes by batches to user service and returns back")
         public void whenCommentIdPassedAndListIsMoreThanOneHundredThenBatchesMade() {
             when(likeRepository.findByCommentId(COMMENT_ID_ONE)).thenReturn(likes);
 
@@ -95,8 +95,8 @@ public class LikeServiceTest {
         }
 
         @Test
-        @DisplayName("When more than 100 people liked post " +
-                "than it goes by batches to user service and returns back")
+        @DisplayName("When more than 100 people liked post "
+                + "than it goes by batches to user service and returns back")
         public void whenPostIdPassedAndListIsMoreThanOneHundredThenBatchesMade() {
             when(likeRepository.findByPostId(POST_ID_ONE)).thenReturn(likes);
 

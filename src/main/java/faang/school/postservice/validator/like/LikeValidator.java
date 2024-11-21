@@ -12,13 +12,15 @@ public class LikeValidator {
 
     public void validateLikeForPostExists(Long postId, Long userId) {
         likeRepository.findByPostIdAndUserId(postId, userId).ifPresent(like -> {
-            throw new IllegalArgumentException("Like already exists for this post. postId: " + postId + ", userId: " + userId + ".");
+            throw new IllegalArgumentException("Like already exists for this post. postId: "
+                    + postId + ", userId: " + userId + ".");
         });
     }
 
     public void validateLikeForCommentExists(Long commentId, Long userId) {
         likeRepository.findByCommentIdAndUserId(commentId, userId).ifPresent(like -> {
-            throw new IllegalArgumentException("Like already exists for this comment. commentId: " + commentId + ", userId: " + userId + ".");
+            throw new IllegalArgumentException("Like already exists for this comment. commentId: "
+                    + commentId + ", userId: " + userId + ".");
         });
     }
 }

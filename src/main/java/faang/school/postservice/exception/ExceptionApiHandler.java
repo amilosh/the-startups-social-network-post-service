@@ -3,7 +3,7 @@ package faang.school.postservice.exception;
 import com.amazonaws.SdkBaseException;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import faang.school.postservice.exception.model.ApiError;
-import faang.school.postservice.service.S3.S3Service;
+import faang.school.postservice.service.s3.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Target;
 import org.springframework.http.HttpStatus;
