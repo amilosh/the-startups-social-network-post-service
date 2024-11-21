@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -26,10 +28,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping("/api/post")
+@RequestMapping("/api/v1/post")
 public class CommentController {
     private final CommentService commentService;
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{postId}/comments")
     public CommentDto addComment(@PathVariable @NotNull @Positive Long postId,
                                  @RequestBody @Valid CommentDto comment) {
@@ -47,9 +50,9 @@ public class CommentController {
         return commentService.getPostComments(postId);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable @NotNull @Positive Long commentId) {
+    public void deleteComment(@PathVariable @NotNull @Positive Long commentId) {
         commentService.deleteComment(commentId);
-        return ResponseEntity.noContent().build();
     }
 }

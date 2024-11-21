@@ -25,7 +25,7 @@ public class CommentService {
 
     @Transactional
     public CommentDto addComment(long postId, CommentDto commentDto) {
-        log.info("Trying to add comment: {} to post: {}", postId, commentDto);
+        log.info("Trying to add comment: {} to post: {}", commentDto, postId);
         userValidator.validateUserExists(commentDto.authorId());
 
         Post post = postService.getById(postId);
