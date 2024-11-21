@@ -16,10 +16,11 @@ public class KafkaPostConsumer implements KafkaConsumer<byte[]> {
     private final FeedService service;
 
     @Override
-    @KafkaListener(topics = {"${spring.kafka.topics.posts.name}"})
+    @KafkaListener(topics = {"${spring.kafka.topics.posts.name}"}, groupId = "first")
     public void processEvent(byte[] message) throws InvalidProtocolBufferException {
-        PostPublishedEvent event = mapper.toEvent(PostPublishedEventProto
-                .PostPublishedEvent.newBuilder().mergeFrom(message).build());
+        PostPublishedEventProto.PostPublishedEvent proto = PostPublishedEventProto
+                .PostPublishedEvent.newBuilder().mergeFrom(message).build();
+        PostPublishedEvent event = mapper.toEvent(proto);
         service.distributePostsToUsersFeeds(event);
     }
 }
