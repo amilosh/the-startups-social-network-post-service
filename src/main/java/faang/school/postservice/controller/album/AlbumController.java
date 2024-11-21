@@ -6,7 +6,6 @@ import faang.school.postservice.dto.album.AlbumRequestDto;
 import faang.school.postservice.dto.album.AlbumRequestUpdateDto;
 import faang.school.postservice.dto.album.AlbumResponseDto;
 import faang.school.postservice.service.album.AlbumService;
-import faang.school.postservice.validator.album.AlbumValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
