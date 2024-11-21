@@ -113,23 +113,9 @@ public class PostServiceImpl implements PostService {
         post.setPublishedAt(LocalDateTime.now());
         post = postRepository.save(post);
 
-        // TODO asdfsdeg
         List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
-        List<List<Long>> followersLists = new ArrayList<>();
-        for (int i = 0; i < followersIds.size(); i += followersBatchSize) {
-            List<Long> batch = new ArrayList<>(followersIds.subList(i, Math.min(followersIds.size(), i + followersBatchSize)));
-            followersLists.add(batch);
-        }
-        Post finalPost = post;
-        followersLists.forEach(list -> {
-            PostEventKafka postEventKafka = PostEventKafka.builder()
-                    .postId(finalPost.getId())
-                    .authorId(finalPost.getAuthorId())
-                    .createdAt(finalPost.getCreatedAt())
-                    .followerIds(list).build();
-            kafkaPostProducer.sendEvent(postEventKafka);
-        });
-
+        List<List<Long>> followersLists = divideFollowerIds(followersIds);
+        publishKafkaEvents(followersLists, post);
 
         PostDto postDto = postMapper.toPostDto(post);
 
@@ -319,5 +305,25 @@ public class PostServiceImpl implements PostService {
 
     private PostViewEvent createPostViewEvent(PostDto post) {
         return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());
+    }
+
+    private List<List<Long>> divideFollowerIds(List<Long> followersIds) {
+        List<List<Long>> followersLists = new ArrayList<>();
+        for (int i = 0; i < followersIds.size(); i += followersBatchSize) {
+            List<Long> batch = new ArrayList<>(followersIds.subList(i, Math.min(followersIds.size(), i + followersBatchSize)));
+            followersLists.add(batch);
+        }
+        return followersLists;
+    }
+
+    private void publishKafkaEvents(List<List<Long>> followersLists, Post post) {
+        followersLists.forEach(list -> {
+            PostEventKafka postEventKafka = PostEventKafka.builder()
+                    .postId(post.getId())
+                    .authorId(post.getAuthorId())
+                    .createdAt(post.getCreatedAt())
+                    .followerIds(list).build();
+            kafkaPostProducer.sendEvent(postEventKafka);
+        });
     }
 }
