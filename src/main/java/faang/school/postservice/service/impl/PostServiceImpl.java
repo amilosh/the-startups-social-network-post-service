@@ -11,8 +11,10 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
+import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
@@ -55,6 +57,7 @@ public class PostServiceImpl implements PostService {
     private final ExecutorService schedulingThreadPoolExecutor;
     private final PostBatchService postBatchService;
     private final PostViewPublisher postViewPublisher;
+    private final KafkaPostProducer kafkaPostProducer;
     private final UserContext userContext;
 
     @Value("${post.publisher.batch-size}")
@@ -97,7 +100,9 @@ public class PostServiceImpl implements PostService {
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-        postRepository.save(post);
+        post = postRepository.save(post);
+        kafkaPostProducer.sendEvent(new PostEventKafka(post.getId(), post.getAuthorId(), post.getCreatedAt()));
+
 
         return postMapper.toPostDto(post);
     }

@@ -4,6 +4,7 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.service.impl.PostServiceImpl;
@@ -34,6 +35,9 @@ public class PublishPostTest {
 
     @Mock
     PostViewPublisher postViewPublisher;
+
+    @Mock
+    private KafkaPostProducer kafkaPostProducer;
 
     @InjectMocks
     private PostServiceImpl postService;
@@ -66,6 +70,7 @@ public class PublishPostTest {
         when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(unpublishedPost));
         when(postRepository.save(any(Post.class))).thenAnswer(i -> {
             Post savedPost = i.getArgument(0);
+            savedPost.setAuthorId(1L);
             unpublishedPost.setPublished(savedPost.isPublished());
             unpublishedPost.setPublishedAt(savedPost.getPublishedAt());
             return savedPost;
