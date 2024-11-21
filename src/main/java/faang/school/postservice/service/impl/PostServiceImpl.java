@@ -22,9 +22,12 @@ import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +47,8 @@ public class PostServiceImpl implements PostService {
     private final AsyncPostPublishService asyncPostPublishService;
     private final EventPublisher<FeedEventProto.FeedEvent> postForFeedPublisher;
     private final EventPublisher<PostDto> viewPostPublisher;
+    private final TransactionTemplate transactionTemplate;
+    private final ExecutorService newsFeedThreadPoolExecutor;
 
     @Override
     public void createDraftPost(PostDto postDto) {
@@ -59,27 +64,14 @@ public class PostServiceImpl implements PostService {
         postRepository.save(newPost);
     }
 
-    private boolean existsCreator(PostDto postDto) {
-        if (postDto.getAuthorId() == null) {
-            return projectServiceClient.existsProjectById(postDto.getProjectId());
-        } else {
-            return userServiceClient.existsUserById(postDto.getAuthorId());
-        }
-    }
-
     @Override
     public void publishPost(long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("There is no post with ID " + id));
-        UserDto user = userServiceClient.getUser(post.getAuthorId());
-
-        if (!post.isPublished()) {
-            post.setPublishedAt(LocalDateTime.now());
-            post.setPublished(true);
-
-            save(post, user);
-            publishForFeed(id, post);
-        }
+        Post postOrNull = transactionTemplate.execute(transactionStatus -> publishPostAndGet(id));
+        Optional.ofNullable(postOrNull)
+                .ifPresent((post) -> newsFeedThreadPoolExecutor.execute(() -> {
+                    saveInCache(post);
+                    publishForFeed(post);
+                }));
     }
 
     @Override
@@ -144,24 +136,46 @@ public class PostServiceImpl implements PostService {
         return postRepository.findAuthorsWithMoreThanFiveUnverifiedPosts();
     }
 
-    private void save(Post post, UserDto user) {
-        postRepository.save(post);
-        cachePostRepository.save(post.getId().toString(), postMapper.toDto(post));
-        cacheUserRepository.save(user.getId().toString(), user);
+    private Post publishPostAndGet(long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("There is no post with ID " + id));
+
+        if (!post.isPublished()) {
+            post.setPublishedAt(LocalDateTime.now());
+            post.setPublished(true);
+            postRepository.save(post);
+        }
+
+        return post;
     }
 
-    private void publishForFeed(long id, Post post) {
+    private void saveInCache(Post post) {
+        UserDto user = userServiceClient.getUser(post.getAuthorId());
+        String stringPostId = post.getId().toString();
+        String stringUserId = user.getId().toString();
+        cachePostRepository.save(stringPostId, postMapper.toDto(post));
+        cacheUserRepository.save(stringUserId, user);
+    }
+
+    private void publishForFeed(Post post) {
         Iterable<Long> followers = userServiceClient.getFollowers(post.getAuthorId(), new UserFilterDto())
                 .stream()
                 .map(UserDto::getId)
                 .toList();
-
         FeedEventProto.FeedEvent feedEvent = FeedEventProto.FeedEvent.newBuilder()
-                .setPostId(id)
+                .setPostId(post.getId())
                 .addAllFollowerIds(followers)
                 .build();
 
         postForFeedPublisher.publish(feedEvent);
         viewPostPublisher.publish(postMapper.toDto(post));
+    }
+
+    private boolean existsCreator(PostDto postDto) {
+        if (postDto.getAuthorId() == null) {
+            return projectServiceClient.existsProjectById(postDto.getProjectId());
+        } else {
+            return userServiceClient.existsUserById(postDto.getAuthorId());
+        }
     }
 }
