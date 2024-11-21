@@ -13,7 +13,7 @@ public class CacheLikeRepository implements CacheRepository<LikeDto> {
 
     @Override
     public void save(String postId, LikeDto likeDto) {
-        String likesKeyOnPost = postId + "::post::likes";
+        String likesKeyOnPost = postId + "::post_likes";
         listCacheService.rightPush(likesKeyOnPost, likeDto);
     }
 }

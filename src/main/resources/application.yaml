@@ -57,6 +57,10 @@ spring:
         name: like-for-feed_topic
         num-partitions: 3
         replication-factor: 1
+      view_post:
+        name: view_post_topic
+        num-partitions: 3
+        replication-factor: 1
 
 server:
   port: 8081
