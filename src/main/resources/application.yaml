@@ -110,3 +110,14 @@ executor:
   corePoolSize: 1
   maximumPoolSize: 10
   keepAliveTime: 60
+
+kafka:
+  producer:
+    bootstrapAddress: localhost:29092,localhost:29093,localhost:29094  # 3 ноды
+    partition: 5
+    replicationFactor: 3
+    acks: "all"
+    retries: 5
+    idempotence: true
+  topic:
+    likeTopic: likes
