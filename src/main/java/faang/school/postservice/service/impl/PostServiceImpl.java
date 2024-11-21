@@ -11,9 +11,12 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
+import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
@@ -46,6 +49,7 @@ public class PostServiceImpl implements PostService {
     private int correcterBatchSize;
 
     private final PostRepository postRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostMapper postMapper;
@@ -55,6 +59,7 @@ public class PostServiceImpl implements PostService {
     private final ExecutorService schedulingThreadPoolExecutor;
     private final PostBatchService postBatchService;
     private final PostViewPublisher postViewPublisher;
+    private final KafkaPostProducer kafkaPostProducer;
     private final UserContext userContext;
 
     @Value("${post.publisher.batch-size}")
@@ -97,7 +102,14 @@ public class PostServiceImpl implements PostService {
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-        postRepository.save(post);
+        post = postRepository.save(post);
+        List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
+        PostEventKafka postEventKafka = PostEventKafka.builder()
+                .postId(post.getId())
+                .authorId(post.getAuthorId())
+                .createdAt(post.getCreatedAt())
+                .followerIds(followersIds).build();
+        kafkaPostProducer.sendEvent(postEventKafka);
 
         return postMapper.toPostDto(post);
     }
