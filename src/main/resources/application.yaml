@@ -34,11 +34,11 @@ spring:
     kafka:
       bootstrap-servers: localhost:29092
       topics:
+        like: likes
         comment:
           published: comment-published-topic
         post:
           published: post-published-topic
-
 
 server:
   port: 8081

@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "spring.data.kafka.topics")
 public class KafkaTopics {
+    private String like;
+
     private Comment comment;
     private Post post;
 
