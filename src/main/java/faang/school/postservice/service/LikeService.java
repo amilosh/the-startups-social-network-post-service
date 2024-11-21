@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -54,12 +53,15 @@ public class LikeService {
     }
 
     private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
-        try {
-            return userServiceClient.getUsersByIds(batch);
-        } catch (Exception e) {
-            log.error("Error fetching users for batch {}: {}", batch, e.getMessage(), e);
-            return Collections.emptyList();
+        List<UserDto> userDtos = new ArrayList<>();
+        for (Long userId : batch) {
+            try {
+                userDtos.add(userServiceClient.getUser(userId));
+            } catch (Exception e) {
+                log.error("Error fetching user with ID {}: {}", userId, e.getMessage(), e);
+            }
         }
+        return userDtos;
     }
 
     private List<UserDto> collectResultsFromFutures(List<CompletableFuture<List<UserDto>>> futures) {
