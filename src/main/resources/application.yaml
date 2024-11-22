@@ -122,6 +122,8 @@ kafka:
     follower: 1000
   topics:
     post: post_topic
+  groups:
+    post: post_group
 
 scheduler:
   cron:
