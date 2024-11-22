@@ -1,5 +1,9 @@
 package faang.school.postservice.controller;
 
+import faang.school.postservice.docs.commet.CreateCommentDoc;
+import faang.school.postservice.docs.commet.DeleteCommentDoc;
+import faang.school.postservice.docs.commet.GetAllCommentDoc;
+import faang.school.postservice.docs.commet.UpdateCommentDoc;
 import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CreateCommentDto;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
@@ -15,14 +19,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
+@Validated
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
-@Validated
-@Slf4j
 public class CommentController {
     private final CommentService commentService;
 
+    @CreateCommentDoc
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponseDto> create(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId,
@@ -31,6 +36,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(postId, dto));
     }
 
+    @UpdateCommentDoc
     @PutMapping("/{postId}/comments")
     public  ResponseEntity<CommentResponseDto> update(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId,
@@ -39,6 +45,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.updateComment(postId, dto));
     }
 
+    @GetAllCommentDoc
     @GetMapping("/{postId}/comments")
     public ResponseEntity<List<CommentResponseDto>> getAllComments(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId) {
@@ -46,6 +53,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getAllComments(postId));
     }
 
+    @DeleteCommentDoc
     @DeleteMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable @Positive(message = "Post id should be a positive number") long postId,

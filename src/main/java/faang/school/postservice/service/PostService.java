@@ -30,17 +30,14 @@ public class PostService {
     private final HashtagService hashtagService;
     private final HashtagValidator hashtagValidator;
 
+    @Transactional
     public ResponsePostDto create(CreatePostDto createPostDto) {
         postValidator.validateContent(createPostDto.getContent());
         postValidator.validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         postValidator.validateAuthorId(createPostDto.getAuthorId());
         postValidator.validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
 
-        if (createPostDto.getHashtags() != null) {
-            for (String hashtag : createPostDto.getHashtags()) {
-                hashtagValidator.validateHashtag(hashtag);
-            }
-        }
+        validateHashtags(createPostDto.getHashtags());
 
         if (createPostDto.getAuthorId() != null && createPostDto.getProjectId() != null) {
             createPostDto.setProjectId(null);
@@ -52,15 +49,8 @@ public class PostService {
         entity.setPublished(false);
         entity.setDeleted(false);
 
-        if (createPostDto.getHashtags() != null && !createPostDto.getHashtags().isEmpty()) {
-            Set<Hashtag> hashtags = new HashSet<>();
-
-            for (String tag : createPostDto.getHashtags()) {
-                Hashtag hashtag = hashtagService.findByTag(tag)
-                        .orElseGet(() -> hashtagService.create(tag));
-                hashtags.add(hashtag);
-            }
-            entity.setHashtags(hashtags);
+        if (hasHashtags(createPostDto.getHashtags())) {
+            entity.setHashtags(getAndCreateHashtags(createPostDto.getHashtags()));
         }
 
         postRepository.save(entity);
@@ -76,8 +66,8 @@ public class PostService {
         Post post = postRepository.findById(postId).get();
 
         post.setPublished(true);
-        post.setPublishedAt(LocalDateTime.now());
-        post.setUpdatedAt(LocalDateTime.now());
+        post.setPublishedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
+        post.setUpdatedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
 
         postRepository.save(post);
 
@@ -89,28 +79,17 @@ public class PostService {
         postValidator.validateExistingPostId(postId);
         postValidator.validateContent(updatePostDto.getContent());
 
-        if (updatePostDto.getHashtags() != null) {
-            for (String hashtag : updatePostDto.getHashtags()) {
-                hashtagValidator.validateHashtag(hashtag);
-            }
-        }
+        validateHashtags(updatePostDto.getHashtags());
 
         Post post = postRepository.findById(postId).get();
 
 
-        if (updatePostDto.getHashtags() != null && !updatePostDto.getHashtags().isEmpty()) {
-            Set<Hashtag> hashtags = new HashSet<>();
-
-            for (String tag : updatePostDto.getHashtags()) {
-                Hashtag hashtag = hashtagService.findByTag(tag)
-                        .orElseGet(() -> hashtagService.create(tag));
-                hashtags.add(hashtag);
-            }
-            post.setHashtags(hashtags);
+        if (hasHashtags(updatePostDto.getHashtags())) {
+            post.setHashtags(getAndCreateHashtags(updatePostDto.getHashtags()));
         }
 
         post.setContent(updatePostDto.getContent());
-        post.setUpdatedAt(LocalDateTime.now());
+        post.setUpdatedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
 
         postRepository.save(post);
 
@@ -169,5 +148,27 @@ public class PostService {
     public Post getPostById(Long id) {
         return postRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException(String.format("Post with id: %s not found", id)));
+    }
+
+    private void validateHashtags(List<String> hashtags) {
+        if (hashtags != null) {
+            for (String hashtag : hashtags) {
+                hashtagValidator.validateHashtag(hashtag);
+            }
+        }
+    }
+
+    private boolean hasHashtags(List<String> hashtags) {
+        return hashtags != null && !hashtags.isEmpty();
+    }
+    
+    private Set<Hashtag> getAndCreateHashtags(List<String> hashtags) {
+        Set<Hashtag> result = new HashSet<>();
+        for (String tag : hashtags) {
+            Hashtag hashtag = hashtagService.findByTag(tag)
+                    .orElseGet(() -> hashtagService.create(tag));
+            result.add(hashtag);
+        }
+        return result;
     }
 }
