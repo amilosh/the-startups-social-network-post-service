@@ -26,7 +26,6 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<Long> draftPost(@RequestBody @Valid PostDto postDto) {
-        checkPostDtoContainsContent(postDto);
         checkIdUserOrIdProjectNotNull(postDto);
         Long postId = postService.createDraftPost(postDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(postId);
@@ -74,17 +73,6 @@ public class PostController {
     @GetMapping(UrlUtils.PROJECT + UrlUtils.PUBLISHED)
     public ResponseEntity<List<PostDto>> getPublishedPostsByProjectId(@RequestParam @Min(1) Long idProject) {
         return ResponseEntity.ok(postService.getPublishedPostForProject(idProject));
-    }
-
-    private void checkPostDtoContainsContent(PostDto postDto) {
-        if (postDto.content() == null) {
-            log.error("Field Content is NULL");
-            throw new IllegalArgumentException("Field Content is NULL");
-        }
-        if (postDto.content().isBlank()) {
-            log.error("Field Content is blank");
-            throw new IllegalArgumentException("Field Content is blank");
-        }
     }
 
     private void checkIdUserOrIdProjectNotNull(PostDto postDto) {
