@@ -23,6 +23,7 @@ spring:
     redis:
       port: 6379
       host: localhost
+      postTtl: 86400 # in seconds
       channels:
         calculationsChannel:
           name: calculations_channel

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class RedisProperties {
 
     private Channels channels;
+    private int postTtl;
 
     @Getter
     @Setter
