@@ -45,6 +45,7 @@ spring:
         like-nf-channel: like-NF-channel
         post-publish-topic: post-publish-topic
         comment-nf-topic: comment-NF-channel
+        post-view-nf-topic: post-view-NF-channel
 
 server:
   port: 8081

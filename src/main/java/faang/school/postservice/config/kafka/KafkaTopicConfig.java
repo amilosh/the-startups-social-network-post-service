@@ -20,6 +20,9 @@ public class KafkaTopicConfig {
     @Value("${spring.data.kafka.channels.comment-nf-topic}")
     private String commentNFTopic;
 
+    @Value("${spring.data.kafka.channels.post-view-nf-topic}")
+    private String postViewNFTopic;
+
     @Bean
     public NewTopic postNFTopic() {
         return TopicBuilder
@@ -45,6 +48,13 @@ public class KafkaTopicConfig {
     public NewTopic commentNFTopic() {
         return TopicBuilder
                 .name(commentNFTopic)
+                .build();
+    }
+
+    @Bean
+    public NewTopic postViewNFTopic() {
+        return TopicBuilder
+                .name(postViewNFTopic)
                 .build();
     }
 }

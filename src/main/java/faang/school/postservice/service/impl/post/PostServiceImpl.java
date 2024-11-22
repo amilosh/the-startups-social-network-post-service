@@ -7,8 +7,10 @@ import faang.school.postservice.model.dto.user.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
+import faang.school.postservice.model.event.newsfeed.PostViewEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
 import faang.school.postservice.publisher.PostNewsFeedProducer;
+import faang.school.postservice.publisher.PostViewEventProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
@@ -20,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,7 @@ public class PostServiceImpl implements PostService {
     private final UserServiceClient userServiceClient;
     private final PostNewsFeedProducer postNewsFeedEventPublisher;
     private final CacheManager cacheManager;
+    private final PostViewEventProducer postViewEventProducer;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -82,7 +84,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @Retryable()
     public PostDto updatePost(PostDto postDto) {
         Post post = getPostOrThrowException(postDto.id());
         postValidator.updatePostValidator(post, postDto);
@@ -105,10 +106,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PostDto getPost(Long id) {
         Post post = getPostOrThrowException(id);
-
+        var postViewEvent = new PostViewEvent(id);
+        postViewEventProducer.produce(postViewEvent);
         return postMapper.toDto(post);
     }
 
