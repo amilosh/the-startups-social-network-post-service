@@ -1,15 +1,14 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.model.event.kafka.PostEventKafka;
-import faang.school.postservice.publisher.PostViewPublisher;
+import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.impl.PostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,8 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,10 +46,10 @@ public class PublishPostTest {
     private SubscriptionRepository postSubscriptionRepository;
 
     @Mock
-    AuthorCacheService authorCacheService;
+    private AuthorCacheService authorCacheService;
 
     @Mock
-    PostCacheService postCacheService;
+    private PostCacheService postCacheService;
 
     @InjectMocks
     private PostServiceImpl postService;
@@ -96,11 +95,12 @@ public class PublishPostTest {
         assertNotNull(result);
         assertTrue(result.isPublished());
         assertNotNull(unpublishedPost.getPublishedAt());
+        assertTrue(unpublishedPost.isPublished());
 
         verify(postRepository).save(argThat(post -> post.isPublished() && post.getId() == 1L));
-        verify(kafkaPostProducer,times(1)).sendEvent(any(PostEventKafka.class));
+        verify(authorCacheService,times(1)).saveAuthorToCache(any());
+        verify(postCacheService,times(1)).savePostToCache(any());
 
-        assertTrue(unpublishedPost.isPublished());
     }
 
     @Test

@@ -25,6 +25,7 @@ spring:
       posts: post_topic
       post-view: post_view_topic
       comment-partitions-num: 5
+    followers-batch-size: 2
 
 
   jpa:
