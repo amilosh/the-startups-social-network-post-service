@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KafkaPostProducer {
 
-    @Value("${spring.data.kafka.topics.posts-channel}")
+    @Value("${spring.data.kafka.topics.posts}")
     private String topic;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 

@@ -28,8 +28,10 @@ spring:
 
     kafka:
       bootstrap-servers: localhost:29092
+      consumer:
+        group-id: post
       topics:
-        posts-channel: posts
+        posts: posts
 
 server:
   port: 8081
