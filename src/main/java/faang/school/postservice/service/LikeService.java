@@ -60,10 +60,7 @@ public class LikeService {
 
     private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
         List<UserDto> userDtos = new ArrayList<>();
-
-        for (Long userId : batch) {
-            userDtos.add(userServiceClient.getUser(userId));
-        }
+        batch.forEach(userId -> userDtos.add(userServiceClient.getUser(userId)));
 
         return userDtos;
     }
