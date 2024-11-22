@@ -24,6 +24,7 @@ spring:
       comment: comment_topic
       posts: post_topic
       comment-partitions-num: 5
+    followers-batch-size: 2
 
 
   jpa:
@@ -118,3 +119,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type: ERROR
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+cache:
+  author-ttl: 86400
+  post-ttl: 86400

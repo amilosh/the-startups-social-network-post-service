@@ -15,6 +15,9 @@ import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
+import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
+import faang.school.postservice.redis.service.AuthorCacheService;
+import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.BatchProcessService;
@@ -45,6 +48,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostServiceImpl implements PostService {
 
+    @Value("${spring.kafka.followers-batch-size}")
+    private int followersBatchSize;
+
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
 
@@ -61,6 +67,9 @@ public class PostServiceImpl implements PostService {
     private final PostViewPublisher postViewPublisher;
     private final KafkaPostProducer kafkaPostProducer;
     private final UserContext userContext;
+    private final KafkaCommentProducer kafkaCommentProducer;
+    private final AuthorCacheService authorCacheService;
+    private final PostCacheService postCacheService;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -103,15 +112,17 @@ public class PostServiceImpl implements PostService {
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
         post = postRepository.save(post);
-        List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
-        PostEventKafka postEventKafka = PostEventKafka.builder()
-                .postId(post.getId())
-                .authorId(post.getAuthorId())
-                .createdAt(post.getCreatedAt())
-                .followerIds(followersIds).build();
-        kafkaPostProducer.sendEvent(postEventKafka);
 
-        return postMapper.toPostDto(post);
+        List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
+        List<List<Long>> followersLists = divideFollowerIds(followersIds);
+        publishKafkaEvents(followersLists, post);
+
+        PostDto postDto = postMapper.toPostDto(post);
+
+        authorCacheService.saveAuthorToCache(postDto.getAuthorId());
+        postCacheService.savePostToCache(postDto);
+
+        return postDto;
     }
 
     @Override
@@ -294,5 +305,25 @@ public class PostServiceImpl implements PostService {
 
     private PostViewEvent createPostViewEvent(PostDto post) {
         return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());
+    }
+
+    private List<List<Long>> divideFollowerIds(List<Long> followersIds) {
+        List<List<Long>> followersLists = new ArrayList<>();
+        for (int i = 0; i < followersIds.size(); i += followersBatchSize) {
+            List<Long> batch = new ArrayList<>(followersIds.subList(i, Math.min(followersIds.size(), i + followersBatchSize)));
+            followersLists.add(batch);
+        }
+        return followersLists;
+    }
+
+    private void publishKafkaEvents(List<List<Long>> followersLists, Post post) {
+        followersLists.forEach(list -> {
+            PostEventKafka postEventKafka = PostEventKafka.builder()
+                    .postId(post.getId())
+                    .authorId(post.getAuthorId())
+                    .createdAt(post.getCreatedAt())
+                    .followerIds(list).build();
+            kafkaPostProducer.sendEvent(postEventKafka);
+        });
     }
 }
