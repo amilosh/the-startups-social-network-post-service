@@ -58,8 +58,8 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto updatePost(UpdatePostDto updatePostDto) {
-        Post post = findPostById(updatePostDto.id());
+    public PostDto updatePost(long id , UpdatePostDto updatePostDto) {
+        Post post = findPostById(id);
         log.info("Request to update a post: {}", post);
         validateThatPostDeleted(post);
 

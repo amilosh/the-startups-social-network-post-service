@@ -3,11 +3,17 @@ package faang.school.postservice.controller;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.service.PostService;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -18,19 +24,20 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("/create")
-    public PostDto create(@RequestBody @Valid PostDto postDto) {
+    @PostMapping
+    public PostDto create(@Validated @RequestBody PostDto postDto) {
         return postService.createPost(postDto);
     }
 
-    @PatchMapping("/publish/{id}")
+    @PutMapping("/publish/{id}")
     public PostDto publish(@PathVariable @Positive long id) {
         return postService.publishPost(id);
     }
 
-    @PostMapping("/update")
-    public PostDto update(@RequestBody UpdatePostDto updatePostDto) {
-        return postService.updatePost(updatePostDto);
+    @PutMapping("/{id}")
+    public PostDto update(@PathVariable long id,
+                          @Validated @RequestBody UpdatePostDto updatePostDto) {
+        return postService.updatePost(id, updatePostDto);
     }
 
     @GetMapping("/{id}")
@@ -38,7 +45,7 @@ public class PostController {
         return postService.getPostById(id);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public PostDto delete(@PathVariable @Positive long id) {
         return postService.deletePost(id);
     }

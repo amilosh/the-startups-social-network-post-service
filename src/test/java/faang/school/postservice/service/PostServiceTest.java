@@ -132,12 +132,11 @@ public class PostServiceTest {
     public void testUpdatePost() {
         post.setContent("content");
         UpdatePostDto updatePostDto = UpdatePostDto.builder()
-                .id(1L)
                 .content("new content")
                 .build();
         when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
 
-        PostDto dto = postService.updatePost(updatePostDto);
+        PostDto dto = postService.updatePost(1L, updatePostDto);
 
         verify(postRepository, times(1)).findById(anyLong());
         assertEquals(dto.content(), updatePostDto.content());
@@ -146,13 +145,12 @@ public class PostServiceTest {
     @Test
     public void testUpdateDeletedPost() {
         UpdatePostDto updatePostDto = UpdatePostDto.builder()
-                .id(1L)
                 .content("new content")
                 .build();
         post.setDeleted(true);
         when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
 
-        assertThrows(DataValidationException.class, () -> postService.updatePost(updatePostDto));
+        assertThrows(DataValidationException.class, () -> postService.updatePost(1L, updatePostDto));
 
         verify(postRepository, times(1)).findById(anyLong());
     }
