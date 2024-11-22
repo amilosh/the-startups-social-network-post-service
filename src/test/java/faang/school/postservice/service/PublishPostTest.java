@@ -6,6 +6,8 @@ import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
+import faang.school.postservice.redis.service.AuthorCacheService;
+import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.repository.SubscriptionRepository;
@@ -44,6 +46,12 @@ public class PublishPostTest {
     @Mock
     private SubscriptionRepository postSubscriptionRepository;
 
+    @Mock
+    AuthorCacheService authorCacheService;
+
+    @Mock
+    PostCacheService postCacheService;
+
     @InjectMocks
     private PostServiceImpl postService;
 
@@ -81,7 +89,7 @@ public class PublishPostTest {
             return savedPost;
         });
 
-        lenient().when(postMapper.toPostDto(any(Post.class))).thenReturn(publishedPostDto);
+        lenient().when(postMapper.toPostDto(any(Post.class))). thenReturn(publishedPostDto);
 
         PostDto result = postService.publishPost(1L);
 
