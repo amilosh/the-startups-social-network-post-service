@@ -54,7 +54,6 @@ public class KafkaConsumerConfig {
         typeMapper.addTrustedPackages("*");
         Map<String, Class<?>> mappings = new HashMap<>();
         mappings.put("comment_event", CommentEventKafka.class);
-//        mappings.put("farewell", Farewell.class);
         typeMapper.setIdClassMapping(mappings);
         converter.setTypeMapper(typeMapper);
         return converter;

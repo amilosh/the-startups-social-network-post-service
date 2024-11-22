@@ -12,5 +12,6 @@ import java.time.LocalDateTime;
 public class CommentEventKafka {
     private long commentId;
     private long authorId;
+    private long postId;
     LocalDateTime createdAt;
 }

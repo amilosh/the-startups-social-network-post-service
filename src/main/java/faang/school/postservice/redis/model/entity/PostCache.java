@@ -26,4 +26,5 @@ public class PostCache implements Serializable {
     private int numberOfLikes;
     private int numberOfViews;
     private CopyOnWriteArraySet<CommentRedisDto> comments;
+    private Long version;
 }
