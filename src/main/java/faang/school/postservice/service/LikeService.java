@@ -48,8 +48,12 @@ public class LikeService {
         }
 
         List<CompletableFuture<List<UserDto>>> futures = userIdBatches.stream()
-                .map(batch -> CompletableFuture.supplyAsync(() -> fetchUserDtosSafely(batch)))
-                .toList();
+                .map(batch -> CompletableFuture.supplyAsync(() -> fetchUserDtosSafely(batch))
+                        .exceptionally(ex -> {
+                            log.error("Error fetching users for batch {}: {}", batch, ex.getMessage(), ex);
+                            return new ArrayList<>();
+                        }))
+                .collect(Collectors.toList());
 
         return collectResultsFromFutures(futures);
     }
