@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LikeController {
     private final LikeService likeService;
 
-    @PostMapping("/comments/likes/{commentId}")
+    @PostMapping("/comments/{commentId}/likes")
     public LikeDto likeComment(@PathVariable Long commentId, @RequestBody @Valid LikeDto likeDto) {
         if (likeDto.getId() != null) {
             throw new DataValidationException("The like must not contain an ID for creation");
@@ -26,7 +26,7 @@ public class LikeController {
         return likeService.likeComment(commentId, likeDto);
     }
 
-    @PostMapping("/posts/likes/{postId}")
+    @PostMapping("/posts/{postId}/likes")
     public LikeDto likePost(@PathVariable Long postId, @RequestBody @Valid LikeDto likeDto) {
         if (likeDto.getId() != null) {
             throw new DataValidationException("The like must not contain an ID for creation");
@@ -34,7 +34,7 @@ public class LikeController {
         return likeService.likePost(postId, likeDto);
     }
 
-    @DeleteMapping("/comments/likes/{commentId}")
+    @DeleteMapping("/comments/{commentId}/likes")
     public LikeDto removeLikeUnderComment(@PathVariable long commentId, @RequestBody @Valid LikeDto likeDto) {
         if (likeDto.getId() == null) {
             throw new DataValidationException("The like must contain ID to be removed");
@@ -42,7 +42,7 @@ public class LikeController {
         return likeService.removeLikeUnderComment(commentId, likeDto);
     }
 
-    @DeleteMapping("/posts/likes/{postId}")
+    @DeleteMapping("/posts/{postId}/likes")
     public LikeDto removeLikeUnderPost(@PathVariable long postId, @RequestBody @Valid LikeDto likeDto) {
         if (likeDto.getId() == null) {
             throw new DataValidationException("The like must contain ID to be removed");
