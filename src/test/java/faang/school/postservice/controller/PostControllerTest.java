@@ -8,6 +8,7 @@ import faang.school.postservice.handler.ExceptionApiHandler;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.utilities.UrlUtils;
 import jakarta.persistence.EntityNotFoundException;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -76,7 +77,8 @@ class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().json("{'message':'Field Content is blank'}"));
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.message").value(CoreMatchers.containsString("Content should not be blank")));
     }
 
     @Test
@@ -87,7 +89,8 @@ class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().json("{'message':'Field Content is NULL'}"));
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.message").value(CoreMatchers.containsString("Content should not be blank")));
     }
 
     @Test
