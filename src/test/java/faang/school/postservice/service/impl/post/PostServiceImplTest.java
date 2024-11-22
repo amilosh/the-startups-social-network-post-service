@@ -8,8 +8,10 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.entity.redis.PostRedis;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
+import faang.school.postservice.model.event.newsfeed.PostViewEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
 import faang.school.postservice.publisher.PostNewsFeedProducer;
+import faang.school.postservice.publisher.PostViewEventProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.impl.post.async.PostServiceAsyncImpl;
@@ -70,6 +72,9 @@ public class PostServiceImplTest {
 
     @Mock
     private RedisCache cache;
+
+    @Mock
+    private PostViewEventProducer postViewEventProducer;
 
     private PostDto examplePostDto;
     private Post examplePost;
@@ -200,6 +205,7 @@ public class PostServiceImplTest {
         // Assert
         assertEquals(examplePostDto, result);
         verify(postRepository, times(1)).findById(1L);
+        verify(postViewEventProducer).produce(any(PostViewEvent.class));
     }
 
     @Test
