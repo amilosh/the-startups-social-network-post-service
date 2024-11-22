@@ -12,10 +12,12 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
+import faang.school.postservice.model.event.kafka.PostViewEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
+import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
@@ -70,6 +72,7 @@ public class PostServiceImpl implements PostService {
     private final KafkaCommentProducer kafkaCommentProducer;
     private final AuthorCacheService authorCacheService;
     private final PostCacheService postCacheService;
+    private final KafkaPostViewProducer kafkaPostViewProducer;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -149,8 +152,15 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostDto getPost(Long id) {
         Post post = getPostById(id);
+        PostDto postDto = postMapper.toPostDto(post);
+
         postViewPublisher.publish(createPostViewEvent(post));
-        return postMapper.toPostDto(post);
+
+        PostViewEventKafka postViewEventKafka = new PostViewEventKafka();
+        postViewEventKafka.setPostDto(postDto);
+        kafkaPostViewProducer.sendEvent(postViewEventKafka);
+
+        return postDto;
     }
 
     @Override

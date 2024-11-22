@@ -88,7 +88,7 @@ public class PublishPostTest {
             return savedPost;
         });
 
-        lenient().when(postMapper.toPostDto(any(Post.class))).thenReturn(publishedPostDto);
+        lenient().when(postMapper.toPostDto(any(Post.class))). thenReturn(publishedPostDto);
 
         PostDto result = postService.publishPost(1L);
 
