@@ -1,34 +1,22 @@
 package faang.school.postservice.producer.like.comment;
 
-import faang.school.postservice.config.properties.kafka.KafkaConfigurationProperties;
 import faang.school.postservice.event.kafka.comment.like.CommentLikeKafkaEvent;
-import faang.school.postservice.producer.like.KafkaMessageProducer;
-import lombok.RequiredArgsConstructor;
+import faang.school.postservice.producer.AbstractEventProducer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class KafkaCommentLikeProducer implements KafkaMessageProducer<CommentLikeKafkaEvent> {
+public class KafkaCommentLikeProducer extends AbstractEventProducer<CommentLikeKafkaEvent> {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final KafkaConfigurationProperties kafkaConfigurationProperties;
+    public KafkaCommentLikeProducer(KafkaTemplate<String, Object> kafkaTemplate, NewTopic topic) {
+        super(kafkaTemplate, topic);
+    }
 
     @Override
-    public void sendMessage(CommentLikeKafkaEvent message) {
-        kafkaTemplate.send(kafkaConfigurationProperties.getTopic().getLikeTopic(), message)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to send message! ", ex);
-                    } else {
-                        if (result != null) {
-                            log.debug("Message sent successfully to topic {} with offset {}",
-                                    result.getRecordMetadata().topic(),
-                                    result.getRecordMetadata().offset());
-                        }
-                    }
-                });
+    public void sendEvent(CommentLikeKafkaEvent event) {
+        super.sendEvent(event);
     }
 }

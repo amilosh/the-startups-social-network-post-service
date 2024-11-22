@@ -157,7 +157,7 @@ public class LikeService {
 
     private void publishKafkaPostLikeEvent(PostLikeKafkaEvent postLikeKafkaEvent) {
         try {
-            kafkaPostLikeProducer.sendMessage(postLikeKafkaEvent);
+            kafkaPostLikeProducer.sendEvent(postLikeKafkaEvent);
         } catch (Exception e) {
             log.error("Failed to send kafka like post event: ", e);
         }
@@ -165,7 +165,7 @@ public class LikeService {
 
     private void publishKafkaCommentLikeEvent(CommentLikeKafkaEvent commentLikeKafkaEvent) {
         try {
-            kafkaCommentLikeProducer.sendMessage(commentLikeKafkaEvent);
+            kafkaCommentLikeProducer.sendEvent(commentLikeKafkaEvent);
         } catch (Exception e) {
             log.error("Failed to send kafka like comment event: ", e);
         }

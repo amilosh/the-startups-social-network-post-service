@@ -115,7 +115,7 @@ public class LikeServiceTest {
             verify(userServiceClient).getUser(likeRequestDto.getUserId());
             verify(likePostEventPublisher).publish(any());
             verify(likePostEventPublisher).publish(any());
-            verify(kafkaPostLikeProducer).sendMessage(any());
+            verify(kafkaPostLikeProducer).sendEvent(any());
         }
 
 
@@ -148,7 +148,7 @@ public class LikeServiceTest {
             verify(likeValidator).validateLikeForCommentExists(likeRequestDto.getCommentId(),
                     likeRequestDto.getUserId());
             verify(userServiceClient).getUser(likeRequestDto.getUserId());
-            verify(kafkaCommentLikeProducer).sendMessage(any());
+            verify(kafkaCommentLikeProducer).sendEvent(any());
         }
 
 

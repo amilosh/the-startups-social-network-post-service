@@ -59,7 +59,8 @@ public abstract class BaseContextTest {
         registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379));
         registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
 
-        registry.add("kafka.producer.bootstrapAddress", KAFKA_CONTAINER::getBootstrapServers);
+        registry.add("spring.data.kafka.producerConfig.bootstrapServersConfig",
+                KAFKA_CONTAINER::getBootstrapServers);
 
         try {
             Thread.sleep(1000);

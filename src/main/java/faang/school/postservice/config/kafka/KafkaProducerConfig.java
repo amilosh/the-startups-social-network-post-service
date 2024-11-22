@@ -1,6 +1,6 @@
 package faang.school.postservice.config.kafka;
 
-import faang.school.postservice.config.properties.kafka.KafkaConfigurationProperties;
+import faang.school.postservice.config.properties.kafka.KafkaProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -18,14 +18,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaProducerConfig {
 
-    private final KafkaConfigurationProperties kafkaConfigurationProperties;
+    private final KafkaProperties kafkaProperties;
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                kafkaConfigurationProperties.getProducer().getBootstrapAddress());
+                kafkaProperties.getProducerConfig().getBootstrapServersConfig());
         configProps.put(
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
@@ -33,11 +33,11 @@ public class KafkaProducerConfig {
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class);
         configProps.put(
-                ProducerConfig.ACKS_CONFIG, kafkaConfigurationProperties.getProducer().getAcks());
+                ProducerConfig.ACKS_CONFIG, kafkaProperties.getProducerConfig().getAcks());
         configProps.put(
-                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, kafkaConfigurationProperties.getProducer().isIdempotence());
+                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, kafkaProperties.getProducerConfig().isIdempotence());
         configProps.put(
-                ProducerConfig.RETRIES_CONFIG, kafkaConfigurationProperties.getProducer().getRetries());
+                ProducerConfig.RETRIES_CONFIG, kafkaProperties.getProducerConfig().getRetries());
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 

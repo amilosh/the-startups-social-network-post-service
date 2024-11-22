@@ -1,6 +1,6 @@
 package faang.school.postservice.producer.like.comment;
 
-import faang.school.postservice.config.properties.kafka.KafkaConfigurationProperties;
+import faang.school.postservice.config.properties.kafka.KafkaProperties;
 import faang.school.postservice.event.kafka.comment.like.CommentLikeKafkaEvent;
 import faang.school.postservice.model.EventType;
 import faang.school.postservice.util.BaseContextTest;
@@ -31,7 +31,7 @@ public class KafkaCommentLikeProducerIntegrationTest extends BaseContextTest {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
-    private KafkaConfigurationProperties kafkaConfigurationProperties;
+    private KafkaProperties kafkaProperties;
 
     @Autowired
     private KafkaCommentLikeProducer kafkaCommentLikeProducer;
@@ -52,11 +52,11 @@ public class KafkaCommentLikeProducerIntegrationTest extends BaseContextTest {
     @Test
     @DisplayName("Sending and receiving kafka message comment like then checks it's values")
     public void whenSendingKafkaMessageCommentLikeThenDeserializeItPollAndCheck() {
-        kafkaTemplate.send(kafkaConfigurationProperties.getTopic().getLikeTopic(), commentLikeKafkaEvent);
+        kafkaTemplate.send(kafkaProperties.getTopics().getLikeTopic().getName(), commentLikeKafkaEvent);
 
         Map<String, Object> consumerProps = new HashMap<>();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                kafkaConfigurationProperties.getProducer().getBootstrapAddress());
+                kafkaProperties.getProducerConfig().getBootstrapServersConfig());
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group");
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -66,7 +66,7 @@ public class KafkaCommentLikeProducerIntegrationTest extends BaseContextTest {
                 new DefaultKafkaConsumerFactory<>(consumerProps);
 
         Consumer<String, CommentLikeKafkaEvent> consumer = consumerFactory.createConsumer();
-        consumer.subscribe(Collections.singletonList(kafkaConfigurationProperties.getTopic().getLikeTopic()));
+        consumer.subscribe(Collections.singletonList(kafkaProperties.getTopics().getLikeTopic().getName()));
 
         ConsumerRecords<String, CommentLikeKafkaEvent> records = consumer.poll(Duration.ofSeconds(3));
         consumer.close();
