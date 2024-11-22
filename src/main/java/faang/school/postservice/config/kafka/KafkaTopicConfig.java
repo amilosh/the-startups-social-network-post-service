@@ -17,6 +17,9 @@ public class KafkaTopicConfig {
     @Value("${spring.data.kafka.channels.post-publish-topic}")
     private String postPublishTopic;
 
+    @Value("${spring.data.kafka.channels.comment-nf-topic}")
+    private String commentNFTopic;
+
     @Bean
     public NewTopic postNFTopic() {
         return TopicBuilder
@@ -35,6 +38,13 @@ public class KafkaTopicConfig {
     public NewTopic postPublishTopic() {
         return TopicBuilder
                 .name(postPublishTopic)
+                .build();
+    }
+
+    @Bean
+    public NewTopic commentNFTopic() {
+        return TopicBuilder
+                .name(commentNFTopic)
                 .build();
     }
 }
