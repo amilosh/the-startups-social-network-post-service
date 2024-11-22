@@ -66,4 +66,4 @@ redis:
 
 cache:
   post:
-    live-time: 86 400
+    live-time: 86400
