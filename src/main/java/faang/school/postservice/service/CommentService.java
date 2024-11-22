@@ -1,11 +1,12 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.validator.UserValidator;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +22,12 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final PostService postService;
-    private final UserValidator userValidator;
+    private final UserServiceClient userServiceClient;
 
     @Transactional
     public CommentDto addComment(long postId, CommentDto commentDto) {
         log.info("Trying to add comment: {} to post: {}", commentDto, postId);
-        userValidator.validateUserExists(commentDto.authorId());
+        validateUserExists(commentDto.authorId());
 
         Post post = postService.getById(postId);
         Comment comment = commentMapper.toEntity(commentDto);
@@ -57,6 +58,14 @@ public class CommentService {
     public void deleteComment(long commentId) {
         log.info("Trying to delete comment: {commentId}");
         commentRepository.deleteById(commentId);
+    }
+
+    private void validateUserExists(long userId) {
+        try {
+            userServiceClient.getUser(userId);
+        } catch (FeignException ex) {
+            throw new EntityNotFoundException("User does not exist");
+        }
     }
 
     private Comment getById(long commentId) {

@@ -1,11 +1,11 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.validator.UserValidator;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ public class CommentServiceTest {
     private PostService postService;
 
     @Mock
-    private UserValidator userValidator;
+    private UserServiceClient userServiceClient;
 
     private long postId;
     private long authorId;
@@ -85,8 +85,8 @@ public class CommentServiceTest {
     public void testAddCommentUserDoesNotExist() {
         // arrange
         doThrow(new EntityNotFoundException())
-                .when(userValidator)
-                .validateUserExists(authorId);
+                .when(userServiceClient)
+                .getUser(authorId);
 
         // act and assert
         assertThrows(EntityNotFoundException.class,
