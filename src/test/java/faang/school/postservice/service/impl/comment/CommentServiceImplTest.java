@@ -1,16 +1,17 @@
 package faang.school.postservice.service.impl.comment;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.model.event.BanEvent;
-import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.mapper.comment.CommentMapperImpl;
-import faang.school.postservice.model.entity.Comment;
-import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.comment.CommentRequestDto;
 import faang.school.postservice.model.dto.comment.CommentResponseDto;
 import faang.school.postservice.model.dto.user.UserDto;
+import faang.school.postservice.model.entity.Comment;
+import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.BanEvent;
+import faang.school.postservice.model.event.CommentEvent;
+import faang.school.postservice.model.event.newsfeed.CommentNewsFeedEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
-import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.publisher.CommentNewsFeedProducer;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.impl.comment.async.CommentServiceAsyncImpl;
@@ -27,18 +28,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceImplTest {
-
     @Mock
     private CommentRepository commentRepository;
 
@@ -59,6 +53,9 @@ class CommentServiceImplTest {
 
     @Mock
     private UserServiceClient userServiceClient;
+
+    @Mock
+    private CommentNewsFeedProducer commentNewsFeedProducer;
 
     @InjectMocks
     private CommentServiceImpl commentService;
@@ -132,6 +129,7 @@ class CommentServiceImplTest {
         assertThat(result).isEqualTo(commentResponseDto);
         verify(commentEventPublisher).publish(commentEvent);
         verify(userServiceClient).getUser(1);
+        verify(commentNewsFeedProducer).produce(any(CommentNewsFeedEvent.class));
     }
 
     @Test

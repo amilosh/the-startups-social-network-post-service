@@ -7,7 +7,9 @@ import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.dto.comment.CommentRequestDto;
 import faang.school.postservice.model.dto.comment.CommentResponseDto;
+import faang.school.postservice.model.event.newsfeed.CommentNewsFeedEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.publisher.CommentNewsFeedProducer;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.CommentService;
@@ -28,7 +30,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CommentServiceImpl implements CommentService {
-
     private final UserServiceClient userServiceClient;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
@@ -36,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
     private final RedisBanMessagePublisher redisBanMessagePublisher;
     private final CommentServiceAsync commentServiceAsync;
     private final CommentEventPublisher commentEventPublisher;
+    private final CommentNewsFeedProducer commentNewsFeedProducer;
 
     @Value("${comments.batch-size}")
     private int batchSize;
@@ -49,17 +51,23 @@ public class CommentServiceImpl implements CommentService {
         var comment = commentMapper.toEntity(dto);
         comment.setAuthorId(userId);
         comment.setPost(post);
-        Comment savedComment = commentRepository.save(comment);
-        CommentEvent event = CommentEvent.builder()
-                .commentAuthorId(savedComment.getAuthorId())
+        comment = commentRepository.save(comment);
+        var event = CommentEvent.builder()
+                .commentAuthorId(comment.getAuthorId())
                 .username(user.username())
                 .postAuthorId(post.getAuthorId())
-                .postId(savedComment.getPost().getId())
-                .content(savedComment.getContent())
-                .commentId(savedComment.getId())
+                .postId(comment.getPost().getId())
+                .content(comment.getContent())
+                .commentId(comment.getId())
+                .build();
+        var commentNFEvent = CommentNewsFeedEvent.builder()
+                .id(comment.getId())
+                .authorId(comment.getAuthorId())
+                .postId(comment.getPost().getId())
                 .build();
         commentEventPublisher.publish(event);
-        return commentMapper.toResponseDto(savedComment);
+        commentNewsFeedProducer.produce(commentNFEvent);
+        return commentMapper.toResponseDto(comment);
     }
 
     @Override

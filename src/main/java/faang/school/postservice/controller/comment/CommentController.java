@@ -6,6 +6,7 @@ import faang.school.postservice.model.dto.comment.CommentResponseDto;
 import faang.school.postservice.service.CommentService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/comments")
@@ -32,6 +34,7 @@ public class CommentController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CommentResponseDto create(@Validated @RequestBody CommentRequestDto dto) {
+        log.info("Incoming request: {}", dto);
         long userId = userContext.getUserId();
         return commentService.create(userId, dto);
     }

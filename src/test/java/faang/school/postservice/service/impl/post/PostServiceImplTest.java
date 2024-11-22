@@ -9,7 +9,7 @@ import faang.school.postservice.model.entity.redis.PostRedis;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
-import faang.school.postservice.publisher.PostNewsFeedEventPublisher;
+import faang.school.postservice.publisher.PostNewsFeedProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.impl.post.async.PostServiceAsyncImpl;
@@ -63,7 +63,7 @@ public class PostServiceImplTest {
     private UserServiceClient userServiceClient;
 
     @Mock
-    private PostNewsFeedEventPublisher postNewsFeedEventPublisher;
+    private PostNewsFeedProducer postNewsFeedEventPublisher;
 
     @Mock
     private CacheManager cacheManager;

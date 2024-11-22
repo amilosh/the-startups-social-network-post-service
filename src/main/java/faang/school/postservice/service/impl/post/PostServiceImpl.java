@@ -8,7 +8,7 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.PostEvent;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.publisher.PostEventPublisher;
-import faang.school.postservice.publisher.PostNewsFeedEventPublisher;
+import faang.school.postservice.publisher.PostNewsFeedProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
@@ -40,7 +40,7 @@ public class PostServiceImpl implements PostService {
     private final PostServiceAsync postServiceAsync;
     private final PostEventPublisher postEventPublisher;
     private final UserServiceClient userServiceClient;
-    private final PostNewsFeedEventPublisher postNewsFeedEventPublisher;
+    private final PostNewsFeedProducer postNewsFeedEventPublisher;
     private final CacheManager cacheManager;
 
     @Value("${post.correcter.posts-batch-size}")
