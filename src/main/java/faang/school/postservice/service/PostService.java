@@ -47,7 +47,7 @@ public class PostService {
         Post post = findPostById(id);
         log.info("Request to publish a post: {}", post);
         if (post.isPublished()) {
-            throw new DataValidationException("Post is already published");
+            return postMapper.toDto(post);
         }
         validateThatPostDeleted(post);
 
@@ -58,7 +58,7 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto updatePost(long id , UpdatePostDto updatePostDto) {
+    public PostDto updatePost(long id, UpdatePostDto updatePostDto) {
         Post post = findPostById(id);
         log.info("Request to update a post: {}", post);
         validateThatPostDeleted(post);

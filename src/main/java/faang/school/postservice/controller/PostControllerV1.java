@@ -5,6 +5,7 @@ import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.service.PostService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,9 +23,10 @@ import java.util.List;
 @RequestMapping("/api/v1/post")
 @RequiredArgsConstructor
 @Validated
-public class PostController {
+public class PostControllerV1 {
     private final PostService postService;
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public PostDto create(@Validated @RequestBody PostDto postDto) {
         return postService.createPost(postDto);
@@ -50,22 +53,22 @@ public class PostController {
         return postService.deletePost(id);
     }
 
-    @GetMapping("/get/draft/byUser/{userId}")
+    @GetMapping("/drafts/byUser/{userId}")
     public List<PostDto> getAllDraftNotDeletedPostsByUserId(@PathVariable @Positive long userId) {
         return postService.getAllDraftNotDeletedPostsByUserId(userId);
     }
 
-    @GetMapping("/get/draft/byProject/{projectId}")
+    @GetMapping("/drafts/byProject/{projectId}")
     public List<PostDto> getAllDraftNotDeletedPostsByProjectId(@PathVariable @Positive long projectId) {
         return postService.getAllDraftNotDeletedPostsByProjectId(projectId);
     }
 
-    @GetMapping("/get/published/byUser/{userId}")
+    @GetMapping("/publications/byUser/{userId}")
     public List<PostDto> getAllPublishedNotDeletedPostsByUserId(@PathVariable @Positive long userId) {
         return postService.getAllPublishedNotDeletedPostsByUserId(userId);
     }
 
-    @GetMapping("/get/published/byProject/{projectId}")
+    @GetMapping("/publications/byProject/{projectId}")
     public List<PostDto> getAllPublishedNotDeletedPostsByProjectId(@PathVariable @Positive long projectId) {
         return postService.getAllPublishedNotDeletedPostsByProjectId(projectId);
     }
