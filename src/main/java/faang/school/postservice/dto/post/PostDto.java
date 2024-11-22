@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AuthorOrProjectIdOnly
 @AllArgsConstructor
@@ -19,7 +18,6 @@ public class PostDto {
     private Long id;
     private Long authorId;
     private Long projectId;
-    private List<Long> followeeIds;
 
     @NotBlank(message = "content must be not blank")
     @NotNull(message = "content must be not null")

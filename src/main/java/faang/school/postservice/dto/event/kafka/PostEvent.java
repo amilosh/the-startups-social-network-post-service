@@ -1,4 +1,4 @@
-package faang.school.postservice.dto.user;
+package faang.school.postservice.dto.event.kafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,9 +9,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+public class PostEvent {
     private Long id;
-    private String username;
-    private String email;
+    private Long authorId;
     private List<Long> subscribersId;
 }

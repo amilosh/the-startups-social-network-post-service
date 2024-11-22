@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.event.kafka.PostEvent;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.PostException;
@@ -39,10 +40,11 @@ public class PostServiceImpl implements PostService {
         postRepository.save(post);
 
         UserDto author = userServiceClient.getUser(postDto.getAuthorId());
-        List<Long> followeeId = postRepository.findFolloweeIdsByFollowerId(author.getId());
+        PostEvent postEvent = new PostEvent(postDto.getId(),
+                postDto.getAuthorId(),
+                author.getSubscribersId());
 
-        postDto.setFolloweeIds(followeeId);
-        kafkaPostProducer.sendPostEvent(postDto);
+        kafkaPostProducer.sendPostEvent(postEvent);
 
         return postDto;
     }

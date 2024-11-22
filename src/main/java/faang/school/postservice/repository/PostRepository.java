@@ -14,9 +14,6 @@ public interface PostRepository extends CrudRepository<Post, Long> {
 
     List<Post> findByProjectId(long projectId);
 
-    @Query(value = "SELECT followee_id FROM subscription WHERE follower_id = :userId", nativeQuery = true)
-    List<Long> findFolloweeIdsByFollowerId(Long userId);
-
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.likes WHERE p.projectId = :projectId")
     List<Post> findByProjectIdWithLikes(long projectId);
 

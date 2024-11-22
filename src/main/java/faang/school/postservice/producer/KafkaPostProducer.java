@@ -1,6 +1,6 @@
 package faang.school.postservice.producer;
 
-import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.event.kafka.PostEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +16,9 @@ public class KafkaPostProducer {
     private String topic;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sendPostEvent(PostDto postDto) {
-        kafkaTemplate.send(topic, postDto);
-        log.info("Kafka sent an event post: " + postDto);
+    public void sendPostEvent(PostEvent postEvent) {
+        kafkaTemplate.send(topic, postEvent)
+                .thenRunAsync(() -> log.info("Kafka sent an event post with id: " + postEvent.getId()));
     }
 
 }
