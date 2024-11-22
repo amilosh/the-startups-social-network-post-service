@@ -1,6 +1,5 @@
 package faang.school.postservice.dto.post;
 
-import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.validator.AuthorOrProjectIdOnly;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,20 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AuthorOrProjectIdOnly
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PostDto implements Serializable {
+public class PostDto {
     private Long id;
     private Long authorId;
     private Long projectId;
-    private long countLikes;
-    private List<CommentDto> comments;
 
     @NotBlank(message = "content must be not blank")
     @NotNull(message = "content must be not null")

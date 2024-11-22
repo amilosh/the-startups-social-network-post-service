@@ -10,6 +10,7 @@ import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.repository.post.RedisPostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
@@ -36,7 +38,8 @@ public class PostServiceImpl implements PostService {
         post.setDeleted(false);
 
         postRepository.save(post);
-        redisPostRepository.cachePost(postDto);
+        redisPostRepository.save(postMapper.toRedis(post));
+        log.info("Saved post with ID: {}", post.getId());
 
         return postDto;
     }

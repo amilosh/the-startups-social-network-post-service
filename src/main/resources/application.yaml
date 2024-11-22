@@ -66,6 +66,4 @@ redis:
 
 cache:
   post:
-    live-time: 1
-    time-unit: DAYS
-    set-key: posts
+    live-time: 86 400
