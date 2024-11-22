@@ -1,10 +1,13 @@
 package faang.school.postservice.controller.post;
 
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostFilterDto;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,11 +20,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/posts")
+@RequestMapping("api/v1//posts")
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("")
+    @PostMapping()
     public PostDto createPost(@RequestBody PostDto postDto) {
         return postService.create(postDto);
     }
@@ -31,12 +34,12 @@ public class PostController {
         return postService.publishPost(id);
     }
 
-    @PutMapping("/")
+    @PutMapping()
     public PostDto updatePost(@RequestBody PostDto postDto) {
         return postService.updatePost(postDto);
     }
 
-    @DeleteMapping("/{id]")
+    @DeleteMapping("/{id}")
     public void deletePost(@PathVariable Long id) {
         postService.deletePost(id);
     }
@@ -46,12 +49,9 @@ public class PostController {
         return postService.getPostById(id);
     }
 
-    @GetMapping
-    public List<PostDto> getPosts(
-            @RequestParam Long id,
-            @RequestParam boolean published,
-            @RequestParam String type) {
-        return postService.getPosts(id, published, type);
+    @ModelAttribute
+    public List<PostDto> getPost(@RequestBody PostFilterDto postFilterDto){
+        return postService.getPosts(postFilterDto);
     }
 
 

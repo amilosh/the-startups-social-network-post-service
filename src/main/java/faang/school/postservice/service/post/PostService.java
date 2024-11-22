@@ -1,18 +1,20 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.post.filter.PostFilter;
+import faang.school.postservice.service.post.filter.PostFilters;
 import faang.school.postservice.validator.post.PostValidator;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Service
 @AllArgsConstructor
@@ -21,7 +23,8 @@ public class PostService {
 
     private final PostMapper postMapper;
     private final PostValidator postValidator;
-    private final PostFilter postFilter;
+
+    private final List<PostFilters> postFilters;
 
 
     public PostDto create(PostDto postDto) {
@@ -73,19 +76,14 @@ public class PostService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public List<PostDto> getPosts(Long id, boolean published, String type) {
-        // Проверяем, что за тип фильтрации используется
-        switch (type.toLowerCase()) {
-            case "author":
-                postValidator.validateUserExist(id);
-                return postFilter.filterPostByTimeToDTo(postRepository.findByAuthorId(id), published);
+    public List<PostDto> getPosts(PostFilterDto filterDto) {
+        Stream<Post> posts = StreamSupport.stream(postRepository.findAll().spliterator(), false);
 
-            case "project":
-                postValidator.validateProjectExist(id);
-                return postFilter.filterPostByTimeToDTo(postRepository.findByProjectId(id), published);
+        postFilters.stream()
+                .filter(filter -> filter.isApplicable(filterDto))
+                .forEach(filter -> filter.apply(posts, filterDto));
 
-            default:
-                throw new IllegalArgumentException("Invalid type. Supported values: 'author', 'project'.");
-        }
+        return postMapper.toDtoList(posts.toList());
     }
+
 }

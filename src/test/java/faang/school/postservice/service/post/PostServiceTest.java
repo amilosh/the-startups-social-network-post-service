@@ -7,6 +7,7 @@ import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
+import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
@@ -42,7 +43,7 @@ class PostServiceTest {
     private ProjectServiceClient projectServiceClient;
 
     @Spy
-    private PostMapperImpl postMapper;
+    private PostMapper postMapper;
 
     @InjectMocks
     private PostService postService;
