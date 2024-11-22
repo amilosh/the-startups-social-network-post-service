@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -133,5 +134,9 @@ public class PostService {
 
     private void savePost(Post post) {
         postRepository.save(post);
+    }
+
+    public Optional<Post> findPostById(Long id) {
+        return postRepository.findById(id);
     }
 }
