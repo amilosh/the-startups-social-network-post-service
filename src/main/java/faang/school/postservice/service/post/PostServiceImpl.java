@@ -62,6 +62,14 @@ public class PostServiceImpl implements PostService {
         post.setPublishedAt(LocalDateTime.now());
 
         postRepository.save(post);
+
+        UserDto author = userServiceClient.getUser(post.getAuthorId());
+        PostEvent postEvent = new PostEvent(post.getId(),
+                post.getAuthorId(),
+                author.getSubscribersId());
+
+        kafkaPostProducer.sendPostEvent(postEvent);
+
         return postMapper.toDto(post);
     }
 
