@@ -1,4 +1,4 @@
-package faang.school.postservice.config.kafka;
+package faang.school.postservice.config.properties.kafka;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,20 +16,24 @@ public class KafkaProperties {
 
     @Getter
     @Setter
-    protected static class ProducerConfig {
+    public static class ProducerConfig {
+
         private String bootstrapServersConfig;
         private String acks;
         private int retries;
+        private boolean idempotence;
     }
 
     @Getter
     @Setter
-    protected static class Topics {
+    public static class Topics {
+
         private Topic postsTopic;
 
         @Getter
         @Setter
-        protected static class Topic {
+        public static class Topic {
+
             private String name;
             private int numPartitions;
             private short replicationFactor;

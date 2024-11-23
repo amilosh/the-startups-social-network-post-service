@@ -1,14 +1,12 @@
 package faang.school.postservice.config.kafka;
 
+import faang.school.postservice.config.properties.kafka.KafkaProperties;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -18,16 +16,9 @@ import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-public class KafkaConfig {
+public class KafkaProducerConfig {
 
     private final KafkaProperties kafkaProperties;
-
-    @Bean
-    public NewTopic postsTopic() {
-        return new NewTopic(kafkaProperties.getTopics().getPostsTopic().getName(),
-                kafkaProperties.getTopics().getPostsTopic().getNumPartitions(),
-                kafkaProperties.getTopics().getPostsTopic().getReplicationFactor());
-    }
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
@@ -41,6 +32,9 @@ public class KafkaConfig {
         configProps.put(ProducerConfig.RETRIES_CONFIG,
                 kafkaProperties.getProducerConfig().getRetries());
 
+        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,
+                kafkaProperties.getProducerConfig().isIdempotence());
+
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
 
@@ -53,14 +47,5 @@ public class KafkaConfig {
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
-    }
-
-    @Bean
-    public KafkaAdmin kafkaAdmin() {
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
-                kafkaProperties.getProducerConfig().getBootstrapServersConfig());
-
-        return new KafkaAdmin(configs);
     }
 }

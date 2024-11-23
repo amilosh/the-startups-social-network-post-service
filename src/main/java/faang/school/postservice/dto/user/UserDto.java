@@ -29,5 +29,5 @@ public class UserDto {
     private Long countryId;
     private String city;
     private String userProfilePicId;
-    private List<UserDto> followers;
+    private List<Long> followers;
 }

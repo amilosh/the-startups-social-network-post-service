@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -87,12 +85,14 @@ public class PostService {
     public PostResponseDto createPost(PostRequestDto postRequestDto) {
         log.info("start createPost with {}", postRequestDto);
 
-        Post post = postRepository.save(buildPost(postRequestDto));
+        UserDto author = userServiceClient.getUser(userContext.getUserId());
+
+        Post post = postRepository.save(buildPost(postRequestDto, author));
         log.info("save post in DB: {}", post);
 
-        sendPostEvent(post);
+        sendPostEvent(post, author);
 
-        return postMapper.toDto(post);
+        return postMapper.toResponseDto(post);
     }
 
     @Async("executor")
@@ -109,10 +109,10 @@ public class PostService {
         }
     }
 
-    private Post buildPost(PostRequestDto postRequestDto) {
+    private Post buildPost(PostRequestDto postRequestDto, UserDto author) {
         return Post.builder()
                 .content(postRequestDto.getContent())
-                .authorId(userContext.getUserId())
+                .authorId(author.getId())
                 .build();
     }
 
@@ -130,17 +130,11 @@ public class PostService {
         }
     }
 
-    private void sendPostEvent(Post post) {
+    private void sendPostEvent(Post post, UserDto author) {
         PostCreateEvent postCreateEvent = PostCreateEvent.builder()
                 .postId(post.getId())
                 .authorId(post.getAuthorId())
-                .subscribers(Optional.ofNullable(userServiceClient
-                                .getUser(userContext.getUserId())
-                                .getFollowers())
-                        .orElseGet(ArrayList::new)
-                        .stream()
-                        .map(UserDto::getId)
-                        .toList())
+                .subscribers(author.getFollowers())
                 .build();
         try {
             kafkaPostProducer.sendEvent(postCreateEvent);
