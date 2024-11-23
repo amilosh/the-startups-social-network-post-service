@@ -1,6 +1,7 @@
 package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.comment.CommentPublishedEvent;
+import faang.school.postservice.mapper.comment.CommentPublishedEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.post.CacheablePost;
@@ -9,6 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
@@ -17,6 +19,9 @@ import java.util.List;
 public abstract class CacheablePostMapper {
     @Value("${feed.cache.post.time-to-live-in-seconds}")
     private long timeToLive;
+
+    @Autowired
+    private CommentPublishedEventMapper commentPublishedEventMapper;
 
     @Mapping(target = "countOfLikes", source = "likes", qualifiedByName = "getListSizeLike")
     @Mapping(target = "countOfComments", source = "comments", qualifiedByName = "getListSizeComment")
@@ -28,7 +33,7 @@ public abstract class CacheablePostMapper {
     protected List<CommentPublishedEvent> toCommentPublishedEvents(List<Comment> comments) {
         return comments.stream()
                 .limit(3L)
-                .map()
+                .map(commentPublishedEventMapper::fromCommentToEvent)
                 .toList();
     }
 

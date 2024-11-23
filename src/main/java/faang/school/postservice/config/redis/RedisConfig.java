@@ -36,7 +36,7 @@ public class RedisConfig {
     }
 
     @Bean(name = "feedTemplate")
-    public RedisTemplate<Long, LinkedHashSet<Long>> feedRedisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<Long, LinkedHashSet<Long>> feedRedisTemplate(LettuceConnectionFactory connectionFactory) {
         RedisTemplate<Long, LinkedHashSet<Long>> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(LinkedHashSet.class));

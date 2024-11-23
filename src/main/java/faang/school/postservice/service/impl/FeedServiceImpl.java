@@ -32,22 +32,12 @@ public class FeedServiceImpl implements FeedService {
         subsIds.forEach(id -> updateFeed(id, event.getPostId()));
     }
 
-    @Retryable(maxAttempts = 5, retryFor = {OptimisticEntityLockException.class})
+    @Retryable(maxAttempts = 5, retryFor = {Exception.class})
     private void updateFeed(long userId, long postId) {
         Feed feed = cacheRepository.findById(userId).orElse(new Feed(userId, new LinkedHashSet<>()));
 
-        redisTemplate.watch(userId);
-        try {
-            addNewPostToFeed(feed, postId);
-            cacheRepository.save(feed);
-        } catch (Exception e) {
-            redisTemplate.discard();
-            throw e;
-        }
-        
-        if (redisTemplate.exec().isEmpty()) {
-            throw new OptimisticEntityLockException(feed, "(((");
-        }
+        addNewPostToFeed(feed, postId);
+        cacheRepository.save(feed);
     }
 
     private void addNewPostToFeed(Feed feed, long postId) {
