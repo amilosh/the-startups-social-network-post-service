@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 
 @Data
 public class LikeDto {
-    @NotNull
+    @NotNull(message = "Id cannot be null")
     private Long id;
-    @NotNull
+    @NotNull(message = "User id cannot be null")
     private Long userId;
     private Long commentId;
     private Long postId;
