@@ -1,5 +1,6 @@
 package faang.school.postservice.service.impl;
 
+import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.model.Feed;
 import faang.school.postservice.repository.FeedCacheRepository;
@@ -30,6 +31,11 @@ public class FeedServiceImpl implements FeedService {
         List<Long> subsIds = event.getSubscribersIds();
 
         subsIds.forEach(id -> updateFeed(id, event.getPostId()));
+    }
+
+    @Override
+    public void addNewComment(CommentEvent commentEvent) {
+
     }
 
     @Retryable(maxAttempts = 5, retryFor = {OptimisticEntityLockException.class})
