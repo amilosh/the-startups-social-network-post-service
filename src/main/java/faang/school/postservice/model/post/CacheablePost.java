@@ -2,6 +2,7 @@ package faang.school.postservice.model.post;
 
 
 import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.dto.comment.CommentPublishedEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class CacheablePost {
     private Long projectId;
     private long countOfLikes;
     private long countOfComments;
-    private List<CommentDto> comments;
+    private List<CommentPublishedEvent> comments;
     private LocalDateTime publishedAt;
     private LocalDateTime updatedAt;
 
