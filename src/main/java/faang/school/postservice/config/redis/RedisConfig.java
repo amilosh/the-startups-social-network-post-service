@@ -7,9 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.convert.MappingConfiguration;
-import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
