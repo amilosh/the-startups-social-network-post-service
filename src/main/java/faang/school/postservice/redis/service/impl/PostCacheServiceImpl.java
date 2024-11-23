@@ -48,7 +48,6 @@ public class PostCacheServiceImpl implements PostCacheService {
     @Override
     public void savePostToCache(PostDto post) {
         PostCache postCache = postCacheMapper.toPostCache(post);
-        postCache.setVersion(1L);
         postCacheRedisRepository.save(postCache);
 
         String key = "posts:" + post.getId();
@@ -78,9 +77,5 @@ public class PostCacheServiceImpl implements PostCacheService {
         } finally {
             lock.unlock();
         }
-    }
-
-    private PostCache updatePostCache(PostDto post) {
-
     }
 }

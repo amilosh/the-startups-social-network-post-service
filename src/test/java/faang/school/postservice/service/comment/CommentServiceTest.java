@@ -59,7 +59,7 @@ class CommentServiceTest {
     private PostRepository postRepository;
 
     @Mock
-    KafkaCommentProducer kafkaCommentProducer;
+    private KafkaCommentProducer kafkaCommentProducer;
 
     @InjectMocks
     private CommentServiceImpl commentService;
