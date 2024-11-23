@@ -11,7 +11,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(nativeQuery = true,
             value = "select p.id from subscription s" +
                     " join post p on s.followee_id = p.author_id where" +
-                    " s.follower_id = :userId order by p.published_at;"
+                    " s.follower_id = :userId order by p.published_at limit :limit;"
     )
-    List<Long> getPostIdsForFeedById(@Param("userId") long userId);
+    List<Long> getPostIdsForFeedById(@Param("userId") long userId, @Param("limit") int limit);
 }

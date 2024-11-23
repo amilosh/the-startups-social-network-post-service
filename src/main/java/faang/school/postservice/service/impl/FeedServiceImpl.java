@@ -22,7 +22,7 @@ public class FeedServiceImpl implements FeedService {
     private final FeedCacheRepository cacheRepository;
 
     @Value("${feed.cache.count}")
-    private int cacheCount;
+    private int maxCountOfPostsInFeed;
 
     @Override
     @Transactional
@@ -53,7 +53,7 @@ public class FeedServiceImpl implements FeedService {
     private void addNewPostToFeed(Feed feed, long postId) {
         var postIds = feed.getPostIds();
         postIds.add(postId);
-        if (postIds.size() > cacheCount) {
+        if (postIds.size() > maxCountOfPostsInFeed) {
             postIds.remove(postIds.iterator().next());
         }
 
