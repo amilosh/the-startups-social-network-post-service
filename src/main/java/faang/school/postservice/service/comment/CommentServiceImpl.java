@@ -3,6 +3,7 @@ package faang.school.postservice.service.comment;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.comment.CommentEvent;
+import faang.school.postservice.dto.comment.CommentPublishedEvent;
 import faang.school.postservice.dto.comment.UpdateCommentDto;
 import faang.school.postservice.exception.comment.CommentException;
 import faang.school.postservice.mapper.comment.CommentMapper;
@@ -45,14 +46,20 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = commentMapper.toComment(commentDto);
         comment.setPost(post);
-        commentRepository.save(comment);
+        comment = commentRepository.save(comment);
 
         CommentEvent commentEvent = new CommentEvent(commentDto.getId(), commentDto.getAuthorId(),
                 commentDto.getPostId(), LocalDateTime.now());
         commentEventPublisher.publish(commentEvent);
         log.info("comment event published to topic, event: {}", commentEvent);
 
-        kafkaCommentProducer.publish(commentEvent);
+        kafkaCommentProducer.publish(CommentPublishedEvent.builder()
+                .id(commentDto.getId())
+                .authorId(commentDto.getAuthorId())
+                .postId(commentDto.getPostId())
+                .content(comment.getContent())
+                .date(comment.getCreatedAt())
+                .build());
 
         return commentMapper.toDto(comment);
     }

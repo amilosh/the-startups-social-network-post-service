@@ -1,7 +1,7 @@
 package faang.school.postservice.publisher.kafka;
 
-import faang.school.postservice.dto.comment.CommentEvent;
-import faang.school.postservice.mapper.comment.CommentEventMapper;
+import faang.school.postservice.dto.comment.CommentPublishedEvent;
+import faang.school.postservice.mapper.comment.CommentPublishedEventMapper;
 import faang.school.postservice.publisher.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,16 +12,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaCommentProducer implements EventPublisher<CommentEvent> {
+public class KafkaCommentProducer implements EventPublisher<CommentPublishedEvent> {
     @Value("${spring.kafka.topics.comments.name}")
     private String topic;
 
     private final KafkaTemplate<byte[], byte[]> kafkaTemplate;
-    private final CommentEventMapper commentEventMapper;
+    private final CommentPublishedEventMapper commentPublishedEventMapper;
 
     @Override
-    public void publish(CommentEvent event) {
-        kafkaTemplate.send(topic, commentEventMapper.toProto(event).toByteArray());
+    public void publish(CommentPublishedEvent event) {
+        kafkaTemplate.send(topic, commentPublishedEventMapper.toProto(event).toByteArray());
         log.info("event {} sent to topic {} ", event, topic);
     }
 }
