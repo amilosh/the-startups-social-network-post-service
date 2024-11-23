@@ -2,6 +2,7 @@ package faang.school.postservice.service.comment;
 
 import faang.school.postservice.annotations.PublishCommentEvent;
 import faang.school.postservice.annotations.PublishCommentNotificationEvent;
+import faang.school.postservice.annotations.SendCommentCreatedEventToKafka;
 import faang.school.postservice.exception.comment.CommentNotFoundException;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
@@ -25,6 +26,7 @@ public class CommentService {
 
     @PublishCommentEvent
     @PublishCommentNotificationEvent
+    @SendCommentCreatedEventToKafka
     @Transactional
     public Comment createComment(Long postId, Comment comment) {
 //        commentValidator.validateCreate(postId, comment);

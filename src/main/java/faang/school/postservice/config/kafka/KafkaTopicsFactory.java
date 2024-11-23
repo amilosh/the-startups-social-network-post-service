@@ -26,6 +26,9 @@ public class KafkaTopicsFactory {
     @Value("${kafka.topic.comment-liked-topic}")
     private String commentLikedTopic;
 
+    @Value("${kafka.topic.comment-created-topic}")
+    private String commentCreatedTopic;
+
     @Bean
     public NewTopic postPublishedTopic() {
         return TopicBuilder.name(postPublishedTopic)
@@ -53,6 +56,14 @@ public class KafkaTopicsFactory {
     @Bean
     public NewTopic commentLikedTopic() {
         return TopicBuilder.name(commentLikedTopic)
+                .partitions(partitions)
+                .replicas(replicas)
+                .build();
+    }
+
+    @Bean
+    public NewTopic commentCreatedTopic() {
+        return TopicBuilder.name(commentCreatedTopic)
                 .partitions(partitions)
                 .replicas(replicas)
                 .build();
