@@ -96,6 +96,7 @@ public class PostCacheServiceImpl implements PostCacheService {
         String lockKey = "lock:" + event.getPostId();
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock();
+
         try {
             TreeSet<CommentRedisDto> postComments = postCache.getComments();
             CommentRedisDto commentRedisDto = CommentRedisDto.builder()
