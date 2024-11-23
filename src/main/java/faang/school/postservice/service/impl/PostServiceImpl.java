@@ -5,6 +5,7 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.exception.DataValidationException;
+import faang.school.postservice.mapper.post.CacheablePostMapper;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.model.User;
@@ -43,6 +44,7 @@ public class PostServiceImpl implements PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final UserRepository userRepository;
     private final PostCacheRepository postCacheRepository;
+    private final CacheablePostMapper cacheablePostMapper;
 
     @Override
     public void createDraftPost(PostDto postDto) {
@@ -77,6 +79,7 @@ public class PostServiceImpl implements PostService {
             post.setPublished(true);
             postRepository.save(post);
             publishPostPublishedEvent(post);
+            postCacheRepository.save(cacheablePostMapper.toCacheablePost(post));
         }
     }
 

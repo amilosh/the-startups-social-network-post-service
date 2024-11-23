@@ -26,10 +26,10 @@ public abstract class CacheablePostMapper {
     @Mapping(target = "countOfComments", source = "comments.size()")
     @Mapping(target = "comments", source = "comments", qualifiedByName = "commentsMap")
     @Mapping(target = "timeToLive", qualifiedByName = "timeToLive")
-    abstract CacheablePost toCacheablePost(Post post);
+    public abstract CacheablePost toCacheablePost(Post post);
 
     @Named("commentsMap")
-    public List<CommentDto> commentsMap(List<Comment> comments) {
+    protected List<CommentDto> commentsMap(List<Comment> comments) {
         return comments.stream()
                 .limit(3L)
                 .map(commentMapper::toDto)
@@ -37,7 +37,7 @@ public abstract class CacheablePostMapper {
     }
 
     @Named("timeToLive")
-    public long getTimeToLive() {
+    protected long getTimeToLive() {
         return timeToLive;
     }
 }
