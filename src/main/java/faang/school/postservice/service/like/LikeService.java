@@ -37,7 +37,7 @@ public class LikeService {
     public Like createPostLike(long postId) {
         Post post = postService.findPostById(postId);
         long userId = userContext.getUserId();
-        userValidator.validateUserExists(userId);
+//        userValidator.validateUserExists(userId);
 
         if (hasUserLikedPost(postId, userId)) {
             throw new RecordAlreadyExistsException(
@@ -75,7 +75,7 @@ public class LikeService {
     public Like createCommentLike(long commentId) {
         Comment comment = commentService.getById(commentId);
         long userId = userContext.getUserId();
-        userValidator.validateUserExists(userId);
+//        userValidator.validateUserExists(userId);
 
         if (hasUserLikedComment(commentId, userId)) {
             throw new RecordAlreadyExistsException(

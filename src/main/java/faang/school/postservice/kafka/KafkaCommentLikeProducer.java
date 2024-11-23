@@ -29,6 +29,7 @@ public class KafkaCommentLikeProducer {
 
     private CommentLikeKafkaDto build(Like like, LikeAction likeAction) {
         return CommentLikeKafkaDto.builder()
+                .postId(like.getComment().getPost().getId())
                 .commentId(like.getComment().getId())
                 .action(likeAction)
                 .build();
@@ -36,6 +37,7 @@ public class KafkaCommentLikeProducer {
 
     private CommentLikeKafkaDto build(Comment comment, LikeAction likeAction) {
         return CommentLikeKafkaDto.builder()
+                .postId(comment.getPost().getId())
                 .commentId(comment.getId())
                 .action(likeAction)
                 .build();

@@ -13,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentLikeKafkaDto {
+    private Long postId;
     private Long commentId;
     private LikeAction action;
 }

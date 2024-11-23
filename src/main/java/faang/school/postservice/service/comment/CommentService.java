@@ -26,7 +26,7 @@ public class CommentService {
     @PublishCommentNotificationEvent
     @Transactional
     public Comment createComment(Long postId, Comment comment) {
-        commentValidator.validateCreate(postId, comment);
+//        commentValidator.validateCreate(postId, comment);
         Post post = postService.findPostById(postId);
         comment.setPost(post);
         Comment savedComment = commentRepository.save(comment);

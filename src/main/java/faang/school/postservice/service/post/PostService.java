@@ -3,7 +3,9 @@ package faang.school.postservice.service.post;
 import faang.school.postservice.annotations.SendPostCreatedEvent;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
 import faang.school.postservice.annotations.SendPostViewEventToKafka;
+import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
+import faang.school.postservice.dto.redis.CommentRedisDto;
 import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
@@ -302,5 +304,21 @@ public class PostService {
 
     public void incrementView(Long postId) {
         commonRedisTemplate.opsForHash().increment("PostRedisEntity:" + postId, "views", 1L);
+    }
+
+    public void changeLike(Long postId, LikeAction likeAction) {
+        long delta = likeAction == LikeAction.ADD ? 1L : -1L;
+        commonRedisTemplate.opsForHash().increment("PostRedisEntity:" + postId, "likes", delta);
+    }
+
+    public void changeCommentLike(Long postId, Long commentId, LikeAction likeAction) {
+        PostRedisEntity postRedisEntity = postRedisRepository.findById(postId).orElse(new PostRedisEntity());
+        CommentRedisDto comment = postRedisEntity.getComments().stream()
+                .filter(c -> c.getCommentId().equals(commentId))
+                .findFirst()
+                .orElse(null);
+        int delta = likeAction == LikeAction.ADD ? 1 : -1;
+        comment.setLikes(comment.getLikes() + delta);
+        postRedisRepository.save(postRedisEntity);
     }
 }

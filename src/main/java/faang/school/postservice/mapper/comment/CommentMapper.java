@@ -2,8 +2,8 @@ package faang.school.postservice.mapper.comment;
 
 import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.dto.comment.CommentNotificationEvent;
-import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CommentRequestDto;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.redis.CommentRedisDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
@@ -45,6 +45,7 @@ public interface CommentMapper {
     @Mapping(target = "content", source = "savedComment.content")
     CommentNotificationEvent toNotificationEvent(Long postId, Comment savedComment, Long postAuthorId);
 
+    @Mapping(target = "commentId", source = "comment.post.id")
     @Mapping(target = "likes", source = "likes", qualifiedByName = "mapCommentLikesToNumber")
     CommentRedisDto toCommentRedisDto(Comment comment);
 

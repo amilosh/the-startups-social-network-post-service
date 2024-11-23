@@ -1,20 +1,20 @@
 package faang.school.postservice.dto.redis;
 
-import faang.school.postservice.model.Like;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+import java.io.Serializable;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentRedisDto {
+public class CommentRedisDto implements Serializable {
+    private Long commentId;
     private String content;
     private long authorId;
     private Integer likes;
