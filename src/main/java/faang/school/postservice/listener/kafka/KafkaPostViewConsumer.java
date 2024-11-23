@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,11 +18,13 @@ public class KafkaPostViewConsumer {
     private final PostCacheService postCacheService;
 
     @KafkaHandler
-    public void handlePostView(PostViewEventKafka event) {
+    public void handlePostView(PostViewEventKafka event, Acknowledgment ack) {
         log.info("Starting processing of PostViewEventKafka with Post ID: {}", event.getPostDto().getId());
 
         postCacheService.addPostView(event.getPostDto());
 
         log.info("Successfully processed PostViewEventKafka with Post ID: {}", event.getPostDto().getId());
+
+        ack.acknowledge();
     }
 }

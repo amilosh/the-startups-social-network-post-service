@@ -1,5 +1,6 @@
 package faang.school.postservice.config.kafka;
 
+
 //import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import faang.school.postservice.model.event.kafka.CommentEventKafka;

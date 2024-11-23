@@ -32,7 +32,8 @@ class KafkaCommentProducerTest {
 
     @Test
     public void testSendSuccess() {
-        CommentEventKafka event = new CommentEventKafka(1L, 2L, LocalDateTime.now());
+        CommentEventKafka event = new CommentEventKafka(1L, 2L, 3L,
+                "someContent",LocalDateTime.now());
 
         kafkaCommentProducer.sendEvent(event);
 
@@ -41,7 +42,8 @@ class KafkaCommentProducerTest {
 
     @Test
     void testSendEventThrowsKafkaException() {
-        CommentEventKafka event = new CommentEventKafka(1L,2L, LocalDateTime.now());
+        CommentEventKafka event = new CommentEventKafka(1L, 2L, 3L,
+                "someContent",LocalDateTime.now());
         doThrow(new KafkaException("Kafka error")).when(multiTypeKafkaTemplate).send("comment_topic", event);
 
         KafkaException thrown = assertThrows(KafkaException.class, () -> kafkaCommentProducer.sendEvent(event));
