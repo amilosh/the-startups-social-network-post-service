@@ -7,7 +7,7 @@ import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.LikeMapperImpl;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;

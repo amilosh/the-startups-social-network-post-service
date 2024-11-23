@@ -6,7 +6,7 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.model.User;
 import faang.school.postservice.publisher.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
