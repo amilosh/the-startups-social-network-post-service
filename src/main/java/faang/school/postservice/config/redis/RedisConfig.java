@@ -53,9 +53,4 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Post.class));
         return redisTemplate;
     }
-
-    @Bean
-    public RedisMappingContext keyValueMappingContext(PostKeySpaceConfiguration keySpaceConfiguration) {
-        return new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(), keySpaceConfiguration));
-    }
 }

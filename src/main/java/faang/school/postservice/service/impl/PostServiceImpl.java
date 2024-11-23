@@ -9,6 +9,7 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.model.User;
 import faang.school.postservice.publisher.KafkaPostProducer;
+import faang.school.postservice.repository.post.PostCacheRepository;
 import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.repository.UserRepository;
 import faang.school.postservice.service.AsyncPostPublishService;
@@ -41,6 +42,7 @@ public class PostServiceImpl implements PostService {
     private final AsyncPostPublishService asyncPostPublishService;
     private final KafkaPostProducer kafkaPostProducer;
     private final UserRepository userRepository;
+    private final PostCacheRepository postCacheRepository;
 
     @Override
     public void createDraftPost(PostDto postDto) {

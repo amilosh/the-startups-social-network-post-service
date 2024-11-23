@@ -10,17 +10,22 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 @RequiredArgsConstructor
 public abstract class CacheablePostMapper {
+    @Value("${feed.cache.post.time-to-live-in-seconds}")
+    private long timeToLive;
+
     private final CommentMapper commentMapper;
 
     @Mapping(target = "countOfLikes", source = "likes.size()")
     @Mapping(target = "countOfComments", source = "comments.size()")
     @Mapping(target = "comments", source = "comments", qualifiedByName = "commentsMap")
+    @Mapping(target = "timeToLive", qualifiedByName = "timeToLive")
     abstract CacheablePost toCacheablePost(Post post);
 
     @Named("commentsMap")
@@ -29,5 +34,10 @@ public abstract class CacheablePostMapper {
                 .limit(3L)
                 .map(commentMapper::toDto)
                 .toList();
+    }
+
+    @Named("timeToLive")
+    public long getTimeToLive() {
+        return timeToLive;
     }
 }
