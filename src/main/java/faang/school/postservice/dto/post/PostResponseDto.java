@@ -12,10 +12,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostResponseDto {
-  private long id;
-  private String content;
-  private long authorId;
-  private long projectId;
-  private int likeCount;
-  private LocalDateTime scheduledAt;
+
+    private long id;
+    private String content;
+    private long authorId;
+    private long projectId;
+    private int likeCount;
+    private LocalDateTime scheduledAt;
 }

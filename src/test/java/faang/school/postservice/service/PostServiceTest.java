@@ -88,6 +88,11 @@ class PostServiceTest {
         when(postRepository.saveAll(verifiedPosts)).thenReturn(verifiedPosts);
 
         postService.moderatePostsContent();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         verify(postRepository).findReadyToVerified();
         verify(moderationDictionary).searchSwearWords(anyList());

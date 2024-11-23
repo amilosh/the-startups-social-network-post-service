@@ -86,7 +86,8 @@ public class LikeService {
 
         if (likeRequestDto.getPostId() != null) {
             Post post = postRepository.findById(likeRequestDto.getPostId())
-                    .orElseThrow(() -> new IllegalArgumentException("Post with ID " + likeRequestDto.getPostId() + " not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Post with ID "
+                            + likeRequestDto.getPostId() + " not found"));
 
             likeValidator.validateLikeForPostExists(likeRequestDto.getPostId(), likeRequestDto.getUserId());
 
@@ -100,7 +101,8 @@ public class LikeService {
                     .build();
         } else {
             Comment comment = commentRepository.findById(likeRequestDto.getCommentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Comment with ID " + likeRequestDto.getCommentId() + " not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Comment with ID "
+                            + likeRequestDto.getCommentId() + " not found"));
 
             likeValidator.validateLikeForCommentExists(likeRequestDto.getCommentId(), likeRequestDto.getUserId());
 

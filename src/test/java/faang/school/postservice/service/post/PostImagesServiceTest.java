@@ -3,9 +3,9 @@ package faang.school.postservice.service.post;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.S3.S3Service;
 import faang.school.postservice.service.resource.ResourceService;
-import faang.school.postservice.validator.postImages.PostImageValidator;
+import faang.school.postservice.service.s3.S3Service;
+import faang.school.postservice.validator.images.PostImageValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,9 +51,9 @@ class PostImagesServiceTest {
 
     private Post post;
     private Resource resource;
-    private Resource resourceDB;
+    private Resource resourceDb;
     private List<Resource> resources;
-    private List<Resource> resourcesDB;
+    private List<Resource> resourcesDb;
     private List<MultipartFile> images;
     private MultipartFile image;
 
@@ -61,9 +61,9 @@ class PostImagesServiceTest {
     public void init() {
 
         images = new ArrayList<>(10) {{
-            add(image);
-            add(image);
-        }};
+                add(image);
+                add(image);
+            }};
 
         resource = Resource.builder()
                 .id(1L)
@@ -73,7 +73,7 @@ class PostImagesServiceTest {
                 .size(BigInteger.ONE)
                 .build();
 
-        resourceDB = Resource.builder()
+        resourceDb = Resource.builder()
                 .id(1L)
                 .key(KEY)
                 .name("Something")
@@ -82,12 +82,12 @@ class PostImagesServiceTest {
                 .build();
 
         resources = new ArrayList<>() {{
-            add(resource);
-        }};
+                add(resource);
+            }};
 
-        resourcesDB = new ArrayList<>() {{
-            add(resourceDB);
-        }};
+        resourcesDb = new ArrayList<>() {{
+                add(resourceDb);
+            }};
 
         post = Post.builder()
                 .id(ID)
@@ -111,7 +111,7 @@ class PostImagesServiceTest {
     @Test
     @DisplayName("Successful uploading of images")
     void whenUpdatePostImagesThenSuccess() {
-        post.setResources(resourcesDB);
+        post.setResources(resourcesDb);
 
         when(postService.findById(ID)).thenReturn(post);
         when(s3Service.uploadFiles(images, ID)).thenReturn(resources);
@@ -120,7 +120,7 @@ class PostImagesServiceTest {
 
 
         verify(postService).findById(ID);
-        verify(resourceService).deleteResources(resourcesDB);
+        verify(resourceService).deleteResources(resourcesDb);
         verify(resourceService).saveResources(resources);
         verify(postRepository).save(post);
     }

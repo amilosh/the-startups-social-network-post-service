@@ -30,7 +30,7 @@ public class PostController {
     private final PostImagesService postImagesService;
 
     @GetMapping("/{postId}")
-    public PostResponseDto getPost(@PathVariable @Positive Long postId){
+    public PostResponseDto getPost(@PathVariable @Positive Long postId) {
         return postService.getPost(postId);
     }
 

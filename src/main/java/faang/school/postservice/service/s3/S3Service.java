@@ -1,4 +1,4 @@
-package faang.school.postservice.service.S3;
+package faang.school.postservice.service.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -38,7 +38,7 @@ public class S3Service {
     private ExecutorService executorService;
 
     /**
-     * Загрузка файлов в облачное хранилище S3
+     * Загрузка файлов в облачное хранилище S3.
      *
      * @param files Список файлов
      * @return Список ссылок на загруженные файлы

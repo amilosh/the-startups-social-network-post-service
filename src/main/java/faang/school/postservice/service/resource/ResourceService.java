@@ -30,7 +30,7 @@ public class ResourceService {
     }
 
     public void deleteResources(List<Resource> resources) {
-      resources.forEach(resourceRepository::delete);
+        resources.forEach(resourceRepository::delete);
     }
 }
 

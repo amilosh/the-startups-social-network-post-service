@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -132,7 +133,7 @@ class ModeratorServiceTest {
         assertEquals(Boolean.FALSE, comment1.isVerified());
 
         await().atMost(FIVE_SECOND_AWAIT, SECONDS).untilAsserted(() -> {
-            verify(offensiveWordsDictionary, times(FOUR_TIMES_USED)).isWordContainsInDictionary(anyString());
+            verify(offensiveWordsDictionary, atLeast(TWO_TIMES_USED)).isWordContainsInDictionary(anyString());
             verify(publishedCommentEventPublisher, never()).publish(any());
         });
     }

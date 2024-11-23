@@ -25,7 +25,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public List<ValidationError> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public List<ValidationError> handleValidationExceptions(MethodArgumentNotValidException ex,
+                                                            HttpServletRequest request) {
         log.error("Exception occurred while handling request at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         
         List<ValidationError> errors = new ArrayList<>();
@@ -61,7 +62,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
-    public ErrorResponse handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+    public ErrorResponse handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex,
+                                                              HttpServletRequest request) {
         log.error("Exception occurred while handling request at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
         return new ErrorResponse(
@@ -73,7 +75,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public List<ValidationError> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
+    public List<ValidationError> handleConstraintViolationException(ConstraintViolationException ex,
+                                                                    HttpServletRequest request) {
         log.error("Constraint violation at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
         List<ValidationError> errors = new ArrayList<>();

@@ -5,6 +5,7 @@ plugins {
     jacoco
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
+    id("checkstyle")
 }
 
 group = "faang.school"
@@ -155,5 +156,18 @@ tasks.jacocoTestCoverageVerification {
                 minimum = BigDecimal(0.7).round(MathContext(1))
             }
         }
+    }
+}
+
+
+checkstyle {
+    toolVersion = "10.20.0"
+    configFile = file("${rootDir}/src/main/resources/checkstyle/checkstyle.xml")
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
