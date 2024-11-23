@@ -2,6 +2,7 @@ package faang.school.postservice.service.impl;
 
 import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.model.Feed;
+import faang.school.postservice.repository.FeedCacheRepository;
 import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
@@ -18,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeedServiceImpl implements FeedService {
     private final RedisTemplate<Long, LinkedHashSet<Long>> redisTemplate;
+    private final FeedCacheRepository cacheRepository;
 
     @Value("${feed.cache.count}")
     private int cacheCount;
@@ -27,36 +29,34 @@ public class FeedServiceImpl implements FeedService {
     public void distributePostsToUsersFeeds(PostPublishedEvent event) {
         List<Long> subsIds = event.getSubscribersIds();
 
-
         subsIds.forEach(id -> updateFeed(id, event.getPostId()));
     }
 
-    @Retryable(maxAttempts = 5, retryFor = {Exception.class})
+    @Retryable(maxAttempts = 5, retryFor = {OptimisticEntityLockException.class})
     private void updateFeed(long userId, long postId) {
-        LinkedHashSet<Long> postIds = redisTemplate.opsForValue().get(userId);
+        Feed feed = cacheRepository.findById(userId).orElse(new Feed(userId, new LinkedHashSet<>()));
 
-        redisTemplate.multi();
+        redisTemplate.watch(userId);
         try {
-            editPostIds(postIds, userId, postId);
+            addNewPostToFeed(feed, postId);
+            cacheRepository.save(feed);
         } catch (Exception e) {
             redisTemplate.discard();
             throw e;
         }
-
+        
         if (redisTemplate.exec().isEmpty()) {
-            throw new OptimisticEntityLockException(new Feed(userId, postIds), "(((");
+            throw new OptimisticEntityLockException(feed, "(((");
         }
     }
 
-    private void editPostIds(LinkedHashSet<Long> postIds, long userId, long postId) {
-        if (postIds == null) {
-            postIds = new LinkedHashSet<>();
-        }
+    private void addNewPostToFeed(Feed feed, long postId) {
+        var postIds = feed.getPostIds();
         postIds.add(postId);
         if (postIds.size() > cacheCount) {
             postIds.remove(postIds.iterator().next());
         }
 
-        redisTemplate.opsForValue().set(userId, postIds);
+        feed.setPostIds(postIds);
     }
 }
