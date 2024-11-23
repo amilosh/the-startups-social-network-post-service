@@ -17,4 +17,8 @@ public interface UserServiceClient {
 
     @PostMapping("/v1/users")
     List<UserDto> getUsersByIds(@RequestBody List<Long> ids);
+
+    //тестовый метод, его нет в сервисе user-service, но думаю что должно быть как то так
+    @GetMapping("/v1/users/{userId}/subscribers")
+    List<Long> getUserSubscribers(@PathVariable long userId);
 }

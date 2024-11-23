@@ -1,7 +1,7 @@
 package faang.school.postservice.scheduler.ban;
 
 import faang.school.postservice.event.ban.UserBanEvent;
-import faang.school.postservice.publisher.ban.UserBanMessagePublisher;
+import faang.school.postservice.publisher.redisPublisher.ban.UserBanMessagePublisher;
 import faang.school.postservice.service.post.PostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

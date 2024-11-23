@@ -1,7 +1,7 @@
-package faang.school.postservice.publisher.comment;
+package faang.school.postservice.publisher.redisPublisher.comment;
 
 import faang.school.postservice.dto.comment.CommentEventDto;
-import faang.school.postservice.publisher.MessagePublisher;
+import faang.school.postservice.publisher.redisPublisher.MessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

@@ -1,7 +1,7 @@
-package faang.school.postservice.publisher.ban;
+package faang.school.postservice.publisher.redisPublisher.ban;
 
 import faang.school.postservice.event.ban.UserBanEvent;
-import faang.school.postservice.publisher.MessagePublisher;
+import faang.school.postservice.publisher.redisPublisher.MessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

@@ -5,7 +5,7 @@ import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.publisher.post.PostViewEventPublisher;
+import faang.school.postservice.publisher.redisPublisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,10 +1,9 @@
 package faang.school.postservice.service.moderator;
 
 import faang.school.postservice.config.dictionary.OffensiveWordsDictionary;
-import faang.school.postservice.dto.comment.CommentEventDto;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
-import faang.school.postservice.publisher.comment.PublishedCommentEventPublisher;
+import faang.school.postservice.publisher.redisPublisher.comment.PublishedCommentEventPublisher;
 import faang.school.postservice.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

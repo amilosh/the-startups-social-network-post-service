@@ -1,7 +1,7 @@
-package faang.school.postservice.publisher.like;
+package faang.school.postservice.publisher.redisPublisher.like;
 
 import faang.school.postservice.event.like.LikePostEvent;
-import faang.school.postservice.publisher.MessagePublisher;
+import faang.school.postservice.publisher.redisPublisher.MessagePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

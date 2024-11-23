@@ -1,13 +1,17 @@
 package faang.school.postservice.service.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.event.PostViewEvent;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
+import faang.school.postservice.publisher.kafkaProducer.PostEventProducer;
+import faang.school.postservice.publisher.redisPublisher.post.PostViewEventPublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.publisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +39,22 @@ public class PostService {
     private final ExecutorService executor;
     private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
+    private final UserServiceClient userServiceClient;
+    private final PostEventProducer postEventProducer;
 
-    public PostResponseDto getPost(long postId){
+    public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        log.info("start createPost with {}", postRequestDto);
+
+        Post post = postMapper.toPost(postRequestDto);
+        post = postRepository.save(post);
+        log.info("save post in DB: {}", post);
+
+        sendPostEvent(post);
+
+        return postMapper.toResponseDto(post, post.getLikes().size());
+    }
+
+    public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
 
         publishEvent(postId, post.getAuthorId());
@@ -54,7 +72,7 @@ public class PostService {
 
     public Post findById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(()-> new EntityNotFoundException("Post service. Post not found. id: " + postId));
+                .orElseThrow(() -> new EntityNotFoundException("Post service. Post not found. id: " + postId));
     }
 
     public List<PostResponseDto> getPostsByAuthorWithLikes(long authorId) {
@@ -100,6 +118,25 @@ public class PostService {
             postViewEventPublisher.publish(postViewEvent);
         } catch (Exception ex) {
             log.error("Failed to send notification with postViewEvent: {}", postViewEvent.toString(), ex);
+        }
+    }
+
+    private void sendPostEvent(Post post) {
+        List<Long> userSubscribers = userServiceClient.getUserSubscribers(post.getAuthorId());
+
+        if (userSubscribers.isEmpty()) {
+            throw new IllegalArgumentException("User subscribers not found for post author: " + post.getAuthorId());
+        }
+
+        PostEvent postEvent = PostEvent.builder()
+                .postId(post.getId())
+                .authorId(post.getAuthorId())
+                .subscribers(userSubscribers)
+                .build();
+        try {
+            postEventProducer.sendEvent(postEvent);
+        } catch (Exception ex) {
+            log.error("Failed to publish postEvent: {}", postEvent.toString(), ex);
         }
     }
 }

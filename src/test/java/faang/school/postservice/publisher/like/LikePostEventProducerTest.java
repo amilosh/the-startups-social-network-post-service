@@ -1,6 +1,7 @@
 package faang.school.postservice.publisher.like;
 
 import faang.school.postservice.event.like.LikePostEvent;
+import faang.school.postservice.publisher.redisPublisher.like.LikePostEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LikePostEventPublisherTest {
+class LikePostEventProducerTest {
 
     @InjectMocks
     private LikePostEventPublisher likePostEventPublisher;

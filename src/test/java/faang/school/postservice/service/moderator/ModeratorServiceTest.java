@@ -4,7 +4,7 @@ import faang.school.postservice.config.dictionary.OffensiveWordsDictionary;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.comment.PublishedCommentEventPublisher;
+import faang.school.postservice.publisher.redisPublisher.comment.PublishedCommentEventPublisher;
 import faang.school.postservice.service.comment.CommentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
