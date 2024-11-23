@@ -1,6 +1,7 @@
 package faang.school.postservice.service.impl;
 
 import faang.school.postservice.dto.comment.CommentEvent;
+import faang.school.postservice.dto.comment.CommentPublishedEvent;
 import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.mapper.post.CacheablePostMapper;
 import faang.school.postservice.model.Feed;
@@ -42,7 +43,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
-    public void addNewComment(CommentEvent commentEvent) {
+    public void addNewComment(CommentPublishedEvent commentEvent) {
         CacheablePost post = postCacheRepository.findById(commentEvent.getPostId())
                 .orElse(cacheablePostMapper.toCacheablePost(
                         postRepository.getReferenceById(commentEvent.getPostId()))
@@ -82,7 +83,8 @@ public class FeedServiceImpl implements FeedService {
         feed.setPostIds(postIds);
     }
 
-    private void addCommentToPost() {
+    private void addCommentToPost(CommentPublishedEvent event) {
+
 
     }
 }
