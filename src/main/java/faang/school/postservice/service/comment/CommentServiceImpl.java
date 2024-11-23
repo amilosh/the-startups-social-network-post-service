@@ -10,7 +10,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

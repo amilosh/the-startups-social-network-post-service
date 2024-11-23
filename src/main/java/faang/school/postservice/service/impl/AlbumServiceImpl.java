@@ -15,7 +15,7 @@ import faang.school.postservice.model.AlbumVisibility;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.publisher.AlbumCreatedEventPublisher;
 import faang.school.postservice.repository.AlbumRepository;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.service.AlbumService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;

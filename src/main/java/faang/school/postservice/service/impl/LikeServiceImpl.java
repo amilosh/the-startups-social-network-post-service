@@ -13,7 +13,7 @@ import faang.school.postservice.model.event.LikeEvent;
 import faang.school.postservice.publisher.LikeEventPublisherImpl;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.service.LikeService;
 import feign.FeignException;
 import jakarta.validation.Valid;

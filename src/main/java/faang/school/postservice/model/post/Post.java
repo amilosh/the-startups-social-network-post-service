@@ -23,7 +23,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.redis.core.RedisHash;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "post")
-@RedisHash
 public class Post {
 
     @Id

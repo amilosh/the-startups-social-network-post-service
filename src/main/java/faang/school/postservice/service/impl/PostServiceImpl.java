@@ -9,7 +9,7 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.model.User;
 import faang.school.postservice.publisher.KafkaPostProducer;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.repository.UserRepository;
 import faang.school.postservice.service.AsyncPostPublishService;
 import faang.school.postservice.service.PostService;
