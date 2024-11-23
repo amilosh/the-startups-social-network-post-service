@@ -15,6 +15,7 @@ import faang.school.postservice.exception.post.image.UploadImageToPostException;
 import faang.school.postservice.exception.spelling_corrector.DontRepeatableServiceException;
 import faang.school.postservice.exception.spelling_corrector.RepeatableServiceException;
 import faang.school.postservice.kafka.KafkaPostProducer;
+import faang.school.postservice.kafka.dto.CommentCreatedKafkaDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
@@ -25,7 +26,6 @@ import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
-import faang.school.postservice.service.user.UserCacheService;
 import faang.school.postservice.service.user.UserCacheService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
@@ -291,8 +291,8 @@ public class PostService {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
         });
-        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
-        userCacheService.saveAllToRedisRepository(authorIds);
+//        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
+//        userCacheService.saveAllToRedisRepository(authorIds);
         postRepository.saveAll(postList);
 
         List<PostRedisEntity> postDtos = postMapper.mapToPostRedisDtos(postList);
@@ -325,6 +325,27 @@ public class PostService {
                 .orElse(null);
         int delta = likeAction == LikeAction.ADD ? 1 : -1;
         comment.setLikes(comment.getLikes() + delta);
+        postRedisRepository.save(postRedisEntity);
+    }
+
+    public void addCommentToPost(CommentCreatedKafkaDto commentCreatedKafkaDto) {
+        Long postId = commentCreatedKafkaDto.getPostId();
+        Long commentId = commentCreatedKafkaDto.getCommentId();
+        String content = commentCreatedKafkaDto.getContent();
+        long authorId = commentCreatedKafkaDto.getAuthorId();
+
+        PostRedisEntity postRedisEntity = postRedisRepository.findById(postId).orElse(new PostRedisEntity());
+        List<CommentRedisDto> comments = postRedisEntity.getComments();
+        if (comments == null) {
+            comments = new ArrayList<>();
+        }
+        if (comments.size() >= 3) {
+            comments.remove(0);
+        }
+        CommentRedisDto newComment = new CommentRedisDto(commentId, content, authorId, 0);
+        comments.add(newComment);
+
+        postRedisEntity.setComments(comments);
         postRedisRepository.save(postRedisEntity);
     }
 }
