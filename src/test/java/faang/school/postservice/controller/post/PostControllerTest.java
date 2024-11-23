@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootTest
@@ -42,7 +43,7 @@ public class PostControllerTest extends TestContainersConfig {
     public void testCreatePost() throws Exception {
         String userHeader = "x-user-id";
         Long userId = 1L;
-        UserDto userDto = new UserDto(userId, "name", "email");
+        UserDto userDto = new UserDto(userId, "name", "email", List.of());
         CreatePostRequestDto request = new CreatePostRequestDto();
         request.setContent("content");
         request.setAuthorId(userId);

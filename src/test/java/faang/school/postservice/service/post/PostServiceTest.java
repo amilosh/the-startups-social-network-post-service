@@ -2,7 +2,6 @@ package faang.school.postservice.service.post;
 
 import com.amazonaws.SdkClientException;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ValidationException;
 import faang.school.postservice.exception.post.PostNotFoundException;
 import faang.school.postservice.exception.post.PostPublishedException;
@@ -10,6 +9,7 @@ import faang.school.postservice.exception.post.image.DownloadImageFromPostExcept
 import faang.school.postservice.exception.post.image.UploadImageToPostException;
 import faang.school.postservice.exception.spelling_corrector.DontRepeatableServiceException;
 import faang.school.postservice.exception.spelling_corrector.RepeatableServiceException;
+import faang.school.postservice.kafka.KafkaPostProducer;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
@@ -103,6 +103,8 @@ public class PostServiceTest {
     private PostCacheService postCacheService;
     @Mock
     private PostRedisRepository postRedisRepository;
+    @Mock
+    private KafkaPostProducer kafkaPostProducer;
     @Captor
     private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks

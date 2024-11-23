@@ -124,6 +124,8 @@ kafka:
   topic:
     post-published-topic: post-published-topic
     post-viewed-topic: post-viewed-topic
+    post-liked-topic: post-liked-topic
+    comment-liked-topic: comment-liked-topic
   partitions: 1
   replicas: 1
   consumer:

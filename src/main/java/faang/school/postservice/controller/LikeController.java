@@ -1,6 +1,5 @@
 package faang.school.postservice.controller;
 
-
 import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.mapper.like.LikeMapper;
 import faang.school.postservice.model.Like;
@@ -14,13 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
 @RequiredArgsConstructor
 @RequestMapping("/likes")
+@RestController
 public class LikeController {
     private final LikeService likeService;
     private final LikeMapper likeMapper;
-
 
     @PostMapping("/posts/{postId}")
     @ResponseStatus(HttpStatus.CREATED)
