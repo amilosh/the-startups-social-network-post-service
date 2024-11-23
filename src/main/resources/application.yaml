@@ -20,12 +20,13 @@ spring:
     consumer:
       group-id: 1
     bootstrap-servers: localhost:9092
+    listener:
+      ack-mode: manual
     topics:
       comment: comment_topic
       posts: post_topic
       comment-partitions-num: 5
     followers-batch-size: 2
-
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -123,3 +124,9 @@ logging:
 cache:
   author-ttl: 86400
   post-ttl: 86400
+
+redisson:
+  address: redis://localhost:6379
+
+post-comments:
+  size: 3

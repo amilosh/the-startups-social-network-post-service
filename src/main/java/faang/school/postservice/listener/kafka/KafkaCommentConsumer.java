@@ -5,6 +5,7 @@ import faang.school.postservice.redis.service.PostCacheService;
 import lombok.AllArgsConstructor;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,8 +16,9 @@ public class KafkaCommentConsumer {
     private final PostCacheService postCacheService;
 
     @KafkaHandler
-    public void handleComment(CommentEventKafka event) {
-        postCacheService.updatePostComments(event.getPostId());
+    public void handleComment(CommentEventKafka event, Acknowledgment ack) {
+        postCacheService.updatePostComments(event);
+        ack.acknowledge();
     }
 
 }

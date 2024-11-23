@@ -28,6 +28,7 @@ public class KafkaProducerConfig {
         configProps.put(JsonSerializer.TYPE_MAPPINGS,
                 "comment_event:faang.school.postservice.model.event.kafka.CommentEventKafka, " +
                         "post_event:faang.school.postservice.model.event.kafka.PostEventKafka");
+        configProps.put(ProducerConfig.ACKS_CONFIG, "1");
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 

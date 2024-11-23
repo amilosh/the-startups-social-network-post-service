@@ -13,5 +13,6 @@ public class CommentEventKafka {
     private long commentId;
     private long authorId;
     private long postId;
+    private String content;
     LocalDateTime createdAt;
 }

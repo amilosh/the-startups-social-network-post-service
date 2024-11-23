@@ -2,15 +2,11 @@ package faang.school.postservice.redis.model.entity;
 
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.TreeSet;
 
 @RedisHash(value = "posts")
 @Getter
@@ -25,6 +21,6 @@ public class PostCache implements Serializable {
     private Long authorId;
     private int numberOfLikes;
     private int numberOfViews;
-    private CopyOnWriteArraySet<CommentRedisDto> comments;
+    private TreeSet<CommentRedisDto> comments;
     private Long version;
 }
