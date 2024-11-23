@@ -59,6 +59,7 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     implementation("org.springframework.retry:spring-retry:2.0.9")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
 
     /**
      * OpenAPI & swagger dependencies
@@ -160,10 +161,10 @@ tasks.jacocoTestCoverageVerification {
 }
 
 
-//checkstyle {
-//    toolVersion = "10.20.0"
-//    configFile = file("${rootDir}/src/main/resources/checkstyle/checkstyle.xml")
-//}
+checkstyle {
+    toolVersion = "10.20.0"
+    configFile = file("${rootDir}/src/main/resources/checkstyle/checkstyle.xml")
+}
 
 tasks.withType<Checkstyle>().configureEach {
     reports {

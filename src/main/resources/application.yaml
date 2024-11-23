@@ -36,11 +36,22 @@ spring:
           name: post_view_channel
         userBanChannel:
           name: user_ban_channel
+      postTtl: 86400 # in seconds
+      maxPostCountInFeed: 500
     kafka:
+      consumerConfig:
+        bootstrapServersConfig: localhost:9092
+        groupId: 1
+        autoOffsetReset: "earliest"
+        enableAutoCommit: false
+        interval: 1000
+        maxPollRecords: 10
+        sessionTimeout: 15000
       producerConfig:
         bootstrapServersConfig: localhost:9092
-        acks: 1
-        retries: 3
+        acks: "all"
+        retries: 5
+        idempotence: true
       topics:
         postsTopic:
           name: postsTopic

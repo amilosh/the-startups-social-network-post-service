@@ -1,5 +1,4 @@
-package faang.school.postservice.config.kafka;
-
+package faang.school.postservice.config.properties.kafka;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,25 +11,43 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "spring.data.kafka")
 public class KafkaProperties {
 
+    private ConsumerConfig consumerConfig;
     private ProducerConfig producerConfig;
     private Topics topics;
 
     @Getter
     @Setter
-    protected static class ProducerConfig {
+    public static class ConsumerConfig {
+
         private String bootstrapServersConfig;
-        private String acks;
-        private int retries;
+        private String groupId;
+        private String autoOffsetReset;
+        private boolean enableAutoCommit;
+        private int interval;
+        private int maxPollRecords;
+        private int sessionTimeout;
     }
 
     @Getter
     @Setter
-    protected static class Topics {
+    public static class ProducerConfig {
+
+        private String bootstrapServersConfig;
+        private String acks;
+        private int retries;
+        private boolean idempotence;
+    }
+
+    @Getter
+    @Setter
+    public static class Topics {
+
         private Topic postsTopic;
 
         @Getter
         @Setter
-        protected static class Topic {
+        public static class Topic {
+
             private String name;
             private int numPartitions;
             private short replicationFactor;

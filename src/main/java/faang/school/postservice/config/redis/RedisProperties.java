@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 public class RedisProperties {
 
     private Channels channels;
+    private int postTtl;
+    private int maxPostCountInFeed;
 
     @Getter
     @Setter

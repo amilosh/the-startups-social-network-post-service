@@ -5,6 +5,7 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -39,4 +40,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         HAVING COUNT(*) >= :limit
         """)
     List<Long> findAuthorsWithUnverifiedPosts(int limit, LocalDate fromDate);
+
+//    @Query(value = "SELECT p FROM post p WHERE p.authorId = :authorId ORDER BY p.timestamp DESC")
+//    List<Post> findLimitedPostsByAuthorId(@Param("authorId") long authorId, Pageable pageable);
 }
