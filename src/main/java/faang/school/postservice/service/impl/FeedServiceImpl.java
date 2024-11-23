@@ -5,9 +5,7 @@ import faang.school.postservice.model.Feed;
 import faang.school.postservice.repository.FeedCacheRepository;
 import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +16,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FeedServiceImpl implements FeedService {
-    private final RedisTemplate<Long, LinkedHashSet<Long>> redisTemplate;
     private final FeedCacheRepository cacheRepository;
 
     @Value("${feed.cache.count}")
