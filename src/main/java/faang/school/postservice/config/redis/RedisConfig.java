@@ -1,5 +1,6 @@
 package faang.school.postservice.config.redis;
 
+import faang.school.postservice.model.post.CacheablePost;
 import faang.school.postservice.model.post.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +36,7 @@ public class RedisConfig {
     }
 
     @Bean(name = "feedTemplate")
-    public RedisTemplate<Long, LinkedHashSet<Long>> feedRedisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<Long, LinkedHashSet<Long>> feedRedisTemplate(LettuceConnectionFactory connectionFactory) {
         RedisTemplate<Long, LinkedHashSet<Long>> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(LinkedHashSet.class));
@@ -47,7 +48,7 @@ public class RedisConfig {
     public RedisTemplate<Long, Post> postRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<Long, Post> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Post.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(CacheablePost.class));
         return redisTemplate;
     }
 }

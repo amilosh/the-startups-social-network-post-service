@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper.post;
 
-import faang.school.postservice.dto.comment.CommentDto;
-import faang.school.postservice.mapper.comment.CommentMapper;
+import faang.school.postservice.dto.comment.CommentPublishedEvent;
+import faang.school.postservice.mapper.comment.CommentPublishedEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.post.CacheablePost;
@@ -21,7 +21,7 @@ public abstract class CacheablePostMapper {
     private long timeToLive;
 
     @Autowired
-    private CommentMapper commentMapper;
+    private CommentPublishedEventMapper commentPublishedEventMapper;
 
     @Mapping(target = "countOfLikes", source = "likes", qualifiedByName = "getListSizeLike")
     @Mapping(target = "countOfComments", source = "comments", qualifiedByName = "getListSizeComment")
@@ -30,10 +30,10 @@ public abstract class CacheablePostMapper {
     public abstract CacheablePost toCacheablePost(Post post);
 
     @Named("commentsMap")
-    protected List<CommentDto> commentsMap(List<Comment> comments) {
+    protected List<CommentPublishedEvent> toCommentPublishedEvents(List<Comment> comments) {
         return comments.stream()
                 .limit(3L)
-                .map(commentMapper::toDto)
+                .map(commentPublishedEventMapper::fromCommentToEvent)
                 .toList();
     }
 
