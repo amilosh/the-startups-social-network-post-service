@@ -3,7 +3,7 @@ name: Build project Griffon Stream-7
 on:
   pull_request:
     branches:
-      - Griffon-master-stream7
+      -  feature/pipeline-BC-BJS2-40875
 
 jobs:
   build:
