@@ -23,9 +23,7 @@ public class PostService {
 
     private final PostMapper postMapper;
     private final PostValidator postValidator;
-
     private final List<PostFilters> postFilters;
-
 
     public PostDto create(PostDto postDto) {
         postValidator.validateCreate(postDto);
@@ -36,7 +34,6 @@ public class PostService {
         post.setDeleted(false);
         postRepository.save(post);
         return postDto;
-
     }
 
     public PostDto publishPost(Long id) {
@@ -85,5 +82,4 @@ public class PostService {
 
         return postMapper.toDtoList(posts.toList());
     }
-
 }

@@ -2,7 +2,7 @@ package faang.school.postservice.controller.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostFilterDto;
-import faang.school.postservice.model.Post;
+
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
