@@ -19,6 +19,7 @@ import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
+import faang.school.postservice.service.user.UserCacheService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,7 @@ public class PostService {
     private final PostCacheProcessExecutor postCacheProcessExecutor;
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
+    private final UserCacheService userCacheService;
 
     @Transactional
     @SendPostCreatedEvent
@@ -88,6 +90,7 @@ public class PostService {
         post.setPublishedAt(LocalDateTime.now());
         postHashTagParser.updateHashTags(post);
         postRepository.save(post);
+        userCacheService.saveUserToRedisRepository(post.getAuthorId());
 
         postCacheProcessExecutor.executeNewPostProcess(postMapper.toPostCacheDto(post));
 
@@ -273,6 +276,8 @@ public class PostService {
             post.setPublishedAt(currentDateTime);
             post.setPublished(true);
         });
+        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
+        userCacheService.saveAllToRedisRepository(authorIds);
         postRepository.saveAll(postList);
         log.info("Posts was published by scheduling: {}", postIds);
     }

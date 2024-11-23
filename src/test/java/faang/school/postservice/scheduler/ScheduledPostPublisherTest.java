@@ -1,5 +1,6 @@
 package faang.school.postservice.scheduler;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.TestContainersConfig;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
@@ -9,12 +10,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 
+@MockBean(UserServiceClient.class)
 @SpringBootTest
 @ActiveProfiles("test")
 public class ScheduledPostPublisherTest extends TestContainersConfig {
