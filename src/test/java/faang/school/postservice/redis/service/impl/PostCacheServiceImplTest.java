@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -29,9 +28,6 @@ public class PostCacheServiceImplTest {
 
     @Mock
     private PostCacheRedisRepository postCacheRedisRepository;
-
-    @Mock
-    private RedisTemplate<String, Object> redisTemplate;
 
     @Mock
     private RedissonClient redissonClient;
@@ -89,4 +85,6 @@ public class PostCacheServiceImplTest {
         Assertions.assertEquals("Can't find post in redis with id: " + commentEventKafka.getPostId(),
                 exception.getMessage());
     }
+
+    // TODO maybe add some tests
 }

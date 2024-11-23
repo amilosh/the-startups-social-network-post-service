@@ -93,6 +93,7 @@ public class PostCacheServiceImpl implements PostCacheService {
     public void updatePostComments(CommentEventKafka event) {
         PostCache postCache = postCacheRedisRepository.findById(event.getPostId())
                 .orElseThrow(() -> new NoSuchElementException("Can't find post in redis with id: " + event.getPostId()));
+
         String lockKey = "lock:" + event.getPostId();
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock();
