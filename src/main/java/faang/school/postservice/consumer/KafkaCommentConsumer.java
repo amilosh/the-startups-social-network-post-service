@@ -21,6 +21,6 @@ public class KafkaCommentConsumer implements KafkaConsumer<byte[]> {
         CommentEvent event = commentEventMapper.toEvent(
                 CommentEventProto.CommentEvent.parseFrom(message)
         );
-
+        feedService.addNewComment(event);
     }
 }
