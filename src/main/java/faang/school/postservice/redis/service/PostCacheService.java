@@ -8,4 +8,6 @@ public interface PostCacheService {
     void savePostToCache(PostDto post);
 
     void updatePostComments(CommentEventKafka event);
+
+    void addPostView(PostDto post);
 }

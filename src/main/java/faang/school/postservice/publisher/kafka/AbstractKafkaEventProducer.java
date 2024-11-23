@@ -1,6 +1,5 @@
 package faang.school.postservice.publisher.kafka;
 
-import faang.school.postservice.exception.EventPublishingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.KafkaException;

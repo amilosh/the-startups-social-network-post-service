@@ -19,6 +19,9 @@ public class KafkaTopicConfig {
     @Value(value = "${spring.kafka.topics.posts}")
     private String postsTopic;
 
+    @Value(value = "${spring.kafka.topics.post-view}")
+    private String postViewTopic;
+
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
@@ -40,5 +43,10 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic postKafkaTopic() {
         return new NewTopic(postsTopic, partitionsNum, (short) 1);
+    }
+
+    @Bean
+    public NewTopic postViewKafkaTopic() {
+        return new NewTopic(postViewTopic, partitionsNum, (short) 1);
     }
 }
