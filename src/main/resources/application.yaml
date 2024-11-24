@@ -22,6 +22,8 @@ spring:
       port: 6379
       host: localhost
       ttl: 86400
+      feed:
+        key-prefix: "Feed:"
       channels:
         calculations_channel:
           name: calculations_channel
@@ -44,6 +46,7 @@ spring:
       retries: 1
       partitions: 1
       replicasCount: 1
+      group: feed
       channels:
         post-channel: post_channel
         comment-channel: comments
