@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -47,16 +50,18 @@ public class LikeService {
             List<UserDto> batchResult = fetchUserDtosSafely(batch);
             result.addAll(batchResult);
         }
-
         return result;
-
     }
 
     private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
-        List<UserDto> userDtos = new ArrayList<>();
-        batch.forEach(userId -> userDtos.add(userServiceClient.getUser(userId)));
-
-        return userDtos;
+        return batch.stream()
+                .map(userId -> CompletableFuture.supplyAsync(() -> userServiceClient.getUser(userId))
+                        .exceptionally(ex -> {
+                            log.error("Error fetching user with ID {}: {}", userId, ex.getMessage(), ex);
+                            return null;
+                        }))
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
-
 }
