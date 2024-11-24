@@ -2,10 +2,13 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.event.kafka.PostEvent;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
+    private final KafkaPostProducer kafkaPostProducer;
 
     @Override
     public PostDto createPost(PostDto postDto) {
@@ -34,6 +38,14 @@ public class PostServiceImpl implements PostService {
         post.setDeleted(false);
 
         postRepository.save(post);
+
+        UserDto author = userServiceClient.getUser(postDto.getAuthorId());
+        PostEvent postEvent = new PostEvent(postDto.getId(),
+                postDto.getAuthorId(),
+                author.getSubscribersId());
+
+        kafkaPostProducer.sendPostEvent(postEvent);
+
         return postDto;
     }
 
