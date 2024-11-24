@@ -67,3 +67,7 @@ redis:
   pubsub:
     topics:
       like-event
+
+cache:
+  post:
+    live-time: 86400

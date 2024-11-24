@@ -9,9 +9,11 @@ import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.producer.KafkaPostProducer;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
+import faang.school.postservice.repository.post.RedisPostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
@@ -26,6 +29,7 @@ public class PostServiceImpl implements PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final KafkaPostProducer kafkaPostProducer;
+    private final RedisPostRepository redisPostRepository;
 
     @Override
     public PostDto createPost(PostDto postDto) {
@@ -45,6 +49,9 @@ public class PostServiceImpl implements PostService {
                 author.getSubscribersId());
 
         kafkaPostProducer.sendPostEvent(postEvent);
+
+        redisPostRepository.save(postMapper.toPostRedis(post));
+        log.info("Saved post with ID: {}", post.getId());
 
         return postDto;
     }
