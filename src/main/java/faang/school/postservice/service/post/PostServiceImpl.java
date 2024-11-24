@@ -9,7 +9,6 @@ import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.producer.KafkaPostProducer;
-import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.repository.post.RedisPostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -51,7 +50,7 @@ public class PostServiceImpl implements PostService {
 
         kafkaPostProducer.sendPostEvent(postEvent);
 
-        redisPostRepository.save(postMapper.toRedis(post));
+        redisPostRepository.save(postMapper.toPostRedis(post));
         log.info("Saved post with ID: {}", post.getId());
 
         return postDto;

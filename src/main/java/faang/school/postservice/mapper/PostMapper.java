@@ -12,5 +12,5 @@ public interface PostMapper {
 
     Post toEntity(PostDto postDto);
 
-    PostRedis toRedis(Post post);
+    PostRedis toPostRedis(Post post);
 }
