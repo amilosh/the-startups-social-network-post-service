@@ -44,8 +44,12 @@ spring:
         retries: 5
         idempotence: true
       topics:
-        likeTopic:
-          name: likes
+        PostLikeTopic:
+          name: comment_likes
+          numPartitions: 5
+          replicationFactor: 1
+        CommentLikeTopic:
+          name: post_likes
           numPartitions: 5
           replicationFactor: 1
 

@@ -23,8 +23,6 @@ public class PostLikeKafkaEvent {
     private Long likeAuthorId;
     @JsonProperty("post_id")
     private Long postId;
-    @JsonProperty("event_type")
-    private EventType eventType;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 }

@@ -14,7 +14,7 @@ public abstract class AbstractEventProducer<T> {
 
     public void sendEvent(T event) {
         kafkaTemplate.send(topic.name(), event);
-        log.info("Sending event: {} in topic {}", event, topic);
+        log.debug("Sending event: {} in topic {}", event, topic.name());
         kafkaTemplate.send(topic.name(), event)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {

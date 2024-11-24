@@ -5,6 +5,7 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.like.LikeRequestDto;
 import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.event.kafka.LikeKafkaEventBuilder;
 import faang.school.postservice.event.kafka.comment.like.CommentLikeKafkaEvent;
 import faang.school.postservice.event.kafka.post.like.PostLikeKafkaEvent;
 import faang.school.postservice.event.like.LikePostEvent;
@@ -13,9 +14,9 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.EventType;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.like.LikePostEventPublisher;
 import faang.school.postservice.producer.like.comment.KafkaCommentLikeProducer;
 import faang.school.postservice.producer.like.post.KafkaPostLikeProducer;
+import faang.school.postservice.publisher.like.LikePostEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -107,7 +108,8 @@ public class LikeService {
                     .eventType(EventType.POST_LIKE)
                     .createdAt(LocalDateTime.now())
                     .build();
-            postLikeKafkaEvent = buildPostLikeKafkaEvent(like.getPost().getAuthorId(), post.getId());
+            postLikeKafkaEvent = LikeKafkaEventBuilder
+                    .buildEvent(PostLikeKafkaEvent.class, like.getPost().getAuthorId(), post.getId(), userContext);
         } else {
             Comment comment = commentRepository.findById(likeRequestDto.getCommentId())
                     .orElseThrow(() -> new IllegalArgumentException("Comment with ID "
@@ -116,7 +118,8 @@ public class LikeService {
             likeValidator.validateLikeForCommentExists(likeRequestDto.getCommentId(), likeRequestDto.getUserId());
 
             like.setComment(comment);
-            commentLikeKafkaEvent = buildCommentLikeKafkaEvent(comment.getAuthorId(), comment.getId());
+            commentLikeKafkaEvent = LikeKafkaEventBuilder
+                    .buildEvent(CommentLikeKafkaEvent.class, comment.getAuthorId(), comment.getId(), userContext);
         }
 
         like.setUserId(userContext.getUserId());
@@ -124,10 +127,10 @@ public class LikeService {
 
         if (like.getPost() != null) {
             publishLikePostEvent(likePostEvent);
-            publishKafkaPostLikeEvent(postLikeKafkaEvent);
+            sendKafkaPostLikeEvent(postLikeKafkaEvent);
         }
         if (like.getComment() != null) {
-            publishKafkaCommentLikeEvent(commentLikeKafkaEvent);
+            sendKafkaCommentLikeEvent(commentLikeKafkaEvent);
         }
         return likeMapper.toResponseDto(like);
     }
@@ -155,7 +158,7 @@ public class LikeService {
         }
     }
 
-    private void publishKafkaPostLikeEvent(PostLikeKafkaEvent postLikeKafkaEvent) {
+    private void sendKafkaPostLikeEvent(PostLikeKafkaEvent postLikeKafkaEvent) {
         try {
             kafkaPostLikeProducer.sendEvent(postLikeKafkaEvent);
         } catch (Exception e) {
@@ -163,31 +166,11 @@ public class LikeService {
         }
     }
 
-    private void publishKafkaCommentLikeEvent(CommentLikeKafkaEvent commentLikeKafkaEvent) {
+    private void sendKafkaCommentLikeEvent(CommentLikeKafkaEvent commentLikeKafkaEvent) {
         try {
             kafkaCommentLikeProducer.sendEvent(commentLikeKafkaEvent);
         } catch (Exception e) {
             log.error("Failed to send kafka like comment event: ", e);
         }
-    }
-
-    private PostLikeKafkaEvent buildPostLikeKafkaEvent(long postAuthorId, long postId) {
-        return PostLikeKafkaEvent.builder()
-                .postAuthorId(postAuthorId)
-                .likeAuthorId(userContext.getUserId())
-                .postId(postId)
-                .eventType(EventType.POST_LIKE)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
-
-    private CommentLikeKafkaEvent buildCommentLikeKafkaEvent(long commentAuthorId, long commentId) {
-        return CommentLikeKafkaEvent.builder()
-                .commentAuthorId(commentAuthorId)
-                .likeAuthorId(userContext.getUserId())
-                .commentId(commentId)
-                .eventType(EventType.COMMENT_LIKE)
-                .createdAt(LocalDateTime.now())
-                .build();
     }
 }

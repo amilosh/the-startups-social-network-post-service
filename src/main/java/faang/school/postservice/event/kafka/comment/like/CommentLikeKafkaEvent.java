@@ -23,8 +23,6 @@ public class CommentLikeKafkaEvent {
     private Long likeAuthorId;
     @JsonProperty("comment_id")
     private Long commentId;
-    @JsonProperty("event_type")
-    private EventType eventType;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 }
