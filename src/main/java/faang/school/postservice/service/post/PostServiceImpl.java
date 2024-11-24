@@ -2,10 +2,14 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.event.kafka.PostEvent;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.PostException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaPostProducer;
+import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.repository.post.RedisPostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,6 +29,7 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
+    private final KafkaPostProducer kafkaPostProducer;
     private final RedisPostRepository redisPostRepository;
 
     @Override
@@ -38,6 +43,14 @@ public class PostServiceImpl implements PostService {
         post.setDeleted(false);
 
         postRepository.save(post);
+
+        UserDto author = userServiceClient.getUser(postDto.getAuthorId());
+        PostEvent postEvent = new PostEvent(postDto.getId(),
+                postDto.getAuthorId(),
+                author.getSubscribersId());
+
+        kafkaPostProducer.sendPostEvent(postEvent);
+
         redisPostRepository.save(postMapper.toRedis(post));
         log.info("Saved post with ID: {}", post.getId());
 
