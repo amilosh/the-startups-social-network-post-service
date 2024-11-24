@@ -101,7 +101,7 @@ public class FeedServiceImpl implements FeedService {
                 ));
 
         if (post == null) {
-            throw new EntityNotFoundException("post with id = " + post + " not found");
+            throw new EntityNotFoundException("post with id = " + postId + " not found");
         }
 
         return post;
