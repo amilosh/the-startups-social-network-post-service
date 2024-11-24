@@ -309,7 +309,6 @@ public class PostServiceImpl implements PostService {
     }
 
     private PostViewEvent createPostViewEvent(Post post) {
-        System.out.println("5555555555555555");
         return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());
     }
 

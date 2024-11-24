@@ -135,3 +135,5 @@ redisson:
 
 post-comments:
   size: 3
+feed-posts:
+  size: 3
