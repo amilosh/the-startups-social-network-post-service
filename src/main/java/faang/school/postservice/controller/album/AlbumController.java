@@ -33,8 +33,8 @@ public class AlbumController {
     }
 
     @PostMapping("/addPostToAlbum/{albumId}")
-    public AlbumDto add(@RequestBody @Valid Post post, @PathVariable Long albumId) {
-        return albumService.add(post, albumId, userContext.getUserId());
+    public AlbumDto add(@RequestBody @Valid Long postId, @PathVariable Long albumId) {
+        return albumService.add(postId, albumId, userContext.getUserId());
     }
 
     @PostMapping("/addToFavorites/{albumId}")

@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,7 +23,7 @@ public class AlbumDto {
     @Size(max = 4096, message = "Description must not exceed 4096 characters")
     private String description;
     private Long authorId;
-    private List<Long> postIds;
+    private List<Long> postIds = new ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
