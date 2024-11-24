@@ -2,7 +2,6 @@ package faang.school.postservice.dto.post;
 
 import lombok.*;
 
-
 @Getter
 @Setter
 @Builder
