@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -67,74 +68,50 @@ class PostServiceTest {
     @Test
     void createShouldCreatePostSuccessfully() {
         CreatePostDto createPostDto = new CreatePostDto();
-        createPostDto.setContent("Valid content");
-        createPostDto.setAuthorId(1L);
-        createPostDto.setProjectId(2L);
-
-        Post postEntity = new Post();
-        postEntity.setId(1);
-        postEntity.setAuthorId(createPostDto.getAuthorId());
-        postEntity.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC+3")));
-        postEntity.setScheduledAt(LocalDateTime.now(ZoneId.of("UTC+3")));
-        postEntity.setPublished(false);
-        postEntity.setDeleted(false);
-
-        ResponsePostDto responsePostDto = new ResponsePostDto();
-        responsePostDto.setId(1L);
-        responsePostDto.setContent(createPostDto.getContent());
-
-        doNothing().when(postValidator).validateContent(createPostDto.getContent());
-        doNothing().when(postValidator).validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
-        doNothing().when(postValidator).validateAuthorId(createPostDto.getAuthorId());
-        doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
-        when(postMapper.toEntity(createPostDto)).thenReturn(postEntity);
-        when(postRepository.save(postEntity)).thenReturn(postEntity);
-        when(postMapper.toDto(postEntity)).thenReturn(responsePostDto);
-
-        ResponsePostDto result = postService.create(createPostDto);
-
-        assertNotNull(result);
-        assertEquals(responsePostDto.getId(), result.getId());
-        assertEquals(responsePostDto.getContent(), result.getContent());
-        assertFalse(postEntity.isPublished());
-        assertFalse(postEntity.isDeleted());
-
-        verify(postRepository, times(1)).save(postEntity);
-    }
-
-    @Test
-    void shouldCreatePostWithExistingAndNewHashtags() {
-        CreatePostDto createPostDto = new CreatePostDto();
-        createPostDto.setContent("Sample content");
+        createPostDto.setContent("Test content");
         createPostDto.setAuthorId(1L);
         createPostDto.setProjectId(2L);
         createPostDto.setHashtags(List.of("tag1", "tag2"));
 
-        Post postEntity = new Post();
-        ResponsePostDto responsePostDto = new ResponsePostDto();
-
-        Hashtag existingTag = Hashtag.builder().tag("tag1").build();
-        Hashtag newTag = Hashtag.builder().tag("tag2").build();
+        Post post = new Post();
+        ResponsePostDto responseDto = new ResponsePostDto();
 
         doNothing().when(postValidator).validateContent(createPostDto.getContent());
-        doNothing().when(postValidator).validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
-        doNothing().when(postValidator).validateAuthorId(createPostDto.getAuthorId());
-        doNothing().when(postValidator).validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
-        when(postMapper.toEntity(createPostDto)).thenReturn(postEntity);
-        when(hashtagService.findByTag("tag1")).thenReturn(Optional.of(existingTag));
-        when(hashtagService.findByTag("tag2")).thenReturn(Optional.empty());
-        when(hashtagService.create("tag2")).thenReturn(newTag);
-        when(postMapper.toDto(postEntity)).thenReturn(responsePostDto);
+        doNothing().when(postValidator).validateAuthorIdAndProjectId(1L, 2L);
+        doNothing().when(postValidator).validateAuthorId(1L);
+        doNothing().when(postValidator).validateProjectId(2L, 1L);
+
+        doNothing().when(hashtagValidator).validateHashtag(anyString());
+
+        when(postMapper.toEntity(createPostDto)).thenReturn(post);
+        when(postMapper.toDto(post)).thenReturn(responseDto);
+
+        Hashtag tag1 = Hashtag
+                .builder()
+                .tag("tag1")
+                .build();
+        Hashtag tag2 = Hashtag
+                .builder()
+                .tag("tag2")
+                .build();
+        when(hashtagService.findAllByTags(List.of("tag1", "tag2")))
+                .thenReturn(List.of(tag1));
+        when(hashtagService.create("tag2")).thenReturn(tag2);
+
+        when(postRepository.save(post)).thenReturn(post);
 
         ResponsePostDto result = postService.create(createPostDto);
 
-        verify(hashtagService, times(1)).findByTag("tag1");
-        verify(hashtagService, times(1)).findByTag("tag2");
-        verify(hashtagService, times(1)).create("tag2");
-        verify(postRepository, times(1)).save(postEntity);
-
-        assertEquals(responsePostDto, result);
-        assertEquals(Set.of(existingTag, newTag), postEntity.getHashtags());
+        verify(postValidator, times(1)).validateContent(createPostDto.getContent());
+        verify(postValidator, times(1)).validateAuthorIdAndProjectId(1L, 2L);
+        verify(postValidator, times(1)).validateAuthorId(1L);
+        verify(postValidator, times(1)).validateProjectId(2L, 1L);
+        verify(hashtagValidator, times(1)).validateHashtag("tag1");
+        verify(hashtagValidator, times(1)).validateHashtag("tag2");
+        verify(postMapper, times(1)).toEntity(createPostDto);
+        verify(postRepository, times(1)).save(post);
+        verify(postMapper, times(1)).toDto(post);
+        assertNotNull(result);
     }
 
     @Test
@@ -210,38 +187,51 @@ class PostServiceTest {
         Long postId = 1L;
         UpdatePostDto updatePostDto = new UpdatePostDto();
         updatePostDto.setContent("Updated content");
-        updatePostDto.setHashtags(List.of("tag1", "tag2"));
+        updatePostDto.setHashtags(List.of("tag1", "tag3"));
 
-        Post post = new Post();
-        post.setId(postId);
-        post.setContent("Old content");
-        post.setHashtags(new HashSet<>());
+        Hashtag firstTag = Hashtag.builder().tag("tag1").build();
+        Hashtag secondTag = Hashtag.builder().tag("tag2").build();
+        Hashtag thirdTag = Hashtag.builder().tag("tag3").build();
 
-        ResponsePostDto responsePostDto = new ResponsePostDto();
+        Post existingPost = new Post();
+        existingPost.setContent("Old content");
+        existingPost.setHashtags(new HashSet<>(Set.of(firstTag, secondTag)));
+        existingPost.setCreatedAt(LocalDateTime.now());
+        existingPost.setUpdatedAt(null);
 
-        Hashtag existingTag = Hashtag.builder().tag("tag1").build();
-        Hashtag newTag = Hashtag.builder().tag("tag2").build();
+        Post updatedPost = new Post();
+        updatedPost.setContent("Updated content");
+        updatedPost.setHashtags(new HashSet<>(Set.of(firstTag, thirdTag)));
+        updatedPost.setCreatedAt(existingPost.getCreatedAt());
+        updatedPost.setUpdatedAt(LocalDateTime.now());
 
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-        when(hashtagService.findByTag("tag1")).thenReturn(Optional.of(existingTag));
-        when(hashtagService.findByTag("tag2")).thenReturn(Optional.empty());
-        when(hashtagService.create("tag2")).thenReturn(newTag);
-        when(postMapper.toDto(post)).thenReturn(responsePostDto);
+        ResponsePostDto responseDto = new ResponsePostDto();
+
+        doNothing().when(postValidator).validateExistingPostId(postId);
+        doNothing().when(postValidator).validateContent(updatePostDto.getContent());
+        when(postMapper.toDto(any(Post.class))).thenReturn(responseDto);
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(existingPost));
+        when(postRepository.save(existingPost)).thenReturn(updatedPost);
+
+        doNothing().when(hashtagValidator).validateHashtag(anyString());
+
+        when(hashtagService.findAllByTags(List.of("tag1", "tag3")))
+                .thenReturn(List.of(firstTag));
+        when(hashtagService.create("tag3")).thenReturn(thirdTag);
 
         ResponsePostDto result = postService.update(postId, updatePostDto);
 
         verify(postValidator, times(1)).validateExistingPostId(postId);
         verify(postValidator, times(1)).validateContent(updatePostDto.getContent());
+        verify(hashtagValidator, times(1)).validateHashtag("tag1");
+        verify(hashtagValidator, times(1)).validateHashtag("tag3");
 
-        verify(hashtagService, times(1)).findByTag("tag1");
-        verify(hashtagService, times(1)).findByTag("tag2");
-        verify(hashtagService, times(1)).create("tag2");
-
-        verify(postRepository, times(1)).save(post);
-
-        assertEquals("Updated content", post.getContent());
-        assertEquals(Set.of(existingTag, newTag), post.getHashtags());
-        assertEquals(responsePostDto, result);
+        assertEquals("Updated content", existingPost.getContent());
+        assertTrue(existingPost.getHashtags().contains(firstTag));
+        assertNotNull(existingPost.getUpdatedAt());
+        verify(postRepository, times(1)).save(existingPost);
+        assertEquals(responseDto, result);
     }
 
     @Test

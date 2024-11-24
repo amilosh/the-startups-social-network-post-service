@@ -1,5 +1,6 @@
 package faang.school.postservice.validator;
 
+import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.service.HashtagService;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,20 +24,21 @@ class HashtagValidatorTest {
     private HashtagService hashtagService;
 
     @Test
-    void shouldThrowExceptionWhenHashtagNotFound() {
-        String nonExistentHashtag = "#nonexistent";
+    void validateHashtag_shouldNotThrowForValidHashtag() {
+        String validHashtag = "#ValidHashtag";
 
-        when(hashtagService.findByTag(nonExistentHashtag)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> hashtagValidator.validateHashtag(nonExistentHashtag));
+        assertDoesNotThrow(() -> hashtagValidator.validateHashtag(validHashtag));
     }
 
     @Test
-    void shouldPassWhenHashtagExists() {
-        String existingHashtag = "#existing";
+    void validateHashtag_shouldThrowForInvalidHashtag() {
+        String invalidHashtag = "InvalidHashtag";
 
-        when(hashtagService.findByTag(existingHashtag)).thenReturn(Optional.of(Hashtag.builder().tag(existingHashtag).build()));
-
-        hashtagValidator.validateHashtag(existingHashtag);
+        DataValidationException exception = assertThrows(
+                DataValidationException.class,
+                () -> hashtagValidator.validateHashtag(invalidHashtag)
+        );
+        
+        assertEquals("Hashtag must start with #", exception.getMessage());
     }
 }
