@@ -40,7 +40,9 @@ spring:
       cache:
         ttl:
           user-cache: 86400
-        feed-capacity: 500
+        feed:
+          capacity: 500
+          batch-size: 20
 
   kafka:
     bootstrap-servers: localhost:9092

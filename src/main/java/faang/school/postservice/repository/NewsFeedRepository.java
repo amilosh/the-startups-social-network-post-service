@@ -15,14 +15,22 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Set;
 
+import static org.springframework.data.domain.Range.Bound.exclusive;
+import static org.springframework.data.domain.Range.Bound.unbounded;
+import static org.springframework.data.domain.Range.from;
+import static org.springframework.data.redis.connection.Limit.limit;
+
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class NewsFeedRepository {
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${spring.data.redis.cache.feed-capacity}")
+    @Value("${spring.data.redis.cache.feed.capacity}")
     private long feedCapacity;
+
+    @Value("${spring.data.redis.cache.feed.batch-size}")
+    private int batchSize;
 
     @Retryable(retryFor = OptimisticLockingFailureException.class)
     public void addPost(String postId, String userId, Long createdAt) {
@@ -55,14 +63,39 @@ public class NewsFeedRepository {
     }
 
     @Retryable(retryFor = OptimisticLockingFailureException.class)
-    public List<String> getFeed(String userId) {
+    public List<String> getPostBatch(String userId, String beginPostId) {
         return redisTemplate.execute(new SessionCallback<>() {
             @Override
             public List<String> execute(@NonNull RedisOperations operations) throws DataAccessException {
                 operations.watch(userId);
                 operations.multi();
 
-                operations.opsForZSet().range(userId, 0, -1);
+                operations.opsForZSet()
+                        .reverseRangeByLex(userId, from(unbounded()).to(exclusive(beginPostId)), limit().count(batchSize));
+
+                List<Object> result = operations.exec();
+                if (result.isEmpty()) {
+                    throw new OptimisticLockingFailureException("Optimistic lock");
+                }
+
+                Set<Object> feed = (Set<Object>) result.get(0);
+                return feed.stream()
+                        .map(Object::toString)
+                        .toList();
+            }
+        });
+    }
+
+    @Retryable(retryFor = OptimisticLockingFailureException.class)
+    public List<String> getPostBatch(String userId) {
+        return redisTemplate.execute(new SessionCallback<>() {
+            @Override
+            public List<String> execute(@NonNull RedisOperations operations) throws DataAccessException {
+                operations.watch(userId);
+                operations.multi();
+
+                operations.opsForZSet()
+                        .reverseRangeByLex(userId, from(unbounded()).to(unbounded()), limit().count(batchSize));
 
                 List<Object> result = operations.exec();
                 if (result.isEmpty()) {

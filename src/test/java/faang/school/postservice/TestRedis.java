@@ -35,10 +35,10 @@ public class TestRedis {
                 .mapToObj(String::valueOf)
                         .forEach(postId -> redisTemplate.opsForZSet().add(KEY, postId, counter++));
 
-        List<String> values = newsFeedRepository.getFeed(KEY);
+        List<String> values = newsFeedRepository.getPostBatch(KEY, Long.toString(3));
         values.forEach(val -> System.out.print(val + " "));
         System.out.println();
-        assertEquals(10, values.size());
+        assertEquals(3, values.size());
 
         Thread one = new Thread(() -> newsFeedRepository.addPost(String.valueOf(100), KEY, counter++));
         Thread two = new Thread(() -> newsFeedRepository.addPost(String.valueOf(200), KEY, counter++));
@@ -49,9 +49,9 @@ public class TestRedis {
         one.join();
         two.join();
 
-        List<String> newValues = newsFeedRepository.getFeed(KEY);
+        List<String> newValues = newsFeedRepository.getPostBatch(KEY);
         newValues.forEach(val -> System.out.print(val + " "));
         System.out.println();
-        assertEquals(10, values.size());
+        assertEquals(3, values.size());
     }
 }
