@@ -31,7 +31,7 @@ public class FeedService {
     private final RedisUserRepository redisUserRepository;
     private final UserServiceClient userServiceClient;
 
-    @Value("${feed.page-size:10}")
+    @Value("${feed.page-size}")
     private Integer pageSize;
 
     public List<FeedPostDto> loadNextPosts(Long userId, Long startPostId) {
