@@ -15,6 +15,6 @@ public class TitleAlbumFilter implements AlbumFilter {
 
     @Override
     public Stream<Album> apply(Stream<Album> albums, AlbumFilterDto filter) {
-        return albums.filter(album -> album.getTitle().equals(filter.getTitlePattern()));
+        return albums.filter(album -> album.getTitle().contains(filter.getTitlePattern()));
     }
 }

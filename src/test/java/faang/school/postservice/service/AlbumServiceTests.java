@@ -1,10 +1,10 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.dto.UserDto;
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
-import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.filter.album.AlbumFilter;
 import faang.school.postservice.filter.album.CreatedAtAlbumFilter;
 import faang.school.postservice.filter.album.TitleAlbumFilter;
@@ -14,7 +14,6 @@ import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
 import faang.school.postservice.service.album.AlbumService;
-import faang.school.postservice.service.post.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,13 +47,10 @@ import static org.mockito.Mockito.when;
 class AlbumServiceTests {
     @Mock
     private AlbumRepository albumRepository;
-
     @Mock
     private UserServiceClient userServiceClient;
-
     @Mock
     private PostService postService;
-
     @Spy
     private final AlbumMapper albumMapper = Mappers.getMapper(AlbumMapper.class);
     @Spy
@@ -102,7 +98,7 @@ class AlbumServiceTests {
         when(albumMapper.toEntity(any(AlbumDto.class))).thenReturn(album);
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
         when(albumRepository.save(any(Album.class))).thenReturn(album);
-        AlbumDto result = albumService.createAlbum(albumDto);
+        AlbumDto result = albumService.createAlbum(albumDto, 1L);
 
         assertNotNull(result);
         verify(albumRepository, times(1)).save(album);
@@ -111,7 +107,7 @@ class AlbumServiceTests {
     }
 
     @Test
-    void testAddAlbum() {
+    void testAddPostToAlbum() {
         prepareDtoWithTitleAndDescription();
         prepareAlbumEntity();
 
@@ -119,13 +115,13 @@ class AlbumServiceTests {
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
         when(postMapper.toEntity(any(PostDto.class))).thenReturn(post);
         when(albumRepository.save(any(Album.class))).thenReturn(album);
-        when(postService.getPost(anyLong())).thenReturn(new PostDto());
-        when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
+        when(postService.getPost(anyLong())).thenReturn(new Post());
+        when(albumRepository.findById(anyLong())).thenReturn(Optional.of(album));
         when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
-        AlbumDto result = albumService.add(1L, 1L, 1L);
+        AlbumDto result = albumService.addPostToAlbum(1L, 1L, 1L);
 
         assertNotNull(result);
-        verify(albumRepository, times(1)).findByAuthorId(1L);
+        verify(albumRepository, times(1)).findById(1L);
         verify(albumRepository, times(1)).save(album);
         verify(postService, times(1)).getPost(1L);
         assertEquals(albumDto.getTitle(), result.getTitle());
@@ -133,7 +129,7 @@ class AlbumServiceTests {
     }
 
     @Test
-    void testAddSaveMethodRuntimeException() {
+    void testAddPostToAlbumSaveMethodRuntimeException() {
         prepareDtoWithTitleAndDescription();
         prepareAlbumEntity();
 
@@ -141,25 +137,25 @@ class AlbumServiceTests {
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
         when(postMapper.toEntity(any(PostDto.class))).thenReturn(post);
         doThrow(new RuntimeException("Database error")).when(albumRepository).save(any(Album.class));
-        when(postService.getPost(anyLong())).thenReturn(new PostDto());
+        when(postService.getPost(anyLong())).thenReturn(new Post());
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
         when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
 
-        assertThrows(RuntimeException.class, () -> albumService.add(1L, 1L, 1L));
+        assertThrows(RuntimeException.class, () -> albumService.addPostToAlbum(1L, 1L, 1L));
     }
 
     @Test
-    void testAddEntityAlbumIdFilterNotFoundException() {
+    void testAddpostToAlbumEntityAlbumIdFilterNotFoundException() {
         prepareDtoWithTitleAndDescription();
         when(albumMapper.toEntity(any(AlbumDto.class))).thenReturn(album);
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
         when(postMapper.toEntity(any(PostDto.class))).thenReturn(post);
         when(albumRepository.save(any(Album.class))).thenReturn(album);
-        when(postService.getPost(anyLong())).thenReturn(new PostDto());
+        when(postService.getPost(anyLong())).thenReturn(new Post());
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
         when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
 
-        assertThrows(EntityNotFoundException.class, () -> albumService.add(1L, 1L, 1L));
+        assertThrows(EntityNotFoundException.class, () -> albumService.addPostToAlbum(1L, 1L, 1L));
     }
 
     @Test

@@ -3,11 +3,9 @@ package faang.school.postservice.controller.album;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.service.album.AlbumService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Validated
 @RequestMapping("/api/v1/album")
 public class AlbumController {
     private final AlbumService albumService;
@@ -29,12 +26,12 @@ public class AlbumController {
 
     @PutMapping("/add")
     public AlbumDto create(@RequestBody @Valid AlbumDto albumDto) {
-        return albumService.createAlbum(albumDto);
+        return albumService.createAlbum(albumDto, userContext.getUserId());
     }
 
     @PostMapping("/addPostToAlbum/{albumId}")
-    public AlbumDto add(@RequestBody @Valid Long postId, @PathVariable Long albumId) {
-        return albumService.add(postId, albumId, userContext.getUserId());
+    public AlbumDto addPostToAlbum(@RequestBody Long postId, @PathVariable Long albumId) {
+        return albumService.addPostToAlbum(postId, albumId, userContext.getUserId());
     }
 
     @PostMapping("/addToFavorites/{albumId}")
@@ -82,7 +79,7 @@ public class AlbumController {
         return albumService.update(albumDto);
     }
 
-    @DeleteMapping ("/remove/{albumId}")
+    @DeleteMapping("/remove/{albumId}")
     public void remove(@PathVariable Long albumId) {
         albumService.remove(albumId);
     }
