@@ -65,7 +65,7 @@ public class FeedService {
             return List.of();
         }
 
-        List<FeedPostDto> feedPostList = getCachedPosts(ids);
+        List<FeedPostDto> feedPostList = new ArrayList<>(getCachedPosts(ids));
 
         int remainingPostsCount = ids.size() - feedPostList.size();
         if (remainingPostsCount > 0) {
