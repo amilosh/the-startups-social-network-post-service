@@ -40,4 +40,10 @@ public class KafkaConfig {
         Topic topic = properties.getTopics().get("album-created");
         return new NewTopic(topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor());
     }
+
+    @Bean
+    public NewTopic postsTopic() {
+        Topic topic = properties.getTopics().get("posts");
+        return new NewTopic(topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor());
+    }
 }
