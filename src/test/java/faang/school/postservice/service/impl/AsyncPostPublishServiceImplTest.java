@@ -1,7 +1,7 @@
 package faang.school.postservice.service.impl;
 
 import faang.school.postservice.model.Post;
-import faang.school.postservice.repository.AsyncCacheFeedRepository;
+import faang.school.postservice.service.cache.NewsFeedAsyncCacheService;
 import faang.school.postservice.repository.PostRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +20,7 @@ class AsyncPostPublishServiceImplTest {
     private PostRepository postRepository;
 
     @Mock
-    private AsyncCacheFeedRepository asyncCacheFeedRepository;
+    private NewsFeedAsyncCacheService newsFeedAsyncCacheService;
 
     @InjectMocks
     private AsyncPostPublishServiceImpl asyncPostPublishService;
@@ -37,6 +37,6 @@ class AsyncPostPublishServiceImplTest {
         asyncPostPublishService.publishPost(posts);
 
         verify(postRepository).saveAll(posts);
-        verify(asyncCacheFeedRepository).save(post.getAuthorId().toString(), post.getId());
+        verify(newsFeedAsyncCacheService).save(post.getAuthorId().toString(), post.getId());
     }
 }

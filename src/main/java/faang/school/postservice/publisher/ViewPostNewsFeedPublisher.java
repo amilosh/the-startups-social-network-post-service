@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ViewEventForFeedPublisher implements EventPublisher<PostDto> {
+public class ViewPostNewsFeedPublisher implements EventPublisher<PostDto> {
 
     private final KafkaTemplate<byte[], byte[]> kafkaTemplate;
 

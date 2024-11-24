@@ -2,6 +2,7 @@ package faang.school.postservice.service.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.exception.RedisTransactionException;
+import faang.school.postservice.repository.cache.RedisZSetCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ class RedisZSetCacheServiceTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private RedisZSetCacheService<Object> redisListCacheService;
+    private RedisZSetCacheRepository<Object> redisListCacheService;
 
     @Mock
     private ListOperations<String, Object> listOperations;
@@ -95,11 +96,11 @@ class RedisZSetCacheServiceTest {
     }
 
     @Test
-    void testRunInOptimisticLock() {
+    void testExecuteInOptimisticLock() {
         when(redisTemplate.execute(callbackCaptor.capture())).thenReturn(Collections.emptyList());
         when(mockOperations.exec()).thenReturn(Collections.emptyList());
 
-        redisListCacheService.runInOptimisticLock(task, );
+        redisListCacheService.executeInOptimisticLock(task, );
 
         SessionCallback<?> capturedCallback = callbackCaptor.getValue();
         capturedCallback.execute(mockOperations);
@@ -111,11 +112,11 @@ class RedisZSetCacheServiceTest {
     }
 
     @Test
-    void testRunInOptimisticLock_ExceptionHandling() {
+    void testExecuteInOptimisticLock_ExceptionHandling() {
         when(redisTemplate.execute(callbackCaptor.capture())).thenThrow(new RedisTransactionException());
 
         assertThrows(RedisTransactionException.class,
-                () -> redisListCacheService.runInOptimisticLock(task, ));
+                () -> redisListCacheService.executeInOptimisticLock(task, ));
 
         SessionCallback<?> capturedCallback = callbackCaptor.getValue();
         doThrow(new RuntimeException("Test Exception")).when(mockOperations).exec();

@@ -1,6 +1,7 @@
 package faang.school.postservice.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,14 +18,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class RedisConfiguration {
 
     private final RedisProperties redisProperties;
-    private final ObjectMapper objectMapper;
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapperForRedis()));
         template.setEnableTransactionSupport(true);
         return template;
     }
@@ -32,5 +32,12 @@ public class RedisConfiguration {
     @Bean
     ChannelTopic likeEventTopic() {
         return new ChannelTopic(redisProperties.getChannels().get("like-service"));
+    }
+
+    @Bean
+    ObjectMapper objectMapperForRedis() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 }

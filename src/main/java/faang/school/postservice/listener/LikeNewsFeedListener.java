@@ -4,7 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import faang.school.postservice.dto.like.LikeDto;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.protobuf.generate.FeedEventProto;
-import faang.school.postservice.repository.CacheRepository;
+import faang.school.postservice.service.cache.SingleCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class LikeEventForFeedListener implements KafkaEventListener<byte[]> {
+public class LikeNewsFeedListener implements KafkaEventListener<byte[]> {
 
-    private final CacheRepository<LikeDto> likeCache;
+    private final SingleCacheService<Long, LikeDto> likeCache;
     private final LikeMapper likeMapper;
 
     @Override
@@ -25,8 +25,7 @@ public class LikeEventForFeedListener implements KafkaEventListener<byte[]> {
         try {
             FeedEventProto.FeedEvent feedEvent = FeedEventProto.FeedEvent.parseFrom(byteEvent);
             LikeDto likeDto = likeMapper.toLikeDto(feedEvent);
-            String stringPostId = likeDto.getPostId().toString();
-            likeCache.save(stringPostId, likeDto);
+            likeCache.save(likeDto.getPostId(), likeDto);
             acknowledgment.acknowledge();
 
         } catch (InvalidProtocolBufferException exception) {

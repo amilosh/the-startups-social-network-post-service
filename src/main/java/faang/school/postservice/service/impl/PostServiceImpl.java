@@ -10,10 +10,11 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.protobuf.generate.FeedEventProto;
 import faang.school.postservice.publisher.EventPublisher;
-import faang.school.postservice.repository.CacheRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.AsyncPostPublishService;
 import faang.school.postservice.service.PostService;
+import faang.school.postservice.service.cache.MultiSaveCacheService;
+import faang.school.postservice.service.cache.SingleCacheService;
 import faang.school.postservice.validator.PostValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -38,8 +40,9 @@ public class PostServiceImpl implements PostService {
     private int sizeBatch;
 
     private final PostRepository postRepository;
-    private final CacheRepository<PostDto> cachePostRepository;
-    private final CacheRepository<UserDto> cacheUserRepository;
+    private final SingleCacheService<Long, PostDto> singleCacheService;
+    private final MultiSaveCacheService<PostDto> multiSaveCacheService;
+    private final SingleCacheService<Long, UserDto> cacheUserRepository;
     private final ProjectServiceClient projectServiceClient;
     private final UserServiceClient userServiceClient;
     private final PostValidator validator;
@@ -69,7 +72,7 @@ public class PostServiceImpl implements PostService {
         Post postOrNull = transactionTemplate.execute(transactionStatus -> publishPostAndGet(id));
         Optional.ofNullable(postOrNull)
                 .ifPresent((post) -> newsFeedThreadPoolExecutor.execute(() -> {
-                    saveInCache(post);
+                    saveToCache(post);
                     publishForFeed(post);
                 }));
     }
@@ -86,9 +89,36 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDto getPost(long id) {
-        Post post = postRepository.findById(id)
+        return postRepository.findById(id)
+                .map(postMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("There is no post with ID " + id));
-        return postMapper.toDto(post);
+    }
+
+    @Override
+    public List<PostDto> getPosts(List<Long> postIds) {
+        List<PostDto> posts = new ArrayList<>(postIds.size());
+        List<Long> missingPostIds = new ArrayList<>();
+
+        for (Long postId : postIds) {
+            PostDto postDto = singleCacheService.get(postId);
+            if (postDto == null) {
+                missingPostIds.add(postId);
+            }
+            posts.add(postDto);
+        }
+
+        List<Post> missingPosts = postRepository.findAllById(missingPostIds);
+        List<PostDto> missingPostDtos = postMapper.toDto(missingPosts);
+        multiSaveCacheService.saveAll(missingPostDtos);
+
+        for (int i = 0, missingIndex = 0; i < posts.size(); i++) {
+            if (posts.get(i) == null) {
+                PostDto missingPost = missingPostDtos.get(missingIndex++);
+                posts.set(i, missingPost);
+            }
+        }
+
+        return posts;
     }
 
     @Override
@@ -149,12 +179,10 @@ public class PostServiceImpl implements PostService {
         return post;
     }
 
-    private void saveInCache(Post post) {
+    private void saveToCache(Post post) {
         UserDto user = userServiceClient.getUser(post.getAuthorId());
-        String stringPostId = post.getId().toString();
-        String stringUserId = user.getId().toString();
-        cachePostRepository.save(stringPostId, postMapper.toDto(post));
-        cacheUserRepository.save(stringUserId, user);
+        singleCacheService.save(post.getId(), postMapper.toDto(post));
+        cacheUserRepository.save(user.getId(), user);
     }
 
     private void publishForFeed(Post post) {

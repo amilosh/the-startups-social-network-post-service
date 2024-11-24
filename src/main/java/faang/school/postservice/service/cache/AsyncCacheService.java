@@ -1,8 +1,8 @@
-package faang.school.postservice.repository;
+package faang.school.postservice.service.cache;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface AsyncCacheRepository<T> {
+public interface AsyncCacheService<T> {
 
     CompletableFuture<T> save(String key, T value);
 }

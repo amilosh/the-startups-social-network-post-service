@@ -8,4 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class NewsFeedProperties {
     private int newsFeedSize;
     private int limitCommentsOnPost;
+    private int batchSize;
 }

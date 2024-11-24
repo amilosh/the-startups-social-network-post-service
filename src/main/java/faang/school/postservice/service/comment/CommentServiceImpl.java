@@ -11,9 +11,11 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.EventPublisher;
-import faang.school.postservice.repository.CacheRepository;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.cache.MultiGetCacheService;
+import faang.school.postservice.service.cache.MultiSaveCacheService;
+import faang.school.postservice.service.cache.SingleCacheService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,9 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final CommentEventPublisher commentEventPublisher;
     private final EventPublisher<CommentDto> commentFeedEventPublisher;
-    private final CacheRepository<UserDto> userCacheRepository;
+    private final SingleCacheService<Long, UserDto> userCacheService;
+    private final MultiGetCacheService<Long, CommentDto> commentGetCacheService;
+    private final MultiSaveCacheService<CommentDto> commentSaveCacheService;
 
     @Override
     public CommentDto addComment(CommentDto commentDto) {
@@ -50,7 +54,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setPost(post);
 
         comment = commentRepository.save(comment);
-        userCacheRepository.save(userDto.getId().toString(), userDto);
+        userCacheService.save(userDto.getId(), userDto);
         CommentDto commentDtoWithId = commentMapper.toDto(comment);
         publishEvents(commentDtoWithId);
 
@@ -76,6 +80,21 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDto> getCommentsByPostId(long postId) {
         List<Comment> comments = commentRepository.getByPostIdOrderByCreatedAtDesc(postId);
         return commentMapper.toDto(comments);
+    }
+
+    @Override
+    public List<CommentDto> getCommentsByPostId(long postId, long count) {
+        List<CommentDto> comments = commentGetCacheService.getAll(postId);
+
+        if (comments.size() < count) {
+            long requiredCount = count - comments.size();
+            List<Comment> missingPosts = commentRepository.getByPostIdWithLimit(postId, requiredCount);
+            List<CommentDto> missingPostDtos = commentMapper.toDto(missingPosts);
+
+            comments.addAll(missingPostDtos);
+            commentSaveCacheService.saveAll(missingPostDtos);
+        }
+        return comments;
     }
 
     @Override

@@ -2,7 +2,7 @@ package faang.school.postservice.listener;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import faang.school.postservice.protobuf.generate.FeedEventProto;
-import faang.school.postservice.repository.CacheRepository;
+import faang.school.postservice.service.cache.SingleCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ViewPostEventListener implements KafkaEventListener<byte[]> {
+public class ViewPostNewsFeedListener implements KafkaEventListener<byte[]> {
 
-    private final CacheRepository<Long> cacheRepository;
+    private final SingleCacheService<Long, Long> viewsCacheService;
 
     @Override
     @KafkaListener(topics = "${spring.kafka.topics.view_post.name}",
@@ -21,9 +21,8 @@ public class ViewPostEventListener implements KafkaEventListener<byte[]> {
     public void onMessage(byte[] byteEvent, Acknowledgment acknowledgment) {
         try {
             FeedEventProto.FeedEvent feedEvent = FeedEventProto.FeedEvent.parseFrom(byteEvent);
-            String stringPostId = Long.toString(feedEvent.getPostId());
             long authorId = feedEvent.getAuthorId();
-            cacheRepository.save(stringPostId, authorId);
+            viewsCacheService.save(feedEvent.getPostId(), authorId);
             acknowledgment.acknowledge();
 
         } catch (InvalidProtocolBufferException exception) {

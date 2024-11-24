@@ -28,6 +28,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
+
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final LikeMapper likeMapper;

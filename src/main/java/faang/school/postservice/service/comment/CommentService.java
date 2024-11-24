@@ -13,5 +13,7 @@ public interface CommentService {
 
     List<CommentDto> getCommentsByPostId(long postId);
 
+    List<CommentDto> getCommentsByPostId(long postId, long count);
+
     void deleteComment(long id);
 }

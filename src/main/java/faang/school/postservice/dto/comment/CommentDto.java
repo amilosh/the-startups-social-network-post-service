@@ -1,5 +1,6 @@
 package faang.school.postservice.dto.comment;
 
+import faang.school.postservice.dto.user.UserDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,8 +24,8 @@ public class CommentDto {
     @NotNull
     private Long authorId;
 
+    private UserDto author;
+
     @NotNull
     private Long postId;
-
-    private Integer countLikes;
 }

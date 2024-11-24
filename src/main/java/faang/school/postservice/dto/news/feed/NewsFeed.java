@@ -1,7 +1,6 @@
 package faang.school.postservice.dto.news.feed;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import faang.school.postservice.dto.post.PostDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,12 +12,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FeedEvent {
-
-    @NotNull
-    @Positive
-    private Long postId;
-
-    @NotNull
-    private List<@NotNull Long> followerIds;
+public class NewsFeed {
+    private List<PostDto> posts;
 }

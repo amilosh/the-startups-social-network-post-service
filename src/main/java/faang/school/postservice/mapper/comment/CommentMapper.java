@@ -22,4 +22,7 @@ public interface CommentMapper {
 
     @Mapping(target = "commentContent", source = "content")
     FeedEventProto.FeedEvent toProto(CommentDto commentDto);
+
+    @Mapping(target = "content", source = "commentContent")
+    CommentDto toDto(FeedEventProto.FeedEvent feedEvent);
 }

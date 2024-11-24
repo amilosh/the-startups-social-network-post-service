@@ -68,6 +68,7 @@ server:
     feed:
       news-feed-size: 500
       limit-comments-on-post: 3
+      batch-size: 20
       thread:
         pool:
           corePoolSize: 4

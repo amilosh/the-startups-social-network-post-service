@@ -2,29 +2,38 @@ package faang.school.postservice.listener;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import faang.school.postservice.protobuf.generate.FeedEventProto;
-import faang.school.postservice.repository.CacheRepository;
+import faang.school.postservice.service.cache.AsyncCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CommentEventForFeedListener implements KafkaEventListener<byte[]> {
+public class PostNewsFeedListener implements KafkaEventListener<byte[]> {
 
-    private final CacheRepository<byte[]> cacheRepository;
+    private final AsyncCacheService<Long> asyncCacheFeedRepository;
 
     @Override
-    @KafkaListener(topics = "${spring.kafka.topics.comment-for-feed.name}",
+    @KafkaListener(topics = "${spring.kafka.topics.post-for-feed.name}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "messageListenerContainer")
     public void onMessage(byte[] byteFeedEvent, Acknowledgment acknowledgment) {
         try {
             FeedEventProto.FeedEvent feedEvent = FeedEventProto.FeedEvent.parseFrom(byteFeedEvent);
-            String postId = Long.toString(feedEvent.getPostId());
-            cacheRepository.save(postId, byteFeedEvent);
+            List<Long> followerIds = feedEvent.getFollowerIdsList();
+            Long postId = feedEvent.getPostId();
+
+            CompletableFuture<?>[] completableFutures = followerIds.stream()
+                    .map(followerId -> asyncCacheFeedRepository.save(followerId.toString(), postId))
+                    .toArray(CompletableFuture[]::new);
+
+            CompletableFuture.allOf(completableFutures).join();
             acknowledgment.acknowledge();
 
         } catch (InvalidProtocolBufferException exception) {

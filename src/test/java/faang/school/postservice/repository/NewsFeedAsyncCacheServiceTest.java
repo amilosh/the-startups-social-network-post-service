@@ -1,7 +1,8 @@
 package faang.school.postservice.repository;
 
 import faang.school.postservice.config.NewsFeedProperties;
-import faang.school.postservice.service.cache.SortedSetCacheService;
+import faang.school.postservice.repository.cache.SortedSetCacheRepository;
+import faang.school.postservice.service.cache.NewsFeedAsyncCacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,16 +21,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AsyncCacheFeedRepositoryTest {
+class NewsFeedAsyncCacheServiceTest {
 
     @Mock
-    private SortedSetCacheService<Long> sortedSetCacheService;
+    private SortedSetCacheRepository<Long> sortedSetCacheRepository;
 
     @Spy
     private NewsFeedProperties newsFeedProperties;
 
     @InjectMocks
-    private AsyncCacheFeedRepository asyncCacheFeedRepository;
+    private NewsFeedAsyncCacheService newsFeedAsyncCacheService;
 
     @Captor
     private ArgumentCaptor<Runnable> runnableArgumentCaptor;
@@ -53,25 +54,25 @@ class AsyncCacheFeedRepositoryTest {
 
     @Test
     void save_shouldAddPostToCache() {
-        when(sortedSetCacheService.size(userId)).thenReturn(4L);
+        when(sortedSetCacheRepository.size(userId)).thenReturn(4L);
 
-        asyncCacheFeedRepository.save(userId, postId);
+        newsFeedAsyncCacheService.save(userId, postId);
 
-        verify(sortedSetCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
+        verify(sortedSetCacheRepository).executeInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
-        verify(sortedSetCacheService).put(userId, postId, ttl);
-        verify(sortedSetCacheService).popMin(userId, Long.class);
+        verify(sortedSetCacheRepository).put(userId, postId, ttl);
+        verify(sortedSetCacheRepository).popMin(userId, Long.class);
     }
 
     @Test
     void save_shouldRemoveOldestPostWhenSizeExceedsLimit() {
-        when(sortedSetCacheService.size(userId)).thenReturn(0L);
+        when(sortedSetCacheRepository.size(userId)).thenReturn(0L);
 
-        asyncCacheFeedRepository.save(userId, postId);
+        newsFeedAsyncCacheService.save(userId, postId);
 
-        verify(sortedSetCacheService).runInOptimisticLock(runnableArgumentCaptor.capture(), );
+        verify(sortedSetCacheRepository).executeInOptimisticLock(runnableArgumentCaptor.capture(), );
         runnableArgumentCaptor.getValue().run();
-        verify(sortedSetCacheService).put(userId, postId, ttl);
-        verify(sortedSetCacheService, never()).popMin(userId, Long.class);
+        verify(sortedSetCacheRepository).put(userId, postId, ttl);
+        verify(sortedSetCacheRepository, never()).popMin(userId, Long.class);
     }
 }
