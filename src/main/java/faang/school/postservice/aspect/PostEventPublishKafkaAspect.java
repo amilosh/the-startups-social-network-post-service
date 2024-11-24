@@ -38,11 +38,12 @@ public class PostEventPublishKafkaAspect {
             Long authorId = post.getAuthorId();
             userContext.setUserId(authorId);
             UserDto author = userServiceClient.getUser(authorId);
-            List<Long> followerId = author.getFollowerIds();
+            List<Long> followerIds = author.getFollowerIds();
 
-            PostPublishMessage postPublishMessage = new PostPublishMessage();
-            postPublishMessage.setPostId(post.getId());
-            postPublishMessage.setFollowersId(followerId);
+            PostPublishMessage postPublishMessage = PostPublishMessage.builder()
+                    .postId(post.getId())
+                    .followerIds(followerIds)
+                    .build();
 
             String message = objectMapper.writeValueAsString(postPublishMessage);
             kafkaTemplate.send(publishPostTopicName, message);

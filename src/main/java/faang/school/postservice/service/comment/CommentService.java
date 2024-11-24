@@ -2,6 +2,7 @@ package faang.school.postservice.service.comment;
 
 import faang.school.postservice.aspect.AuthorCaching;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
@@ -25,10 +26,13 @@ public class CommentService {
     private final CommentServiceHandler commentServiceHandler;
     private final CommentEventPublisher commentEventPublisher;
     private final CommentEventMapper commentEventMapper;
+    private final UserContext userContext;
 
     @Transactional
     @AuthorCaching
     public Comment createComment(Comment comment) {
+        // todo доделать тесты с тем что ту появился контекст
+//        userContext.setUserId(comment.getAuthorId());
         UserDto user = userServiceClient.getUser(comment.getAuthorId());
         commentServiceHandler.userExistValidation(user.getId());
 

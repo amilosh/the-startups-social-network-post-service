@@ -50,6 +50,6 @@ public class AuthorCachingAspect {
         userCache.setTtl(userCacheTtl);
 
         userRedisRepository.save(userCache);
-        log.info("Cache author: {}", userCache);
+        log.info("Cache post author: {}", userCache);
     }
 }
