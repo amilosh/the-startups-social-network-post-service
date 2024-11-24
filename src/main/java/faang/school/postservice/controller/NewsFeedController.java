@@ -21,7 +21,7 @@ public class NewsFeedController {
 //    @GetMapping
 //    @ResponseStatus(HttpStatus.OK)
 //    public List<FeedPostDto> getFeedPost(@RequestParam(value = "last-post", required = false) Long lastPostId) {
-//        List<FeedPostDto> feedPostList = newsFeedService.getFeedPost(lastPostId);
+//        List<FeedPostDto> feedPostList = newsFeedService.getPostBatch(lastPostId);
 //
 //
 //

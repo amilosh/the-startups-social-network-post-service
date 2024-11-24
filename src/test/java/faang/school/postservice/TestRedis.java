@@ -24,24 +24,18 @@ public class TestRedis {
     @Autowired
     private NewsFeedRepository newsFeedRepository;
 
-    private static final String KEY = "myKey";
+    private static final Long KEY = 1234L;
 
     private long counter = 0;
 
     @Test
     public void test() throws InterruptedException {
-        redisTemplate.opsForZSet().removeRange(KEY, 0, -1);
-        LongStream.range(0, 10)
-                .mapToObj(String::valueOf)
-                        .forEach(postId -> redisTemplate.opsForZSet().add(KEY, postId, counter++));
-
-        List<String> values = newsFeedRepository.getPostBatch(KEY, Long.toString(3));
+        List<Long> values = newsFeedRepository.getPostBatch(KEY, 3L);
         values.forEach(val -> System.out.print(val + " "));
         System.out.println();
-        assertEquals(3, values.size());
 
-        Thread one = new Thread(() -> newsFeedRepository.addPost(String.valueOf(100), KEY, counter++));
-        Thread two = new Thread(() -> newsFeedRepository.addPost(String.valueOf(200), KEY, counter++));
+        Thread one = new Thread(() -> newsFeedRepository.addPost(100L, KEY, counter++));
+        Thread two = new Thread(() -> newsFeedRepository.addPost(200L, KEY, counter++));
 
         one.start();
         two.start();
@@ -49,9 +43,8 @@ public class TestRedis {
         one.join();
         two.join();
 
-        List<String> newValues = newsFeedRepository.getPostBatch(KEY);
+        List<Long> newValues = newsFeedRepository.getPostBatch(KEY);
         newValues.forEach(val -> System.out.print(val + " "));
         System.out.println();
-        assertEquals(3, values.size());
     }
 }

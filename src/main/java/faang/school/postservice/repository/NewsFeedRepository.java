@@ -33,14 +33,14 @@ public class NewsFeedRepository {
     private int batchSize;
 
     @Retryable(retryFor = OptimisticLockingFailureException.class)
-    public void addPost(String postId, String userId, Long createdAt) {
+    public void addPost(Long postId, Long userId, Long createdAt) {
         redisTemplate.execute(new SessionCallback<>() {
             @Override
             public Object execute(@NonNull RedisOperations operations) throws DataAccessException {
-                operations.watch(userId);
+                operations.watch(userId.toString());
 
                 boolean isFull = false;
-                Long size = operations.opsForZSet().size(userId);
+                Long size = operations.opsForZSet().size(userId.toString());
                 if (size == feedCapacity) {
                     isFull = true;
                 }
@@ -48,10 +48,10 @@ public class NewsFeedRepository {
                 operations.multi();
 
                 if (isFull) {
-                    operations.opsForZSet().popMin(userId);
+                    operations.opsForZSet().popMin(userId.toString());
                 }
 
-                operations.opsForZSet().add(userId, postId, createdAt);
+                operations.opsForZSet().add(userId.toString(), postId.toString(), createdAt);
 
                 List<Object> result = operations.exec();
                 if (result.isEmpty()) {
@@ -63,15 +63,15 @@ public class NewsFeedRepository {
     }
 
     @Retryable(retryFor = OptimisticLockingFailureException.class)
-    public List<String> getPostBatch(String userId, String beginPostId) {
+    public List<Long> getPostBatch(Long userId, Long beginPostId) {
         return redisTemplate.execute(new SessionCallback<>() {
             @Override
-            public List<String> execute(@NonNull RedisOperations operations) throws DataAccessException {
-                operations.watch(userId);
+            public List<Long> execute(@NonNull RedisOperations operations) throws DataAccessException {
+                operations.watch(userId.toString());
                 operations.multi();
 
                 operations.opsForZSet()
-                        .reverseRangeByLex(userId, from(unbounded()).to(exclusive(beginPostId)), limit().count(batchSize));
+                        .reverseRangeByLex(userId.toString(), from(unbounded()).to(exclusive(beginPostId.toString())), limit().count(batchSize));
 
                 List<Object> result = operations.exec();
                 if (result.isEmpty()) {
@@ -80,22 +80,22 @@ public class NewsFeedRepository {
 
                 Set<Object> feed = (Set<Object>) result.get(0);
                 return feed.stream()
-                        .map(Object::toString)
+                        .map(obj -> Long.parseLong(obj.toString()))
                         .toList();
             }
         });
     }
 
     @Retryable(retryFor = OptimisticLockingFailureException.class)
-    public List<String> getPostBatch(String userId) {
+    public List<Long> getPostBatch(Long userId) {
         return redisTemplate.execute(new SessionCallback<>() {
             @Override
-            public List<String> execute(@NonNull RedisOperations operations) throws DataAccessException {
-                operations.watch(userId);
+            public List<Long> execute(@NonNull RedisOperations operations) throws DataAccessException {
+                operations.watch(userId.toString());
                 operations.multi();
 
                 operations.opsForZSet()
-                        .reverseRangeByLex(userId, from(unbounded()).to(unbounded()), limit().count(batchSize));
+                        .reverseRangeByLex(userId.toString(), from(unbounded()).to(unbounded()), limit().count(batchSize));
 
                 List<Object> result = operations.exec();
                 if (result.isEmpty()) {
@@ -104,7 +104,7 @@ public class NewsFeedRepository {
 
                 Set<Object> feed = (Set<Object>) result.get(0);
                 return feed.stream()
-                        .map(Object::toString)
+                        .map(obj -> Long.parseLong(obj.toString()))
                         .toList();
             }
         });
