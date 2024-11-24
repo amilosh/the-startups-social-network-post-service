@@ -1,7 +1,6 @@
 package faang.school.postservice.event.kafka.comment.like;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import faang.school.postservice.model.EventType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
