@@ -11,5 +11,4 @@ public class PostPublishedEvent {
     private long authorId;
 
     private List<Long> subscribersIds;
-
 }
