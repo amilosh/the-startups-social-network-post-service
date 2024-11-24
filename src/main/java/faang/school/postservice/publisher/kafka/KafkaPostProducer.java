@@ -18,7 +18,7 @@ public class KafkaPostProducer {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final UserServiceClient userServiceClient;
 
-    @Value("${spring.data.kafka.topics.posts-channel}")
+    @Value("${spring.data.kafka.topics.posts-created}")
     private String topic;
 
     public void sendPostEvent(Post post) {
@@ -33,8 +33,8 @@ public class KafkaPostProducer {
 
         return PostFeedEventDto.builder()
                 .id(post.getId())
-                .authorId(post.getAuthorId())
                 .subscribersIds(followerIds)
+                .publishedAt(post.getPublishedAt())
                 .build();
     }
 }

@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaPublisherConfig {
+public class KafkaProducerConfig {
     @Value("${spring.data.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
@@ -29,7 +29,7 @@ public class KafkaPublisherConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
-        return new KafkaTemplate<>(producerFactory);
+    public KafkaTemplate<String, Object> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
     }
 }

@@ -23,7 +23,7 @@ spring:
     kafka:
       bootstrap-servers: localhost:9092
       topics:
-        posts-channel: posts
+        posts-created: post_created_topic
     redis:
       host: localhost
       port: 6379
