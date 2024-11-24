@@ -59,6 +59,10 @@ spring:
     topic:
       post-publisher: post_publisher
       comment-publisher: comment_publisher
+      cache:
+        ttl:
+          post: 86400
+
 
   servlet:
     multipart:
