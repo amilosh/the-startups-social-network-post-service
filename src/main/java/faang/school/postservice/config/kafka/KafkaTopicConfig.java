@@ -11,8 +11,15 @@ public class KafkaTopicConfig {
     @Value("${kafka.topics.post}")
     private String postTopic;
 
+    @Value("${kafka.topics.like}")
+    private String likeTopic;
+
     @Bean
     public NewTopic postsTopic() {
+        return new NewTopic(postTopic, 3, (short) 1);
+    }
+    @Bean
+    public NewTopic likesTopic() {
         return new NewTopic(postTopic, 3, (short) 1);
     }
 }
