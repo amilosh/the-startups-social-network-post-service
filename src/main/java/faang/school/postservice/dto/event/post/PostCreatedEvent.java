@@ -9,9 +9,8 @@ import java.util.List;
 @Getter
 @Builder
 @ToString
-public class PostCreateEvent {
-    private Long postId;
-    private Long authorId;
-    private Long userId;
-    private List<Long> subscribers;
+public class PostCreatedEvent {
+    private final Long postId;
+    private final Long authorId;
+    private final List<Long> subscribers;
 }
