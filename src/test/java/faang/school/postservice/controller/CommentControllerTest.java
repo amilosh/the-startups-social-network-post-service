@@ -3,7 +3,7 @@ package faang.school.postservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.service.comment.CommentService;
-import faang.school.postservice.utilities.UrlUtilsMy;
+import faang.school.postservice.utilities.UrlUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 public class CommentControllerTest {
-    private final static String mainUrl = UrlUtilsMy.MAIN_URL + UrlUtilsMy.V1 + UrlUtilsMy.COMMENT;
+    private final static String mainUrl = UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.COMMENT;
 
     private MockMvc mockMvc;
     @Mock
