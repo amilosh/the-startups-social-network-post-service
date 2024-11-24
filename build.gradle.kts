@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
     id("jacoco")
@@ -70,28 +71,61 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
 }
 
+val jacocoInclude = listOf(
+//  "**/controller/**",
+    "**/service/**",
+    "**/validator/**",
+//  "**/mapper/**"
+)
+
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.9"
+    reportsDirectory.set(layout.buildDirectory.dir("$buildDir/reports/jacoco"))
 }
 
 tasks.test {
     finalizedBy(tasks.jacocoTestReport)
+    finalizedBy(tasks.jacocoTestCoverageVerification)
+}
+
+tasks.build {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+
     reports {
-        xml.required.set(true)
+        xml.required.set(false)
         csv.required.set(false)
-        html.outputLocation.set(file("${buildDir}/jacocoHtml"))
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
     }
+
     classDirectories.setFrom(
-        fileTree(project.buildDir) {
-            include("**/post_service/service/**",
-                "**/post_service/validator/**",
-                "**/post_service/filter/**",
-                "**/post_service/controller/**")
+        sourceSets.main.get().output.asFileTree.matching {
+            include(jacocoInclude)
         }
     )
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+
+    violationRules {
+        rule {
+            element = "CLASS"
+            classDirectories.setFrom(
+                sourceSets.main.get().output.asFileTree.matching {
+                    include(jacocoInclude)
+                }
+            )
+            enabled = true
+            limit {
+                minimum = 0.7.toBigDecimal()
+            }
+        }
+    }
 }
 
 tasks.test {
