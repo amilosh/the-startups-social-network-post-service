@@ -12,9 +12,16 @@ public class KafkaConfig {
 
     @Value(value = "${spring.kafka.topic.post-publisher}")
     private String publishPostTopicName;
+    @Value(value = "${spring.kafka.topic.comment-publisher}")
+    private String publishCommentTopicName;
 
     @Bean
     public NewTopic publishPostTopic() {
         return new NewTopic(publishPostTopicName, 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic publishCommentTopic() {
+        return new NewTopic(publishCommentTopicName, 1, (short) 1);
     }
 }
