@@ -1,4 +1,4 @@
-package faang.school.postservice.config.kafka;
+package faang.school.postservice.properties.kafka;
 
 import lombok.Data;
 

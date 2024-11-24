@@ -14,9 +14,9 @@ spring:
       hibernate:
         format_sql: true
 
-  kafka:
-    bootstrap-servers: "localhost:29092"
-    pool-size: 3
+  kafka1:
+    bootstrap-servers: "localhost:9092"
+    pool-size: 1
     producer:
       transactional-id: "post-service-transaction-id"
       acks: all
@@ -29,10 +29,23 @@ spring:
       enable-auto-commit: false
       isolation-level: read_committed
     topics:
-      payment-authorization:
-        name: payment-authorization-topic
-        num-partitions: 5
-        replication-factor: 2
+      publish-post:
+        name: publish-post
+        num-partitions: 1
+        replication-factor: 1
+      likes:
+        name: like
+        num-partitions: 1
+        replication-factor: 1
+      comments:
+        name: comment
+        num-partitions: 1
+        replication-factor: 1
+      post-view:
+        name: post-view
+        num-partitions: 1
+        replication-factor: 1
+
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
@@ -78,3 +91,15 @@ services:
     accessKey: user
     secretKey: password
     bucketName: corpbucket
+
+cache:
+  post:
+    live-time: 86400
+  author:
+    live-time: 86400
+  comment:
+    live-time: 1
+    time-unit: DAYS
+    set-key: comment
+
+test: 10

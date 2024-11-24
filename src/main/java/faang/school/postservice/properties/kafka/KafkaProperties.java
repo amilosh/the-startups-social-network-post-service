@@ -1,4 +1,4 @@
-package faang.school.postservice.config.kafka;
+package faang.school.postservice.properties.kafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ConfigurationProperties("spring.kafka")
+@ConfigurationProperties("spring.kafka1")
 public class KafkaProperties {
     private String bootstrapServers;
     private int poolSize;

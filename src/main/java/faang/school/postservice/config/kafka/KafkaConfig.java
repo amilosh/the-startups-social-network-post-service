@@ -1,11 +1,19 @@
 package faang.school.postservice.config.kafka;
 
-import com.fasterxml.jackson.databind.ser.std.StringSerializer;
+
+import faang.school.postservice.properties.kafka.Consumer;
+import faang.school.postservice.properties.kafka.KafkaProperties;
+import faang.school.postservice.properties.kafka.Producer;
+import faang.school.postservice.properties.kafka.Topic;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -21,6 +29,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaConfig {
     private final KafkaProperties properties;
+    @PostConstruct
+    public void testKafkaConnection() {
+        try (AdminClient adminClient = AdminClient.create(Map.of(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getBootstrapServers()))) {
+            adminClient.describeCluster().nodes().get();
+            System.out.println("Kafka brokers are reachable!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Kafka brokers are not reachable. Please check configuration.");
+        }
+    }
+
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         Producer producer = properties.getProducer();
@@ -40,7 +60,7 @@ public class KafkaConfig {
     public KafkaTemplate<String, String> kafkaTemplate(ProducerFactory<String, String> producerFactory) {
         KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactory);
         template.setTransactionIdPrefix("payment-transaction-");
-        return new KafkaTemplate<>(producerFactory());
+        return template;
     }
 
     @Bean
@@ -59,13 +79,14 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(3); // Количество потоков
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // Ручное подтверждение
+        factory.setConcurrency(1);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         return factory;
     }
 
     @Bean
-    public NewTopic paymentStatusResetTopic() {
-        return new NewTopic("payment-status-reset", 3, (short) 1); // Имя, партиции, фактор репликации
+    public NewTopic publishPostTopic() {
+        Topic topic = properties.getTopics().get("publish-post");
+        return new NewTopic(topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor());
     }
 }
