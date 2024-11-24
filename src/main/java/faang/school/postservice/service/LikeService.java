@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -55,13 +56,14 @@ public class LikeService {
 
     private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
         return batch.stream()
-                .map(userId -> CompletableFuture.supplyAsync(() -> userServiceClient.getUser(userId))
+                .map(userId -> CompletableFuture.supplyAsync(() -> userServiceClient.getUsersByIds(Collections.singletonList(userId)))
                         .exceptionally(ex -> {
                             log.error("Error fetching user with ID {}: {}", userId, ex.getMessage(), ex);
                             return null;
                         }))
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
+                .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 }
