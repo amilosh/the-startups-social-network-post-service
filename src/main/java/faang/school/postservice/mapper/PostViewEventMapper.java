@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface PostViewEventMapper {
+public interface PostViewEventMapper extends DateTimeMapper {
     PostViewEventProto.PostViewEvent toProto(PostViewEvent postViewEvent);
 
     PostViewEvent toEvent(PostViewEventProto.PostViewEvent proto);
