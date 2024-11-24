@@ -9,17 +9,19 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.HashtagValidator;
 import faang.school.postservice.validator.PostValidator;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import jakarta.persistence.EntityNotFoundException;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -153,6 +155,7 @@ public class PostService {
     private void validateHashtags(List<String> hashtags) {
         if (hashtags != null) {
             for (String hashtag : hashtags) {
+                System.out.println(hashtag);
                 hashtagValidator.validateHashtag(hashtag);
             }
         }
@@ -163,10 +166,22 @@ public class PostService {
     }
     
     private Set<Hashtag> getAndCreateHashtags(List<String> hashtags) {
+//        Set<Hashtag> result = new HashSet<>();
+//        for (String tag : hashtags) {
+//            Hashtag hashtag = hashtagService.findByTag(tag)
+//                    .orElseGet(() -> hashtagService.create(tag));
+//            result.add(hashtag);
+//        }
+//        return result;
+
+        Map<String, Hashtag> existingHashtags = hashtagService.findAllByTags(hashtags)
+                .stream()
+                .collect(Collectors.toMap(Hashtag::getTag, Function.identity()));
+
         Set<Hashtag> result = new HashSet<>();
+
         for (String tag : hashtags) {
-            Hashtag hashtag = hashtagService.findByTag(tag)
-                    .orElseGet(() -> hashtagService.create(tag));
+            Hashtag hashtag = existingHashtags.computeIfAbsent(tag, hashtagService::create);
             result.add(hashtag);
         }
         return result;

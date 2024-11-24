@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,5 +32,9 @@ public class HashtagService {
 
     public Optional<Hashtag> findByTag(String tag) {
         return hashtagRepository.findByTag(tag);
+    }
+
+    public List<Hashtag> findAllByTags(List<String> hashtags) {
+        return hashtagRepository.findAllByTagIn(hashtags);
     }
 }
