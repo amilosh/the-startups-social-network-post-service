@@ -10,12 +10,12 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Set;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class NewsFeedRepository {

@@ -17,5 +17,8 @@ import java.util.List;
 @ToString
 public class PostPublishMessage {
     private Long postId;
-    private List<Long> followersId;
+    private List<Long> followerIds;
+
+    @Builder.Default
+    private Long timestamp = System.currentTimeMillis();
 }

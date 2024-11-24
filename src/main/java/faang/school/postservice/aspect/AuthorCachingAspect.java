@@ -39,6 +39,5 @@ public class AuthorCachingAspect {
 
         userRedisRepository.save(userCache);
         log.info("Cache post author: {}", userCache);
-        log.info("Author is cached? {}", userRedisRepository.existsById(authorId));
     }
 }
