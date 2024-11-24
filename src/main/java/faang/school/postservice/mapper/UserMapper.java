@@ -13,11 +13,12 @@ public abstract class UserMapper {
     @Value("${feed.cache.user.time-to-live-in-seconds}")
     private long timeToLive;
 
+
     @Mapping(target = "timeToLive", source = "id", qualifiedByName = "getTimeToLive")
     public abstract CacheableUser toCacheable(User user);
 
     @Named("getTimeToLive")
-    private long getTimeToLive(long id) {
+    protected long getTimeToLive(Long id) {
         return timeToLive;
     }
 }
