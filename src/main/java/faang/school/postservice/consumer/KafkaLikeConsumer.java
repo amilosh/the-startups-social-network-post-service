@@ -6,6 +6,7 @@ import faang.school.postservice.mapper.LikePostEventMapper;
 import faang.school.postservice.protobuf.generate.LikePostEventProto;
 import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,6 +16,7 @@ public class KafkaLikeConsumer implements KafkaConsumer<byte[]> {
     private final LikePostEventMapper likePostEventMapper;
 
     @Override
+    @KafkaListener(topics = {"${spring.kafka.topics.likes.name}"}, groupId = "first")
     public void processEvent(byte[] message) throws InvalidProtocolBufferException {
         LikePostEvent event = likePostEventMapper.toEvent(
                 LikePostEventProto.LikePostEvent.parseFrom(message)
