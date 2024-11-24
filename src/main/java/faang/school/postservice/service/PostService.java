@@ -50,6 +50,7 @@ public class PostService {
         if (existingPost.isPublished()) {
             throw new PostRequirementsException("This post is already published");
         }
+
         publish(existingPost);
         return postRepository.save(existingPost);
     }
