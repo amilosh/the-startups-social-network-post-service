@@ -116,6 +116,12 @@ redis:
     ad_bought: ad_bought_channel
     user_ban: user_ban_channel
     comment_channel: comment_channel
+  feed:
+    comment:
+      max-size: 3
+    ttl:
+      post: 86400
+      user: 86400
 
 kafka:
   batch-size:

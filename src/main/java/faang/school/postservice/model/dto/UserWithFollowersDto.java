@@ -1,6 +1,5 @@
 package faang.school.postservice.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserWithFollowersDto {
-    private Long id;
+    private Long userId;
     private String username;
     private String fileId;
     private String smallFileId;
-    private LocalDateTime createdAt;
+    private LocalDateTime postCreatedAt;
     private List<Long> followerIds;
 }

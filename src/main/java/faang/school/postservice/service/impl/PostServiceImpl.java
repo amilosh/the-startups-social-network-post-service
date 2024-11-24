@@ -5,12 +5,13 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.kafka.producer.PostProducer;
+import faang.school.postservice.mapper.RedisPostDtoMapper;
 import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.mapper.UserWithFollowersMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.ProjectDto;
 import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.dto.UserWithFollowersDto;
-import faang.school.postservice.model.dto.kafka.KafkaPostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
@@ -18,9 +19,12 @@ import faang.school.postservice.model.event.kafka.PostCreatedEvent;
 import faang.school.postservice.redis.publisher.NewPostPublisher;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserShortInfoRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
+import faang.school.postservice.service.RedisPostService;
+import faang.school.postservice.service.RedisUserService;
 import faang.school.postservice.util.moderation.ModerationDictionary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +72,11 @@ public class PostServiceImpl implements PostService {
     private final UserContext userContext;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PostProducer postProducer;
+    private final UserShortInfoRepository userShortInfoRepository;
+    private final RedisUserService redisUserService;
+    private final UserWithFollowersMapper userWithFollowersMapper;
+    private final RedisPostDtoMapper redisPostDtoMapper;
+    private final RedisPostService redisPostService;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -110,16 +119,18 @@ public class PostServiceImpl implements PostService {
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-        postRepository.save(post);
 
-        PostDto postDto = postMapper.toPostDto(post);
+        log.debug("Saving author of post (user with id = {}) in DB and Redis", post.getAuthorId());
         UserWithFollowersDto userWithFollowers = userServiceClient.getUserWithFollowers(post.getAuthorId());
-        KafkaPostDto kafkaPostDto = new KafkaPostDto(
-                postDto.getAuthorId(),
-                postDto.getAuthorType(),
-                postDto.getContent(),
-                postDto.getCreatedAt());
-        PostCreatedEvent postCreatedEvent = new PostCreatedEvent(kafkaPostDto, userWithFollowers.getFollowerIds());
+        userShortInfoRepository.save(userWithFollowersMapper.toUserShortInfo(userWithFollowers));
+        redisUserService.saveUserIfNotExists(userWithFollowersMapper.toRedisUserDto(userWithFollowers));
+
+        log.debug("Saving post with id = {} in DB and Redis", post.getId());
+        Post savedPost = postRepository.save(post);
+        PostDto postDto = postMapper.toPostDto(savedPost);
+        redisPostService.savePostIfNotExists(redisPostDtoMapper.mapToRedisPostDto(postDto));
+
+        PostCreatedEvent postCreatedEvent = new PostCreatedEvent(postDto.getId(), userWithFollowers.getFollowerIds());
         applicationEventPublisher.publishEvent(postCreatedEvent);
         return postDto;
     }
@@ -132,11 +143,9 @@ public class PostServiceImpl implements PostService {
             return;
         }
 
-        KafkaPostDto kafkaPostDto = postCreatedEvent.getKafkaPostDto();
-
         for (int indexFrom = 0; indexFrom < followerIds.size(); indexFrom += followerBatchSize) {
             int indexTo = Math.min(indexFrom + followerBatchSize, followerIds.size());
-            PostCreatedEvent subEvent = new PostCreatedEvent(kafkaPostDto, followerIds.subList(indexFrom, indexTo));
+            PostCreatedEvent subEvent = new PostCreatedEvent(postCreatedEvent.getPostId(), followerIds.subList(indexFrom, indexTo));
             postProducer.sendEvent(subEvent);
         }
     }
@@ -165,7 +174,6 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostDto getPost(Long id) {
         Post post = getPostById(id);
-        System.out.println("yyyyyyyyyyy");
         postViewPublisher.publish(createPostViewEvent(post));
         return postMapper.toPostDto(post);
     }
