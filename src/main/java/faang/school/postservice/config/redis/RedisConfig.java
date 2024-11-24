@@ -3,6 +3,7 @@ package faang.school.postservice.config.redis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.event.LikeEvent;
 import faang.school.postservice.dto.event.PostViewEvent;
+import faang.school.postservice.dto.redis.cache.PostCacheDto;
 import faang.school.postservice.dto.redis.event.CommentEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,12 +12,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableRedisRepositories
 public class RedisConfig {
     private final ObjectMapper objectMapper;
 
@@ -31,6 +34,16 @@ public class RedisConfig {
         template.setConnectionFactory(jedisConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new Jackson2JsonRedisSerializer<>(LikeEvent.class));
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, PostCacheDto> postCacheRedisTemplate() {
+        RedisTemplate<String, PostCacheDto> template = new RedisTemplate<>();
+        template.setConnectionFactory(jedisConnectionFactory());
+        template.setEnableTransactionSupport(true);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(PostCacheDto.class));
         return template;
     }
 
