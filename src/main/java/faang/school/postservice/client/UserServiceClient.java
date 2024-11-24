@@ -25,6 +25,9 @@ public interface UserServiceClient {
     @PostMapping("/subscriptions/{followeeId}/followers")
     List<UserResponseShortDto> getFollowers(@PathVariable long followeeId, @RequestBody UserExtendedFilterDto filter);
 
+    @GetMapping("/subscriptions/{followeeId}/followerIds")
+    List<Long> getFollowerIds(@PathVariable long followeeId);
+
     @PostMapping("/users/active")
     List<Long> getOnlyActiveUsersFromList(@RequestBody List<Long> ids);
 

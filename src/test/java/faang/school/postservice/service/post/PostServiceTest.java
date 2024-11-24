@@ -12,6 +12,7 @@ import faang.school.postservice.exception.spelling_corrector.RepeatableServiceEx
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
@@ -99,6 +100,8 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostCacheService postCacheService;
+    @Mock
+    private KafkaPostProducer kafkaPostProducer;
     @Captor
     private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks
@@ -218,7 +221,7 @@ public class PostServiceTest {
 
         Post result = postService.publish(foundPost.getId());
 
-        verify(postRepository).save(any(Post.class));
+        verify(postRepository).saveAndFlush(any(Post.class));
 
         assertTrue(result.isPublished());
         assertNotNull(result.getPublishedAt());

@@ -13,6 +13,7 @@ import faang.school.postservice.exception.spelling_corrector.RepeatableServiceEx
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
@@ -59,6 +60,7 @@ public class PostService {
     private final PostCacheProcessExecutor postCacheProcessExecutor;
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
+    private final KafkaPostProducer kafkaPostProducer;
 
     @Transactional
     @SendPostCreatedEvent
@@ -87,8 +89,9 @@ public class PostService {
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
         postHashTagParser.updateHashTags(post);
-        postRepository.save(post);
+        postRepository.saveAndFlush(post);
 
+        kafkaPostProducer.sendPostEvent(post);
         postCacheProcessExecutor.executeNewPostProcess(postMapper.toPostCacheDto(post));
 
         return post;
