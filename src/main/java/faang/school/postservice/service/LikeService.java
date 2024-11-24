@@ -56,14 +56,13 @@ public class LikeService {
 
     private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
         return batch.stream()
-                .map(userId -> CompletableFuture.supplyAsync(() -> userServiceClient.getUsersByIds(Collections.singletonList(userId)))
+                .map(userId -> CompletableFuture.supplyAsync(() -> userServiceClient.getUser(userId))
                         .exceptionally(ex -> {
                             log.error("Error fetching user with ID {}: {}", userId, ex.getMessage(), ex);
                             return null;
                         }))
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
-                .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 }
