@@ -78,7 +78,7 @@ class AlbumServiceTests {
         albumDto.setId(1L);
         post = new Post();
         post.setId(1L);
-        UserDto userDto = new UserDto(1L, "v", "@");
+        userDto = new UserDto(1L, "v", "@");
         albumFilterDto = new AlbumFilterDto();
 
         albumService = new AlbumService(
@@ -117,7 +117,7 @@ class AlbumServiceTests {
         when(albumRepository.save(any(Album.class))).thenReturn(album);
         when(postService.getPost(anyLong())).thenReturn(new Post());
         when(albumRepository.findById(anyLong())).thenReturn(Optional.of(album));
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         AlbumDto result = albumService.addPostToAlbum(1L, 1L, 1L);
 
         assertNotNull(result);
@@ -139,7 +139,7 @@ class AlbumServiceTests {
         doThrow(new RuntimeException("Database error")).when(albumRepository).save(any(Album.class));
         when(postService.getPost(anyLong())).thenReturn(new Post());
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
 
         assertThrows(RuntimeException.class, () -> albumService.addPostToAlbum(1L, 1L, 1L));
     }
@@ -153,14 +153,14 @@ class AlbumServiceTests {
         when(albumRepository.save(any(Album.class))).thenReturn(album);
         when(postService.getPost(anyLong())).thenReturn(new Post());
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
 
         assertThrows(EntityNotFoundException.class, () -> albumService.addPostToAlbum(1L, 1L, 1L));
     }
 
     @Test
     void testAddToFavorites() {
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         albumService.addToFavorites(1L, 1L);
 
         verify(albumRepository, times(1)).addAlbumToFavorites(anyLong(), anyLong());
@@ -168,7 +168,7 @@ class AlbumServiceTests {
 
     @Test
     void testAddToFavoritesException() {
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         doThrow(new RuntimeException("Database error")).when(albumRepository).addAlbumToFavorites(anyLong(), anyLong());
 
         assertThrows(RuntimeException.class, () -> albumService.addToFavorites(1L, 1L));
@@ -176,7 +176,7 @@ class AlbumServiceTests {
 
     @Test
     void testRemoveFromFavorites() {
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         albumService.removeFromFavorites(1L, 1L);
 
         verify(albumRepository, times(1)).deleteAlbumFromFavorites(anyLong(), anyLong());
@@ -204,7 +204,7 @@ class AlbumServiceTests {
     void testGetAlbums() {
         prepareDtoWithTitleAndDescription();
         prepareAlbumEntity();
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
 
@@ -221,11 +221,14 @@ class AlbumServiceTests {
 
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getAlbumsWithFilter(1L, albumFilterDto);
 
-        assertTrue(result.isEmpty());
+        assertFalse(result.isEmpty());
         verify(albumRepository, times(1)).findByAuthorId(1L);
+        assertEquals(albumDto.getTitle(), result.get(0).getTitle());
+        assertEquals(albumDto.getDescription(), result.get(0).getDescription());
+        assertEquals(albumDto.getCreatedAt(), result.get(0).getCreatedAt());
     }
 
     @Test
@@ -238,7 +241,7 @@ class AlbumServiceTests {
 
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getAlbumsWithFilter(1L, albumFilterDto);
 
         assertFalse(result.isEmpty());
@@ -258,7 +261,7 @@ class AlbumServiceTests {
 
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getAlbumsWithFilter(1L, albumFilterDto);
 
         verify(albumRepository, times(1)).findByAuthorId(1L);
@@ -267,16 +270,33 @@ class AlbumServiceTests {
     }
 
     @Test
-    void testGetAlbumsWithDateFilter() {
+    void testGetAlbumsWithOtherTitleFilterPattern() {
         prepareDtoWithTitleAndDescription();
         prepareAlbumEntity();
         LocalDateTime dateTime = LocalDateTime.now();
         album.setCreatedAt(dateTime.plusDays(1));
-        albumFilterDto = new AlbumFilterDto(null, dateTime);
+        albumFilterDto = new AlbumFilterDto("Wrong", null);
 
         when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
+        List<AlbumDto> result = albumService.getAlbumsWithFilter(1L, albumFilterDto);
+
+        assertTrue(result.isEmpty());
+        verify(albumRepository, times(1)).findByAuthorId(1L);
+    }
+
+    @Test
+    void testGetAlbumsWithFilter() {
+        prepareDtoWithTitleAndDescription();
+        prepareAlbumEntity();
+        LocalDateTime dateTime = LocalDateTime.now();
+        album.setCreatedAt(dateTime.plusDays(1));
+        albumFilterDto = new AlbumFilterDto("Title", dateTime);
+
+        when(albumRepository.findByAuthorId(anyLong())).thenReturn(Stream.of(album));
+        when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getAlbumsWithFilter(1L, albumFilterDto);
 
         verify(albumRepository, times(1)).findByAuthorId(1L);
@@ -292,7 +312,8 @@ class AlbumServiceTests {
         when(albumRepository.findAll()).thenReturn(List.of(album));
         List<AlbumDto> result = albumService.getAllAlbumsWithFilter(albumFilterDto);
 
-        assertTrue(result.isEmpty());
+        assertEquals(albumDto.getTitle(), result.get(0).getTitle());
+        assertEquals(albumDto.getCreatedAt(), result.get(0).getCreatedAt());
         verify(albumRepository, times(1)).findAll();
     }
 
@@ -335,7 +356,7 @@ class AlbumServiceTests {
         prepareAlbumEntity();
         LocalDateTime dateTime = LocalDateTime.now();
         album.setCreatedAt(dateTime.plusDays(1));
-        albumFilterDto = new AlbumFilterDto(null, dateTime);
+        albumFilterDto = new AlbumFilterDto("Title", dateTime);
 
         when(albumRepository.findAll()).thenReturn(List.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
@@ -352,7 +373,7 @@ class AlbumServiceTests {
         prepareAlbumEntity();
         LocalDateTime dateTime = LocalDateTime.now();
         album.setCreatedAt(dateTime.minusDays(1));
-        albumFilterDto = new AlbumFilterDto(null, dateTime);
+        albumFilterDto = new AlbumFilterDto("Title", dateTime);
 
         when(albumRepository.findAll()).thenReturn(List.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
@@ -386,7 +407,7 @@ class AlbumServiceTests {
 
         when(albumRepository.findFavoriteAlbumsByUserId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getFavoriteFilteredAlbums(1L, albumFilterDto);
 
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(anyLong());
@@ -402,7 +423,7 @@ class AlbumServiceTests {
 
         when(albumRepository.findFavoriteAlbumsByUserId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getFavoriteFilteredAlbums(1L, albumFilterDto);
 
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(anyLong());
@@ -420,7 +441,7 @@ class AlbumServiceTests {
 
         when(albumRepository.findFavoriteAlbumsByUserId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getFavoriteFilteredAlbums(1L, albumFilterDto);
 
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(anyLong());
@@ -438,7 +459,7 @@ class AlbumServiceTests {
 
         when(albumRepository.findFavoriteAlbumsByUserId(anyLong())).thenReturn(Stream.of(album));
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
-        when(userServiceClient.getUser(anyLong())).thenReturn(userDto);
+        when(userServiceClient.getUserById(anyLong())).thenReturn(userDto);
         List<AlbumDto> result = albumService.getFavoriteFilteredAlbums(1L, albumFilterDto);
 
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(anyLong());

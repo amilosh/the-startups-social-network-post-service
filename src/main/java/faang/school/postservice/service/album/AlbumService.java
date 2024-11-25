@@ -112,12 +112,14 @@ public class AlbumService {
     }
 
     private void validateUserExist(Long id) {
-        userServiceClient.getUser(id);
+        userServiceClient.getUserById(id);
     }
 
     private Stream<Album> filteredStream(Stream<Album> albums, AlbumFilterDto albumFilterDto) {
         return albumFilters.stream()
                 .filter(filter -> filter.isApplicable(albumFilterDto))
-                .flatMap(albumFilter -> albumFilter.apply(albums, albumFilterDto));
+                .reduce(albums,
+                        (stream, filter) -> filter.apply(stream, albumFilterDto),
+                        (s1, s2) -> s1);
     }
 }
