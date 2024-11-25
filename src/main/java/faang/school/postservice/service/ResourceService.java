@@ -9,6 +9,7 @@ import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.s3.S3ServiceImpl;
 import faang.school.postservice.utilities.ImageResizer;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,38 +45,20 @@ public class ResourceService {
         checkAndResizeImage(image);
         checkImagesCountForPost(postId);
 
-        String folder = "Post_id_" + post.getId();
+        String folder = "Post" + postId;
         Resource resource = s3Service.uploadFile(image, folder);
         resource.setPost(post);
         resourceRepository.save(resource);
 
-        post.getResources().add(resource);
-        postRepository.save(post);
-
         return resourceMapper.toDto(resource);
     }
 
-    private Post checkPostExist(Long postId) {
-        return postRepository.findById(postId).
-                orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
-    }
-
-    private void checkImagesCountForPost(Long postId) {
-        if (resourceRepository.countImagesForPostById(postId) > maxCountImagesForPost) {
-            log.error("One post can has {} images, not more  postId={}", maxCountImagesForPost, postId);
-            throw new IllegalArgumentException(String.format("One post can has %d images, not more  postId=%d", maxCountImagesForPost, postId));
-        }
-    }
-
-    public long deletePostImageByKey(Long postId, String key) {
-        Post post = checkPostExist(postId);
-
-        s3Service.deleteFile(key);
+    @Transactional
+    public long deletePostImageByKey(String key) {
         Resource resource = resourceRepository.findByKey(key);
         resourceRepository.deleteByKey(key);
-        post.getResources().remove(resource);
-        postRepository.save(post);
 
+        s3Service.deleteFile(key);
         return resource.getId();
     }
 
@@ -102,20 +85,16 @@ public class ResourceService {
         return bytesList;
     }
 
+    @Transactional
     public List<Long> deleteAllPostImages(Long postId) {
-        Post post = checkPostExist(postId);
         List<String> allKeys = resourceRepository.getAllKeysForPost(postId);
-        allKeys.forEach(s3Service::deleteFile);
-
-        List<Resource> listResource = allKeys
-                .stream()
-                .map(resourceRepository::findByKey)
-                .toList();
-        resourceRepository.getAllKeysForPost(postId);
-        post.getResources().removeAll(listResource);
-        postRepository.save(post);
-
-        return listResource.stream().map(Resource::getId).toList();
+        List<Long> listIdResources = new ArrayList<>();
+        if (!allKeys.isEmpty()) {
+            listIdResources = allKeys.stream().map(key -> resourceRepository.findByKey(key).getId()).toList();
+            allKeys.forEach(resourceRepository::deleteByKey);
+            allKeys.forEach(s3Service::deleteFile);
+        }
+        return listIdResources;
     }
 
     private void checkAndResizeImage(MultipartFile image) {
@@ -151,4 +130,18 @@ public class ResourceService {
             throw new IllegalArgumentException("The image size must not exceed 5MB.");
         }
     }
+
+
+    private Post checkPostExist(Long postId) {
+        return postRepository.findById(postId).
+                orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
+    }
+
+    private void checkImagesCountForPost(Long postId) {
+        if (resourceRepository.countImagesForPostById(postId) > maxCountImagesForPost) {
+            log.error("One post can has {} images, not more  postId={}", maxCountImagesForPost, postId);
+            throw new IllegalArgumentException(String.format("One post can has %d images, not more  postId=%d", maxCountImagesForPost, postId));
+        }
+    }
+
 }

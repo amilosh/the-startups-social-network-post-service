@@ -32,20 +32,20 @@ public class ResourceController {
         return ResponseEntity.ok().body(resourceDto);
     }
 
-    @DeleteMapping(UrlUtils.ID)
-    public ResponseEntity<Long> deleteImageByKey(@PathVariable("id") @Min(1) Long postId, @RequestParam @NotBlank String key) {
-        Long idImage = resourceService.deletePostImageByKey(postId, key);
+    @DeleteMapping
+    public ResponseEntity<Long> deleteImageByKey(@RequestParam @NotBlank String key) {
+        Long idImage = resourceService.deletePostImageByKey(key);
         return ResponseEntity.ok().body(idImage);
     }
 
-    @GetMapping
-    public ResponseEntity<byte[]> getImageByKey(@RequestParam @NotBlank String key) {
+    @GetMapping(UrlUtils.ID)
+    public ResponseEntity<byte[]> getImageByKey(@PathVariable("id") @Min(1) Long postId, @RequestParam @NotBlank String key) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_JPEG_VALUE)
                 .body(resourceService.getImageByKey(key));
     }
 
-    @GetMapping
+    @GetMapping(UrlUtils.ID + UrlUtils.ALL)
     public List<ResponseEntity<byte[]>> getAllImagesByPostId(@PathVariable("id") @Min(1) Long postId) {
         List<byte[]> images = resourceService.getAllImagesByPostId(postId);
         return images.stream()
@@ -55,7 +55,7 @@ public class ResourceController {
                 .toList();
     }
 
-    @DeleteMapping(UrlUtils.ID)
+    @DeleteMapping(UrlUtils.ID + UrlUtils.ALL)
     public ResponseEntity<List<Long>> deleteAllImageByPostId(@PathVariable("id") @Min(1) Long postId) {
         List<Long> idImages = resourceService.deleteAllPostImages(postId);
         return ResponseEntity.ok().body(idImages);

@@ -14,4 +14,5 @@ public class UrlUtils {
     public static final String PUBLISHED = "/published";
     public static final String RESOURCE = "/resource";
     public static final String ADD = "/add";
+    public static final String ALL = "/all";
 }
