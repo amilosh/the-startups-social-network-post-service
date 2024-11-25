@@ -13,9 +13,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class FeedHeaterImpl implements FeedHeater {
-    @Value("${feed.cache.count}")
-    private int countOfPosts;
-
     @Value("${feed.heater.batch-size}")
     private int batchSize;
 
