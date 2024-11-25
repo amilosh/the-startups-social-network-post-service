@@ -1,7 +1,7 @@
 package faang.school.postservice.controller;
 
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.dto.post.PostFeedResponseDto;
+import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.service.feed.FeedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

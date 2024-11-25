@@ -1,6 +1,6 @@
 package faang.school.postservice.kafka;
 
-import faang.school.postservice.dto.post.PostFeedResponseDto;
+import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.kafka.dto.PostViewKafkaDto;
 import faang.school.postservice.model.Post;
 import lombok.RequiredArgsConstructor;

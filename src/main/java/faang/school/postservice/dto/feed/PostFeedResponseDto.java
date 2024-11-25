@@ -1,6 +1,5 @@
-package faang.school.postservice.dto.post;
+package faang.school.postservice.dto.feed;
 
-import faang.school.postservice.dto.comment.CommentFeedResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,8 +16,8 @@ import java.util.List;
 public class PostFeedResponseDto {
     private Long id;
     private String content;
-    private Long authorId;
     private Integer likes;
     private Integer views;
-    List<CommentFeedResponseDto> comments;
+    private UserFeedResponseDto author;
+    private List<CommentFeedResponseDto> comments;
 }

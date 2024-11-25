@@ -9,7 +9,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -107,6 +107,8 @@ app:
     redis-publisher-async-pool:
       core_pool_size: 10
       max_pool_size: 10
+  service-user:
+    id: 12
 
 springdoc:
   api-docs:

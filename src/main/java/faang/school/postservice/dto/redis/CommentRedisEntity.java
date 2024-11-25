@@ -9,20 +9,17 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash(value = "PostRedisEntity", timeToLive = 60 * 24)
-public class PostRedisEntity implements Serializable {
+@RedisHash(value = "CommentRedisEntity", timeToLive = 60 * 24)
+public class CommentRedisEntity implements Serializable {
     @Id
     private Long id;
     private String content;
-    private Long authorId;
     private Integer likes;
-    private Integer views;
-    private List<Long> comments;
+    private long authorId;
 }

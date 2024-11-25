@@ -2,7 +2,6 @@ package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.post.CreatePostRequestDto;
 import faang.school.postservice.dto.post.FilterPostRequestDto;
-import faang.school.postservice.dto.post.PostFeedResponseDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.UpdatePostRequestDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
@@ -64,13 +63,10 @@ public interface PostMapper {
 
     @Mapping(target = "likes", source = "likes", qualifiedByName = "mapPostLikesToNumber")
     @Mapping(target = "views", constant = "0")
+    @Mapping(target = "comments", source = "comments", qualifiedByName = "mapPostCommentsToList")
     PostRedisEntity mapToPostRedisDto(Post post);
 
     List<PostRedisEntity> mapToPostRedisDtos(List<Post> posts);
-
-    PostFeedResponseDto toPostFeedResponseDto(PostRedisEntity postRedisEntity);
-
-    List<PostFeedResponseDto> toPostFeedResponseDto(List<PostRedisEntity> postRedisEntity);
 
     @Named("mapLikes")
     default List<Long> mapLikes(List<Like> likes) {
@@ -110,5 +106,13 @@ public interface PostMapper {
             return 0;
         }
         return likes.size();
+    }
+
+    @Named("mapPostCommentsToList")
+    default List<Long> mapPostCommentsToList(List<Comment> comments) {
+        if (comments == null) {
+            return new ArrayList<>();
+        }
+        return comments.stream().map(c -> c.getId()).toList();
     }
 }

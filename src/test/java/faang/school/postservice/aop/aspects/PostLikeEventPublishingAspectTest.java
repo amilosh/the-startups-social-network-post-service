@@ -26,8 +26,6 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -70,7 +68,7 @@ public class PostLikeEventPublishingAspectTest extends TestContainersConfig {
         Long userId = 1L;
         Long postId = 1L;
         when(userContext.getUserId()).thenReturn(userId);
-        when(userServiceClient.getUser(userId)).thenReturn(new UserDto(userId, "username", "email", List.of()));
+        when(userServiceClient.getUser(userId)).thenReturn(new UserDto(userId, "username", "email"));
         Like like = likeService.createPostLike(postId);
 
         try {

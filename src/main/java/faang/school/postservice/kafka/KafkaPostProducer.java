@@ -1,7 +1,8 @@
 package faang.school.postservice.kafka;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.dto.user.UserExtendedFilterDto;
+import faang.school.postservice.dto.user.UserResponseShortDto;
 import faang.school.postservice.kafka.dto.PostKafkaDto;
 import faang.school.postservice.model.Post;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,8 @@ public class KafkaPostProducer {
 
     private PostKafkaDto build(Post post) {
         Long authorId = post.getAuthorId();
-        UserDto userDto = userServiceClient.getUser(authorId);
-        List<Long> followerIds = userDto.getFollowerIds();
+        List<Long> followerIds = userServiceClient.getFollowers(authorId, new UserExtendedFilterDto()).stream()
+                .map(UserResponseShortDto::getId).toList();
         return PostKafkaDto.builder()
                 .postId(post.getId())
                 .followerIds(followerIds)

@@ -1,10 +1,10 @@
 package faang.school.postservice.service.feed;
 
 import faang.school.postservice.annotations.SendPostViewEventToKafka;
-import faang.school.postservice.dto.post.PostFeedResponseDto;
+import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.kafka.dto.PostKafkaDto;
-import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.mapper.feed.FeedMapper;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +28,7 @@ public class FeedService {
 
     private final ZSetOperations<String, Long> feedZSetOperations;
     private final PostService postService;
-    private final PostMapper postMapper;
+    private final FeedMapper feedMapper;
 
     @SendPostViewEventToKafka(value = List.class, elementType = PostFeedResponseDto.class)
     public List<PostFeedResponseDto> getFeed(long userId, Long postId) {
@@ -52,8 +52,9 @@ public class FeedService {
 
         Set<Long> postIds = feedZSetOperations.range(key, start, end);
         List<PostRedisEntity> posts = postService.getRedisPostsById(postIds);
-        return postMapper.toPostFeedResponseDto(posts);
+        return feedMapper.map(posts);
     }
+
 
     public void addFeed(PostKafkaDto postKafkaDto) {
         Long postId = postKafkaDto.getPostId();

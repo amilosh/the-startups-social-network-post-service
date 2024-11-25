@@ -5,7 +5,7 @@ import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
 import faang.school.postservice.annotations.SendPostViewEventToKafka;
 import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.dto.redis.CommentRedisDto;
+import faang.school.postservice.dto.redis.CommentRedisEntity;
 import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
@@ -21,6 +21,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
+import faang.school.postservice.repository.redis.CommentRedisRepository;
 import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
@@ -74,12 +75,13 @@ public class PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final RedisTemplate<String, Object> commonRedisTemplate;
     private final UserCacheService userCacheService;
+    private final CommentRedisRepository commentRedisRepository;
 
     @Transactional
     @SendPostCreatedEvent
     public Post create(Post post) {
         log.info("Create post with id: {}", post.getId());
-//        postValidator.validateCreatePost(post);
+        postValidator.validateCreatePost(post);
 
         post.setPublished(false);
         post.setDeleted(false);
@@ -291,8 +293,8 @@ public class PostService {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
         });
-//        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
-//        userCacheService.saveAllToRedisRepository(authorIds);
+        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
+        userCacheService.saveAllToRedisRepository(authorIds);
         postRepository.saveAll(postList);
 
         List<PostRedisEntity> postDtos = postMapper.mapToPostRedisDtos(postList);
@@ -318,14 +320,8 @@ public class PostService {
     }
 
     public void changeCommentLike(Long postId, Long commentId, LikeAction likeAction) {
-        PostRedisEntity postRedisEntity = postRedisRepository.findById(postId).orElse(new PostRedisEntity());
-        CommentRedisDto comment = postRedisEntity.getComments().stream()
-                .filter(c -> c.getCommentId().equals(commentId))
-                .findFirst()
-                .orElse(null);
         int delta = likeAction == LikeAction.ADD ? 1 : -1;
-        comment.setLikes(comment.getLikes() + delta);
-        postRedisRepository.save(postRedisEntity);
+        commonRedisTemplate.opsForHash().increment("CommentRedisEntity:" + commentId, "likes", delta);
     }
 
     public void addCommentToPost(CommentCreatedKafkaDto commentCreatedKafkaDto) {
@@ -334,16 +330,24 @@ public class PostService {
         String content = commentCreatedKafkaDto.getContent();
         long authorId = commentCreatedKafkaDto.getAuthorId();
 
+        CommentRedisEntity commentRedisEntity = CommentRedisEntity.builder()
+                .id(commentId)
+                .content(content)
+                .likes(0)
+                .authorId(authorId)
+                .build();
+
+        commentRedisRepository.save(commentRedisEntity);
+
         PostRedisEntity postRedisEntity = postRedisRepository.findById(postId).orElse(new PostRedisEntity());
-        List<CommentRedisDto> comments = postRedisEntity.getComments();
+        List<Long> comments = postRedisEntity.getComments();
         if (comments == null) {
             comments = new ArrayList<>();
         }
         if (comments.size() >= 3) {
             comments.remove(0);
         }
-        CommentRedisDto newComment = new CommentRedisDto(commentId, content, authorId, 0);
-        comments.add(newComment);
+        comments.add(commentId);
 
         postRedisEntity.setComments(comments);
         postRedisRepository.save(postRedisEntity);

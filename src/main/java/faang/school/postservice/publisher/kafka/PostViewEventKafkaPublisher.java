@@ -1,7 +1,7 @@
 package faang.school.postservice.publisher.kafka;
 
 import faang.school.postservice.annotations.SendPostViewEventToKafka;
-import faang.school.postservice.dto.post.PostFeedResponseDto;
+import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.kafka.KafkaPostViewProducer;
 import faang.school.postservice.model.Post;
 import lombok.RequiredArgsConstructor;
