@@ -26,6 +26,10 @@ spring:
         comment_channel: comment_channel
         like_channel: like_channel
 
+    kafka:
+      bootstrap-servers: localhost:29092
+      topics:
+        posts-channel: posts
 
 server:
   port: 8081
@@ -63,3 +67,7 @@ redis:
   pubsub:
     topics:
       like-event
+
+cache:
+  post:
+    live-time: 86400

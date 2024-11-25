@@ -5,7 +5,7 @@ import faang.school.postservice.exception.FileException;
 import faang.school.postservice.mapper.ResourceMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
-import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.post.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.s3.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -140,7 +140,7 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     private MultipartFile convertBufferedImageToMultipartFile(BufferedImage image, String originalFilename, String contentType) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             ImageIO.write(image, "jpg", baos);
             baos.flush();
 
