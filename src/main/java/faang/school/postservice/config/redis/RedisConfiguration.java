@@ -53,7 +53,10 @@ public class RedisConfiguration {
 
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
-        return new JedisConnectionFactory();
+        JedisConnectionFactory factory = new JedisConnectionFactory();
+        factory.setHostName(redisProperties.getHost());
+        factory.setPort(redisProperties.getPort());
+        return factory;
     }
 
     @Bean
@@ -69,7 +72,7 @@ public class RedisConfiguration {
     public RedisCacheConfiguration cacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
-                .entryTtl(Duration.ofSeconds(redisProperties.getPostTtl()))
+                .entryTtl(Duration.ofDays(redisProperties.getPostTtl()))
                 .serializeValuesWith(RedisSerializationContext
                         .SerializationPair
                         .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
