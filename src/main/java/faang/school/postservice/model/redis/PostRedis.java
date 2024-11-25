@@ -29,18 +29,4 @@ public class PostRedis implements Serializable {
     @Value("${cache.post.live-time}")
     private long timeToLive;
 
-//    public PostRedis(Long id, String content, Long authorId, Long projectId, Long countLikes,
-//                     LocalDateTime createdAt, LocalDateTime publishedAt, LocalDateTime updatedAt,
-//                     @Value("${cache.post.live-time}") long timeToLive) {
-//        this.id = id;
-//        this.content = content;
-//        this.authorId = authorId;
-//        this.projectId = projectId;
-//        this.countLikes = countLikes;
-//        this.createdAt = createdAt;
-//        this.publishedAt = publishedAt;
-//        this.updatedAt = updatedAt;
-//        this.timeToLive = timeToLive;
-//    }
-
 }
