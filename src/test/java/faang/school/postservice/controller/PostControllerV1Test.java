@@ -56,7 +56,7 @@ public class PostControllerV1Test {
                 .andExpect(jsonPath("$.authorId").value(1L))
                 .andExpect(jsonPath("$.content").value("content"))
                 .andExpect(jsonPath("$.published").value(false));
-        verify(postService, times(1)).getPostById(1L);
+        verify(postService, times(1)).getPostDtoById(1L);
     }
 
     @Test
