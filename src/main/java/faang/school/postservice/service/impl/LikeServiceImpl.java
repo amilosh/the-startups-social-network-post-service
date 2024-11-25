@@ -2,6 +2,7 @@ package faang.school.postservice.service.impl;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.kafka.producer.KafkaLikeProducer;
+import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.mapper.LikeMapper;
@@ -9,10 +10,10 @@ import faang.school.postservice.model.dto.kafka.KafkaLikeDto;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.kafka.KafkaLikeEvent;
+import faang.school.postservice.model.enums.LikePostEvent;
+import faang.school.postservice.redis.publisher.LikeEventPublisher;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.redis.publisher.LikeEventPublisher;
-import faang.school.postservice.model.enums.LikePostEvent;
 import faang.school.postservice.service.LikeService;
 import faang.school.postservice.util.ExceptionThrowingValidator;
 import faang.school.postservice.validator.LikeValidator;
@@ -149,7 +150,6 @@ public class LikeServiceImpl implements LikeService {
         like.setCreatedAt(LocalDateTime.now());
         likeRepository.save(like);
         log.info("Лайк успешно поставлен пользователем с ID: {} на комментарий с ID: {}", likeDto.getUserId(), commentId);
-        //sendLikeEventToKafka(like);
         return likeMapper.toDto(like);
     }
 
@@ -183,6 +183,11 @@ public class LikeServiceImpl implements LikeService {
                 .toList();
         log.info("Найдено {} лайков для комментария с ID: {}", userIds.size(), commentId);
         return userIds;
+    }
+
+    @Override
+    public int getLikeCount(Long postId) {
+        return likeRepository.countByPostId(postId);
     }
 
     private Post getPostById(Long id) {

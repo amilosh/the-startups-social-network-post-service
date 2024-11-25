@@ -2,13 +2,18 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.mapper.RedisPostDtoMapper;
+import faang.school.postservice.mapper.UserWithFollowersMapper;
 import faang.school.postservice.model.dto.UserWithFollowersDto;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.repository.UserShortInfoRepository;
 import faang.school.postservice.service.impl.PostServiceImpl;
+import faang.school.postservice.service.impl.RedisPostServiceImpl;
+import faang.school.postservice.service.impl.RedisUserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +50,21 @@ public class PublishPostTest {
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
 
+    @Mock
+    private UserShortInfoRepository userShortInfoRepository;
+
+    @Mock
+    private RedisUserServiceImpl redisUserService;
+
+    @Mock
+    private UserWithFollowersMapper userWithFollowersMapper;
+
+    @Mock
+    private RedisPostDtoMapper redisPostDtoMapper;
+
+    @Mock
+    private RedisPostServiceImpl redisPostService;
+
     @InjectMocks
     private PostServiceImpl postService;
 
@@ -74,7 +94,7 @@ public class PublishPostTest {
         publishedPostDto.setContent("Here is the published post");
 
         userWithFollowersDto = new UserWithFollowersDto();
-        userWithFollowersDto.setId(1L);
+        userWithFollowersDto.setUserId(1L);
         userWithFollowersDto.setFollowerIds(List.of(2L, 3L));
     }
 

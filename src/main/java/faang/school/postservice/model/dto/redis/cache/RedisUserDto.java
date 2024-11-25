@@ -1,20 +1,20 @@
-package faang.school.postservice.model.dto;
+package faang.school.postservice.model.dto.redis.cache;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class UserWithFollowersDto {
+@AllArgsConstructor
+@Getter
+@Setter
+public class RedisUserDto {
     private Long userId;
     private String username;
     private String fileId;
     private String smallFileId;
-    private LocalDateTime postCreatedAt;
     private List<Long> followerIds;
 }

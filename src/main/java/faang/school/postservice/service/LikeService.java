@@ -22,4 +22,6 @@ public interface LikeService {
     List<Long> getLikesFromPost(Long postId);
 
     List<Long> getLikesFromComment(Long commentId);
+
+    int getLikeCount(Long postId);
 }

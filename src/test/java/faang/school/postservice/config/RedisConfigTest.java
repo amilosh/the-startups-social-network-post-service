@@ -35,7 +35,7 @@ class RedisConfigTest {
 
     @Test
     void testRedisTemplate() {
-        RedisTemplate<String, Object> redisTemplate = redisConfig.redisTemplate(lettuceConnectionFactory);
+        RedisTemplate<String, Object> redisTemplate = redisConfig.eventRedisTemplate(lettuceConnectionFactory);
         assertNotNull(redisTemplate);
         assertEquals(lettuceConnectionFactory, redisTemplate.getConnectionFactory());
         assertTrue(redisTemplate.getKeySerializer() instanceof StringRedisSerializer);

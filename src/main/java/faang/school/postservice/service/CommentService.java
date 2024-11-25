@@ -12,4 +12,8 @@ public interface CommentService {
     void deleteComment(Long commentId);
 
     CommentDto updateComment(Long commentId, CommentDto commentDto, Long userId);
+
+    int getCommentCount(Long postId);
+
+    List<CommentDto> getRecentComments(Long postId, int numberOfComments);
 }

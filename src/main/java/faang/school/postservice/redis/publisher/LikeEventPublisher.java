@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class LikeEventPublisher extends AbstractEventPublisher<LikePostEvent> {
 
-    public LikeEventPublisher(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper,
+    public LikeEventPublisher(@Qualifier("eventRedisTemplate") RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper,
                               @Qualifier("likeEventTopic") ChannelTopic channelTopic) {
         super(redisTemplate, objectMapper, channelTopic);
     }

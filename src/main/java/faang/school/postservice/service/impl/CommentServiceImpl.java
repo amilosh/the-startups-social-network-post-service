@@ -12,6 +12,8 @@ import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.validator.comment.CommentServiceValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +66,18 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId).orElseThrow(NoSuchElementException::new);
         comment.setContent(commentDto.getContent());
         return mapper.mapToCommentDto(commentRepository.save(comment));
+    }
+
+    @Override
+    public int getCommentCount(Long postId) {
+        return commentRepository.countByPostId(postId);
+    }
+
+    @Override
+    public List<CommentDto> getRecentComments(Long postId, int numberOfComments) {
+        Pageable pageable = PageRequest.of(0, numberOfComments);
+        List<Comment> comments = commentRepository.findRecentByPostId(postId, pageable);
+        return mapper.mapToCommentDto(comments);
     }
 
     private CommentEvent createCommentEvent(CommentDto savedComment) {
