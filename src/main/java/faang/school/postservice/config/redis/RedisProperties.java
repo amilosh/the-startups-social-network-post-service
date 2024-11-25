@@ -12,6 +12,14 @@ import org.springframework.stereotype.Component;
 public class RedisProperties {
 
     private Channels channels;
+    private int postTtl;
+    private int defaultTtl;
+    private int commentTtl;
+    private String host;
+    private int port;
+    private String postPrefix;
+    private String commentPrefix;
+    private String redissonAddress;
 
     @Getter
     @Setter
