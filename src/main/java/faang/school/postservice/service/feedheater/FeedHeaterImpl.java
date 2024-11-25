@@ -31,7 +31,7 @@ public class FeedHeaterImpl implements FeedHeater {
         for (i = 0; i < userIds.size() - batchSize; i += batchSize) {
             distributor.publish(new HeatFeedCacheEvent(
                     userIds.subList(i, i + batchSize)
-                    ));
+            ));
         }
         distributor.publish(new HeatFeedCacheEvent(
                 userIds.subList(i, userIds.size())
@@ -40,6 +40,8 @@ public class FeedHeaterImpl implements FeedHeater {
 
     @Override
     public void putAllFeeds(HeatFeedCacheEvent event) {
+        var userIds = event.getUsersIds();
 
+        userIds.forEach(feedService::generateFeedForUser);
     }
 }
