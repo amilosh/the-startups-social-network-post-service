@@ -71,9 +71,6 @@ public class AlbumControllerTest {
         postDto = mockPostDto();
         albumFilterDto = mockAlbumFilterDto();
         albumUpdateDto = mockAlbumUpdateDto();
-//        String title = "Filter";
-//        String description = "Java the best";
-//        Month month = Month.MARCH;
     }
 
     @Test
