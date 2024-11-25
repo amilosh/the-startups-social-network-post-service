@@ -166,14 +166,6 @@ public class PostService {
     }
     
     private Set<Hashtag> getAndCreateHashtags(List<String> hashtags) {
-//        Set<Hashtag> result = new HashSet<>();
-//        for (String tag : hashtags) {
-//            Hashtag hashtag = hashtagService.findByTag(tag)
-//                    .orElseGet(() -> hashtagService.create(tag));
-//            result.add(hashtag);
-//        }
-//        return result;
-
         Map<String, Hashtag> existingHashtags = hashtagService.findAllByTags(hashtags)
                 .stream()
                 .collect(Collectors.toMap(Hashtag::getTag, Function.identity()));

@@ -38,7 +38,7 @@ class HashtagValidatorTest {
                 DataValidationException.class,
                 () -> hashtagValidator.validateHashtag(invalidHashtag)
         );
-        
+
         assertEquals("Hashtag must start with #", exception.getMessage());
     }
 }
