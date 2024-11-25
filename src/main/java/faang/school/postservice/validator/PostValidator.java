@@ -1,7 +1,7 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.exeption.DataValidationException;
+import faang.school.postservice.exception.DataValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

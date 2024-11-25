@@ -48,7 +48,7 @@ public class PostControllerV1Test {
 
     @Test
     public void testGetPost() throws Exception {
-        when(postService.getPostById(1L)).thenReturn(postDto);
+        when(postService.getPostDtoById(1L)).thenReturn(postDto);
 
         mockMvc.perform(get("/api/v1/post/1"))
                 .andExpect(status().isOk())
