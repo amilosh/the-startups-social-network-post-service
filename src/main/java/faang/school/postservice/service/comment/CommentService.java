@@ -9,6 +9,7 @@ import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -27,6 +28,7 @@ public class CommentService {
     private final CommentEventPublisher commentEventPublisher;
     private final CommentEventMapper commentEventMapper;
     private final UserContext userContext;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     @Transactional
     @AuthorCaching
@@ -44,6 +46,8 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(comment);
         publishCommentEventToNotificationService(savedComment, post);
+
+        kafkaCommentProducer.publishComment(savedComment);
         return savedComment;
     }
 
