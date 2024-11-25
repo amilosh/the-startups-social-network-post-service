@@ -31,7 +31,6 @@ spring:
     swagger-ui:
       path=/swagger-ui.html
 
-
 server:
   port: 8081
   servlet:
@@ -48,6 +47,10 @@ post:
   ad-remover:
     scheduler:
       cron: "0 0/1 * 1/1 * ?" # every minute
+
+schedule:
+  cron:
+    deleteExpiredAds: "0 0 0 * * *"
 
 user-service:
   host: localhost
