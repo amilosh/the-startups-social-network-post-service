@@ -96,7 +96,7 @@ class PostServiceTest {
     @Test
     void testUnExistUser() {
         postDto.setAuthorId(1L);
-        when(userServiceClient.getUser(1)).thenThrow(FeignException.class);
+        when(userServiceClient.getUserById(1)).thenThrow(FeignException.class);
 
         assertThrows(FeignException.class,
                 () -> postService.createPost(postDto));
