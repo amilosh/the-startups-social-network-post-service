@@ -41,7 +41,7 @@ public class FeedCacheServiceImpl implements FeedCacheService {
 
             FeedCache newFeedCache = addPostIdToFeed(feedCache, postId);
             feedsCacheRepository.save(newFeedCache);
-            log.info("Successfully added postId to feed : {}", postId);
+            log.info("Successfully added postId to feed : {}", feedId);
         } finally {
             lock.unlock();
             log.debug("Lock released for feedId: {}", feedId);
