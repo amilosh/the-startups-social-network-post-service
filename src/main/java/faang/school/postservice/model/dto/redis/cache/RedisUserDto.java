@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -14,4 +16,5 @@ public class RedisUserDto {
     private String username;
     private String fileId;
     private String smallFileId;
+    private List<Long> followerIds;
 }

@@ -30,7 +30,7 @@ public abstract class RedisPostDtoMapper {
 
     @AfterMapping
     protected void fillAdditionalFields(@MappingTarget RedisPostDto redisPostDto, PostDto postDto) {
-        redisPostDto.setCommentCount((int) commentService.getCommentCount(postDto.getId()));
+        redisPostDto.setCommentCount(commentService.getCommentCount(postDto.getId()));
 
         redisPostDto.setRecentComments(
                 commentService.getRecentComments(postDto.getId(), RECENT_COMMENTS_LIMIT).stream()
@@ -39,6 +39,7 @@ public abstract class RedisPostDtoMapper {
         );
 
         redisPostDto.setLikeCount(likeService.getLikeCount(postDto.getId()));
+        redisPostDto.setCommentCount(commentService.getCommentCount(postDto.getId()));
     }
 }
 

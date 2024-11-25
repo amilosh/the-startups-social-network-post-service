@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PostViewPublisher extends AbstractEventPublisher<PostViewEvent> {
-    public PostViewPublisher(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper,
+    public PostViewPublisher(@Qualifier("eventRedisTemplate") RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper,
                              @Qualifier("postViewTopic") ChannelTopic channelTopic) {
         super(redisTemplate, objectMapper, channelTopic);
     }

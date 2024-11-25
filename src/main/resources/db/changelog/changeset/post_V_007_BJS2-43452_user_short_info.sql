@@ -3,20 +3,21 @@ CREATE TABLE user_short_info (
     username VARCHAR(64) NOT NULL,
     file_id VARCHAR(255),
     small_file_id VARCHAR(255),
-    saved_date_time TIMESTAMP DEFAULT current_timestamp NOT NULL
+    follower_ids TEXT,
+    last_saved_at TIMESTAMP DEFAULT current_timestamp NOT NULL
 );
 
-CREATE OR REPLACE FUNCTION update_saved_date_time()
+CREATE OR REPLACE FUNCTION update_last_saved_at()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.saved_date_time = current_timestamp;
+    NEW.last_saved_at = current_timestamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_update_saved_date_time
+CREATE TRIGGER trigger_update_last_saved_at
 BEFORE UPDATE ON user_short_info
 FOR EACH ROW
-EXECUTE FUNCTION update_saved_date_time();
+EXECUTE FUNCTION update_last_saved_at();
 
-CREATE INDEX idx_saved_datetime ON user_short_info (saved_date_time);
+CREATE INDEX idx_last_saved_at ON user_short_info (last_saved_at);

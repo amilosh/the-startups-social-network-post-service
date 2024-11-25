@@ -11,8 +11,8 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.RedisPostService;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,12 +29,10 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RedisPostServiceImpl implements RedisPostService {
     private static final String KEY_PREFIX = "post:";
     private static final String POST_ID = "postId";
     private static final String AUTHOR_ID = "authorId";
-    private static final String AUTHOR_TYPE = "authorType";
     private static final String CONTENT = "content";
     private static final String CREATED_AT = "createdAt";
     private static final String COMMENT_COUNT = "commentCount";
@@ -52,6 +50,19 @@ public class RedisPostServiceImpl implements RedisPostService {
     private final PostRepository postRepository;
     private final RedisPostDtoMapper redisPostDtoMapper;
     private final PostMapper postMapper;
+
+    public RedisPostServiceImpl(
+            @Qualifier("cacheRedisTemplate") RedisTemplate<String, Object> redisTemplate,
+            ObjectMapper objectMapper,
+            PostRepository postRepository,
+            RedisPostDtoMapper redisPostDtoMapper,
+            PostMapper postMapper) {
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
+        this.postRepository = postRepository;
+        this.redisPostDtoMapper = redisPostDtoMapper;
+        this.postMapper = postMapper;
+    }
 
     @Override
     public void savePostIfNotExists(RedisPostDto postDto) {
@@ -146,12 +157,12 @@ public class RedisPostServiceImpl implements RedisPostService {
 
     private Map<String, Object> convertPostDtoToMap(RedisPostDto postDto) {
         Map<String, Object> postMap = new HashMap<>();
-        postMap.put(POST_ID, postDto.getPostId());
-        postMap.put(AUTHOR_ID, postDto.getAuthorId());
+        postMap.put(POST_ID, postDto.getPostId().toString());
+        postMap.put(AUTHOR_ID, postDto.getAuthorId().toString());
         postMap.put(CONTENT, postDto.getContent());
         postMap.put(CREATED_AT, postDto.getCreatedAt().toString());
-        postMap.put(COMMENT_COUNT, postDto.getCommentCount());
-        postMap.put(LIKE_COUNT, postDto.getLikeCount());
+        postMap.put(COMMENT_COUNT, String.valueOf(postDto.getCommentCount()));
+        postMap.put(LIKE_COUNT, String.valueOf(postDto.getLikeCount()));
         postMap.put(RECENT_COMMENTS, serializeComments(postDto.getRecentComments()));
         return postMap;
     }

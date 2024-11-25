@@ -1,12 +1,15 @@
 package faang.school.postservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.model.dto.redis.cache.RedisUserDto;
 import faang.school.postservice.model.entity.UserShortInfo;
 import faang.school.postservice.repository.UserShortInfoRepository;
 import faang.school.postservice.service.RedisUserService;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,24 +18,32 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RedisUserServiceImpl implements RedisUserService {
     private static final String KEY_PREFIX = "user:";
     private static final String USER_ID = "userId";
     private static final String USERNAME = "username";
     private static final String FILE_ID = "fileId";
     private static final String SMALL_FILE_ID = "smallFileId";
+    private static final String FOLLOWER_IDS = "followerIds";
 
     @Value("${redis.feed.ttl.user:86400}")
     private long userTtlInSeconds;
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final UserShortInfoRepository userShortInfoRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public RedisUserServiceImpl(@Qualifier("cacheRedisTemplate") RedisTemplate<String, Object> redisTemplate,
+                                UserShortInfoRepository userShortInfoRepository) {
+        this.redisTemplate = redisTemplate;
+        this.userShortInfoRepository = userShortInfoRepository;
+    }
 
     @Override
     public void saveUserIfNotExists(RedisUserDto userDto) {
@@ -50,6 +61,14 @@ public class RedisUserServiceImpl implements RedisUserService {
         Map<String, Object> userMap = fetchAndCacheUserIfAbsent(userId, key);
         return convertMapToUserDto(userMap);
     }
+
+    @Override
+    public List<Long> getFollowerIds(Long userId) {
+        String key = createKey(userId);
+        String serializedFollowerIds = (String) redisTemplate.opsForHash().get(key, FOLLOWER_IDS);
+        return deserializeFollowerIds(serializedFollowerIds);
+    }
+
 
     private Map<String, Object> fetchAndCacheUserIfAbsent(Long userId, String key) {
         if (Boolean.FALSE.equals(redisTemplate.hasKey(key))) {
@@ -71,7 +90,8 @@ public class RedisUserServiceImpl implements RedisUserService {
                 userShortInfo.getUserId(),
                 userShortInfo.getUsername(),
                 userShortInfo.getFileId(),
-                userShortInfo.getSmallFileId());
+                userShortInfo.getSmallFileId(),
+                deserializeFollowerIds(userShortInfo.getFollowerIds()));
     }
 
     @Override
@@ -80,7 +100,9 @@ public class RedisUserServiceImpl implements RedisUserService {
         String key = createKey(redisUserDto.getUserId());
         executeRedisTransaction(() -> {
             Map<String, Object> userMap = convertUserDtoToMap(redisUserDto);
-            userMap.forEach((field, value) -> redisTemplate.opsForHash().put(key, field, value));
+            userMap.entrySet().stream()
+                    .filter(entry -> entry.getValue() != null)
+                    .forEach(entry -> redisTemplate.opsForHash().put(key, entry.getKey(), entry.getValue()));
             updateTtl(key);
         });
     }
@@ -95,10 +117,11 @@ public class RedisUserServiceImpl implements RedisUserService {
 
     private Map<String, Object> convertUserDtoToMap(RedisUserDto userDto) {
         Map<String, Object> userMap = new HashMap<>();
-        userMap.put(USER_ID, userDto.getUserId());
+        userMap.put(USER_ID, userDto.getUserId().toString());
         userMap.put(USERNAME, userDto.getUsername());
         userMap.put(FILE_ID, userDto.getFileId());
         userMap.put(SMALL_FILE_ID, userDto.getSmallFileId());
+        userMap.put(FOLLOWER_IDS, serializeFollowerIds(userDto.getFollowerIds()));
         return userMap;
     }
 
@@ -108,7 +131,30 @@ public class RedisUserServiceImpl implements RedisUserService {
         userDto.setUsername((String) userMap.get(USERNAME));
         userDto.setFileId((String) userMap.get(FILE_ID));
         userDto.setSmallFileId((String) userMap.get(SMALL_FILE_ID));
+        userDto.setFollowerIds(deserializeFollowerIds((String) userMap.get(FOLLOWER_IDS)));
         return userDto;
+    }
+
+    private String serializeFollowerIds(List<Long> followerIds) {
+        try {
+            return objectMapper.writeValueAsString(followerIds);
+        } catch (JsonProcessingException e) {
+            //TODO кастомизированное исключение добавить
+            throw new RuntimeException("Failed to serialize followerIds", e);
+        }
+    }
+
+    private List<Long> deserializeFollowerIds(String followerIds) {
+        if (followerIds == null || followerIds.isEmpty()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(followerIds, new TypeReference<List<Long>>() {
+            });
+        } catch (JsonProcessingException e) {
+            //TODO
+            throw new RuntimeException("Failed to deserialize followerIds", e);
+        }
     }
 
     private void executeRedisTransaction(Runnable transaction) {
