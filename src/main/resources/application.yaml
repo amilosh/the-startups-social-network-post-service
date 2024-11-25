@@ -25,27 +25,25 @@ spring:
     redis:
       port: 6379
       host: localhost
-      channels:
-        user-ban:
-          name: user_ban
-        like-channel:
-          name: like-channel
-        comment-event-channel:
-          name: comment_event_channel
-        post-channel:
-          name: post_channel
-        ad-bought-channel:
-          name: ad_bought_channel
 
     kafka:
       port: 9092
       host: localhost
+      group: feed
       channels:
         post-channel: post-NF-channel
         like-nf-channel: like-NF-channel
         post-publish-topic: post-publish-topic
         comment-nf-topic: comment-NF-channel
         post-view-nf-topic: post-view-NF-channel
+        user-ban:
+          name: user_ban
+        like-channel:
+          name: like-channel
+        comment-event-channel:
+          name: comment_event_channel
+        ad-bought-channel:
+          name: ad_bought_channel
 
 server:
   port: 8081

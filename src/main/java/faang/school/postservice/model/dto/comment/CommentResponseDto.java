@@ -2,6 +2,7 @@ package faang.school.postservice.model.dto.comment;
 
 import lombok.Builder;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Builder
@@ -12,5 +13,5 @@ public record CommentResponseDto(
         Long postId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-) {
+) implements Serializable {
 }

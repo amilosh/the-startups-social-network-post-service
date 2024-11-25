@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -21,25 +20,11 @@ import java.util.List;
 public class RedisConfig {
 
     private final ObjectMapper objectMapper;
-
     @Value("${spring.data.redis.host}")
     private String host;
+
     @Value("${spring.data.redis.port}")
     private int port;
-
-    @Value("${spring.data.redis.channels.like-channel.name}")
-    private String likeEvent;
-    @Value("${spring.data.redis.channels.comment-event-channel.name}")
-    private String commentEvent;
-
-    @Value("${spring.data.redis.channels.user-ban.name}")
-    private String userBanEvent;
-
-    @Value("${spring.data.redis.channels.post-channel.name}")
-    private String postEventChannel;
-
-    @Value("${spring.data.redis.channels.ad-bought-channel.name}")
-    private String adBoughtEvent;
 
     @Bean
     public JedisConnectionFactory redisConnectionFactory() {
@@ -51,11 +36,9 @@ public class RedisConfig {
     public RedisTemplate<String, List<PostDto>> redisHashtagTemplate(JedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, List<PostDto>> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
-
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-
         return template;
     }
 
@@ -68,30 +51,5 @@ public class RedisConfig {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
         return redisTemplate;
-    }
-
-    @Bean
-    public ChannelTopic likeTopic() {
-        return new ChannelTopic(likeEvent);
-    }
-
-    @Bean
-    public ChannelTopic userBanTopic() {
-        return new ChannelTopic(userBanEvent);
-    }
-
-    @Bean
-    public ChannelTopic commentTopic() {
-        return new ChannelTopic(commentEvent);
-    }
-
-    @Bean
-    public ChannelTopic postEventTopic() {
-        return new ChannelTopic(postEventChannel);
-    }
-
-    @Bean
-    public ChannelTopic adBoughtEventTopic() {
-        return new ChannelTopic(adBoughtEvent);
     }
 }
