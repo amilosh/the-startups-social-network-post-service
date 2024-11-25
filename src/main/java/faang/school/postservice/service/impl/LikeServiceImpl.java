@@ -149,7 +149,7 @@ public class LikeServiceImpl implements LikeService {
         like.setCreatedAt(LocalDateTime.now());
         likeRepository.save(like);
         log.info("Лайк успешно поставлен пользователем с ID: {} на комментарий с ID: {}", likeDto.getUserId(), commentId);
-        sendLikeEventToKafka(like);
+        //sendLikeEventToKafka(like);
         return likeMapper.toDto(like);
     }
 
