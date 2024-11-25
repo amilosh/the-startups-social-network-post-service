@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +41,6 @@ public class PostServiceImpl implements PostService {
     private final PostEventPublisher postEventPublisher;
     private final UserServiceClient userServiceClient;
     private final PostNewsFeedProducer postNewsFeedEventPublisher;
-    private final CacheManager cacheManager;
     private final PostViewEventProducer postViewEventProducer;
 
     @Value("${post.correcter.posts-batch-size}")
@@ -73,12 +71,11 @@ public class PostServiceImpl implements PostService {
                 .build();
         var postNFEVent = PostNewsFeedEvent.builder()
                 .postId(post.getId())
+                .authorId(post.getAuthorId())
                 .subscribers(getFollowers(post))
                 .build();
-        var postCache = postMapper.toPostRedis(post);
         postEventPublisher.publish(event);
         postNewsFeedEventPublisher.publish(postNFEVent);
-        Objects.requireNonNull(cacheManager.getCache("posts")).put(post.getId(), postCache);
         return postMapper.toDto(post);
     }
 

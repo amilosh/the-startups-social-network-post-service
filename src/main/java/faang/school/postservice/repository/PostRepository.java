@@ -24,4 +24,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findReadyToPublish();
 
     List<Post> findAllByVerifiedDateIsNull();
+
+    Post findFirstByAuthorId(Long authorId);
 }
