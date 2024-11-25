@@ -3,6 +3,7 @@ package faang.school.postservice.service;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.LikeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,9 +47,26 @@ public class LikeServiceTest {
     @Test
     void testGetUsersWhoLikePostByPostId_SingleBatch() {
         long postId = 1L;
-        List<Long> userIds = List.of(1L, 2L);
-        List<Like> likes = createLikes(userIds);
-        List<UserDto> userDtos = createUserDtos(userIds);
+
+        Post post = new Post();
+        post.setId(postId);
+
+        Like like1 = new Like();
+        like1.setId(1L);
+        like1.setPost(post);
+        like1.setUserId(1L);
+
+        Like like2 = new Like();
+        like2.setId(2L);
+        like2.setPost(post);
+        like2.setUserId(2L);
+
+        List<Like> likes = List.of(like1, like2);
+
+        List<UserDto> userDtos = List.of(
+                new UserDto(1L, "User1", "user1@test.com"),
+                new UserDto(2L, "User2", "user2@test.com")
+        );
 
         when(likeRepository.findByPostId(postId)).thenReturn(likes);
         when(userServiceClient.getUser(1L)).thenReturn(userDtos.get(0));
@@ -56,9 +74,10 @@ public class LikeServiceTest {
 
         List<UserDto> result = likeService.getUsersWhoLikePostByPostId(postId);
 
-        assertEquals(userDtos, result, "Result should match the user DTOs");
+        assertEquals(userDtos, result, "Result should match the expected user DTOs");
         verify(likeRepository, times(1)).findByPostId(postId);
-        verify(userServiceClient, times(2)).getUser(anyLong());
+        verify(userServiceClient, times(1)).getUser(1L);
+        verify(userServiceClient, times(1)).getUser(2L);
     }
 
     @Test
