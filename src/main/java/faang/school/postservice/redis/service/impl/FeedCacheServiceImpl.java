@@ -38,24 +38,15 @@ public class FeedCacheServiceImpl implements FeedCacheService {
         try {
             FeedCache feedCache = feedsCacheRepository.findById(feedId)
                     .orElseGet(() -> new FeedCache(feedId, new LinkedHashSet<>()));
-            LinkedHashSet<Long> restoredPostIds = feedCache.getPostIds();
 
-            Long lastPostId = findLastPostId(restoredPostIds);
-            if (restoredPostIds.size() == feedSize) {
-                restoredPostIds.remove(lastPostId);
-            }
-
-            LinkedHashSet<Long> newPostIds = new LinkedHashSet<>(Collections.singleton(postId));
-            newPostIds.addAll(restoredPostIds);
-            feedCache.setPostIds(newPostIds);
-
-            feedsCacheRepository.save(feedCache);
+            FeedCache newFeedCache = addPostIdToFeed(feedCache, postId);
+            feedsCacheRepository.save(newFeedCache);
             log.info("Successfully added postId to feed : {}", postId);
-            return CompletableFuture.completedFuture(null);
         } finally {
             lock.unlock();
             log.debug("Lock released for feedId: {}", feedId);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     private Long findLastPostId(LinkedHashSet<Long> postIds) {
@@ -64,5 +55,17 @@ public class FeedCacheServiceImpl implements FeedCacheService {
             lastPostId = id;
         }
         return lastPostId;
+    }
+
+    private FeedCache addPostIdToFeed(FeedCache feedCache, Long postId) {
+        LinkedHashSet<Long> restoredPostIds = feedCache.getPostIds();
+        Long lastPostId = findLastPostId(restoredPostIds);
+        if (restoredPostIds.size() == feedSize) {
+            restoredPostIds.remove(lastPostId);
+        }
+        LinkedHashSet<Long> newPostIds = new LinkedHashSet<>(Collections.singleton(postId));
+        newPostIds.addAll(restoredPostIds);
+        feedCache.setPostIds(newPostIds);
+        return feedCache;
     }
 }

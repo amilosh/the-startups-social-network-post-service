@@ -125,7 +125,6 @@ public class PostCacheServiceImpl implements PostCacheService {
 
     @Override
     public void updateFeedsInCache(PostEventKafka event) {
-// TODO make tests
         List<CompletableFuture<Void>> features = event.getFollowerIds().stream()
                 .map(followerId -> feedCacheService.getAndSaveFeed(followerId, event.getPostId()))
                 .toList();
