@@ -45,6 +45,9 @@ server:
 post:
   pool-size: 10
   publisher:
+    retry:
+      delay: 2000
+      multiplier: 2
     batch-size: 100
     scheduler:
       cron: "0 0/1 * 1/1 * ?" # every minute
