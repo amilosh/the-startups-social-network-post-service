@@ -5,18 +5,24 @@ import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.LikeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -24,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LikeServiceTest {
+
     @Mock
     private LikeRepository likeRepository;
 
@@ -69,15 +76,15 @@ public class LikeServiceTest {
         );
 
         when(likeRepository.findByPostId(postId)).thenReturn(likes);
-        when(userServiceClient.getUser(1L)).thenReturn(userDtos.get(0));
-        when(userServiceClient.getUser(2L)).thenReturn(userDtos.get(1));
+        when(userServiceClient.getUsersByIds(List.of(1L))).thenReturn(List.of(userDtos.get(0)));
+        when(userServiceClient.getUsersByIds(List.of(2L))).thenReturn(List.of(userDtos.get(1)));
 
         List<UserDto> result = likeService.getUsersWhoLikePostByPostId(postId);
 
         assertEquals(userDtos, result, "Result should match the expected user DTOs");
         verify(likeRepository, times(1)).findByPostId(postId);
-        verify(userServiceClient, times(1)).getUser(1L);
-        verify(userServiceClient, times(1)).getUser(2L);
+        verify(userServiceClient, times(1)).getUsersByIds(List.of(1L));
+        verify(userServiceClient, times(1)).getUsersByIds(List.of(2L));
     }
 
     @Test
@@ -88,14 +95,14 @@ public class LikeServiceTest {
         List<UserDto> userDtos = createUserDtos(userIds);
 
         when(likeRepository.findByCommentId(commentId)).thenReturn(likes);
-        when(userServiceClient.getUser(1L)).thenReturn(userDtos.get(0));
-        when(userServiceClient.getUser(2L)).thenReturn(userDtos.get(1));
+        when(userServiceClient.getUsersByIds(List.of(1L))).thenReturn(List.of(userDtos.get(0)));
+        when(userServiceClient.getUsersByIds(List.of(2L))).thenReturn(List.of(userDtos.get(1)));
 
         List<UserDto> result = likeService.getUsersWhoLikeComments(commentId);
 
         assertEquals(userDtos, result, "Result should match the user DTOs");
         verify(likeRepository, times(1)).findByCommentId(commentId);
-        verify(userServiceClient, times(2)).getUser(anyLong());
+        verify(userServiceClient, times(2)).getUsersByIds(anyList());
     }
 
     @Test
@@ -110,14 +117,23 @@ public class LikeServiceTest {
         List<UserDto> userDtos = createUserDtos(userIds);
 
         when(likeRepository.findByPostId(postId)).thenReturn(likes);
-        userDtos.forEach(userDto -> when(userServiceClient.getUser(userDto.getId())).thenReturn(userDto));
+        when(userServiceClient.getUsersByIds(anyList())).thenAnswer(invocation -> {
+            List<Long> ids = invocation.getArgument(0);
+            if (ids.size() == 100) {
+                return userDtos.subList(0, 100);
+            } else if (ids.size() == 50) {
+                return userDtos.subList(100, 150);
+            } else {
+                return ids.stream().map(id -> userDtos.stream().filter(dto -> dto.getId().equals(id)).findFirst().orElse(null)).collect(Collectors.toList());
+            }
+        });
 
         List<UserDto> result = likeService.getUsersWhoLikePostByPostId(postId);
 
         assertEquals(150, result.size(), "Result size should match the number of likes");
         assertEquals(userDtos, result, "Result should match the user DTOs");
         verify(likeRepository, times(1)).findByPostId(postId);
-        verify(userServiceClient, times(150)).getUser(anyLong());
+        verify(userServiceClient, atLeastOnce()).getUsersByIds(anyList());
     }
 
     private List<UserDto> createUserDtos(List<Long> userIds) {
@@ -139,4 +155,5 @@ public class LikeServiceTest {
                 })
                 .toList();
     }
+
 }
