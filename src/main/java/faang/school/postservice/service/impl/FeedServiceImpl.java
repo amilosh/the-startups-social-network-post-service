@@ -43,6 +43,9 @@ public class FeedServiceImpl implements FeedService {
     private final UserCacheRepository userCacheRepository;
 
     @Value("${feed.cache.count}")
+    private int countOfPostsInFeed;
+
+    @Value("${feed.cache.count}")
     private int cacheCount;
 
     @Override
@@ -90,7 +93,7 @@ public class FeedServiceImpl implements FeedService {
     @Override
     @Async("feedThreadPool")
     public void generateFeedForUser(long userId) {
-        List<CacheablePost> posts = userRepository.getPostsForFeedById(userId).stream()
+        List<CacheablePost> posts = userRepository.getPostsForFeedById(userId, countOfPostsInFeed).stream()
                 .map(cacheablePostMapper::toCacheablePost)
                 .toList();
 
