@@ -14,10 +14,10 @@ public class PostService {
     private final PostRepository postRepository;
 
     public Post findEntityById(long id) {
-        Optional<Post> post = postRepository.findById(id);
-        if (post.isEmpty()) {
-            throw new DataValidationException("Incorrect post id");
-        }
-        return post.get();
+       Optional<Post> post = postRepository.findById(id);
+       if (post.isEmpty()) {
+           throw new DataValidationException("Incorrect post id");
+       }
+       return post.get();
     }
 }
