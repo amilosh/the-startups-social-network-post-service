@@ -7,6 +7,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.NotificationEventType;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaLikeProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -27,6 +28,7 @@ public class LikeService {
     private final UserServiceClient userServiceClient;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final KafkaLikeProducer kafkaLikeProducer;
 
     @Transactional
     @NotificationEvent(NotificationEventType.POST_LIKE)
@@ -49,6 +51,8 @@ public class LikeService {
         List<Like> likeList = post.getLikes();
         likeList.add(newLike);
         post.setLikes(likeList);
+
+        kafkaLikeProducer.publishLike(newLike);
         return newLike;
     }
 

@@ -14,6 +14,8 @@ public class KafkaConfig {
     private String publishPostTopicName;
     @Value(value = "${spring.kafka.topic.comment-publisher}")
     private String publishCommentTopicName;
+    @Value(value = "${spring.kafka.topic.like-publisher}")
+    private String publishLikeTopicName;
 
     @Bean
     public NewTopic publishPostTopic() {
@@ -23,5 +25,10 @@ public class KafkaConfig {
     @Bean
     public NewTopic publishCommentTopic() {
         return new NewTopic(publishCommentTopicName, 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic likePostTopic() {
+        return new NewTopic(publishLikeTopicName, 1, (short) 1);
     }
 }
