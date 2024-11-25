@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.TreeSet;
 
 @RedisHash(value = "posts")
@@ -22,6 +23,6 @@ public class PostCache implements Serializable {
     private int numberOfLikes;
     private int numberOfViews;
     private TreeSet<CommentRedisDto> comments;
-
+    private LocalDateTime createdAt;
 
 }

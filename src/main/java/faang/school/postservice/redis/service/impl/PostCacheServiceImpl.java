@@ -5,10 +5,10 @@ import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.redis.mapper.PostCacheMapper;
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
-import faang.school.postservice.redis.model.entity.FeedCache;
 import faang.school.postservice.redis.model.entity.PostCache;
 import faang.school.postservice.redis.repository.FeedsCacheRepository;
 import faang.school.postservice.redis.repository.PostCacheRedisRepository;
+import faang.school.postservice.redis.service.FeedCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -45,16 +46,18 @@ public class PostCacheServiceImpl implements PostCacheService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostCacheMapper postCacheMapper;
     private final RedissonClient redissonClient;
+    private final FeedCacheService feedCacheService;
 
     @Autowired
     public PostCacheServiceImpl(PostCacheRedisRepository postCacheRedisRepository, FeedsCacheRepository feedsCacheRepository,
                                 @Qualifier("redisCacheTemplate") RedisTemplate<String, Object> redisTemplate,
-                                PostCacheMapper postCacheMapper, RedissonClient redissonClient) {
+                                PostCacheMapper postCacheMapper, RedissonClient redissonClient, FeedCacheService feedCacheService) {
         this.postCacheRedisRepository = postCacheRedisRepository;
         this.feedsCacheRepository = feedsCacheRepository;
         this.redisTemplate = redisTemplate;
         this.postCacheMapper = postCacheMapper;
         this.redissonClient = redissonClient;
+        this.feedCacheService = feedCacheService;
     }
 
     @Override
@@ -125,22 +128,11 @@ public class PostCacheServiceImpl implements PostCacheService {
 
     @Override
     public void updateFeedsInCache(PostEventKafka event) {
-        // TODO check if exist
-//        boolean isExist = feedsCacheRepository.existsById(event.getFollowerIds().get(0));
-        List<Long> followerIds = event.getFollowerIds();
-        followerIds.forEach(id -> System.out.println("followerId: " + id));
-
-        TreeSet<Long> postsIds = new TreeSet<>();
-        postsIds.add(event.getPostId());
-
-        for (int i = 0; i < event.getFollowerIds().size(); i++) {
-            FeedCache feedCache = FeedCache.builder()
-                    .id(event.getFollowerIds().get(i))
-                    .postIds(postsIds)
-                    .build();
-            feedsCacheRepository.save(feedCache);
-        }
-
-
+// TODO make tests
+        List<CompletableFuture<Void>> features = event.getFollowerIds().stream()
+                .map(followerId -> feedCacheService.getAndSaveFeed(followerId, event.getPostId()))
+                .toList();
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(features.toArray(new CompletableFuture[0]));
+        allFutures.join();
     }
 }
