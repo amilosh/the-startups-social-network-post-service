@@ -126,32 +126,33 @@ public class LikeService {
     }
 
     public List<UserDto> getUsersByPostId(long postId) {
-        List<Long> userIds = likeRepository.findUserIdsByPostId(postId);
-        List<List<Long>> batches = splitIntoBatches(userIds, BATCH_SIZE);
-        List<UserDto> allUsers = new ArrayList<>();
+        // Извлечение userId с помощью Stream API
+        List<Long> userIds = likeRepository.findByPostId(postId)
+                .stream()
+                .map(Like::getUserId)
+                .toList();
 
-        for (List<Long> batch : batches) {
-            try {
-                List<UserDto> users = userServiceClient.getUsersByIds(batch);
-                allUsers.addAll(users);
-            } catch (FeignException e) {
-                System.err.println("Error when requesting user_service: " + e.getMessage());
-            }
-        }
-        return allUsers;
+        return fetchUsersInBatches(userIds);
     }
 
     public List<UserDto> getUsersByCommentId(long commentId) {
-        List<Long> userIds = likeRepository.findUserIdsByCommentId(commentId);
+        // Извлечение userId с помощью Stream API
+        List<Long> userIds = likeRepository.findByCommentId(commentId)
+                .stream()
+                .map(Like::getUserId)
+                .toList();
+
+        return fetchUsersInBatches(userIds);
+    }
+    private List<UserDto> fetchUsersInBatches(List<Long> userIds) {
         List<List<Long>> batches = splitIntoBatches(userIds, BATCH_SIZE);
         List<UserDto> allUsers = new ArrayList<>();
 
         for (List<Long> batch : batches) {
             try {
-                List<UserDto> users = userServiceClient.getUsersByIds(batch);
-                allUsers.addAll(users);
+                allUsers.addAll(userServiceClient.getUsersByIds(batch));
             } catch (FeignException e) {
-                System.err.println("Error when requesting user_service: " + e.getMessage());
+                log.error("Error fetching users from user_service: {}", e.getMessage());
             }
         }
         return allUsers;

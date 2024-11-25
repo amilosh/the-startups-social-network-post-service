@@ -32,7 +32,7 @@ public class LikeController {
         likeService.deleteLikeFromPost(likeDto, postId);
     }
 
-    @GetMapping("/post/{postId}/users")
+    @GetMapping("/post/{postId}/likes")
     public List<UserDto> getUsersByPostLikes(@PathVariable long postId) {
         return likeService.getUsersByPostId(postId);
     }
@@ -47,7 +47,7 @@ public class LikeController {
          likeService.deleteLikeFromComment(likeDto, commentId);
     }
 
-    @GetMapping("/comment/{commentId}/users")
+    @GetMapping("/comment/{commentId}/likes")
     public List<UserDto> getUsersByCommentLikes(@PathVariable long commentId) {
         return likeService.getUsersByCommentId(commentId);
     }
