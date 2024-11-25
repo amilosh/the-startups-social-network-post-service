@@ -133,8 +133,16 @@ public class ResourceService {
 
 
     private Post checkPostExist(Long postId) {
-        return postRepository.findById(postId).
-                orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    log.error("Error: Post with id " + postId + " was deleted");
+                    return new EntityNotFoundException("Post not found with ID: " + postId);
+                });
+        if (post.isDeleted()) {
+            log.error("Error: Post with id " + postId + "was deleted");
+            throw new IllegalArgumentException("Error: Post with id " + postId + "was deleted");
+        }
+        return post;
     }
 
     private void checkImagesCountForPost(Long postId) {
