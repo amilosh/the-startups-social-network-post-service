@@ -6,6 +6,7 @@ import lombok.Builder;
 public record CommentNewsFeedEvent(
         long id,
         long postId,
+        String content,
         long authorId
 ) {
 }
