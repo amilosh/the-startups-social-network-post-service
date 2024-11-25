@@ -3,14 +3,11 @@ package faang.school.postservice.service;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.LikeRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -21,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -41,7 +36,7 @@ public class LikeServiceTest {
     private LikeService likeService;
 
     @Test
-    void testGetUsersWhoLikePostByPostId_NoLikes() {
+    void shouldReturnEmptyListWhenNoLikesForPost() {
         when(likeRepository.findByPostId(anyLong())).thenReturn(List.of());
 
         List<UserDto> result = likeService.getUsersWhoLikePostByPostId(1L);
@@ -52,61 +47,39 @@ public class LikeServiceTest {
     }
 
     @Test
-    void testGetUsersWhoLikePostByPostId_SingleBatch() {
+    void shouldReturnUserDtosForSingleBatchOfLikesForPost() {
         long postId = 1L;
-
-        Post post = new Post();
-        post.setId(postId);
-
-        Like like1 = new Like();
-        like1.setId(1L);
-        like1.setPost(post);
-        like1.setUserId(1L);
-
-        Like like2 = new Like();
-        like2.setId(2L);
-        like2.setPost(post);
-        like2.setUserId(2L);
-
-        List<Like> likes = List.of(like1, like2);
-
-        List<UserDto> userDtos = List.of(
-                new UserDto(1L, "User1", "user1@test.com"),
-                new UserDto(2L, "User2", "user2@test.com")
-        );
+        List<Like> likes = createLikes(List.of(1L, 2L));
+        List<UserDto> userDtos = createUserDtos(List.of(1L, 2L));
 
         when(likeRepository.findByPostId(postId)).thenReturn(likes);
-        when(userServiceClient.getUsersByIds(List.of(1L))).thenReturn(List.of(userDtos.get(0)));
-        when(userServiceClient.getUsersByIds(List.of(2L))).thenReturn(List.of(userDtos.get(1)));
+        when(userServiceClient.getUsersByIds(anyList())).thenReturn(userDtos);
 
         List<UserDto> result = likeService.getUsersWhoLikePostByPostId(postId);
 
         assertEquals(userDtos, result, "Result should match the expected user DTOs");
         verify(likeRepository, times(1)).findByPostId(postId);
-        verify(userServiceClient, times(1)).getUsersByIds(List.of(1L));
-        verify(userServiceClient, times(1)).getUsersByIds(List.of(2L));
+        verify(userServiceClient, times(1)).getUsersByIds(List.of(1L, 2L));
     }
 
     @Test
-    void testGetUsersWhoLikeComments_SingleBatch() {
+    void shouldReturnUserDtosForSingleBatchOfLikesForComment() {
         long commentId = 1L;
-        List<Long> userIds = List.of(1L, 2L);
-        List<Like> likes = createLikes(userIds);
-        List<UserDto> userDtos = createUserDtos(userIds);
+        List<Like> likes = createLikes(List.of(1L, 2L));
+        List<UserDto> userDtos = createUserDtos(List.of(1L, 2L));
 
         when(likeRepository.findByCommentId(commentId)).thenReturn(likes);
-        when(userServiceClient.getUsersByIds(List.of(1L))).thenReturn(List.of(userDtos.get(0)));
-        when(userServiceClient.getUsersByIds(List.of(2L))).thenReturn(List.of(userDtos.get(1)));
+        when(userServiceClient.getUsersByIds(anyList())).thenReturn(userDtos);
 
         List<UserDto> result = likeService.getUsersWhoLikeComments(commentId);
 
-        assertEquals(userDtos, result, "Result should match the user DTOs");
+        assertEquals(userDtos, result, "Result should match the expected user DTOs");
         verify(likeRepository, times(1)).findByCommentId(commentId);
-        verify(userServiceClient, times(2)).getUsersByIds(anyList());
+        verify(userServiceClient, times(1)).getUsersByIds(List.of(1L, 2L));
     }
 
     @Test
-    void testGetUsersWhoLikePostByPostId_MultipleBatches() {
+    void shouldHandleMultipleBatchesForLikesForPost() {
         long postId = 1L;
         List<Long> userIds = new ArrayList<>();
         for (long i = 1; i <= 150; i++) {
@@ -119,21 +92,17 @@ public class LikeServiceTest {
         when(likeRepository.findByPostId(postId)).thenReturn(likes);
         when(userServiceClient.getUsersByIds(anyList())).thenAnswer(invocation -> {
             List<Long> ids = invocation.getArgument(0);
-            if (ids.size() == 100) {
-                return userDtos.subList(0, 100);
-            } else if (ids.size() == 50) {
-                return userDtos.subList(100, 150);
-            } else {
-                return ids.stream().map(id -> userDtos.stream().filter(dto -> dto.getId().equals(id)).findFirst().orElse(null)).collect(Collectors.toList());
-            }
+            return userDtos.stream()
+                    .filter(dto -> ids.contains(dto.getId()))
+                    .collect(Collectors.toList());
         });
 
         List<UserDto> result = likeService.getUsersWhoLikePostByPostId(postId);
 
         assertEquals(150, result.size(), "Result size should match the number of likes");
-        assertEquals(userDtos, result, "Result should match the user DTOs");
+        assertEquals(userDtos, result, "Result should match the expected user DTOs");
         verify(likeRepository, times(1)).findByPostId(postId);
-        verify(userServiceClient, atLeastOnce()).getUsersByIds(anyList());
+        verify(userServiceClient, times(2)).getUsersByIds(anyList());
     }
 
     private List<UserDto> createUserDtos(List<Long> userIds) {
@@ -143,7 +112,7 @@ public class LikeServiceTest {
                         .username("User" + id)
                         .email("user" + id + "@test.com")
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private List<Like> createLikes(List<Long> userIds) {
@@ -153,7 +122,6 @@ public class LikeServiceTest {
                     like.setUserId(userId);
                     return like;
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
-
 }

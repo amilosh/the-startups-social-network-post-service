@@ -9,10 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,30 +38,22 @@ public class LikeService {
                 .toList();
 
         List<List<Long>> userIdBatches = new ArrayList<>();
-
         for (int i = 0; i < userIds.size(); i += BATCH_SIZE) {
             int endIndex = Math.min(i + BATCH_SIZE, userIds.size());
             userIdBatches.add(userIds.subList(i, endIndex));
         }
 
-        List<UserDto> result = new ArrayList<>();
-        for (List<Long> batch : userIdBatches) {
-            List<UserDto> batchResult = fetchUserDtosSafely(batch);
-            result.addAll(batchResult);
-        }
-        return result;
+        return userIdBatches.parallelStream()
+                .flatMap(batch -> fetchUserDtos(batch).stream())
+                .collect(Collectors.toList());
     }
 
-    private List<UserDto> fetchUserDtosSafely(List<Long> batch) {
-        return batch.stream()
-                .map(userId -> CompletableFuture.supplyAsync(() -> userServiceClient.getUsersByIds(List.of(userId)))
-                        .exceptionally(ex -> {
-                            log.error("Error fetching user with ID {}: {}", userId, ex.getMessage(), ex);
-                            return null;
-                        }))
-                .map(CompletableFuture::join)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+    private List<UserDto> fetchUserDtos(List<Long> batch) {
+        try {
+            return userServiceClient.getUsersByIds(batch);
+        } catch (Exception ex) {
+            log.error("Error fetching users for batch {}: {}", batch, ex.getMessage(), ex);
+            return Collections.emptyList();
+        }
     }
 }
