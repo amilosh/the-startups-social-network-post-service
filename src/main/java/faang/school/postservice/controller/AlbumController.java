@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Month;
 import java.util.List;
 
 @RestController
@@ -105,13 +106,15 @@ public class AlbumController {
         return ResponseEntity.ok(albumService.getAllAlbumsByFilter(filterDto));
     }
 
-    @PostMapping("user/{userId}/favorites")
+    @GetMapping("user/{userId}/favorites")
     public ResponseEntity<List<AlbumDto>> getFavoritUsersAlbumsWithFilters(
             @PathVariable @Positive(message = "CurrentUserId must be greater than 0.")
             long userId,
-            @Valid @RequestBody
-            AlbumFilterDto filterDto) {
-        return ResponseEntity.ok(albumService.getFavoritAlbumsForUserByFilter(userId, filterDto));
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String month
+    ) {
+        return ResponseEntity.ok(albumService.getFavoritAlbumsForUserByFilter(userId, title, description, month));
     }
 
     @PutMapping

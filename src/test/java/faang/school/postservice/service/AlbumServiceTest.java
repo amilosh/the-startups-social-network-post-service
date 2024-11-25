@@ -74,12 +74,15 @@ public class AlbumServiceTest {
     @Mock
     private AlbumDateFilter albumDateFilter;
 
-    @InjectMocks
+
     private AlbumService albumService;
 
     private long userId;
     private long albumId;
     private long postId;
+    private String title;
+    private String description;
+    private String month;
     private AlbumDto albumDto;
     private AlbumDto albumDto1;
     private AlbumUpdateDto albumUpdateDto;
@@ -101,6 +104,9 @@ public class AlbumServiceTest {
         postDto.setId(1L);
         post = new Post();
         post.setId(postId);
+        title = "Filter";
+        description = "Java the best";
+        month = "march";
         albumDto = AlbumDto.builder()
                 .id(albumId)
                 .title("Album1")
@@ -137,7 +143,16 @@ public class AlbumServiceTest {
                 .month(Month.MARCH)
                 .build();
         filters = List.of(albumDateFilter);
-        albumService.setFilters(List.of(albumDateFilter));
+        albumService = new AlbumService(
+                albumRepository,
+                postValidator,
+                userValidator,
+                albumValidator,
+                albumMapper,
+                postMapper,
+                postRepository,
+                filters
+        );
     }
 
     @Test
@@ -375,30 +390,40 @@ public class AlbumServiceTest {
 
     @Test
     void testGetFavoritAlbumsForUserByFilterSuccessfully() {
+        AlbumFilterDto filterDto = AlbumFilterDto.builder()
+                .title(title)
+                .description(description)
+                .month(Month.valueOf(month.toUpperCase()))
+                .build();
         when(albumRepository.findFavoriteAlbumsByUserId(userId)).thenReturn(Stream.of(album, album1));
-        when(albumDateFilter.isApplicable(albumFilterDto)).thenReturn(true);
-        when(albumDateFilter.apply(any(), eq(albumFilterDto))).thenAnswer(invocation -> Stream.of(album));
+        when(albumDateFilter.isApplicable(filterDto)).thenReturn(true);
+        when(albumDateFilter.apply(any(), eq(filterDto))).thenAnswer(invocation -> Stream.of(album));
         when(albumMapper.toDto(album)).thenReturn(albumDto);
 
-        List<AlbumDto> result = albumService.getFavoritAlbumsForUserByFilter(userId, albumFilterDto);
+        List<AlbumDto> result = albumService.getFavoritAlbumsForUserByFilter(userId, title, description, month);
 
         Assertions.assertEquals(albumDto, result.get(0));
         verify(albumDateFilter, times(1)).isApplicable(any(AlbumFilterDto.class));
-        verify(albumDateFilter, times(1)).apply(any(), eq(albumFilterDto));
+        verify(albumDateFilter, times(1)).apply(any(), eq(filterDto));
     }
 
     @Test
     void testGetFavoritAlbumsForUserByFilterWithNoApplicableFilters() {
+        AlbumFilterDto filterDto = AlbumFilterDto.builder()
+                .title(title)
+                .description(description)
+                .month(Month.valueOf(month.toUpperCase()))
+                .build();
         when(albumRepository.findFavoriteAlbumsByUserId(userId)).thenReturn(Stream.of(album, album1));
-        when(albumDateFilter.isApplicable(albumFilterDto)).thenReturn(false);
+        when(albumDateFilter.isApplicable(filterDto)).thenReturn(false);
         when(albumMapper.toDto(album1)).thenReturn(albumDto1);
         when(albumMapper.toDto(album)).thenReturn(albumDto);
 
-        List<AlbumDto> result = albumService.getFavoritAlbumsForUserByFilter(userId, albumFilterDto);
+        List<AlbumDto> result = albumService.getFavoritAlbumsForUserByFilter(userId, title, description, month);
 
         assertEquals(List.of(albumDto, albumDto1), result);
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(userId);
-        verify(albumDateFilter, times(1)).isApplicable(albumFilterDto);
+        verify(albumDateFilter, times(1)).isApplicable(filterDto);
         verify(albumMapper, times(1)).toDto(album1);
         verify(albumMapper, times(1)).toDto(album);
     }

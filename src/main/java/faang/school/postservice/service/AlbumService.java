@@ -20,15 +20,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
+import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
-@Data
 @RequiredArgsConstructor
 public class AlbumService {
 
@@ -39,8 +40,7 @@ public class AlbumService {
     private final AlbumMapper albumMapper;
     private final PostMapper postMapper;
     private final PostRepository postRepository;
-    @Autowired
-    private List<Filter<Album, AlbumFilterDto>> filters;
+    private final List<Filter<Album, AlbumFilterDto>> filters;
 
 
     public AlbumDto createAlbum(AlbumDto albumDto) {
@@ -117,16 +117,21 @@ public class AlbumService {
         return result;
     }
 
-    public List<AlbumDto> getFavoritAlbumsForUserByFilter(long authorId, AlbumFilterDto albumFilterDto) {
+    public List<AlbumDto> getFavoritAlbumsForUserByFilter(long authorId, String title, String description, String month) {
+        AlbumFilterDto filterDto = AlbumFilterDto.builder()
+                .title(title)
+                .description(description)
+                .month(Month.valueOf(month.toUpperCase()))
+                .build();
         Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(authorId);
         List<AlbumDto> result = filters.stream()
-                .filter(filter -> filter.isApplicable(albumFilterDto))
+                .filter(filter -> filter.isApplicable(filterDto))
                 .reduce(albums,
-                        (stream, filter) -> filter.apply(stream, albumFilterDto),
+                        (stream, filter) -> filter.apply(stream, filterDto),
                         (s1, s2) -> s1)
                 .map(albumMapper::toDto)
                 .toList();
-        log.info("Albums filtered by {}.", albumFilterDto);
+        log.info("Albums filtered by {}.", filterDto);
 
         return result;
     }
