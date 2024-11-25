@@ -40,7 +40,4 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         HAVING COUNT(*) >= :limit
         """)
     List<Long> findAuthorsWithUnverifiedPosts(int limit, LocalDate fromDate);
-
-//    @Query(value = "SELECT p FROM post p WHERE p.authorId = :authorId ORDER BY p.timestamp DESC")
-//    List<Post> findLimitedPostsByAuthorId(@Param("authorId") long authorId, Pageable pageable);
 }

@@ -18,7 +18,6 @@ import java.util.TreeSet;
 @RequiredArgsConstructor
 public class KafkaPostConsumer {
 
-    private boolean allProcessedSuccessfully = true;
     private final FeedCacheRepositoryImpl feedCacheRepository;
 
     @KafkaListener(topics = "${spring.data.kafka.topics.postsTopic.name}",
@@ -29,26 +28,15 @@ public class KafkaPostConsumer {
         List<Long> subscribersIds = event.getSubscribers();
 
         for (Long subscriberId : subscribersIds) {
-            try {
-                FeedCacheDto feedCacheDto = feedCacheRepository.findBySubscriberId(subscriberId)
-                        .orElse(buildFeedCacheDto(subscriberId));
-                log.info("feedCacheDto - {}", feedCacheDto.toString());
+            FeedCacheDto feedCacheDto = feedCacheRepository.findBySubscriberId(subscriberId)
+                    .orElse(buildFeedCacheDto(subscriberId));
+            log.info("feedCacheDto - {}", feedCacheDto.toString());
 
-                feedCacheRepository.addPostId(feedCacheDto, event.getPostId());
+            feedCacheRepository.addPostId(feedCacheDto, event.getPostId());
 
-                feedCacheRepository.save(feedCacheDto);
-            } catch (Exception ex) {
-                log.error("Error processing subscriberId: {}", subscriberId, ex);
-                allProcessedSuccessfully = false;
-            }
+            feedCacheRepository.save(feedCacheDto);
         }
-
-        if (allProcessedSuccessfully) {
-            acknowledgment.acknowledge();
-            log.info("successfully finish listenPostEvent");
-        } else {
-            log.warn("Not all subscribers processed successfully, ack not sent");
-        }
+        acknowledgment.acknowledge();
     }
 
     private FeedCacheDto buildFeedCacheDto(Long subscriberId) {

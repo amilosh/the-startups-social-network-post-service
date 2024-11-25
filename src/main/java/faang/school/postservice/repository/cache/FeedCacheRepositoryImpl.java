@@ -37,13 +37,7 @@ public class FeedCacheRepositoryImpl implements FeedCacheRepository {
 
     @Override
     public void addPostId(FeedCacheDto feedCacheDto, Long postId) {
-        if (feedCacheDto.getPostsIds().size() == redisProperties.getMaxPostCountInFeed()) {
-            TreeSet<Long> postsIds = (TreeSet<Long>) feedCacheDto.getPostsIds();
-            postsIds.pollLast();
-            feedCacheDto.setPostsIds(postsIds);
-        }
-
-        if (feedCacheDto.getPostsIds().size() > redisProperties.getMaxPostCountInFeed()) {
+        if (feedCacheDto.getPostsIds().size() >= redisProperties.getMaxPostCountInFeed()) {
             feedCacheDto.setPostsIds(feedCacheDto.getPostsIds().stream()
                     .limit(redisProperties.getMaxPostCountInFeed() - 1)
                     .collect(Collectors.toCollection(() -> new TreeSet<>(comparator))));
