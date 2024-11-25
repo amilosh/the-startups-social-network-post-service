@@ -6,7 +6,6 @@ import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.redis.mapper.PostCacheMapper;
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
 import faang.school.postservice.redis.model.entity.PostCache;
-import faang.school.postservice.redis.repository.FeedsCacheRepository;
 import faang.school.postservice.redis.repository.PostCacheRedisRepository;
 import faang.school.postservice.redis.service.FeedCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
@@ -42,18 +41,16 @@ public class PostCacheServiceImpl implements PostCacheService {
     private int postCommentsSize;
 
     private final PostCacheRedisRepository postCacheRedisRepository;
-    private final FeedsCacheRepository feedsCacheRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostCacheMapper postCacheMapper;
     private final RedissonClient redissonClient;
     private final FeedCacheService feedCacheService;
 
     @Autowired
-    public PostCacheServiceImpl(PostCacheRedisRepository postCacheRedisRepository, FeedsCacheRepository feedsCacheRepository,
+    public PostCacheServiceImpl(PostCacheRedisRepository postCacheRedisRepository,
                                 @Qualifier("redisCacheTemplate") RedisTemplate<String, Object> redisTemplate,
                                 PostCacheMapper postCacheMapper, RedissonClient redissonClient, FeedCacheService feedCacheService) {
         this.postCacheRedisRepository = postCacheRedisRepository;
-        this.feedsCacheRepository = feedsCacheRepository;
         this.redisTemplate = redisTemplate;
         this.postCacheMapper = postCacheMapper;
         this.redissonClient = redissonClient;

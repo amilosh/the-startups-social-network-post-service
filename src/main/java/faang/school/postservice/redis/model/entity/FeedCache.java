@@ -1,11 +1,14 @@
 package faang.school.postservice.redis.model.entity;
 
 import jakarta.persistence.Id;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
-import java.util.TreeSet;
+import java.util.LinkedHashSet;
 
 @RedisHash(value = "feeds")
 @Getter
@@ -15,5 +18,5 @@ import java.util.TreeSet;
 public class FeedCache implements Serializable {
     @Id
     private Long id;
-    private TreeSet<Long> postIds;
+    private LinkedHashSet<Long> postIds;
 }
