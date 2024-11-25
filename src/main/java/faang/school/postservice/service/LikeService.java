@@ -24,7 +24,6 @@ public class LikeService {
     private final CommentService commentService;
     private final LikeMapper likeMapper;
 
-    @Transactional
     public LikePostDto createLikePost(long postId, long userId) {
         log.info("Creating like with ownerLikeId={} and postId={}", userId, postId);
 
@@ -43,7 +42,6 @@ public class LikeService {
         return likeMapper.toLikePostDto(savedLike);
     }
 
-    @Transactional
     public LikeCommentDto createLikeComment(long commentId, long userId) {
         log.info("Creating like with userId={} and commentId={}", userId, commentId);
 
