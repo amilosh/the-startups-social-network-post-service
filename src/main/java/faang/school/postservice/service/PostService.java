@@ -2,11 +2,13 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.UserDto;
 import faang.school.postservice.dto.filter.FilterDto;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.filter.post.PostFilter;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.publisher.MessagePublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.sort.PostField;
 import faang.school.postservice.sort.SortBy;
@@ -16,20 +18,33 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
+    private final MessagePublisher messagePublisher;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final List<PostFilter> postFilters;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final List<SortBy> sort;
+
+    public void checkAndBanAuthors() {
+        List<Post> unverifiedPosts = postRepository.findByVerifiedFalse();
+
+        Map<Long, List<Post>> postsByAuthor = unverifiedPosts.stream()
+                .collect(Collectors.groupingBy(Post::getAuthorId));
+
+        for(Map.Entry<Long, List<Post>> entry: postsByAuthor.entrySet()) {
+            if (entry.getValue().size() > 5) {
+                Long authorId = entry.getKey();
+                messagePublisher.publish(authorId);
+            }
+        }
+    }
 
     public PostDto createPost(PostDto postDto) {
         PostServiceValidator.checkDtoValidAuthorOrProjectId(postDto);

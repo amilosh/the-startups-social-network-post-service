@@ -41,3 +41,6 @@ project-service:
 payment-service:
   host: localhost
   port: 9080
+
+schedule:
+  author-banner-cron: "0 0 0 * * ?"
