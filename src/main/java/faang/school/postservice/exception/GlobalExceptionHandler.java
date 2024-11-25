@@ -86,11 +86,47 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(errorMessage, "External service returned a 404 error"));
     }
 
+    @ExceptionHandler(NetworkException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleNetworkException(NetworkException ex) {
+        log.error("Network error occurred: {}", ex.getMessage(), ex);
+
+        String fullMessage = ex.getMessage();
+        int lastBracketIndex = fullMessage.lastIndexOf("[");
+
+        if (lastBracketIndex != -1 && lastBracketIndex + 1 < fullMessage.length()) {
+            return fullMessage.substring(lastBracketIndex + 1, fullMessage.length() - 1);
+        }
+
+        return "Unknown error";
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleUserNotFoundException(UserNotFoundException ex) {
+        log.error("User not found: {}", ex.getMessage(), ex);
+
+        String fullMessage = ex.getMessage();
+        int lastBracketIndex = fullMessage.lastIndexOf("[");
+
+        if (lastBracketIndex != -1 && lastBracketIndex + 1 < fullMessage.length()) {
+            return fullMessage.substring(lastBracketIndex + 1, fullMessage.length() - 1);
+        }
+
+        return "User not found";
+    }
+
     private String extractMessage(String fullMessage) {
         int lastBracketIndex = fullMessage.lastIndexOf("[");
         if (lastBracketIndex != -1 && lastBracketIndex + 1 < fullMessage.length()) {
             return fullMessage.substring(lastBracketIndex + 1, fullMessage.length() - 1);
         }
         return "Unknown error";
+    }
+
+    @ExceptionHandler(NotUniqueAlbumException.class)
+    public ResponseEntity<String> handleNotUniqueAlbumException(NotUniqueAlbumException ex) {
+        log.error("NotUniqueAlbumException access exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }
