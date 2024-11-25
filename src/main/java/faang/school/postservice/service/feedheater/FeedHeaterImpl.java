@@ -3,7 +3,6 @@ package faang.school.postservice.service.feedheater;
 import faang.school.postservice.model.event.HeatFeedCacheEvent;
 import faang.school.postservice.publisher.EventPublisher;
 import faang.school.postservice.repository.UserRepository;
-import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,6 @@ public class FeedHeaterImpl implements FeedHeater {
 
     private final UserRepository userRepository;
     private final EventPublisher<HeatFeedCacheEvent> distributor;
-    private final FeedService feedService;
 
     @Override
     public void heat() {
@@ -33,12 +31,5 @@ public class FeedHeaterImpl implements FeedHeater {
         distributor.publish(new HeatFeedCacheEvent(
                 userIds.subList(i, userIds.size())
         ));
-    }
-
-    @Override
-    public void putAllFeeds(HeatFeedCacheEvent event) {
-        var userIds = event.getUsersIds();
-
-        userIds.forEach(feedService::generateFeedForUser);
     }
 }

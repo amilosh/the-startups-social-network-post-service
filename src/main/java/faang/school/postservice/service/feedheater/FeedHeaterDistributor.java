@@ -6,6 +6,7 @@ import faang.school.postservice.mapper.HeatFeedCacheEventMapper;
 import faang.school.postservice.model.event.HeatFeedCacheEvent;
 import faang.school.postservice.protobuf.generate.HeatFeedCacheEventProto;
 import faang.school.postservice.publisher.EventPublisher;
+import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +24,7 @@ public class FeedHeaterDistributor implements EventPublisher<HeatFeedCacheEvent>
 
     private final KafkaTemplate<byte[], byte[]> kafkaTemplate;
     private final HeatFeedCacheEventMapper mapper;
-    private final FeedHeater feedHeater;
+    private final FeedService feedService;
 
     @Override
     @Async(value = "feedThreadPool")
@@ -38,6 +39,6 @@ public class FeedHeaterDistributor implements EventPublisher<HeatFeedCacheEvent>
     public void processEvent(byte[] message) throws InvalidProtocolBufferException {
         HeatFeedCacheEvent event = mapper.toEvent(HeatFeedCacheEventProto.HeatFeedCacheEvent.parseFrom(message));
 
-        feedHeater.putAllFeeds(event);
+        event.getUsersIds().forEach(feedService::generateFeedForUser);
     }
 }

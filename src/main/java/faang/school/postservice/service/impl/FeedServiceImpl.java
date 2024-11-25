@@ -92,8 +92,9 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     @Async("feedThreadPool")
+    @Transactional
     public void generateFeedForUser(long userId) {
-        List<CacheablePost> posts = userRepository.getPostsForFeedById(userId, countOfPostsInFeed).stream()
+        List<CacheablePost> posts = postRepository.getPostsForFeedByUserId(userId, countOfPostsInFeed).stream()
                 .map(cacheablePostMapper::toCacheablePost)
                 .toList();
 

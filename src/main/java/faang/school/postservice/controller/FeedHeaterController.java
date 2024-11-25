@@ -5,12 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("api/v1/heat")
+@RestController("api/v1/")
 @RequiredArgsConstructor
 public class FeedHeaterController {
     private final FeedHeater feedHeater;
 
-    @PutMapping
+    @PutMapping("heat")
     public void heat() {
         feedHeater.heat();
     }
