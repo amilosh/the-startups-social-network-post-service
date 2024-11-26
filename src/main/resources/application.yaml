@@ -44,3 +44,7 @@ payment-service:
 
 schedule:
   author-banner-cron: "0 0 0 * * ?"
+
+redis:
+  topic:
+    user-ban: user_ban
