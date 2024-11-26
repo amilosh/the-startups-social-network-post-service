@@ -3,10 +3,8 @@ package faang.school.postservice.dto.project;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.springframework.validation.annotation.Validated;
 
 @Data
-@Validated
 public class ProjectDto {
     private long id;
 
