@@ -23,7 +23,7 @@ public class PostCachingAspect {
 
     private final PostRedisRepository postRedisRepository;
     private final PostCacheMapper postCacheMapper;
-    @Value("${spring.data.redis.cache.ttl.post}")
+    @Value(value = "${spring.data.redis.cache.ttl.post-cache}")
     private Long timeToLive;
 
     @AfterReturning(pointcut = "@annotation(PostCaching)", returning = "post")
