@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
@@ -38,6 +39,7 @@ public class PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final PostCacheMapper postCacheMapper;
     private final PostRedisRepository postRedisRepository;
+    private final AuthorCacheManager cachingAuthor;
 
     @Transactional
     public Post createDraftPost(Post post) {
@@ -60,8 +62,8 @@ public class PostService {
         PostCache postCache = postCacheMapper.toPostCache(savedPost);
         postRedisRepository.save(postCache);
 
+        cachingAuthor.cacheAuthor(savedPost);
         kafkaPostProducer.publishPost(savedPost);
-
         return savedPost;
     }
 
