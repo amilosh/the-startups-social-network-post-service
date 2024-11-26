@@ -24,10 +24,10 @@ kafka:
     trustedPackages: "*"
   topics:
     postLikeTopic:
-      name: comment_likes
+      name: post_likes
       numPartitions: 5
       replicationFactor: 1
     commentLikeTopic:
-      name: post_likes
+      name: comment_likes
       numPartitions: 5
       replicationFactor: 1

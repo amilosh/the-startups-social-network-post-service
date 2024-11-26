@@ -59,7 +59,6 @@ dependencies {
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     implementation("org.springframework.retry:spring-retry:2.0.9")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.0")
 
     /**
      * OpenAPI & swagger dependencies
@@ -76,6 +75,7 @@ dependencies {
     implementation(platform("org.testcontainers:testcontainers-bom:1.17.6"))
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
+    testImplementation ("org.testcontainers:kafka")
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit-jupiter:1.4.6")
 
     /**
@@ -86,6 +86,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.github.hakky54:logcaptor:2.9.3")
     testImplementation("org.assertj:assertj-core:3.26.3")
+    testImplementation ("org.springframework.kafka:spring-kafka-test")
 
     /**
      * Jacoco
