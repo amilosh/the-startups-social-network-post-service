@@ -16,7 +16,6 @@ public class KafkaEventProducer {
     protected String topicName;
     protected ObjectMapper mapper;
 
-    @Async("treadPool")
     public void publishEvent(Object message) {
         try {
             String messageString = mapper.writeValueAsString(message);
