@@ -1,6 +1,9 @@
 package faang.school.postservice.exception;
 
 
+import faang.school.postservice.exception.dto.ErrorResponse;
+import feign.FeignException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +23,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         log.error("Validation error occured: {}", ex.getMessage(), ex);
         Map<String, String> errors = new HashMap<>();
 
@@ -30,12 +33,15 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        ErrorResponse response = new ErrorResponse("Validation error", "Check input data");
+        response.setErrorsList(errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
         log.error("Constraint violation error occured: {}", ex.getMessage(), ex);
         Map<String, String> errors = new HashMap<>();
 
@@ -45,18 +51,82 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        ErrorResponse response = new ErrorResponse("Validation error", "Check input data");
+        response.setErrorsList(errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(DataValidationException.class)
-    public ResponseEntity<String> handleDataValidationException(DataValidationException ex) {
+    public ResponseEntity<ErrorResponse> handleDataValidationException(DataValidationException ex) {
         log.error("Data validation exception: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponse(ex.getMessage(), "Data validation error, check input data"));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
         log.error("Entity not found exception: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorResponse(ex.getMessage(), "Entity not found, check id"));
+    }
+
+    @ExceptionHandler(EntityWasRemovedException.class)
+    public ResponseEntity<ErrorResponse> handleEntityWasRemovedException(EntityWasRemovedException ex) {
+        log.error("Entity was removed exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getMessage(), "Entity is no longer available"));
+    }
+
+    @ExceptionHandler(FeignException.NotFound.class)
+    public ResponseEntity<ErrorResponse> handleFeignNotFoundException(FeignException.NotFound ex) {
+        log.error("Feign exception: {}", ex.getMessage(), ex);
+        String errorMessage = extractMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(errorMessage, "External service returned a 404 error"));
+    }
+
+    @ExceptionHandler(NetworkException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleNetworkException(NetworkException ex) {
+        log.error("Network error occurred: {}", ex.getMessage(), ex);
+
+        String fullMessage = ex.getMessage();
+        int lastBracketIndex = fullMessage.lastIndexOf("[");
+
+        if (lastBracketIndex != -1 && lastBracketIndex + 1 < fullMessage.length()) {
+            return fullMessage.substring(lastBracketIndex + 1, fullMessage.length() - 1);
+        }
+
+        return "Unknown error";
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleUserNotFoundException(UserNotFoundException ex) {
+        log.error("User not found: {}", ex.getMessage(), ex);
+
+        String fullMessage = ex.getMessage();
+        int lastBracketIndex = fullMessage.lastIndexOf("[");
+
+        if (lastBracketIndex != -1 && lastBracketIndex + 1 < fullMessage.length()) {
+            return fullMessage.substring(lastBracketIndex + 1, fullMessage.length() - 1);
+        }
+
+        return "User not found";
+    }
+
+    private String extractMessage(String fullMessage) {
+        int lastBracketIndex = fullMessage.lastIndexOf("[");
+        if (lastBracketIndex != -1 && lastBracketIndex + 1 < fullMessage.length()) {
+            return fullMessage.substring(lastBracketIndex + 1, fullMessage.length() - 1);
+        }
+        return "Unknown error";
+    }
+
+    @ExceptionHandler(NotUniqueAlbumException.class)
+    public ResponseEntity<String> handleNotUniqueAlbumException(NotUniqueAlbumException ex) {
+        log.error("NotUniqueAlbumException access exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }
