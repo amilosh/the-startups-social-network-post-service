@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record LikeRedis(
+        String key,
         long likeAuthorId)
 {
 }

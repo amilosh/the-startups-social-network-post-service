@@ -12,6 +12,7 @@ public class ObjectMapperConfig {
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
         return objectMapper;
     }
 }
