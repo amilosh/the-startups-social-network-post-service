@@ -22,8 +22,12 @@ spring:
       port: 6379
       host: localhost
       ttl: 86400
-      feed:
-        key-prefix: "Feed:"
+      news-feed:
+        time-to-live: 1
+        key-prefix:
+          feed: "Feed:"
+          post: "Posts:"
+          user: "Users:"
       channels:
         calculations_channel:
           name: calculations_channel
