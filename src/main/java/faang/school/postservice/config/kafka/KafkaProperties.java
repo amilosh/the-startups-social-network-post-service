@@ -21,6 +21,9 @@ public class KafkaProperties {
     protected static class Consumer {
         private long groupId;
         private String autoOffsetReset;
+        private Object keyDeserializer;
+        private Object valueDeserializer;
+        private String concurrency;
     }
 
     @Getter

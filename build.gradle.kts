@@ -28,6 +28,7 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.apache.kafka:kafka-clients")
+    implementation("org.redisson:redisson-spring-boot-starter:3.23.5")
     /**
      * Database
      */

@@ -11,7 +11,11 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "spring.data.redis")
 public class RedisProperties {
 
+    private String host;
+    private int port;
     private Channels channels;
+    private Ttl ttl;
+
 
     @Getter
     @Setter
@@ -28,5 +32,14 @@ public class RedisProperties {
         protected static class Channel {
             private String name;
         }
+    }
+
+    @Getter
+    @Setter
+    protected static class Ttl {
+        private int basicTtl;
+        private int postTtl;
+        private int commentTtl;
+        private int likePostTtl;
     }
 }

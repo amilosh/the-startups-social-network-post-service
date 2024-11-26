@@ -23,6 +23,11 @@ spring:
     redis:
       port: 6379
       host: localhost
+      ttl:
+        basicTtl: 1 #hours
+        postTtl: 24 #hours
+        commentTtl: 24 #hour
+        likePostTtl: 24 #hour
       channels:
         calculationsChannel:
           name: calculations_channel
@@ -41,14 +46,15 @@ spring:
     consumer:
       groupId: example_group
       autoOffsetReset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
+      valueDeserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      concurrency: 3
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     topic:
       post:
-        name: post
+        name: posts
         partitions: 1
         replicationFactor: 1
 
@@ -125,3 +131,6 @@ executor:
   corePoolSize: 1
   maximumPoolSize: 10
   keepAliveTime: 60
+
+feed:
+  maxFeedSize: 300

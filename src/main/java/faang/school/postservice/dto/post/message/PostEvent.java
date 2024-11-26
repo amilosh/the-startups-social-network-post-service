@@ -21,5 +21,6 @@ public class PostEvent {
     private long projectId;
     private int likeCount;
     private LocalDateTime scheduledAt;
+    private LocalDateTime publishedAt;
     private List<Long> subscribers;
 }
