@@ -7,6 +7,7 @@ import faang.school.postservice.kafka.dto.PostKafkaDto;
 import faang.school.postservice.mapper.feed.FeedMapper;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Service
 public class FeedService {
-    private static final String KEY = "user:";
+    private static final String KEY = "userPostsFeed:";
 
     @Value("${feed.posts-batch-size}")
-    private long batchSize;
+    private long postsBatchSize;
 
     @Value("${redis.feed.max-size:500}")
     private int feedMaxSize;
@@ -34,27 +35,13 @@ public class FeedService {
     public List<PostFeedResponseDto> getFeed(long userId, Long postId) {
         String key = buildKey(userId);
 
-        long start;
-        long end;
-        if (postId == null) {
-            start = 0;
-            end = batchSize - 1;
-        } else {
-            Long rank = feedZSetOperations.rank(buildKey(userId), postId);
-            if (rank == null) {
-                start = 0;
-                end = batchSize - 1;
-            } else {
-                start = rank + 1;
-                end = rank + batchSize;
-            }
-        }
+        Pair<Long, Long> postsRange = defineRange(key, postId);
 
-        Set<Long> postIds = feedZSetOperations.range(key, start, end);
+        Set<Long> postIds = feedZSetOperations.range(key, postsRange.getLeft(), postsRange.getRight());
+
         List<PostRedisEntity> posts = postService.getRedisPostsById(postIds);
-        return feedMapper.map(posts);
+        return feedMapper.mapToCommentFeedResponseDto(posts);
     }
-
 
     public void addFeed(PostKafkaDto postKafkaDto) {
         Long postId = postKafkaDto.getPostId();
@@ -64,6 +51,30 @@ public class FeedService {
         followerIds.forEach(id -> addPostToFeed(buildKey(id), postId, score));
     }
 
+    private String buildKey(Long userId) {
+        return KEY + userId;
+    }
+
+    private Pair<Long, Long> defineRange(String key, Long postId) {
+        long start;
+        long end;
+        if (postId == null) {
+            start = 0;
+            end = postsBatchSize - 1;
+        } else {
+            Long rank = feedZSetOperations.rank(key, postId);
+            if (rank == null) {
+                start = 0;
+                end = postsBatchSize - 1;
+            } else {
+                start = rank + 1;
+                end = rank + postsBatchSize;
+            }
+        }
+
+        return Pair.of(start, end);
+    }
+
     private void addPostToFeed(String key, Long postId, long score) {
         feedZSetOperations.add(key, postId, score);
 
@@ -71,9 +82,5 @@ public class FeedService {
         if (feedSize != null && feedSize > feedMaxSize) {
             feedZSetOperations.removeRange(key, 0, feedSize - feedMaxSize);
         }
-    }
-
-    private String buildKey(Long userId) {
-        return KEY + userId;
     }
 }

@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -305,9 +306,27 @@ public class PostService {
     }
 
     public List<PostRedisEntity> getRedisPostsById(Set<Long> postIds) {
-        Iterable<PostRedisEntity> posts = postRedisRepository.findAllById(postIds);
-        return StreamSupport.stream(posts.spliterator(), false)
+        Iterable<PostRedisEntity> iterablePosts = postRedisRepository.findAllById(postIds);
+        List<PostRedisEntity> posts = StreamSupport.stream(iterablePosts.spliterator(), false)
                 .toList();
+        if (postIds.size() == posts.size()) {
+            return posts.stream()
+                    .sorted(Comparator.comparing(PostRedisEntity::getPublishedAt))
+                    .toList();
+        } else {
+            Set<Long> existingPostIds = posts.stream()
+                    .map(PostRedisEntity::getId)
+                    .collect(Collectors.toSet());
+            Set<Long> missingIds = postIds.stream()
+                    .filter(id -> !existingPostIds.contains(id))
+                    .collect(Collectors.toSet());
+            List<Post> postsFromDb = postRepository.findPostsByIds(missingIds);
+            posts = new ArrayList<>(posts);
+            posts.addAll(postMapper.mapToPostRedisDtos(postsFromDb));
+            return posts.stream()
+                    .sorted(Comparator.comparing(PostRedisEntity::getPublishedAt))
+                    .toList();
+        }
     }
 
     public void incrementView(Long postId) {

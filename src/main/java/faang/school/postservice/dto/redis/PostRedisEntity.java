@@ -1,5 +1,6 @@
 package faang.school.postservice.dto.redis;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -25,4 +27,6 @@ public class PostRedisEntity implements Serializable {
     private Integer likes;
     private Integer views;
     private List<Long> comments;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    private LocalDateTime publishedAt;
 }

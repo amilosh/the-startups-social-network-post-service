@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -76,4 +77,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(value = "select * from post where id in (:ids)", nativeQuery = true)
     List<Post> findPostsByIds(@Param("ids") List<Long> ids);
+
+    @Query(value = "select * from post where id in (:ids)", nativeQuery = true)
+    List<Post> findPostsByIds(@Param("ids") Set<Long> ids);
 }
