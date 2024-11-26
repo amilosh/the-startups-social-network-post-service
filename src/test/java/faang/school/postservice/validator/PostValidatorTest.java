@@ -6,8 +6,10 @@ import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.EntityWasRemovedException;
+import faang.school.postservice.model.Hashtag;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.HashtagService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,9 @@ class PostValidatorTest {
 
     @Mock
     private UserServiceClient userServiceClient;
+
+    @Mock
+    private HashtagService hashtagService;
 
     @InjectMocks
     private PostValidator postValidator;

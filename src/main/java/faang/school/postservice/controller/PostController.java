@@ -2,6 +2,7 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.docs.post.CreatePostDoc;
 import faang.school.postservice.docs.post.DeletePostDoc;
+import faang.school.postservice.docs.post.GetPostByHashtagDoc;
 import faang.school.postservice.docs.post.GetDraftPostByAuthorDoc;
 import faang.school.postservice.docs.post.GetDraftPostByProjectDoc;
 import faang.school.postservice.docs.post.GetPostDoc;
@@ -13,11 +14,13 @@ import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.service.PostService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -33,16 +36,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @Validated
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
+@Tag(name = "Post", description = "This controller handles post operations")
 public class PostController {
     private final PostService postService;
 
     @PostMapping
     @CreatePostDoc
     public ResponseEntity<ResponsePostDto> create(@Valid @RequestBody CreatePostDto createPostDto) {
+        log.info("Request for new post from user: {}", createPostDto.getAuthorId());
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.create(createPostDto));
     }
 
@@ -54,6 +60,7 @@ public class PostController {
             @NotNull(message = "Post id cannot be null")
             Long postId
     ) {
+        log.info("Request for publish post: {}", postId);
         return ResponseEntity.ok(postService.publish(postId));
     }
 
@@ -66,6 +73,7 @@ public class PostController {
             Long postId,
             @Valid @RequestBody UpdatePostDto updatePostDto
     ) {
+        log.info("Request for update post: {} with content: {}", postId, updatePostDto.getContent());
         return ResponseEntity.ok(postService.update(postId, updatePostDto));
     }
 
@@ -76,6 +84,7 @@ public class PostController {
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long postId
     ) {
+        log.info("Request for delete post: {}", postId);
         postService.delete(postId);
         return ResponseEntity.noContent().build();
     }
@@ -87,6 +96,7 @@ public class PostController {
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long postId
     ) {
+        log.info("Request for get post: {}", postId);
         return ResponseEntity.ok(postService.getById(postId));
     }
 
@@ -97,6 +107,7 @@ public class PostController {
             @NotNull(message = "User id cannot be null")
             @Positive(message = "User id must be positive") Long userId
     ) {
+        log.info("Request for get draft posts for user: {}", userId);
         return ResponseEntity.ok(postService.getDraftsByUserId(userId));
     }
 
@@ -107,6 +118,7 @@ public class PostController {
             @NotNull(message = "Post id cannot be null")
             @Positive(message = "Post id must be positive") Long projectId
     ) {
+        log.info("Request for get draft posts for project: {}", projectId);
         return ResponseEntity.ok(postService.getDraftsByProjectId(projectId));
     }
 
@@ -118,6 +130,7 @@ public class PostController {
             @Positive(message = "User id must be positive")
             Long userId
     ) {
+        log.info("Request for get published posts for user: {}", userId);
         return ResponseEntity.ok(postService.getPublishedByUserId(userId));
     }
 
@@ -133,6 +146,18 @@ public class PostController {
             @NotBlank(message = "Page number cannot be blank")
             Long authorId
     ) {
+        log.info("Request for get published posts for project: {}", projectId);
         return ResponseEntity.ok(postService.getPublishedByProjectId(projectId, authorId));
+    }
+
+    @GetMapping("/hashtag/{tag}")
+    @GetPostByHashtagDoc
+    public ResponseEntity<List<ResponsePostDto>> searchHashtag(
+            @PathVariable
+            @NotBlank(message = "Tag cannot be empty")
+            String tag
+    ) {
+        log.info("Request for get posts by tag: {}", tag);
+        return ResponseEntity.ok(postService.findByHashtags(tag));
     }
 }
