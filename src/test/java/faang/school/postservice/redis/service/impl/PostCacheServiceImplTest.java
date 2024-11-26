@@ -1,9 +1,11 @@
 package faang.school.postservice.redis.service.impl;
 
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
+import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
 import faang.school.postservice.redis.model.entity.PostCache;
 import faang.school.postservice.redis.repository.PostCacheRedisRepository;
+import faang.school.postservice.redis.service.FeedCacheService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +19,11 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.*;
 
@@ -34,6 +38,9 @@ public class PostCacheServiceImplTest {
 
     @Mock
     RLock lock;
+
+    @Mock
+    FeedCacheService feedCacheService;
 
     @InjectMocks
     private PostCacheServiceImpl postCacheService;
@@ -65,7 +72,7 @@ public class PostCacheServiceImplTest {
         comments.add(commentRedisDto2);
 
         PostCache postCache = new PostCache(1L, "some content", 5L,
-                0, 0, comments);
+                0, 0, comments, LocalDateTime.now());
 
         when(postCacheRedisRepository.findById(commentEventKafka.getPostId())).thenReturn(Optional.of(postCache));
         when(redissonClient.getLock(anyString())).thenReturn(lock);
@@ -84,6 +91,20 @@ public class PostCacheServiceImplTest {
 
         Assertions.assertEquals("Can't find post in redis with id: " + commentEventKafka.getPostId(),
                 exception.getMessage());
+    }
+
+    @Test
+    public void testUpdateFeedsInCache() {
+        Long postId = 1L;
+        PostEventKafka event = PostEventKafka.builder()
+                .postId(postId)
+                .followerIds(List.of(2L, 3L, 4L)).build();
+        when(feedCacheService.getAndSaveFeed(anyLong(),eq(postId))).thenReturn(CompletableFuture.completedFuture(null));
+
+        postCacheService.updateFeedsInCache(event);
+
+        verify(feedCacheService, times(3)).getAndSaveFeed(anyLong(), eq(postId));
+
     }
 
     // TODO maybe add some tests
