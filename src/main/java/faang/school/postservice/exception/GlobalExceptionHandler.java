@@ -16,6 +16,7 @@ public class GlobalExceptionHandler {
     private static final String ENTITY_NOT_FOUND = "EntityNotFoundException: ";
     private static final String CONSTRAINT_VIOLATION = "ConstraintViolationException: ";
     private static final String METHOD_ARGUMENT_NOT_VALID = "MethodArgumentNotValidException: ";
+    private static final String DATA_VALIDATION = "DataValidationException: {}";
     private static final String UNEXPECTED_ERROR = "An unexpected error has occurred: ";
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         log.error(METHOD_ARGUMENT_NOT_VALID, ex);
+        return new ErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(DataValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleDataValidationException(DataValidationException ex) {
+        log.error(ex.getMessage(), ex);
         return new ErrorResponse(ex.getMessage());
     }
 

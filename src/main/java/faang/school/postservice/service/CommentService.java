@@ -29,7 +29,7 @@ public class CommentService {
         log.info("Trying to add comment: {} to post: {}", commentDto, postId);
         validateUserExists(commentDto.authorId());
 
-        Post post = postService.getById(postId);
+        Post post = postService.findPostById(postId);
         Comment comment = commentMapper.toEntity(commentDto);
 
         postService.addCommentToPost(post, comment);

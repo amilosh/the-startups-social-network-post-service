@@ -71,7 +71,7 @@ public class CommentServiceTest {
                 .id(postId)
                 .build();
 
-        when(postService.getById(postId)).thenReturn(post);
+        when(postService.findPostById(postId)).thenReturn(post);
         when(commentMapper.toEntity(commentDto)).thenReturn(comment);
 
         // act
@@ -96,7 +96,7 @@ public class CommentServiceTest {
     @Test
     public void testAddCommentPostNotFound() {
         // arrange
-        when(postService.getById(postId))
+        when(postService.findPostById(postId))
                 .thenThrow(new EntityNotFoundException());
 
         // act and assert
