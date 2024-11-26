@@ -18,6 +18,6 @@ public interface AdRepository extends JpaRepository<Ad, Long> {
     List<Ad> findAllByBuyerId(long buyerId);
 
     @Query("SELECT a FROM Ad a WHERE a.endDate < ?1 OR a.appearancesLeft == 0")
-    List<Ad> findAllExpiredAds(LocalDate localDate);
+    Optional<List<Ad>> findAllExpiredAds(LocalDate localDate);
 
 }
