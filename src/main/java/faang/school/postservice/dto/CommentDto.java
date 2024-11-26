@@ -15,17 +15,23 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommentDto {
     private Long id;
+
     @NotBlank(message = "Content cannot be empty or null")
-    @NotNull
-    @Size(min = 1, max = 4096, message = "Content must not exceed 4096 characters")
+    @Size(max = 4096, message = "Content must not exceed 4096 characters")
     private String content;
+
     @NotNull
     private Long authorId;
+
     @NotNull
     private Long postId;
+
     @JsonIgnore
     private LocalDateTime createdAt;
+
     @JsonIgnore
     private LocalDateTime updatedAt;
+
     private int likeCount;
 }
+

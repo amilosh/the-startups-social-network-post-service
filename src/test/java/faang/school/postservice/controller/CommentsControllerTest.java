@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.MediaType;
-import org.springframework.web.server.ResponseStatusException;
+
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -29,8 +29,10 @@ public class CommentsControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
     @MockBean
     private CommentService commentService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -50,6 +52,7 @@ public class CommentsControllerTest {
         dto.setCreatedAt(LocalDateTime.now());
         return dto;
     }
+
     @Test
     void createComment_Success() throws Exception {
         when(commentService.createComment(eq(5L), any(CommentDto.class))).thenReturn(commentDto);
@@ -60,26 +63,28 @@ public class CommentsControllerTest {
     }
 
     @Test
-    void updateProject_Success() throws Exception {
+    void updateComment_Success() throws Exception {
         when(commentService.updateComment(eq(1L), any(CommentDto.class))).thenReturn(commentDto);
 
-        performPutRequest("/comments/comments/1",commentDto)
+        performPutRequest("/comments/1", commentDto)
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
     }
+
     @Test
     void getAllComments_Success() throws Exception {
         when(commentService.getAllComments(5L)).thenReturn(List.of(commentDto));
 
-        performGetRequest("/comments/posts/5/comments")
+        performGetRequest("/posts/5/comments")
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(commentDto))));
     }
+
     @Test
     void deleteComment_Success() throws Exception {
-        performDeleteRequest("/comments/comments/1")
+        performDeleteRequest("/comments/1")
                 .andExpect(status().isOk())
-                .andExpect(content().string("Comments is deleted successfully"));
+                .andExpect(content().string("Comment is deleted successfully"));
     }
 
     private ResultActions performPostRequest(String url, CommentDto commentDto) throws Exception {
@@ -93,10 +98,11 @@ public class CommentsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON));
     }
 
-    private ResultActions performDeleteRequest(String url) throws Exception{
+    private ResultActions performDeleteRequest(String url) throws Exception {
         return mockMvc.perform(delete(url));
     }
-    private ResultActions performPutRequest(String url,CommentDto commentDto) throws Exception{
+
+    private ResultActions performPutRequest(String url, CommentDto commentDto) throws Exception {
         return mockMvc.perform(put(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentDto)));
