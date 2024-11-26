@@ -2,13 +2,12 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.UserDto;
 import faang.school.postservice.dto.filter.FilterDto;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.filter.post.PostFilter;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.MessagePublisher;
+import faang.school.postservice.publisher.RedisMessagePublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.sort.PostField;
 import faang.school.postservice.sort.SortBy;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    private final MessagePublisher messagePublisher;
+    private final RedisMessagePublisher redisMessagePublisher;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final List<PostFilter> postFilters;
@@ -41,7 +40,7 @@ public class PostService {
         for(Map.Entry<Long, List<Post>> entry: postsByAuthor.entrySet()) {
             if (entry.getValue().size() > 5) {
                 Long authorId = entry.getKey();
-                messagePublisher.publish(authorId);
+                redisMessagePublisher.publish(authorId);
             }
         }
     }

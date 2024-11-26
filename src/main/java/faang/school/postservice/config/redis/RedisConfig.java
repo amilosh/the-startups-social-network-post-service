@@ -1,39 +1,40 @@
 package faang.school.postservice.config.redis;
 
-import faang.school.postservice.publisher.MessagePublisher;
-import faang.school.postservice.publisher.RedisMessagePublisher;
-import faang.school.postservice.listener.RedisMessageSubscriber;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+    @Value("${spring.data.redis.host}")
+    private String host;
+
+    @Value("${spring.data.redis.port}")
+    private int port;
+
     @Bean
-    public MessageListenerAdapter messageListener() {
-        return new MessageListenerAdapter(new RedisMessageSubscriber());
+    public JedisConnectionFactory jedisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
+        return new JedisConnectionFactory(config);
     }
 
     @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory) {
-        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(messageListener(), topic());
-        return container;
+    public RedisTemplate<String, Object> redisTemplate(JedisConnectionFactory connectionFactory,
+                                                       StringRedisSerializer stringRedisSerializer) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setEnableTransactionSupport(false);
+        template.setDefaultSerializer(stringRedisSerializer);
+        return template;
     }
 
     @Bean
-    public MessagePublisher redisPubilsher(RedisTemplate<String, Object> redisTemplate) {
-        return new RedisMessagePublisher(redisTemplate, topic());
-    }
-
-    @Bean
-    public ChannelTopic topic() {
-        return new ChannelTopic("user_ban");
+    public StringRedisSerializer stringRedisSerializer() {
+        return new StringRedisSerializer();
     }
 }
 
