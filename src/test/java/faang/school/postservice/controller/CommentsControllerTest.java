@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,8 +37,8 @@ public class CommentsControllerTest {
     private CommentDto commentDto;
 
     @BeforeEach
-    void setUp(){
-        commentDto= createTestCommentDto();
+    void setUp() {
+        commentDto = createTestCommentDto();
     }
 
     private CommentDto createTestCommentDto() {
@@ -49,14 +50,55 @@ public class CommentsControllerTest {
         dto.setCreatedAt(LocalDateTime.now());
         return dto;
     }
-    private ResultActions performPostRequest(String url, CommentDto commentDto) throws Exception{
-        return mockMvc.perform(post(url))
+
+    private ResultActions performPostRequest(String url, CommentDto commentDto) throws Exception {
+        return mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(commentDto));
+                .content(objectMapper.writeValueAsString(commentDto)));
     }
 
     private ResultActions performGetRequest(String url) throws Exception {
-        return mockMvc.perform(get(url))
-                .
+        return mockMvc.perform(get(url)
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    private ResultActions performDeleteRequest(String url) throws Exception{
+        return mockMvc.perform(delete(url));
+    }
+    private ResultActions performPutRequest(String url,CommentDto commentDto) throws Exception{
+        return mockMvc.perform(put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(commentDto)));
+    }
+    @Test
+    void createComment_Success() throws Exception {
+        when(commentService.createComment(eq(5L), any(CommentDto.class))).thenReturn(commentDto);
+
+        performPostRequest("/comments/post/5/comments", commentDto)
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+    }
+
+    @Test
+    void updateProject_Success() throws Exception {
+        when(commentService.updateComment(eq(1L), any(CommentDto.class))).thenReturn(commentDto);
+
+        performPostRequest("/comments/comments/1",commentDto)
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+    }
+    @Test
+    void getAllComments_Success() throws Exception {
+        when(commentService.getAllComments(5L)).thenReturn(List.of(commentDto));
+
+        performGetRequest("/comments/posts/5/comments")
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+    }
+    @Test
+    void deleteComment_Success() throws Exception {
+        performDeleteRequest("/comments/comments/1")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Comments is deleted successfully"));
     }
 }
