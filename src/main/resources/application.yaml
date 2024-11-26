@@ -23,6 +23,10 @@ spring:
     redis:
       port: 6379
       host: localhost
+      time-to-live: 86400
+      limit-size:
+        comment: 200
+        post: 500
       channels:
         calculations_channel:
           name: calculations_channel

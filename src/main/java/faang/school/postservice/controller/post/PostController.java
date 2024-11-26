@@ -29,9 +29,9 @@ public class PostController {
         return postService.createDraftPost(postDto);
     }
 
-    @PutMapping("/publication")
-    public PostDto publishPost(@RequestBody @Validated PostDto postDto) {
-        return postService.publishPost(postDto);
+    @PutMapping("/publication/{postId}")
+    public PostDto publishPost(@PathVariable long postId) {
+        return postService.publishPost(postId);
     }
 
     @PutMapping

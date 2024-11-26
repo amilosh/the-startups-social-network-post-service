@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,6 +58,7 @@ public class CommentServiceImpl implements CommentService {
                 .postId(savedComment.getPost().getId())
                 .content(savedComment.getContent())
                 .commentId(savedComment.getId())
+                .commentedAt(LocalDateTime.now())
                 .build();
         commentEventPublisher.publish(event);
         return commentMapper.toResponseDto(savedComment);

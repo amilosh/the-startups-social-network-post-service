@@ -5,7 +5,6 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
 import faang.school.postservice.publisher.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.impl.post.async.PostServiceAsyncImpl;
 import faang.school.postservice.validator.post.PostValidator;
@@ -61,7 +60,7 @@ public class PostServiceImplTest {
     private PostServiceAsyncImpl postServiceAsync;
 
     @Mock
-    private PostRedisRepository postRedisRepository;
+    private PostRedisRepositoryImpl postRedisRepository;
 
     private PostDto examplePostDto;
     private Post examplePost;
@@ -117,7 +116,7 @@ public class PostServiceImplTest {
         when(postRepository.save(any(Post.class))).thenReturn(examplePost);
 
         // Act
-        postService.publishPost(examplePostDto);
+        postService.publishPost(1L);
 
         // Assert
         assertTrue(examplePost.isPublished());

@@ -3,8 +3,8 @@ package faang.school.postservice.publisher;
 import faang.school.postservice.model.event.CommentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class CommentEventPublisher {
 
-    private final ChannelTopic commentTopic;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final NewTopic commentPublishTopic;
 
     public void publish(CommentEvent commentEvent) {
-        redisTemplate.convertAndSend(commentTopic.getTopic(), commentEvent);
-        log.info("Comment event was sent");
+        kafkaTemplate.send(commentPublishTopic.name(), commentEvent);
+        log.info("Comment event was sent: {}", commentEvent);
     }
 }

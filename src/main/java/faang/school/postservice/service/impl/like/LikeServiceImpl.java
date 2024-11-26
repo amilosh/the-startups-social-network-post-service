@@ -37,6 +37,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeEventPublisher likeEventPublisher;
     private final DateAndTimeFormat timeFormat;
 
+
     @Override
     @Transactional
     public LikeDto createLikeComment(Long commentId) {
@@ -78,12 +79,15 @@ public class LikeServiceImpl implements LikeService {
 
         Like saveLike = saveLikePost(post, userId);
         LikeEvent likeEvent = LikeEvent.builder()
-                .postId(postId)
+                .id(saveLike.getId())
+                .postId(saveLike.getPost().getId())
                 .likeAuthorId(userId)
-                .postAuthorId(post.getAuthorId())
+                .postAuthorId(saveLike.getPost().getAuthorId())
                 .likedTime(timeFormat.localDateTime(LocalDateTime.now()))
                 .build();
-        likeEventPublisher.publish(likeEvent);
+
+            likeEventPublisher.publish(likeEvent);
+
 
         log.info("Created a like with ID {} from a user with ID {} to a post with ID {}",
                 saveLike.getId(),

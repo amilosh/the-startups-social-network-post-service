@@ -10,7 +10,7 @@ public interface PostService {
 
     PostDto createDraftPost(PostDto postDto);
 
-    PostDto publishPost(PostDto postDto);
+    PostDto publishPost(long postId);
 
     PostDto updatePost(PostDto postDto);
 

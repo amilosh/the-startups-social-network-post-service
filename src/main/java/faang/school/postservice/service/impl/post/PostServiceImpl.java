@@ -1,10 +1,9 @@
 package faang.school.postservice.service.impl.post;
 
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.post.PostDto;
+import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.PostEvent;
-import faang.school.postservice.model.redis.PostRedis;
 import faang.school.postservice.publisher.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.redis.PostRedisRepository;
@@ -29,6 +28,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class PostServiceImpl implements PostService {
+    @Value("${spring.data.redis.time-to-live}")
+    private long timeToLive;
 
     private final PostRepository postRepository;
     private final PostMapper postMapper;
@@ -55,8 +56,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto publishPost(PostDto postDto) {
-        Post post = getPostFromRepository(postDto.id());
+    public PostDto publishPost(long postId) {
+        Post post = getPostFromRepository(postId);
 
         postValidator.publishPostValidator(post);
 
@@ -70,9 +71,7 @@ public class PostServiceImpl implements PostService {
                 .authorId(publishedPost.getAuthorId())
                 .postId(publishedPost.getId())
                 .build();
-
-        PostRedis postRedis = postMapper.toRedis(publishedPost);
-        postRedisRepository.savePost(postRedis, publishedPost.getId());
+        postRedisRepository.savePost(publishedPost);
         postEventPublisher.publish(event);
 
         return postMapper.toDto(post);
@@ -201,4 +200,5 @@ public class PostServiceImpl implements PostService {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
     }
+
 }

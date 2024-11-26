@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
@@ -55,14 +56,14 @@ public class PostControllerTest {
     @Test
     void testPublishPost() {
         // Arrange
-        when(postService.publishPost(postDto)).thenReturn(postDto);
+        when(postService.publishPost(anyLong())).thenReturn(postDto);
 
         // Act
-        PostDto result = postController.publishPost(postDto);
+        PostDto result = postController.publishPost(1L);
 
         // Assert
         assertEquals(postDto, result);
-        verify(postService, times(1)).publishPost(postDto);
+        verify(postService, times(1)).publishPost(anyLong());
     }
 
     @Test

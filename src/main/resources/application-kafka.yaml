@@ -2,21 +2,27 @@ spring:
   config:
     activate:
       on-profile: kafka
-  data:
-    kafka:
-      bootstrap-servers: localhost:9092
-      producer:
-        key-serializer: org.apache.kafka.common.serialization.StringSerializer
-        value-serializer: org.apache.kafka.common.serialization.JsonSerializer
-        retries: 3
-        interval: 1000L
-      channels:
-        post-channel: post_channel
-        like-channel: like_channel
-      consumer:
-        groups:
-          like-id: like_event
-        auto-offset-reset: earliest
-        key-deserializer: org.apache.kafka.common.serialization.StringSerializer
-        value-deserializer: org.apache.kafka.common.serialization.JsonSerializer
+  kafka:
+    host: localhost
+    port: 9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      interval: 1000L
+    channels:
+      post-channel: post_channel
+      like-channel: like_channel
+      comment-channel: comment_channel
+    consumer:
+      group-id: my-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate: org.springframework.kafka.support.serializer.JsonDeserializer
+
+
+
 
