@@ -1,13 +1,12 @@
 spring:
   data:
     redis:
-      port: 6379
-      host: localhost
+      port:
+      host:
       postTtl: 24
       postPrefix: "Post"
       defaultTtl: 12 # hours
       commentTtl: 24 # hours
-      redissonAddress: redis://localhost:6379
 
 kafka:
   producerConfig:
