@@ -5,12 +5,17 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.like.LikeRequestDto;
 import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.event.kafka.LikeKafkaEventBuilder;
+import faang.school.postservice.event.kafka.comment.like.CommentLikeKafkaEvent;
+import faang.school.postservice.event.kafka.post.like.PostLikeKafkaEvent;
 import faang.school.postservice.event.like.LikePostEvent;
 import faang.school.postservice.mapper.like.LikeMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.EventType;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.like.comment.KafkaCommentLikeProducer;
+import faang.school.postservice.producer.like.post.KafkaPostLikeProducer;
 import faang.school.postservice.publisher.like.LikePostEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
@@ -41,6 +46,8 @@ public class LikeService {
     private final LikeValidator likeValidator;
     private final UserContext userContext;
     private final LikePostEventPublisher likePostEventPublisher;
+    private final KafkaPostLikeProducer kafkaPostLikeProducer;
+    private final KafkaCommentLikeProducer kafkaCommentLikeProducer;
 
     public List<UserDto> getAllUsersByPostId(long id) {
         return getUsersBatched(getUsersIdsByLikes(getUsersIdsByPostId(id)));
@@ -83,6 +90,8 @@ public class LikeService {
 
         Like like = likeMapper.toEntity(likeRequestDto);
         LikePostEvent likePostEvent = null;
+        PostLikeKafkaEvent postLikeKafkaEvent = null;
+        CommentLikeKafkaEvent commentLikeKafkaEvent = null;
 
         if (likeRequestDto.getPostId() != null) {
             Post post = postRepository.findById(likeRequestDto.getPostId())
@@ -99,6 +108,8 @@ public class LikeService {
                     .eventType(EventType.POST_LIKE)
                     .createdAt(LocalDateTime.now())
                     .build();
+            postLikeKafkaEvent = LikeKafkaEventBuilder
+                    .buildEvent(PostLikeKafkaEvent.class, like.getPost().getAuthorId(), post.getId(), userContext);
         } else {
             Comment comment = commentRepository.findById(likeRequestDto.getCommentId())
                     .orElseThrow(() -> new IllegalArgumentException("Comment with ID "
@@ -107,6 +118,8 @@ public class LikeService {
             likeValidator.validateLikeForCommentExists(likeRequestDto.getCommentId(), likeRequestDto.getUserId());
 
             like.setComment(comment);
+            commentLikeKafkaEvent = LikeKafkaEventBuilder
+                    .buildEvent(CommentLikeKafkaEvent.class, comment.getAuthorId(), comment.getId(), userContext);
         }
 
         like.setUserId(userContext.getUserId());
@@ -114,6 +127,10 @@ public class LikeService {
 
         if (like.getPost() != null) {
             publishLikePostEvent(likePostEvent);
+            sendKafkaPostLikeEvent(postLikeKafkaEvent);
+        }
+        if (like.getComment() != null) {
+            sendKafkaCommentLikeEvent(commentLikeKafkaEvent);
         }
         return likeMapper.toResponseDto(like);
     }
@@ -138,6 +155,22 @@ public class LikeService {
             likePostEventPublisher.publish(likePostEvent);
         } catch (Exception ex) {
             log.error("Failed to send notification with likePostEvent: {}", likePostEvent.toString(), ex);
+        }
+    }
+
+    private void sendKafkaPostLikeEvent(PostLikeKafkaEvent postLikeKafkaEvent) {
+        try {
+            kafkaPostLikeProducer.sendEvent(postLikeKafkaEvent);
+        } catch (Exception e) {
+            log.error("Failed to send kafka like post event: ", e);
+        }
+    }
+
+    private void sendKafkaCommentLikeEvent(CommentLikeKafkaEvent commentLikeKafkaEvent) {
+        try {
+            kafkaCommentLikeProducer.sendEvent(commentLikeKafkaEvent);
+        } catch (Exception e) {
+            log.error("Failed to send kafka like comment event: ", e);
         }
     }
 }
