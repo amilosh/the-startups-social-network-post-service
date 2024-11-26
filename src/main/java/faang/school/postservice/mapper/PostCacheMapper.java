@@ -14,7 +14,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PostCacheMapper {
 
-    @Mapping(target = "likeIds", source = "likes", qualifiedByName = "mapLikeToIds")
+    @Mapping(target = "likesIds", source = "likes", qualifiedByName = "mapLikeToIds")
     @Mapping(target = "commentIds", source = "comments", qualifiedByName = "mapCommentToIds")
     PostCache toPostCache(Post post);
 

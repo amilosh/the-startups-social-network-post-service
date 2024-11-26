@@ -61,6 +61,7 @@ spring:
       ack-mode: manual
     topic:
       post-publisher: post_publisher
+      like-publisher: like_publisher
       comment-publisher: comment_publisher
       cache:
         ttl:
