@@ -50,6 +50,37 @@ public class CommentsControllerTest {
         dto.setCreatedAt(LocalDateTime.now());
         return dto;
     }
+    @Test
+    void createComment_Success() throws Exception {
+        when(commentService.createComment(eq(5L), any(CommentDto.class))).thenReturn(commentDto);
+
+        performPostRequest("/comments/post/5/comments", commentDto)
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+    }
+
+    @Test
+    void updateProject_Success() throws Exception {
+        when(commentService.updateComment(eq(1L), any(CommentDto.class))).thenReturn(commentDto);
+
+        performPutRequest("/comments/comments/1",commentDto)
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+    }
+    @Test
+    void getAllComments_Success() throws Exception {
+        when(commentService.getAllComments(5L)).thenReturn(List.of(commentDto));
+
+        performGetRequest("/comments/posts/5/comments")
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
+    }
+    @Test
+    void deleteComment_Success() throws Exception {
+        performDeleteRequest("/comments/comments/1")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Comments is deleted successfully"));
+    }
 
     private ResultActions performPostRequest(String url, CommentDto commentDto) throws Exception {
         return mockMvc.perform(post(url)
@@ -69,36 +100,5 @@ public class CommentsControllerTest {
         return mockMvc.perform(put(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentDto)));
-    }
-    @Test
-    void createComment_Success() throws Exception {
-        when(commentService.createComment(eq(5L), any(CommentDto.class))).thenReturn(commentDto);
-
-        performPostRequest("/comments/post/5/comments", commentDto)
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
-    }
-
-    @Test
-    void updateProject_Success() throws Exception {
-        when(commentService.updateComment(eq(1L), any(CommentDto.class))).thenReturn(commentDto);
-
-        performPostRequest("/comments/comments/1",commentDto)
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
-    }
-    @Test
-    void getAllComments_Success() throws Exception {
-        when(commentService.getAllComments(5L)).thenReturn(List.of(commentDto));
-
-        performGetRequest("/comments/posts/5/comments")
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(commentDto)));
-    }
-    @Test
-    void deleteComment_Success() throws Exception {
-        performDeleteRequest("/comments/comments/1")
-                .andExpect(status().isOk())
-                .andExpect(content().string("Comments is deleted successfully"));
     }
 }
