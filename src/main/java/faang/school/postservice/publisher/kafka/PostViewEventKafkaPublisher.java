@@ -1,9 +1,9 @@
 package faang.school.postservice.publisher.kafka;
 
-import faang.school.postservice.annotations.SendPostViewEventToKafka;
+import faang.school.postservice.annotations.kafka.SendPostViewEventToKafka;
 import faang.school.postservice.dto.feed.PostFeedResponseDto;
-import faang.school.postservice.kafka.KafkaPostViewProducer;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.kafka.post.PostKafkaProducer;
+import faang.school.postservice.model.post.Post;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,7 +16,7 @@ import java.util.List;
 @Aspect
 @Component
 public class PostViewEventKafkaPublisher {
-    private final KafkaPostViewProducer kafkaPostViewProducer;
+    private final PostKafkaProducer postKafkaProducer;
 
     @Async("kafkaPublisherExecutor")
     @AfterReturning(
@@ -28,15 +28,15 @@ public class PostViewEventKafkaPublisher {
         Class<?> elementType = sendPostViewEventToKafka.elementType();
         if (clazz == Post.class) {
             Post post = (Post) returnValue;
-            kafkaPostViewProducer.sendPostViewToKafka(post);
+            postKafkaProducer.sendPostViewToKafka(post);
         }
         if (clazz == List.class) {
             if (elementType == Post.class) {
                 List<Post> posts = (List<Post>) returnValue;
-                kafkaPostViewProducer.sendPostViewsToKafka(posts);
+                postKafkaProducer.sendPostViewsToKafka(posts);
             } else if (elementType == PostFeedResponseDto.class) {
                 List<PostFeedResponseDto> posts = (List<PostFeedResponseDto>) returnValue;
-                kafkaPostViewProducer.sendPostViewsDtoToKafka(posts);
+                postKafkaProducer.sendPostViewsDtoToKafka(posts);
             }
         }
     }

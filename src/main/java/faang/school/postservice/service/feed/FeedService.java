@@ -1,10 +1,10 @@
 package faang.school.postservice.service.feed;
 
-import faang.school.postservice.annotations.SendPostViewEventToKafka;
+import faang.school.postservice.annotations.kafka.SendPostViewEventToKafka;
 import faang.school.postservice.dto.feed.PostFeedResponseDto;
-import faang.school.postservice.dto.redis.PostRedisEntity;
-import faang.school.postservice.kafka.dto.PostKafkaDto;
+import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
 import faang.school.postservice.mapper.feed.FeedMapper;
+import faang.school.postservice.model.post.PostRedis;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,17 +37,17 @@ public class FeedService {
 
         Pair<Long, Long> postsRange = defineRange(key, postId);
 
-        Set<Long> postIds = feedZSetOperations.range(key, postsRange.getLeft(), postsRange.getRight());
+        Set<Long> postIds = feedZSetOperations.reverseRange(key, postsRange.getLeft(), postsRange.getRight());
 
-        List<PostRedisEntity> posts = postService.getRedisPostsById(postIds);
+        List<PostRedis> posts = postService.getRedisPostsById(postIds);
         return feedMapper.mapToCommentFeedResponseDto(posts);
     }
 
-    public void addFeed(PostKafkaDto postKafkaDto) {
-        Long postId = postKafkaDto.getPostId();
-        long score = postKafkaDto.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
+    public void addFeed(PostPublishedKafkaEvent postPublishedKafkaEvent) {
+        Long postId = postPublishedKafkaEvent.getPostId();
+        long score = postPublishedKafkaEvent.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
 
-        List<Long> followerIds = postKafkaDto.getFollowerIds();
+        List<Long> followerIds = postPublishedKafkaEvent.getFollowerIds();
         followerIds.forEach(id -> addPostToFeed(buildKey(id), postId, score));
     }
 
@@ -62,14 +62,10 @@ public class FeedService {
             start = 0;
             end = postsBatchSize - 1;
         } else {
+            Long feedSize = feedZSetOperations.zCard(key);
             Long rank = feedZSetOperations.rank(key, postId);
-            if (rank == null) {
-                start = 0;
-                end = postsBatchSize - 1;
-            } else {
-                start = rank + 1;
-                end = rank + postsBatchSize;
-            }
+            start = feedSize - rank;
+            end = start + postsBatchSize - 1;
         }
 
         return Pair.of(start, end);

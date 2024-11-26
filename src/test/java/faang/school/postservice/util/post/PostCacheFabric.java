@@ -1,11 +1,11 @@
 package faang.school.postservice.util.post;
 
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.model.album.Album;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.album.Album;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.post.Post;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;

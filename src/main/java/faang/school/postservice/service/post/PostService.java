@@ -1,12 +1,10 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.annotations.SendPostCreatedEvent;
+import faang.school.postservice.annotations.SendPostCreatedEventToRedis;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
-import faang.school.postservice.annotations.SendPostViewEventToKafka;
+import faang.school.postservice.annotations.kafka.SendPostViewEventToKafka;
 import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.dto.redis.CommentRedisEntity;
-import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
 import faang.school.postservice.exception.post.PostPublishedException;
@@ -14,11 +12,13 @@ import faang.school.postservice.exception.post.image.DownloadImageFromPostExcept
 import faang.school.postservice.exception.post.image.UploadImageToPostException;
 import faang.school.postservice.exception.spelling_corrector.DontRepeatableServiceException;
 import faang.school.postservice.exception.spelling_corrector.RepeatableServiceException;
-import faang.school.postservice.kafka.KafkaPostProducer;
-import faang.school.postservice.kafka.dto.CommentCreatedKafkaDto;
+import faang.school.postservice.kafka.comment.event.CommentCreatedKafkaEvent;
+import faang.school.postservice.kafka.post.PostKafkaProducer;
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.comment.CommentRedis;
+import faang.school.postservice.model.post.Post;
+import faang.school.postservice.model.post.PostRedis;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.repository.redis.CommentRedisRepository;
@@ -27,7 +27,8 @@ import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
-import faang.school.postservice.service.user.UserCacheService;
+import faang.school.postservice.service.post.redis.PostRedisService;
+import faang.school.postservice.service.user.redis.UserRedisService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,13 +74,14 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
     private final PostRedisRepository postRedisRepository;
-    private final KafkaPostProducer kafkaPostProducer;
+    private final PostKafkaProducer postKafkaProducer;
     private final RedisTemplate<String, Object> commonRedisTemplate;
-    private final UserCacheService userCacheService;
+    private final UserRedisService userRedisService;
     private final CommentRedisRepository commentRedisRepository;
+    private final PostRedisService postRedisService;
 
     @Transactional
-    @SendPostCreatedEvent
+    @SendPostCreatedEventToRedis
     public Post create(Post post) {
         log.info("Create post with id: {}", post.getId());
         postValidator.validateCreatePost(post);
@@ -106,7 +108,7 @@ public class PostService {
         post.setPublishedAt(LocalDateTime.now());
         postHashTagParser.updateHashTags(post);
         postRepository.save(post);
-        userCacheService.saveUserToRedisRepository(post.getAuthorId());
+        userRedisService.saveUserToRedisRepository(post.getAuthorId());
 
         postCacheProcessExecutor.executeNewPostProcess(postMapper.toPostCacheDto(post));
 
@@ -289,77 +291,75 @@ public class PostService {
     @Async("postExecutorPool")
     @Transactional
     public void processReadyToPublishPosts(List<Long> postIds) {
-        List<Post> postList = postRepository.findPostsByIds(postIds);
-        postList.forEach(post -> {
+        List<Post> posts = postRepository.findPostsByIds(postIds);
+        posts.forEach(post -> {
             post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
         });
-        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
-        userCacheService.saveAllToRedisRepository(authorIds);
-        postRepository.saveAll(postList);
+        postRepository.saveAll(posts);
 
-        List<PostRedisEntity> postDtos = postMapper.mapToPostRedisDtos(postList);
-        postRedisRepository.saveAll(postDtos);
+        postRedisService.savePostsToRedis(posts);
+        userRedisService.savePostsAuthorsToRedis(posts);
 
-        kafkaPostProducer.sendPostsToKafka(postList);
+        postKafkaProducer.sendPostsToKafka(posts);
         log.info("Posts was published by scheduling: {}", postIds);
     }
 
-    public List<PostRedisEntity> getRedisPostsById(Set<Long> postIds) {
-        Iterable<PostRedisEntity> iterablePosts = postRedisRepository.findAllById(postIds);
-        List<PostRedisEntity> posts = StreamSupport.stream(iterablePosts.spliterator(), false)
+    public List<PostRedis> getRedisPostsById(Set<Long> postIds) {
+        Iterable<PostRedis> iterablePosts = postRedisRepository.findAllById(postIds);
+        List<PostRedis> posts = StreamSupport.stream(iterablePosts.spliterator(), false)
                 .toList();
         if (postIds.size() == posts.size()) {
             return posts.stream()
-                    .sorted(Comparator.comparing(PostRedisEntity::getPublishedAt))
+                    .sorted(Comparator.comparing(PostRedis::getPublishedAt).reversed())
                     .toList();
         } else {
             Set<Long> existingPostIds = posts.stream()
-                    .map(PostRedisEntity::getId)
+                    .map(PostRedis::getId)
                     .collect(Collectors.toSet());
             Set<Long> missingIds = postIds.stream()
                     .filter(id -> !existingPostIds.contains(id))
                     .collect(Collectors.toSet());
             List<Post> postsFromDb = postRepository.findPostsByIds(missingIds);
             posts = new ArrayList<>(posts);
-            posts.addAll(postMapper.mapToPostRedisDtos(postsFromDb));
+            posts.addAll(postMapper.mapToPostRedisList(postsFromDb));
             return posts.stream()
-                    .sorted(Comparator.comparing(PostRedisEntity::getPublishedAt))
+                    .sorted(Comparator.comparing(PostRedis::getPublishedAt).reversed())
                     .toList();
         }
     }
 
     public void incrementView(Long postId) {
-        commonRedisTemplate.opsForHash().increment("PostRedisEntity:" + postId, "views", 1L);
+        commonRedisTemplate.opsForHash().increment("post:" + postId, "views", 1L);
     }
 
     public void changeLike(Long postId, LikeAction likeAction) {
         long delta = likeAction == LikeAction.ADD ? 1L : -1L;
-        commonRedisTemplate.opsForHash().increment("PostRedisEntity:" + postId, "likes", delta);
+        commonRedisTemplate.opsForHash().increment("post:" + postId, "likes", delta);
     }
 
     public void changeCommentLike(Long postId, Long commentId, LikeAction likeAction) {
         int delta = likeAction == LikeAction.ADD ? 1 : -1;
-        commonRedisTemplate.opsForHash().increment("CommentRedisEntity:" + commentId, "likes", delta);
+        commonRedisTemplate.opsForHash().increment("comment:" + commentId, "likes", delta);
     }
 
-    public void addCommentToPost(CommentCreatedKafkaDto commentCreatedKafkaDto) {
-        Long postId = commentCreatedKafkaDto.getPostId();
-        Long commentId = commentCreatedKafkaDto.getCommentId();
-        String content = commentCreatedKafkaDto.getContent();
-        long authorId = commentCreatedKafkaDto.getAuthorId();
+    public void addCommentToPost(CommentCreatedKafkaEvent commentCreatedKafkaEvent) {
+        Long postId = commentCreatedKafkaEvent.getPostId();
+        Long commentId = commentCreatedKafkaEvent.getCommentId();
+        String content = commentCreatedKafkaEvent.getContent();
+        long authorId = commentCreatedKafkaEvent.getAuthorId();
 
-        CommentRedisEntity commentRedisEntity = CommentRedisEntity.builder()
+        CommentRedis commentRedis = CommentRedis.builder()
                 .id(commentId)
                 .content(content)
                 .likes(0)
                 .authorId(authorId)
                 .build();
 
-        commentRedisRepository.save(commentRedisEntity);
+        commentRedisRepository.save(commentRedis);
 
-        PostRedisEntity postRedisEntity = postRedisRepository.findById(postId).orElse(new PostRedisEntity());
-        List<Long> comments = postRedisEntity.getComments();
+        PostRedis postRedis = postRedisRepository.findById(postId).orElse(new PostRedis());
+        List<Long> comments = postRedis.getComments();
         if (comments == null) {
             comments = new ArrayList<>();
         }
@@ -368,7 +368,7 @@ public class PostService {
         }
         comments.add(commentId);
 
-        postRedisEntity.setComments(comments);
-        postRedisRepository.save(postRedisEntity);
+        postRedis.setComments(comments);
+        postRedisRepository.save(postRedis);
     }
 }

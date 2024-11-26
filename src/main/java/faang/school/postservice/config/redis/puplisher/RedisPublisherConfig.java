@@ -1,7 +1,6 @@
 package faang.school.postservice.config.redis.puplisher;
 
-import faang.school.postservice.model.redis.UserRedis;
-import org.springframework.beans.factory.annotation.Value;
+import faang.school.postservice.model.user.UserRedis;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

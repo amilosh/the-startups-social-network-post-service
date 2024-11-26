@@ -5,13 +5,13 @@ import faang.school.postservice.dto.post.FilterPostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.UpdatePostRequestDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.mapper.comment.CommentMapper;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.album.Album;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.post.Post;
+import faang.school.postservice.model.post.PostRedis;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -64,9 +64,9 @@ public interface PostMapper {
     @Mapping(target = "likes", source = "likes", qualifiedByName = "mapPostLikesToNumber")
     @Mapping(target = "views", constant = "0")
     @Mapping(target = "comments", source = "comments", qualifiedByName = "mapPostCommentsToList")
-    PostRedisEntity mapToPostRedisDto(Post post);
+    PostRedis mapToPostRedis(Post post);
 
-    List<PostRedisEntity> mapToPostRedisDtos(List<Post> posts);
+    List<PostRedis> mapToPostRedisList(List<Post> posts);
 
     @Named("mapLikes")
     default List<Long> mapLikes(List<Like> likes) {

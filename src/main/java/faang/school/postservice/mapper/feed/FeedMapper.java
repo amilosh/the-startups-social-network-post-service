@@ -4,10 +4,10 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.feed.CommentFeedResponseDto;
 import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.dto.feed.UserFeedResponseDto;
-import faang.school.postservice.dto.redis.CommentRedisEntity;
-import faang.school.postservice.dto.redis.PostRedisEntity;
 import faang.school.postservice.dto.user.UserDto;
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.comment.CommentRedis;
+import faang.school.postservice.model.post.PostRedis;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.redis.CommentRedisRepository;
 import faang.school.postservice.repository.redis.UserRedisRepository;
@@ -25,7 +25,7 @@ public class FeedMapper {
     private final CommentRedisRepository commentRedisRepository;
     private final CommentRepository commentRepository;
 
-    public List<PostFeedResponseDto> mapToCommentFeedResponseDto(List<PostRedisEntity> posts) {
+    public List<PostFeedResponseDto> mapToCommentFeedResponseDto(List<PostRedis> posts) {
         if (posts == null || posts.isEmpty()) {
             return new ArrayList<>();
         }
@@ -35,7 +35,7 @@ public class FeedMapper {
                 .toList();
     }
 
-    public PostFeedResponseDto mapToPostFeedResponseDto(PostRedisEntity post) {
+    public PostFeedResponseDto mapToPostFeedResponseDto(PostRedis post) {
         UserFeedResponseDto author = mapToUserFeedResponseDto(post.getAuthorId());
         List<CommentFeedResponseDto> feedComments = mapToCommentFeedResponseDtos(post.getComments());
 
@@ -74,12 +74,12 @@ public class FeedMapper {
                 });
     }
 
-    private CommentFeedResponseDto buildCommentFeedResponseDto(CommentRedisEntity commentRedisEntity) {
+    private CommentFeedResponseDto buildCommentFeedResponseDto(CommentRedis commentRedis) {
         return CommentFeedResponseDto.builder()
-                .id(commentRedisEntity.getId())
-                .content(commentRedisEntity.getContent())
-                .likes(commentRedisEntity.getLikes())
-                .authorId(commentRedisEntity.getAuthorId())
+                .id(commentRedis.getId())
+                .content(commentRedis.getContent())
+                .likes(commentRedis.getLikes())
+                .authorId(commentRedis.getAuthorId())
                 .build();
     }
 
@@ -92,7 +92,7 @@ public class FeedMapper {
                 .build();
     }
 
-    private PostFeedResponseDto buildPostFeedResponseDto(PostRedisEntity post, UserFeedResponseDto author, List<CommentFeedResponseDto> feedComments) {
+    private PostFeedResponseDto buildPostFeedResponseDto(PostRedis post, UserFeedResponseDto author, List<CommentFeedResponseDto> feedComments) {
         return PostFeedResponseDto.builder()
                 .id(post.getId())
                 .content(post.getContent())

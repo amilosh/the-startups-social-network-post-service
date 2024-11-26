@@ -43,7 +43,7 @@ post:
   publisher:
     batch-size: 100
     scheduler:
-      cron: "0 0/1 * 1/1 * ?" # every minute
+      cron: "*/30 * * * * *"
   ad-remover:
     scheduler:
       cron: "0 0/1 * 1/1 * ?" # every minute
@@ -132,7 +132,7 @@ kafka:
   partitions: 1
   replicas: 1
   consumer:
-    group-id: post-published-group
+    group-id: post-service-consumer-group
 
 feed:
-  posts-batch-size: 20
+  posts-batch-size: 3

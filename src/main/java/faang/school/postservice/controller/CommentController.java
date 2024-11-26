@@ -5,7 +5,7 @@ import faang.school.postservice.dto.comment.CommentRequestDto;
 import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.exception.ErrorResponse;
 import faang.school.postservice.mapper.comment.CommentMapper;
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.comment.Comment;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.InputCommentControllerValidator;
 import io.swagger.v3.oas.annotations.Operation;

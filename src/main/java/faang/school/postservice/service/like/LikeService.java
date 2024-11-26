@@ -1,17 +1,17 @@
 package faang.school.postservice.service.like;
 
 import faang.school.postservice.annotations.PublishPostLikeEvent;
-import faang.school.postservice.annotations.SendCommentLikeEventToKafka;
-import faang.school.postservice.annotations.SendCommentUnlikeEventToKafka;
-import faang.school.postservice.annotations.SendPostLikeEventToKafka;
-import faang.school.postservice.annotations.SendPostUnlikeEventToKafka;
+import faang.school.postservice.annotations.kafka.SendCommentLikeEventToKafka;
+import faang.school.postservice.annotations.kafka.SendCommentUnlikeEventToKafka;
+import faang.school.postservice.annotations.kafka.SendPostLikeEventToKafka;
+import faang.school.postservice.annotations.kafka.SendPostUnlikeEventToKafka;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.exception.RecordAlreadyExistsException;
 import faang.school.postservice.exception.like.LikeNotFoundException;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.service.post.PostService;

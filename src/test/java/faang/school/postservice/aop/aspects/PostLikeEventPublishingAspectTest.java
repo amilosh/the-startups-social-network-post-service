@@ -9,8 +9,8 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.like.RedisPostLikeEvent;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("test")
 @Import(TestListenerConfig.class)
 public class PostLikeEventPublishingAspectTest extends TestContainersConfig {
-
     @Autowired
     LikeService likeService;
     @Autowired

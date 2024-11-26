@@ -2,7 +2,7 @@ package faang.school.postservice.mapper.like;
 
 import faang.school.postservice.dto.like.LikeResponseDto;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

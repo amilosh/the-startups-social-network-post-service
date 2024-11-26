@@ -2,8 +2,8 @@ package faang.school.postservice.scheduler;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.TestContainersConfig;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.PostRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,6 @@ import java.util.stream.IntStream;
 @SpringBootTest
 @ActiveProfiles("test")
 public class ScheduledPostPublisherTest extends TestContainersConfig {
-
     @Autowired
     private ScheduledPostPublisher scheduledPostPublisher;
 

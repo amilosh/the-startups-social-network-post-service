@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserContext {
     @Value("${app.service-user.id}")
-    private long serviceUsrId;
+    private long serviceUserId;
 
     private final ThreadLocal<Long> userIdHolder = new ThreadLocal<>();
 
@@ -25,7 +25,7 @@ public class UserContext {
     public long getUserIdForFeignRequest() {
         Long userId = userIdHolder.get();
         if (userId == null) {
-            return serviceUsrId;
+            return serviceUserId;
         } else {
             return userId;
         }

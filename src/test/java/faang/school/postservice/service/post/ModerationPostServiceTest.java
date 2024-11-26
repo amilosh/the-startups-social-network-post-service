@@ -1,7 +1,7 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +27,7 @@ class ModerationPostServiceTest {
     private static final VerificationPostStatus UNVERIFIED_STATUS = VerificationPostStatus.UNVERIFIED;
     private static final VerificationPostStatus VERIFIED_STATUS = VerificationPostStatus.VERIFIED;
     private static final VerificationPostStatus REJECTED_STATUS = VerificationPostStatus.REJECTED;
+
     @Mock
     private PostRepository postRepository;
     @Mock

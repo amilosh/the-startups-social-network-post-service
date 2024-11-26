@@ -2,8 +2,8 @@ package faang.school.postservice.service.comment;
 
 import faang.school.postservice.dto.comment.CommentNotificationEvent;
 import faang.school.postservice.mapper.comment.CommentMapper;
-import faang.school.postservice.model.Comment;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.publisher.comment.RedisCommentNotificationEventPublisher;
 import faang.school.postservice.service.post.PostService;
 import org.junit.jupiter.api.BeforeEach;

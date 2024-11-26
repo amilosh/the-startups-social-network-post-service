@@ -1,7 +1,7 @@
 package faang.school.postservice.publisher.kafka;
 
-import faang.school.postservice.kafka.KafkaCommentProducer;
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.kafka.comment.CommentKafkaProducer;
+import faang.school.postservice.model.comment.Comment;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,15 +12,15 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class CommentEventKafkaPublisher {
-    private final KafkaCommentProducer kafkaCommentProducer;
+    private final CommentKafkaProducer commentKafkaProducer;
 
     @Async("kafkaPublisherExecutor")
     @AfterReturning(
-            pointcut = "@annotation(faang.school.postservice.annotations.SendCommentCreatedEventToKafka)",
+            pointcut = "@annotation(faang.school.postservice.annotations.kafka.SendCommentCreatedEventToKafka)",
             returning = "returnValue"
     )
     public void publishPostEvent(Object returnValue) {
         Comment comment = (Comment) returnValue;
-        kafkaCommentProducer.sendCommentToKafka(comment);
+        commentKafkaProducer.sendCommentToKafka(comment);
     }
 }

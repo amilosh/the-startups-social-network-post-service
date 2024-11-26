@@ -1,11 +1,11 @@
 package faang.school.postservice.publisher.kafka;
 
-import faang.school.postservice.annotations.SendCommentLikeEventToKafka;
-import faang.school.postservice.annotations.SendCommentUnlikeEventToKafka;
+import faang.school.postservice.annotations.kafka.SendCommentLikeEventToKafka;
+import faang.school.postservice.annotations.kafka.SendCommentUnlikeEventToKafka;
 import faang.school.postservice.dto.like.LikeAction;
-import faang.school.postservice.kafka.KafkaCommentLikeProducer;
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.kafka.like.LikeKafkaProducer;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.model.comment.Comment;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class CommentLikeEventKafkaPublisher {
-    private final KafkaCommentLikeProducer kafkaCommentLikeProducer;
+    private final LikeKafkaProducer likeKafkaProducer;
 
     @Async("kafkaPublisherExecutor")
     @AfterReturning(
@@ -26,7 +26,7 @@ public class CommentLikeEventKafkaPublisher {
     public void publishPostEvent(Object returnValue, SendCommentLikeEventToKafka sendCommentLikeEventToKafka) {
         Like like = (Like) returnValue;
         LikeAction action = sendCommentLikeEventToKafka.action();
-        kafkaCommentLikeProducer.sendCommentLikeToKafka(like, action);
+        likeKafkaProducer.sendCommentLikeToKafka(like, action);
     }
 
     @Async("kafkaPublisherExecutor")
@@ -37,6 +37,6 @@ public class CommentLikeEventKafkaPublisher {
     public void publishPostEvent(Object returnValue, SendCommentUnlikeEventToKafka sendCommentUnlikeEventToKafka) {
         Comment comment = (Comment) returnValue;
         LikeAction action = sendCommentUnlikeEventToKafka.action();
-        kafkaCommentLikeProducer.sendCommentLikeToKafka(comment, action);
+        likeKafkaProducer.sendCommentLikeToKafka(comment, action);
     }
 }

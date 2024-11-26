@@ -1,6 +1,5 @@
 package faang.school.postservice.scheduler;
 
-import faang.school.postservice.model.Post;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,7 @@ import java.util.stream.IntStream;
 public class ScheduledPostPublisher {
     @Value("${post.publisher.batch-size}")
     private Integer postPublishBatchSize;
+
     private final PostService postService;
 
     @Scheduled(cron = "${post.publisher.scheduler.cron}")
@@ -27,10 +27,9 @@ public class ScheduledPostPublisher {
     }
 
     private List<List<Long>> getListOfBatches(List<Long> list) {
-        List<List<Long>> result = IntStream.range(0, list.size())
+        return IntStream.range(0, list.size())
                 .filter(i -> i % postPublishBatchSize == 0)
                 .mapToObj(i -> list.subList(i, Math.min(i + postPublishBatchSize, list.size())))
                 .toList();
-        return result;
     }
 }
