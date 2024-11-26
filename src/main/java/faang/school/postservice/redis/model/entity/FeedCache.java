@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 
 @RedisHash(value = "feeds")
 @Getter
@@ -18,5 +18,5 @@ import java.util.LinkedHashSet;
 public class FeedCache implements Serializable {
     @Id
     private Long id;
-    private LinkedHashSet<Long> postIds;
+    private LinkedList<Long> postIds;
 }

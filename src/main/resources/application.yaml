@@ -130,16 +130,10 @@ cache:
     fields:
       views: numberOfViews
 
-redisson:
-  address: redis://localhost:6379
-
 post-comments:
   size: 3
 feed-posts:
-  size: 3
-
-feed:
-  size: 3
+  size: 500
 
 thread:
   queue:

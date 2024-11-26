@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -20,7 +19,7 @@ public class FeedCacheServiceImpl implements FeedCacheService {
     private final FeedsCacheRepository feedsCacheRepository;
     private final RedissonClient redissonClient;
 
-    @Value("${feed.size}")
+    @Value("${feed-posts.size}")
     private int feedSize;
 
     public FeedCacheServiceImpl(FeedsCacheRepository feedsCacheRepository, RedissonClient redissonClient) {
@@ -37,7 +36,7 @@ public class FeedCacheServiceImpl implements FeedCacheService {
         lock.lock();
         try {
             FeedCache feedCache = feedsCacheRepository.findById(feedId)
-                    .orElseGet(() -> new FeedCache(feedId, new LinkedHashSet<>()));
+                    .orElseGet(() -> new FeedCache(feedId, new LinkedList<>()));
 
             FeedCache newFeedCache = addPostIdToFeed(feedCache, postId);
             feedsCacheRepository.save(newFeedCache);
@@ -49,23 +48,17 @@ public class FeedCacheServiceImpl implements FeedCacheService {
         return CompletableFuture.completedFuture(null);
     }
 
-    private Long findLastPostId(LinkedHashSet<Long> postIds) {
-        Long lastPostId = null;
-        for (Long id : postIds) {
-            lastPostId = id;
-        }
-        return lastPostId;
-    }
-
     private FeedCache addPostIdToFeed(FeedCache feedCache, Long postId) {
-        LinkedHashSet<Long> restoredPostIds = feedCache.getPostIds();
-        Long lastPostId = findLastPostId(restoredPostIds);
-        if (restoredPostIds.size() == feedSize) {
-            restoredPostIds.remove(lastPostId);
+        LinkedList<Long> restoredPostIds = feedCache.getPostIds();
+        if (!restoredPostIds.contains(postId)) {
+            restoredPostIds.add(0, postId);
         }
-        LinkedHashSet<Long> newPostIds = new LinkedHashSet<>(Collections.singleton(postId));
-        newPostIds.addAll(restoredPostIds);
-        feedCache.setPostIds(newPostIds);
+        if (restoredPostIds.size() > feedSize) {
+            System.out.println("restorred "+restoredPostIds.size());
+            System.out.println("feedsize "+feedSize);
+            restoredPostIds.removeLast();
+        }
+        feedCache.setPostIds(restoredPostIds);
         return feedCache;
     }
 }
