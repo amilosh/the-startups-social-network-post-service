@@ -1,5 +1,8 @@
 package faang.school.postservice.service.post;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostRequestDto;
@@ -10,15 +13,27 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostService {
+
+    private final String API_KEY = "c2b61bcbe1msh7baed25073c44a3p111bcfjsn7841c9808baa";
+    private final String API_ENDPOINT = "https://jspell-checker.p.rapidapi.com/check";
+
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
@@ -110,12 +125,67 @@ public class PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
+    public void checkSpelling() {
+        String json = getJsonString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Content-Type", "application/json");
+        headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
+        headers.set("x-rapidapi-key", API_KEY);
+        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Отправляем POST запрос и получаем ответ от сервера
+        String response = restTemplate.postForObject(API_ENDPOINT, requestEntity, String.class);
+        HashMap<Long, String> results = parseResponse(response);
+        fromJsonToPosts(results);
+    }
+
     private void validateUserExist(Long id) {
         userServiceClient.getUser(id);
     }
 
     private void validateProjectExist(Long id) {
         projectServiceClient.getProject(id);
+    }
+
+    private void fromJsonToPosts(HashMap<Long, String> results) {
+        results.forEach((key, value) -> {
+            Optional<Post> post = postRepository.findById(key);
+            if (post.isEmpty()) {
+                throw new DataValidationException("Post does not exist " + key);
+            }
+            post.get().setContent(value);
+            postRepository.save(post.get());
+        });
+    }
+
+    private String getJsonString() {
+        List<Post> posts = postRepository.findProjectByPublishedFalse();
+        HashMap<Long, String> textMap = new HashMap<>();
+        posts.forEach(post -> {
+            textMap.put(post.getId(), post.getContent());
+        });
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(textMap);
+        } catch (JsonProcessingException e) {
+            log.error("JsonProcessingException ", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private HashMap<Long, String> parseResponse(String jsonResponse) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            TypeReference<HashMap<Long, String>> typeRef
+                    = new TypeReference<HashMap<Long, String>>() {};
+            return objectMapper.readValue(jsonResponse, typeRef);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HashMap<>();
+        }
     }
 
     private List<PostResponseDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
