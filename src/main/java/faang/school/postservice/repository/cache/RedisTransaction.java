@@ -32,8 +32,6 @@ public class RedisTransaction {
 
                     List<Object> result = function.apply(operations);
 
-                    log.info("////////////////////// EXECUTE RESULT: {}", result);
-
                     if (result.isEmpty()) {
                         throw new OptimisticLockingFailureException("Redis optimistic lock exception by key: " + key);
                     }
