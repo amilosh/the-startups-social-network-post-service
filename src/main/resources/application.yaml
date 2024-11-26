@@ -38,9 +38,12 @@ spring:
         post_channel:
           name: post_event_channel
       cache:
-        ttl:
-          user-cache: 86400
-        feed-capacity: 500
+        user:
+          ttl: 86400
+        news-feed:
+          capacity: 500
+          batch-size: 20
+
 
   kafka:
     bootstrap-servers: localhost:9092

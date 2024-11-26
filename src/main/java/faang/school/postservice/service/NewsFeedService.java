@@ -1,6 +1,6 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.repository.NewsFeedRepository;
+import faang.school.postservice.repository.NewsFeedRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -9,11 +9,11 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NewsFeedService {
-    private final NewsFeedRepository newsFeedRepository;
+    private final NewsFeedRedisRepository newsFeedRedisRepository;
+
 
     public void allocateToFeeds(Long postId, Long createdAt, List<Long> userIds) {
-        userIds.stream()
-                .map(String::valueOf)
-                .forEach(followerId -> newsFeedRepository.addPost(postId.toString(), followerId, createdAt));
+        userIds.forEach(userId -> newsFeedRedisRepository.addPostId(postId, userId, createdAt));
+
     }
 }
