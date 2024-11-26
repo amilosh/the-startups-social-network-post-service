@@ -1,6 +1,6 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.aspect.AuthorCaching;
+import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.aspect.PostCaching;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
@@ -35,6 +35,7 @@ public class PostService {
     private final UserContext userContext;
     private final YandexSpeller yandexSpeller;
     private final KafkaPostProducer kafkaPostProducer;
+    private final AuthorCacheManager cachingAuthor;
 
     @Transactional
     public Post createDraftPost(Post post) {
@@ -45,7 +46,6 @@ public class PostService {
 
     @Transactional
     @PostEventPublishRedis
-    @AuthorCaching
     @PostCaching
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
@@ -54,9 +54,11 @@ public class PostService {
         }
 
         publish(existingPost);
+        Post savedPost = postRepository.save(existingPost);
 
-        kafkaPostProducer.publishPost(existingPost);
-        return postRepository.save(existingPost);
+        cachingAuthor.cachingAuthor(savedPost);
+        kafkaPostProducer.publishPost(savedPost);
+        return savedPost;
     }
 
     @Async("treadPool")
