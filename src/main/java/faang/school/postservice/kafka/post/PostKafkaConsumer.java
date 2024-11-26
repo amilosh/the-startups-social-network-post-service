@@ -18,7 +18,7 @@ public class PostKafkaConsumer {
     private final PostService postService;
 
     @KafkaListener(
-            topics = "${kafka.topic.post-published-topic}",
+            topics = "${kafka.topic.post-published-topic.name}",
             groupId = "${kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory")
     public void handlePostPublishedEvent(PostPublishedKafkaEvent postPublishedKafkaEvent, Acknowledgment acknowledgment) {

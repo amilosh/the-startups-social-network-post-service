@@ -19,7 +19,6 @@ import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
 public class ImageProcessingUtils {
-
     public static boolean isNeedResize(MultipartFile image, ImageRestrictionRule rule) throws IOException {
         BufferedImage bufferedImage = convertToBufferedImage(image);
         int width = bufferedImage.getWidth();

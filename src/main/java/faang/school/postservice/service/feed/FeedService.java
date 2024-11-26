@@ -56,17 +56,15 @@ public class FeedService {
     }
 
     private Pair<Long, Long> defineRange(String key, Long postId) {
-        long start;
-        long end;
         if (postId == null) {
-            start = 0;
-            end = postsBatchSize - 1;
-        } else {
-            Long feedSize = feedZSetOperations.zCard(key);
-            Long rank = feedZSetOperations.rank(key, postId);
-            start = feedSize - rank;
-            end = start + postsBatchSize - 1;
+            return Pair.of(0L, postsBatchSize - 1);
         }
+
+        Long feedSize = feedZSetOperations.zCard(key);
+        Long rank = feedZSetOperations.rank(key, postId);
+
+        long start = feedSize - rank;
+        long end = start + postsBatchSize - 1;
 
         return Pair.of(start, end);
     }

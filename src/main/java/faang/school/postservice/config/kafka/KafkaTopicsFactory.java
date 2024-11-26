@@ -14,7 +14,7 @@ public class KafkaTopicsFactory {
     @Value("${kafka.replicas}")
     private int replicas;
 
-    @Value("${kafka.topic.post-published-topic}")
+    @Value("${kafka.topic.post-published-topic.name}")
     private String postPublishedTopic;
 
     @Value("${kafka.topic.post-viewed-topic}")

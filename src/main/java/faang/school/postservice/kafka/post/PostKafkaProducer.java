@@ -7,6 +7,7 @@ import faang.school.postservice.dto.user.UserResponseShortDto;
 import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
 import faang.school.postservice.kafka.post.event.PostViewedKafkaEvent;
 import faang.school.postservice.model.post.Post;
+import faang.school.postservice.utils.AppCollectionUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -14,11 +15,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+
 @RequiredArgsConstructor
 @Component
 public class PostKafkaProducer {
-    @Value("${kafka.topic.post-published-topic}")
+    @Value("${kafka.topic.post-published-topic.name}")
     private String postPublishedTopic;
+
+    @Value("${kafka.topic.post-published-topic.batch-size}")
+    private int postPublishedTopicBatchSize;
 
     @Value("${kafka.topic.post-viewed-topic}")
     private String postViewedTopic;
@@ -29,8 +35,10 @@ public class PostKafkaProducer {
 
     public void sendPostsToKafka(List<Post> posts) {
         for (Post post : posts) {
-            PostPublishedKafkaEvent postPublishedKafkaEvent = mapToPostPublishedKafkaEvent(post);
-            kafkaTemplate.send(postPublishedTopic, postPublishedKafkaEvent);
+            List<PostPublishedKafkaEvent> postPublishedKafkaEvents = mapToPostPublishedKafkaEvent(post);
+            postPublishedKafkaEvents.forEach(event -> {
+                kafkaTemplate.send(postPublishedTopic, event);
+            });
         }
     }
 
@@ -52,11 +60,19 @@ public class PostKafkaProducer {
         posts.forEach(this::sendPostViewToKafka);
     }
 
-    private PostPublishedKafkaEvent mapToPostPublishedKafkaEvent(Post post) {
+    private List<PostPublishedKafkaEvent> mapToPostPublishedKafkaEvent(Post post) {
         List<Long> followerIds = userServiceClient.getFollowers(post.getAuthorId(), new UserExtendedFilterDto()).stream()
                 .map(UserResponseShortDto::getId)
                 .toList();
-        return new PostPublishedKafkaEvent(post.getId(), followerIds, post.getPublishedAt());
+
+        if (followerIds.size() <= postPublishedTopicBatchSize) {
+            return singletonList(new PostPublishedKafkaEvent(post.getId(), followerIds, post.getPublishedAt()));
+        } else {
+            List<List<Long>> subLists = AppCollectionUtils.getListOfBatches(followerIds, postPublishedTopicBatchSize);
+            return subLists.stream()
+                    .map(batch -> new PostPublishedKafkaEvent(post.getId(), batch, post.getPublishedAt()))
+                    .toList();
+        }
     }
 
     private PostViewedKafkaEvent mapToPostViewKafkaDto(Post post) {
