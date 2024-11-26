@@ -1,7 +1,6 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.aspect.AuthorCacheManager;
-import faang.school.postservice.aspect.PostCaching;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
@@ -46,7 +45,6 @@ public class PostService {
 
     @Transactional
     @PostEventPublishRedis
-    @PostCaching
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
         if (existingPost.isPublished()) {
@@ -56,7 +54,7 @@ public class PostService {
         publish(existingPost);
         Post savedPost = postRepository.save(existingPost);
 
-        cachingAuthor.cachingAuthor(savedPost);
+        cachingAuthor.cacheAuthor(savedPost);
         kafkaPostProducer.publishPost(savedPost);
         return savedPost;
     }
