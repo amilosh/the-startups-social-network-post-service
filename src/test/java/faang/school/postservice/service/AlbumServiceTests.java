@@ -10,7 +10,7 @@ import faang.school.postservice.filter.album.CreatedAtAlbumFilter;
 import faang.school.postservice.filter.album.TitleAlbumFilter;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.mapper.album.AlbumMapper;
-import faang.school.postservice.model.Album;
+import faang.school.postservice.model.album.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
 import faang.school.postservice.service.album.AlbumService;
