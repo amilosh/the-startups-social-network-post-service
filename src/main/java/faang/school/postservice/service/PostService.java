@@ -1,7 +1,6 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.aspect.AuthorCaching;
-import faang.school.postservice.aspect.PostCaching;
+import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
@@ -10,9 +9,11 @@ import faang.school.postservice.event.AnalyticsEvent;
 import faang.school.postservice.event.EventType;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
+import faang.school.postservice.mapper.PostCacheMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.producer.KafkaPostProducer;
 import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
+import faang.school.postservice.repository.PostRedisRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.tools.YandexSpeller;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,8 @@ public class PostService {
     private final UserContext userContext;
     private final YandexSpeller yandexSpeller;
     private final KafkaPostProducer kafkaPostProducer;
+    private final PostCacheMapper postCacheMapper;
+    private final PostRedisRepository postRedisRepository;
 
     @Transactional
     public Post createDraftPost(Post post) {
@@ -45,8 +48,6 @@ public class PostService {
 
     @Transactional
     @PostEventPublishRedis
-    @AuthorCaching
-    @PostCaching
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
         if (existingPost.isPublished()) {
@@ -54,9 +55,14 @@ public class PostService {
         }
 
         publish(existingPost);
+        Post savedPost = postRepository.save(existingPost);
 
-        kafkaPostProducer.publishPost(existingPost);
-        return postRepository.save(existingPost);
+        PostCache postCache = postCacheMapper.toPostCache(savedPost);
+        postRedisRepository.save(postCache);
+
+        kafkaPostProducer.publishPost(savedPost);
+
+        return savedPost;
     }
 
     @Async("treadPool")

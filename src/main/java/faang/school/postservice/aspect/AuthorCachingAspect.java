@@ -26,7 +26,7 @@ public class AuthorCachingAspect {
     private final UserRedisRepository userRedisRepository;
     private final UserContext userContext;
 
-    @Value("${spring.data.redis.cache.ttl.user-cache}")
+    @Value("${spring.data.redis.cache.user.ttl}")
     private Long userCacheTtl;
 
     @AfterReturning(pointcut = "@annotation(AuthorCaching)", returning = "post")

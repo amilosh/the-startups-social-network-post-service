@@ -39,10 +39,18 @@ spring:
           name: post_event_channel
       cache:
         user:
-          ttl: 86400
+          ttl: 86400 #seconds
+        post:
+          ttl: 86400 #seconds
+        comment:
+          limit: 3
         news-feed:
           capacity: 500
           batch-size: 20
+        optimistic-lock-retry:
+          max-attempt: 5
+          delay: 300 #milliseconds
+
 
 
   kafka:
@@ -63,9 +71,7 @@ spring:
       post-publisher: post_publisher
       like-publisher: like_publisher
       comment-publisher: comment_publisher
-      cache:
-        ttl:
-          post: 86400
+      view-publisher: view_publisher
 
 
   servlet:

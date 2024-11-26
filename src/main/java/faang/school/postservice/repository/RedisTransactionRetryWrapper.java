@@ -21,8 +21,8 @@ public class RedisTransactionRetryWrapper<KEY, VAL> {
 
     @Retryable(
             retryFor = OptimisticLockingFailureException.class,
-            maxAttempts = 5,
-            backoff = @Backoff(delay = 300)
+            maxAttemptsExpression = "#{@environment.getProperty('spring.data.redis.cache.optimistic-lock-retry.max-attempt')}",
+            backoff = @Backoff(delayExpression = "#{@environment.getProperty('spring.data.redis.cache.optimistic-lock-retry.delay')}")
     )
     public <R> R executeWithRetry(Function<RedisOperations<KEY, VAL>, List<Object>> function) {
         List<Object> result = redisTemplate.execute(new SessionCallback<>() {
