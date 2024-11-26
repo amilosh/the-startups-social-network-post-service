@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class BanedUserEventPublisher extends AbstractEventPublisher<BanedUserEvent> {
-    public BanedUserEventPublisher(RedisTemplate<String, Object> redisTemplate,
+    public BanedUserEventPublisher(@Qualifier("eventRedisTemplate") RedisTemplate<String, Object> redisTemplate,
                                    ObjectMapper objectMapper,
                                    @Qualifier("bannedUserTopic") ChannelTopic topic) {
         super(redisTemplate, objectMapper, topic);
