@@ -40,6 +40,7 @@ spring:
       cache:
         ttl:
           user-cache: 86400
+          post-cache: 86400
         feed-capacity: 500
 
   kafka:
