@@ -17,7 +17,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash(value = "post", timeToLive = 60 * 24 * 60)
+@RedisHash
 public class PostRedis implements Serializable {
     @Id
     private Long id;

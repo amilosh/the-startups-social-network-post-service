@@ -120,6 +120,10 @@ redis:
     topic: "user_ban"
   feed:
     max-size: 500
+  ttl:
+    user: 86400 # 1 day
+    post: 86400 # 1 day
+    comment: 86400 # 1 day
 
 kafka:
   server: localhost:9092

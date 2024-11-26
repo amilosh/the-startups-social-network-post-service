@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Getter
 @Builder
 @AllArgsConstructor
-@RedisHash(value = "user")
+@RedisHash
 public class UserRedis implements Serializable {
     @Id
     private Long id;
