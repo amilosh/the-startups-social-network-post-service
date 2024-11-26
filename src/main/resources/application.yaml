@@ -45,6 +45,16 @@ spring:
       retries: 3
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: post-service-group
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: faang.school.postservice.model.event.kafka
+      listener:
+        type: batch
+        concurrency: 3
 
 server:
   port: 8081
@@ -128,8 +138,8 @@ kafka:
     follower: 1000
   topics:
     post: post_topic
-  groups:
-    post: post_group
+#  groups:
+#    post: post_group
 
 scheduler:
   cron:
