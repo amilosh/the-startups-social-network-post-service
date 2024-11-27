@@ -27,9 +27,9 @@ public class KafkaTopicConfig {
 
     @Bean
     public NewTopic postsTopic() {
-        return new NewTopic(kafkaProperties.getTopics().getPostsTopic().getName(),
-                kafkaProperties.getTopics().getPostsTopic().getNumPartitions(),
-                kafkaProperties.getTopics().getPostsTopic().getReplicationFactor());
+        return new NewTopic(kafkaProperties.getTopics().getPostCreatedTopic().getName(),
+                kafkaProperties.getTopics().getPostCreatedTopic().getNumPartitions(),
+                kafkaProperties.getTopics().getPostCreatedTopic().getReplicationFactor());
     }
 
     @Bean
@@ -44,11 +44,5 @@ public class KafkaTopicConfig {
         return new NewTopic(kafkaProperties.getTopics().getCommentLikeTopic().getName(),
                 kafkaProperties.getTopics().getCommentLikeTopic().getNumPartitions(),
                 kafkaProperties.getTopics().getCommentLikeTopic().getReplicationFactor());
-    }
-
-    public NewTopic postsTopic() {
-        return new NewTopic(kafkaProperties.getTopics().getPostCreatedTopic().getName(),
-                kafkaProperties.getTopics().getPostCreatedTopic().getNumPartitions(),
-                kafkaProperties.getTopics().getPostCreatedTopic().getReplicationFactor());
     }
 }

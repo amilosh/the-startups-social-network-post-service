@@ -61,7 +61,7 @@ spring:
           name: post_likes
           numPartitions: 5
           replicationFactor: 1
-        postsTopic:
+        postCreatedTopic:
           name: postsTopic
           numPartitions: 5
           replicationFactor: 1

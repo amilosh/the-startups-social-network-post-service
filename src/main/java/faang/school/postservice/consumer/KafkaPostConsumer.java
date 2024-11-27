@@ -20,7 +20,7 @@ public class KafkaPostConsumer {
 
     private final FeedCacheRepository feedCacheRepository;
 
-    @KafkaListener(topics = "${spring.data.kafka.topics.postsTopic.name}",
+    @KafkaListener(topics = "${spring.data.kafka.topics.postCreatedTopic.name}",
             groupId = "${spring.data.kafka.consumerConfig.groupId}")
     public void listenPostEvent(PostCreatedEvent event, Acknowledgment acknowledgment) {
         log.info("start listenPostEvent with: {}", event);

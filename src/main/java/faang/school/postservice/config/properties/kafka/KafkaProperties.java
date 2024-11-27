@@ -42,19 +42,9 @@ public class KafkaProperties {
     @Setter
     public static class Topics {
 
-        private Topic postsTopic;
         private PostLikeTopic postLikeTopic;
         private CommentLikeTopic commentLikeTopic;
         private PostCreatedTopic postCreatedTopic;
-
-        @Getter
-        @Setter
-        public static class Topic {
-
-            private String name;
-            private int numPartitions;
-            private short replicationFactor;
-        }
 
         @Getter
         @Setter
