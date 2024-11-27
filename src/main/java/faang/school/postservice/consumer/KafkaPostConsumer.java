@@ -1,8 +1,8 @@
 package faang.school.postservice.consumer;
 
 import faang.school.postservice.dto.cache.feed.FeedCacheDto;
-import faang.school.postservice.dto.event.post.PostCreatedEvent;
-import faang.school.postservice.repository.cache.FeedCacheRepositoryImpl;
+import faang.school.postservice.event.kafka.post.PostCreatedEvent;
+import faang.school.postservice.repository.cache.feed.FeedCacheRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,7 +18,7 @@ import java.util.TreeSet;
 @RequiredArgsConstructor
 public class KafkaPostConsumer {
 
-    private final FeedCacheRepositoryImpl feedCacheRepository;
+    private final FeedCacheRepository feedCacheRepository;
 
     @KafkaListener(topics = "${spring.data.kafka.topics.postsTopic.name}",
             groupId = "${spring.data.kafka.consumerConfig.groupId}")

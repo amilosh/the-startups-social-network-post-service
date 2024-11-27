@@ -1,4 +1,4 @@
-package faang.school.postservice.repository.cache;
+package faang.school.postservice.repository.cache.feed;
 
 import faang.school.postservice.config.redis.RedisProperties;
 import faang.school.postservice.dto.cache.feed.FeedCacheDto;

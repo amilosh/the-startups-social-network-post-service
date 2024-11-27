@@ -1,6 +1,6 @@
-package faang.school.postservice.repository.cache;
+package faang.school.postservice.repository.cache.post;
 
-import faang.school.postservice.dto.post.PostCacheDto;
+import faang.school.postservice.dto.cache.post.PostCacheDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
