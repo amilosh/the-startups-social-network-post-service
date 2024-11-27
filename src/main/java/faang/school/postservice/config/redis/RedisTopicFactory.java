@@ -7,7 +7,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 
 @Configuration
 public class RedisTopicFactory {
-    @Value("${redis.topic.user-ban}")
+    @Value("${spring.data.redis.topic.user-ban}")
     private String userBanTopic;
 
     @Bean
