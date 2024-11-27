@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
+import java.io.Serializable;
 import java.util.Set;
 
 @Data
@@ -14,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @RedisHash(timeToLive = 60 * 60 * 24, value = "Post")
-public class PostCache {
+public class PostCache implements Serializable {
     @Id
     private Long id;
     private String title;
