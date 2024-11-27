@@ -8,6 +8,7 @@ import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.redis.AuthorRedis;
+import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.RedisAuthorRepository;
 import faang.school.postservice.repository.post.PostRepository;
@@ -29,6 +30,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper mapper;
     private final UserServiceClient userServiceClient;
     private final RedisAuthorRepository redisAuthorRepository;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     @Override
     public CommentDto createComment(Long postId, CommentDto commentDto) {
@@ -36,7 +38,7 @@ public class CommentServiceImpl implements CommentService {
                 () -> new EntityNotFoundException(String.format("Post with id %s does not exist", postId)));
         validateUser(commentDto);
         Comment comment = commentRepository.save(mapper.toEntity(commentDto, post));
-        saveToRedis(comment);
+        saveToRedisAndSendEvents(comment);
         return mapper.toDto(comment);
     }
 
@@ -69,9 +71,10 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
-    private void saveToRedis(Comment comment) {
+    private void saveToRedisAndSendEvents(Comment comment) {
         UserDto commentAuthor = userServiceClient.getUser(comment.getAuthorId());
         redisAuthorRepository.save(new AuthorRedis(comment.getAuthorId(), commentAuthor.getUsername()));
         log.info("Saved comment author with ID: {} to Redis", comment.getAuthorId());
+        kafkaCommentProducer.sendCommentEvent(mapper.toKafkaEvent(comment));
     }
 }
