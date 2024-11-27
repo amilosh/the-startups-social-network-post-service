@@ -80,14 +80,10 @@ public class CommentCacheRepository {
     }
 
     public void assignLikesByCounter(String counterKey) {
-        assignFieldByCounter(counterKey, (post, likes) -> post.setLikesCount(post.getLikesCount() + likes));
-    }
-
-    private void assignFieldByCounter(String counterKey, BiConsumer<CommentCacheDto, Long> consumer) {
         String commentIdKey = getCommentIdKey(counterKey);
 
-        redisOperations.assignFieldByCounter(counterKey, commentIdKey, consumer, commentCacheRedisTemplate,
-                Duration.ofHours(commentTTL));
+        redisOperations.assignFieldByCounter(counterKey, commentIdKey, commentCacheRedisTemplate,
+                Duration.ofHours(commentTTL), (comment, likes) -> comment.setLikesCount(comment.getLikesCount() + likes));
     }
 
     public Set<String> getCommentLikeCounterKeys() {

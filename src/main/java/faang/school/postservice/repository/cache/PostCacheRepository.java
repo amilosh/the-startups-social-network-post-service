@@ -83,20 +83,17 @@ public class PostCacheRepository {
 
     public void incrementPostViews(long id) {
         String key = postViewIdBuild(id);
-        longValueRedisTemplate.opsForValue().increment(key, INCR_DELTA);
-        longValueRedisTemplate.expire(key, Duration.ofSeconds(postViewsCounterTTL));
+        incrementCounterByKey(key, Duration.ofSeconds(postViewsCounterTTL));
     }
 
     public void incrementPostLikes(long id) {
         String key = postLikeIdBuild(id);
-        longValueRedisTemplate.opsForValue().increment(key, INCR_DELTA);
-        longValueRedisTemplate.expire(key, Duration.ofSeconds(postLikesCounterTTL));
+        incrementCounterByKey(key, Duration.ofSeconds(postLikesCounterTTL));
     }
 
     public void incrementComments(long id) {
         String key = commentsCounterKeyBuild(id);
-        longValueRedisTemplate.opsForValue().increment(key, INCR_DELTA);
-        longValueRedisTemplate.expire(key, Duration.ofSeconds(commentsCounterTTL));
+        incrementCounterByKey(key, Duration.ofSeconds(commentsCounterTTL));
     }
 
     public void assignViewsByCounter(String counterKey) {
@@ -111,11 +108,16 @@ public class PostCacheRepository {
         assignFieldByCounter(counterKey, (post, comments) -> post.setCommentsCount(post.getCommentsCount() + comments));
     }
 
+    private void incrementCounterByKey(String key, Duration duration) {
+        longValueRedisTemplate.opsForValue().increment(key, INCR_DELTA);
+        longValueRedisTemplate.expire(key, duration);
+    }
+
     private void assignFieldByCounter(String counterKey, BiConsumer<PostCacheDto, Long> consumer) {
         String postIdKey = getPostId(counterKey);
 
-        redisOperations.assignFieldByCounter(counterKey, postIdKey, consumer,
-                postCacheDtoRedisTemplate, Duration.ofHours(postTTL));
+        redisOperations.assignFieldByCounter(counterKey, postIdKey, postCacheDtoRedisTemplate,
+                Duration.ofHours(postTTL), consumer);
     }
 
     private String postViewIdBuild(long id) {

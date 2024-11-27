@@ -25,8 +25,8 @@ public class RedisOperations {
         });
     }
 
-    public <T> void assignFieldByCounter(String counterKey, String objectKey, BiConsumer<T, Long> consumer,
-                                         RedisTemplate<String, T> redisTemplate, Duration duration) {
+    public <T> void assignFieldByCounter(String counterKey, String objectKey, RedisTemplate<String, T> redisTemplate,
+                                         Duration duration, BiConsumer<T, Long> consumer) {
         redisTransaction.execute(redisTemplate, objectKey, operations -> {
             String counterValueStr = stringValueRedisTemplate.opsForValue().get(counterKey);
             T post = redisTemplate.opsForValue().get(objectKey);
