@@ -14,9 +14,9 @@ import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.repository.redis.RedisUserRepository;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.service.CommentServiceAsync;
+import faang.school.postservice.service.RedisCacheService;
 import faang.school.postservice.validator.comment.CommentValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentServiceAsync commentServiceAsync;
     private final CommentEventPublisher commentEventPublisher;
     private final KafkaCommentProducer kafkaCommentProducer;
-    private final RedisUserRepository redisUserRepository;
+    private final RedisCacheService redisCacheService;
 
     @Value("${comments.batch-size}")
     private int batchSize;
@@ -61,7 +61,7 @@ public class CommentServiceImpl implements CommentService {
         PostCommentEvent kafkaEvent = getPostCommentEvent(savedComment);
         commentEventPublisher.publish(event);
         kafkaCommentProducer.publish(kafkaEvent);
-        redisUserRepository.save(user);
+        redisCacheService.saveUser(user);
         log.info("Comment author with id {} was saved in redis", user.getId());
 
         return commentMapper.toResponseDto(savedComment);

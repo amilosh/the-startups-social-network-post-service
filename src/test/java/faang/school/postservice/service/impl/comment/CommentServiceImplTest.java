@@ -1,20 +1,19 @@
 package faang.school.postservice.service.impl.comment;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.model.event.BanEvent;
-import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.mapper.comment.CommentMapperImpl;
-import faang.school.postservice.model.entity.Comment;
-import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.dto.comment.CommentRequestDto;
 import faang.school.postservice.model.dto.comment.CommentResponseDto;
 import faang.school.postservice.model.dto.user.UserDto;
-import faang.school.postservice.publisher.CommentEventPublisher;
+import faang.school.postservice.model.entity.Comment;
+import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.BanEvent;
+import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.RedisBanMessagePublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.repository.redis.RedisUserRepository;
+import faang.school.postservice.service.RedisCacheService;
 import faang.school.postservice.service.impl.comment.async.CommentServiceAsyncImpl;
 import faang.school.postservice.validator.comment.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +57,7 @@ class CommentServiceImplTest {
     @Mock
     private KafkaCommentProducer kafkaCommentProducer;
     @Mock
-    private RedisUserRepository redisUserRepository;
+    private RedisCacheService redisCacheService;
 
 
     @InjectMocks
