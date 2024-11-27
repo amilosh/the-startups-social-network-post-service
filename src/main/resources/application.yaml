@@ -39,7 +39,7 @@ spring:
 
   kafka:
     producerConfig:
-      bootstrapServersConfig: 127.0.0.1:29092
+      bootstrapServersConfig: localhost:29092
       acks: 1
       retries: 3
     topics:
