@@ -17,6 +17,5 @@ public class PostCacheRepositoryImpl implements PostCacheRepository {
     public void save(PostCacheDto postCacheDto) {
         redisTemplate.opsForValue().set(String.valueOf(postCacheDto.getPostId()), postCacheDto);
         log.info("save post with id: {} in Redis", postCacheDto.getPostId());
-//                redisTemplate.opsForValue().get(String.valueOf(postCacheDto.getPostId())));
     }
 }
