@@ -2,10 +2,11 @@ package faang.school.postservice.validator.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.excaption.post.PostException;
 import faang.school.postservice.model.Post;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,7 +53,7 @@ public class PostValidateTest {
     @Test
     void shouldValidateCreateWithAuthorId() {
 
-        PostDto postDto = new PostDto();
+        PostRequestDto postDto = new PostRequestDto();
         postDto.setAuthorId(1L);
 
         postValidator.validateCreate(postDto);
@@ -64,7 +65,7 @@ public class PostValidateTest {
     @Test
     void shouldValidateCreateWithProjectId() {
 
-        PostDto postDto = new PostDto();
+        PostRequestDto postDto = new PostRequestDto();
         postDto.setProjectId(1L);
 
         postValidator.validateCreate(postDto);
@@ -76,7 +77,7 @@ public class PostValidateTest {
     @Test
     void shouldValidateUpdate() {
 
-        PostDto postDto = new PostDto();
+        PostUpdateDto postDto = new PostUpdateDto();
         postDto.setId(1L);
         postDto.setContent("Valid content");
 
@@ -88,7 +89,7 @@ public class PostValidateTest {
     @Test
     void shouldThrowWhenIdIsNullForUpdate() {
 
-        PostDto postDto = new PostDto();
+        PostUpdateDto postDto = new PostUpdateDto();
         postDto.setContent("Valid content");
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -100,7 +101,7 @@ public class PostValidateTest {
 
     @Test
     void shouldThrowWhenContentIsNullForUpdate() {
-        PostDto postDto = new PostDto();
+        PostUpdateDto postDto = new PostUpdateDto();
         postDto.setId(1L);
         postDto.setContent(null);
 

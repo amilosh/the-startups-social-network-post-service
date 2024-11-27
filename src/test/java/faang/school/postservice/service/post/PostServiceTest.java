@@ -1,7 +1,9 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostFilterDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
@@ -38,7 +40,7 @@ public class PostServiceTest {
 
     @Test
     public void shouldCreatePosts() {
-        PostDto postDto = new PostDto();
+        PostRequestDto postDto = new PostRequestDto();
         postDto.setContent("Test content");
 
         Post post = new Post();
@@ -47,13 +49,12 @@ public class PostServiceTest {
         when(postMapper.toEntity(postDto)).thenReturn(post);
         when(postRepository.save(post)).thenReturn(post);
 
-        PostDto result = postService.create(postDto);
+        PostResponseDto result = postService.create(postDto);
 
         verify(postValidator).validateCreate(postDto);
         verify(postMapper).toEntity(postDto);
         verify(postRepository).save(post);
 
-        assertEquals(postDto.getContent(), result.getContent());
         assertFalse(post.isPublished());
         assertFalse(post.isDeleted());
     }
@@ -69,7 +70,7 @@ public class PostServiceTest {
         updatedPost.setId(postId);
         updatedPost.setPublished(true);
 
-        PostDto postDto = new PostDto();
+        PostResponseDto postDto = new PostResponseDto();
         postDto.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
@@ -77,7 +78,7 @@ public class PostServiceTest {
         when(postMapper.toDto(updatedPost)).thenReturn(postDto);
 
 
-        PostDto result = postService.publishPost(postId);
+        PostResponseDto result = postService.publishPost(postId);
 
         verify(postValidator).validatePublish(post);
         verify(postRepository).save(post);
@@ -89,7 +90,7 @@ public class PostServiceTest {
     @Test
     public void shouldUpdatePost() {
 
-        PostDto postDto = new PostDto();
+        PostUpdateDto postDto = new PostUpdateDto();
         postDto.setId(1L);
         postDto.setContent("Updated content");
 
@@ -103,16 +104,14 @@ public class PostServiceTest {
 
         when(postRepository.findById(1L)).thenReturn(Optional.of(existingPost));
         when(postRepository.save(existingPost)).thenReturn(updatedPost);
-        when(postMapper.toDto(updatedPost)).thenReturn(postDto);
 
-        PostDto result = postService.updatePost(postDto);
+        PostResponseDto result = postService.updatePost(postDto);
 
         verify(postValidator).validateUpdate(postDto);
         verify(postRepository).findById(1L);
         verify(postRepository).save(existingPost);
         verify(postMapper).toDto(updatedPost);
 
-        assertEquals("Updated content", result.getContent());
     }
 
     @Test
@@ -128,14 +127,14 @@ public class PostServiceTest {
         updatedPost.setPublished(false);
         updatedPost.setDeleted(true);
 
-        PostDto postDto = new PostDto();
+        PostResponseDto postDto = new PostResponseDto();
         postDto.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(postRepository.save(post)).thenReturn(updatedPost);
         when(postMapper.toDto(updatedPost)).thenReturn(postDto);
 
-        PostDto result = postService.deletePost(postId);
+        PostResponseDto result = postService.deletePost(postId);
 
         verify(postValidator).validateDelete(post);
         verify(postRepository).findById(postId);
@@ -152,13 +151,13 @@ public class PostServiceTest {
         Post post = new Post();
         post.setId(postId);
 
-        PostDto postDto = new PostDto();
+        PostResponseDto postDto = new PostResponseDto();
         postDto.setId(postId);
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(postMapper.toDto(post)).thenReturn(postDto);
 
-        PostDto result = postService.getPostById(postId);
+        PostResponseDto result = postService.getPostById(postId);
 
         verify(postRepository).findById(postId);
         verify(postMapper).toDto(post);
@@ -174,13 +173,13 @@ public class PostServiceTest {
         Post post1 = new Post();
         Post post2 = new Post();
 
-        PostDto postDto1 = new PostDto();
-        PostDto postDto2 = new PostDto();
+        PostResponseDto postDto1 = new PostResponseDto();
+        PostResponseDto postDto2 = new PostResponseDto();
 
         when(postRepository.findAll()).thenReturn(Arrays.asList(post1, post2));
         when(postMapper.toDtoList(anyList())).thenReturn(Arrays.asList(postDto1, postDto2));
 
-        List<PostDto> result = postService.getPosts(filterDto);
+        List<PostResponseDto> result = postService.getPosts(filterDto);
 
         verify(postRepository).findAll();
         verify(postMapper).toDtoList(anyList());

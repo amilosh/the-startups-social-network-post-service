@@ -1,9 +1,9 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -35,10 +36,10 @@ public class PostService {
         post.setPublished(false);
         post.setDeleted(false);
         postRepository.save(post);
-        return postRequestDto;
+        return postMapper.toDto(post);
     }
 
-    public PostDto publishPost(Long id) {
+    public PostResponseDto publishPost(Long id) {
         Post post = postRepository
                 .findById(id)
                 .orElseThrow(EntityExistsException::new);
@@ -47,16 +48,18 @@ public class PostService {
         return postMapper.toDto(postRepository.save(post));
     }
 
-    public PostDto updatePost(PostDto postDto) {
+    public PostResponseDto updatePost(PostUpdateDto postDto) {
+        Objects.requireNonNull(postDto, "PostUpdateDto cannot be null");
         postValidator.validateUpdate(postDto);
-        Post post = postRepository.
-                findById(postDto.getId())
-                .orElseThrow(EntityNotFoundException::new);
+
+        Post post = postRepository.findById(postDto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Post with id " + postDto.getId() + " not found"));
+
         post.setContent(postDto.getContent());
         return postMapper.toDto(postRepository.save(post));
     }
 
-    public PostDto deletePost(Long id) {
+    public PostResponseDto deletePost(Long id) {
         Post post = postRepository
                 .findById(id)
                 .orElseThrow(EntityNotFoundException::new);
@@ -69,13 +72,13 @@ public class PostService {
         return postMapper.toDto(post);
     }
 
-    public PostDto getPostById(Long id) {
+    public PostResponseDto getPostById(Long id) {
         return postRepository.findById(id)
                 .map(postMapper::toDto)
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public List<PostDto> getPosts(PostFilterDto filterDto) {
+    public List<PostResponseDto> getPosts(PostFilterDto filterDto) {
         Stream<Post> posts = StreamSupport.stream(postRepository.findAll().spliterator(), false);
 
         postFilters.stream()

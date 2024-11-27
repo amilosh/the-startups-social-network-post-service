@@ -2,8 +2,8 @@ package faang.school.postservice.validator.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.excaption.post.PostException;
 import faang.school.postservice.model.Post;
 import lombok.Data;
@@ -34,7 +34,7 @@ public class PostValidator {
         }
     }
 
-    public void validateUpdate(PostDto postDto) {
+    public void validateUpdate(PostUpdateDto postDto) {
         if (postDto.getId() == null) {
             throw new IllegalArgumentException("ID cannot be null when updating a post.");
         }

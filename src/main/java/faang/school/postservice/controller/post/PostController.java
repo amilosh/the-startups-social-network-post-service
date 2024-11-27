@@ -1,12 +1,15 @@
 package faang.school.postservice.controller.post;
 
-import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostFilterDto;
 
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.service.post.PostService;
+import io.lettuce.core.dynamic.annotation.Value;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,12 +34,12 @@ public class PostController {
     }
 
     @PutMapping("{id}/publish")
-    public PostDto publishPost(@PathVariable Long id) {
+    public PostResponseDto publishPost(@PathVariable Long id) {
         return postService.publishPost(id);
     }
 
     @PutMapping()
-    public PostDto updatePost(@RequestBody PostDto postDto) {
+    public PostResponseDto updatePost(@RequestBody PostUpdateDto postDto) {
         return postService.updatePost(postDto);
     }
 
@@ -46,12 +49,12 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public PostDto getPostById(@PathVariable Long id) {
+    public PostResponseDto getPostById(@PathVariable Long id) {
         return postService.getPostById(id);
     }
 
-    @ModelAttribute
-    public List<PostDto> getPost(@RequestBody PostFilterDto postFilterDto){
+    @GetMapping
+    public List<PostResponseDto> getPost(@Valid @ModelAttribute PostFilterDto postFilterDto){
         return postService.getPosts(postFilterDto);
     }
 
