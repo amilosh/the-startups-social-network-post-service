@@ -23,6 +23,8 @@ spring:
     redis:
       port: 6379
       host: localhost
+      postTtl: 1 # in days
+      maxPostCountInFeed: 500
       channels:
         calculationsChannel:
           name: calculations_channel
@@ -36,23 +38,30 @@ spring:
           name: post_view_channel
         userBanChannel:
           name: user_ban_channel
-
     kafka:
+      consumerConfig:
+        bootstrapServersConfig: localhost:9092
+        groupId: 1
+        autoOffsetReset: "earliest"
+        enableAutoCommit: false
+        interval: 1000
+        maxPollRecords: 10
+        sessionTimeout: 15000
       producerConfig:
         bootstrapServersConfig: localhost:9092
         acks: "all"
         retries: 5
         idempotence: true
       topics:
-        PostLikeTopic:
+        postLikeTopic:
           name: comment_likes
           numPartitions: 5
           replicationFactor: 1
-        CommentLikeTopic:
+        commentLikeTopic:
           name: post_likes
           numPartitions: 5
           replicationFactor: 1
-        PostCreatedTopic:
+        postsTopic:
           name: postsTopic
           numPartitions: 5
           replicationFactor: 1

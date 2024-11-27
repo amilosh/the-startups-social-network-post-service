@@ -4,11 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.time.Duration;
 
 @Configuration
 @RequiredArgsConstructor
@@ -43,13 +47,16 @@ public class RedisConfiguration {
     }
 
     @Bean
-    ChannelTopic userBanTopic() {
+    public ChannelTopic userBanTopic() {
         return new ChannelTopic(redisProperties.getChannels().getUserBanChannel().getName());
     }
 
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
-        return new JedisConnectionFactory();
+        JedisConnectionFactory factory = new JedisConnectionFactory();
+        factory.setHostName(redisProperties.getHost());
+        factory.setPort(redisProperties.getPort());
+        return factory;
     }
 
     @Bean
@@ -59,5 +66,15 @@ public class RedisConfiguration {
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         return template;
+    }
+
+    @Bean
+    public RedisCacheConfiguration cacheConfiguration() {
+        return RedisCacheConfiguration.defaultCacheConfig()
+                .disableCachingNullValues()
+                .entryTtl(Duration.ofDays(redisProperties.getPostTtl()))
+                .serializeValuesWith(RedisSerializationContext
+                        .SerializationPair
+                        .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
     }
 }

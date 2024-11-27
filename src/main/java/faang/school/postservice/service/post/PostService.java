@@ -1,7 +1,11 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.event.like.PostViewEvent;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.event.kafka.post.PostCreateEvent;
 import faang.school.postservice.event.post.PostViewEvent;
 import faang.school.postservice.dto.post.PostRequestDto;
@@ -11,8 +15,10 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
 import faang.school.postservice.producer.post.KafkaPostProducer;
+import faang.school.postservice.producer.post.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.post.PostViewEventPublisher;
+import faang.school.postservice.repository.cache.post.PostCacheRepositoryImpl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +47,7 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final KafkaPostProducer kafkaPostProducer;
     private final ModerationDictionary moderationDictionary;
+    private final PostCacheRepositoryImpl postCacheRepository;
     private final PostViewEventPublisher postViewEventPublisher;
 
     public PostResponseDto getPost(long postId) {
