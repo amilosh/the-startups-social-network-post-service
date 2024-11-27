@@ -1,22 +1,25 @@
 package faang.school.postservice.kafka.consumer;
 
-import faang.school.postservice.model.event.kafka.PostCreatedEvent;
+import faang.school.postservice.model.event.kafka.PostPublishedEvent;
+import faang.school.postservice.service.FeedService;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PostKafkaConsumer extends AbstractKafkaConsumer<PostCreatedEvent> {
+@RequiredArgsConstructor
+public class PostKafkaConsumer extends AbstractKafkaConsumer<PostPublishedEvent> {
+    private final FeedService feedService;
 
     @Override
     @KafkaListener(topics = "${kafka.topics.post}")
-    public void consume(ConsumerRecord<String, PostCreatedEvent> record) {
+    public void consume(ConsumerRecord<String, PostPublishedEvent> record) {
         super.consume(record);
     }
 
     @Override
-    protected void processEvent(PostCreatedEvent event) {
-        // Custom logic to handle PostCreatedEvent
-        System.out.println("Processing PostCreatedEvent: " + event);
+    protected void processEvent(PostPublishedEvent event) {
+        feedService.addPost(event);
     }
 }

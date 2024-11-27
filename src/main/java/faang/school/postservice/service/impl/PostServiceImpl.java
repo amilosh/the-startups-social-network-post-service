@@ -17,7 +17,7 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.entity.UserShortInfo;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
-import faang.school.postservice.model.event.kafka.PostCreatedEvent;
+import faang.school.postservice.model.event.kafka.PostPublishedEvent;
 import faang.school.postservice.redis.publisher.NewPostPublisher;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
@@ -134,16 +134,16 @@ public class PostServiceImpl implements PostService {
         RedisPostDto redisPostDto = redisPostDtoMapper.mapToRedisPostDto(postDto);
         redisPostService.savePostIfNotExists(redisPostDto);
 
-        log.debug("Start sending PostCreatedEvent for post with id = {} to Kafka", post.getId());
+        log.debug("Start sending PostPublishedEvent for post with id = {} to Kafka", post.getId());
         List<Long> followerIds = redisUserService.getFollowerIds(post.getAuthorId());
-        PostCreatedEvent postCreatedEvent = new PostCreatedEvent(postDto.getId(), followerIds);
-        applicationEventPublisher.publishEvent(postCreatedEvent);
+        PostPublishedEvent postPublishedEvent = new PostPublishedEvent(postDto.getId(), followerIds, postDto.getPublishedAt());
+        applicationEventPublisher.publishEvent(postPublishedEvent);
         return postDto;
     }
-
+    //TODO в Redis тоже должно публиковаться после комита в БД
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onRequestCompleted(PostCreatedEvent postCreatedEvent) {
-        List<Long> followerIds = postCreatedEvent.getFollowerIds();
+    public void onRequestCompleted(PostPublishedEvent postPublishedEvent) {
+        List<Long> followerIds = postPublishedEvent.getFollowerIds();
 
         if (followerIds.isEmpty()) {
             return;
@@ -151,7 +151,10 @@ public class PostServiceImpl implements PostService {
 
         for (int indexFrom = 0; indexFrom < followerIds.size(); indexFrom += followerBatchSize) {
             int indexTo = Math.min(indexFrom + followerBatchSize, followerIds.size());
-            PostCreatedEvent subEvent = new PostCreatedEvent(postCreatedEvent.getPostId(), followerIds.subList(indexFrom, indexTo));
+            PostPublishedEvent subEvent = new PostPublishedEvent(
+                    postPublishedEvent.getPostId(),
+                    followerIds.subList(indexFrom, indexTo),
+                    postPublishedEvent.getPublishedAt());
             postProducer.sendEvent(subEvent);
         }
     }

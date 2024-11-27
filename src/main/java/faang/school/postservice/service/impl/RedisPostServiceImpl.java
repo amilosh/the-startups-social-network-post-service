@@ -6,15 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.mapper.RedisPostDtoMapper;
 import faang.school.postservice.model.dto.PostDto;
+import faang.school.postservice.model.dto.redis.cache.PostFields;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.RedisPostService;
+import faang.school.postservice.service.RedisTransactional;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -29,15 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-public class RedisPostServiceImpl implements RedisPostService {
+public class RedisPostServiceImpl implements RedisPostService, RedisTransactional {
     private static final String KEY_PREFIX = "post:";
-    private static final String POST_ID = "postId";
-    private static final String AUTHOR_ID = "authorId";
-    private static final String CONTENT = "content";
-    private static final String CREATED_AT = "createdAt";
-    private static final String COMMENT_COUNT = "commentCount";
-    private static final String LIKE_COUNT = "likeCount";
-    private static final String RECENT_COMMENTS = "recentComments";
 
     @Value("${redis.feed.ttl.post:86400}")
     private long postTtlInSeconds;
@@ -62,6 +56,11 @@ public class RedisPostServiceImpl implements RedisPostService {
         this.postRepository = postRepository;
         this.redisPostDtoMapper = redisPostDtoMapper;
         this.postMapper = postMapper;
+    }
+
+    @Override
+    public RedisTemplate<String, Object> getRedisTemplate() {
+        return redisTemplate;
     }
 
     @Override
@@ -92,10 +91,10 @@ public class RedisPostServiceImpl implements RedisPostService {
             if (recentComments.size() > maxRecentComments) {
                 recentComments = recentComments.subList(0, maxRecentComments);
             }
-            int commentCount = Integer.parseInt(postMap.getOrDefault(COMMENT_COUNT, "0").toString()) + 1;
+            int commentCount = Integer.parseInt(postMap.getOrDefault(PostFields.COMMENT_COUNT, "0").toString()) + 1;
 
-            redisTemplate.opsForHash().put(key, RECENT_COMMENTS, serializeComments(recentComments));
-            redisTemplate.opsForHash().put(key, COMMENT_COUNT, commentCount);
+            redisTemplate.opsForHash().put(key, PostFields.RECENT_COMMENTS, serializeComments(recentComments));
+            redisTemplate.opsForHash().put(key, PostFields.COMMENT_COUNT, commentCount);
         });
     }
 
@@ -105,7 +104,7 @@ public class RedisPostServiceImpl implements RedisPostService {
         String key = createKey(postId);
         executeRedisTransaction(() -> {
             fetchAndCachePostIfAbsent(postId, key);
-            redisTemplate.opsForHash().increment(key, LIKE_COUNT, 1);
+            redisTemplate.opsForHash().increment(key, PostFields.LIKE_COUNT, 1);
         });
     }
 
@@ -145,30 +144,30 @@ public class RedisPostServiceImpl implements RedisPostService {
 
     private RedisPostDto convertMapToPostDto(Map<String, Object> postMap) {
         RedisPostDto postDto = new RedisPostDto();
-        postDto.setPostId(Long.valueOf(postMap.get(POST_ID).toString()));
-        postDto.setAuthorId(Long.valueOf(postMap.get(AUTHOR_ID).toString()));
-        postDto.setContent((String) postMap.get(CONTENT));
-        postDto.setCreatedAt(LocalDateTime.parse((String) postMap.get(CREATED_AT)));
-        postDto.setCommentCount(Integer.parseInt(postMap.get(COMMENT_COUNT).toString()));
-        postDto.setLikeCount(Integer.parseInt(postMap.get(LIKE_COUNT).toString()));
+        postDto.setPostId(Long.valueOf(postMap.get(PostFields.POST_ID).toString()));
+        postDto.setAuthorId(Long.valueOf(postMap.get(PostFields.AUTHOR_ID).toString()));
+        postDto.setContent((String) postMap.get(PostFields.CONTENT));
+        postDto.setCreatedAt(LocalDateTime.parse((String) postMap.get(PostFields.CREATED_AT)));
+        postDto.setCommentCount(Integer.parseInt(postMap.get(PostFields.COMMENT_COUNT).toString()));
+        postDto.setLikeCount(Integer.parseInt(postMap.get(PostFields.LIKE_COUNT).toString()));
         postDto.setRecentComments(getComments(postMap));
         return postDto;
     }
 
     private Map<String, Object> convertPostDtoToMap(RedisPostDto postDto) {
         Map<String, Object> postMap = new HashMap<>();
-        postMap.put(POST_ID, postDto.getPostId().toString());
-        postMap.put(AUTHOR_ID, postDto.getAuthorId().toString());
-        postMap.put(CONTENT, postDto.getContent());
-        postMap.put(CREATED_AT, postDto.getCreatedAt().toString());
-        postMap.put(COMMENT_COUNT, String.valueOf(postDto.getCommentCount()));
-        postMap.put(LIKE_COUNT, String.valueOf(postDto.getLikeCount()));
-        postMap.put(RECENT_COMMENTS, serializeComments(postDto.getRecentComments()));
+        postMap.put(PostFields.POST_ID, postDto.getPostId().toString());
+        postMap.put(PostFields.AUTHOR_ID, postDto.getAuthorId().toString());
+        postMap.put(PostFields.CONTENT, postDto.getContent());
+        postMap.put(PostFields.CREATED_AT, postDto.getCreatedAt().toString());
+        postMap.put(PostFields.COMMENT_COUNT, String.valueOf(postDto.getCommentCount()));
+        postMap.put(PostFields.LIKE_COUNT, String.valueOf(postDto.getLikeCount()));
+        postMap.put(PostFields.RECENT_COMMENTS, serializeComments(postDto.getRecentComments()));
         return postMap;
     }
 
     private List<String> getComments(Map<String, Object> postMap) {
-        Object commentsObj = postMap.get(RECENT_COMMENTS);
+        Object commentsObj = postMap.get(PostFields.RECENT_COMMENTS);
         if (commentsObj == null) {
             return new ArrayList<>();
         }
@@ -190,17 +189,7 @@ public class RedisPostServiceImpl implements RedisPostService {
         }
     }
 
-
     private String createKey(Long postId) {
         return KEY_PREFIX + postId;
-    }
-
-    private void executeRedisTransaction(Runnable transaction) {
-        redisTemplate.execute((RedisCallback<Void>) connection -> {
-            connection.multi();
-            transaction.run();
-            connection.exec();
-            return null;
-        });
     }
 }
