@@ -19,7 +19,10 @@ spring:
   kafka:
     consumer:
       group-id: 1
+      auto-offset-reset: latest
     bootstrap-servers: localhost:9092
+    listener:
+      ack-mode: manual
     topics:
       comment: comment_topic
       posts: post_topic
@@ -27,7 +30,6 @@ spring:
       cache-heat: cache_heat_topic
       comment-partitions-num: 5
     followers-batch-size: 2
-
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -132,8 +134,23 @@ cache:
   author:
     prefix: "author:"
   heat:
-    prefix: "feed:"
     producer-batch-size: 1000
     process-batch-size: 100
     max-posts: 500
     max-days-back: 60
+  feed:
+    prefix: "feeds:"
+
+
+post-comments:
+  size: 3
+feed-posts:
+  size: 500
+
+thread:
+  queue:
+    size: 100
+  pool:
+    feed:
+      size: 5
+      max-size: 10

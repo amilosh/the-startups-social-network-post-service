@@ -4,10 +4,13 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.UserDto;
+import faang.school.postservice.redis.model.entity.FeedCache;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.CacheHeatService;
+import faang.school.postservice.redis.service.FeedCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,21 +19,20 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class CacheHeatServiceImpl implements CacheHeatService {
 
     @Value("${cache.heat.process-batch-size}")
     private int batchSize;
-
-    @Value("${cache.heat.prefix}")
-    private String cachePrefix;
 
     @Value("${cache.heat.max-posts}")
     private int maxSize;
@@ -43,21 +45,7 @@ public class CacheHeatServiceImpl implements CacheHeatService {
     private final AuthorCacheService authorCacheService;
     private final PostRepository postRepository;
     private final PostCacheService postCacheService;
-    private final RedisTemplate<String, Object> redisTemplate;
-
-    public CacheHeatServiceImpl(PostMapper postMapper,
-                                UserServiceClient userServiceClient,
-                                AuthorCacheService authorCacheService,
-                                PostRepository postRepository,
-                                PostCacheService postCacheService,
-                                @Qualifier("redisCacheTemplate") RedisTemplate<String, Object> redisTemplate) {
-        this.postMapper = postMapper;
-        this.userServiceClient = userServiceClient;
-        this.authorCacheService = authorCacheService;
-        this.postRepository = postRepository;
-        this.postCacheService = postCacheService;
-        this.redisTemplate = redisTemplate;
-    }
+    private final FeedCacheService feedCacheService;
 
     @Async
     public void heatCache(long startUserId, long endUserId) {
@@ -110,12 +98,17 @@ public class CacheHeatServiceImpl implements CacheHeatService {
             return null;
         });
 
-        String key = createFeedCacheKey(followerId);
+        LinkedList<Long> postIds = posts.stream()
+                .sorted(Comparator.comparing(PostDto::getCreatedAt).reversed())
+                .map(PostDto::getId)
+                .collect(Collectors.toCollection(LinkedList::new));
 
-        for (PostDto post : posts) {
-            double score = post.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
-            redisTemplate.opsForZSet().add(key, post.getId(), score);
-        }
+        FeedCache feedCache = FeedCache.builder()
+                .id(followerId)
+                .postIds(postIds)
+                .build();
+
+        feedCacheService.savePreparedFeed(feedCache);
     }
 
     private <T> List<List<T>> partitionList(List<T> list, int size) {
@@ -153,9 +146,5 @@ public class CacheHeatServiceImpl implements CacheHeatService {
                 .toList();
 
         return feedPosts;
-    }
-
-    private String createFeedCacheKey(Long postAuthorId) {
-        return cachePrefix + postAuthorId;
     }
 }

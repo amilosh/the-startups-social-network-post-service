@@ -16,10 +16,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class CommentRedisDto implements Serializable {
+public class CommentRedisDto implements Serializable, Comparable<CommentRedisDto> {
     private Long id;
     private Long postId;
     private String content;
     private Long authorId;
     private LocalDateTime createdAt;
+
+    @Override
+    public int compareTo(CommentRedisDto o) {
+        return o.createdAt.compareTo(this.createdAt);
+    }
 }

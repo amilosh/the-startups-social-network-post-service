@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,11 +18,11 @@ public class KafkaHeatTaskConsumer {
     private final CacheHeatService cacheHeatService;
 
     @KafkaHandler
-    public void handleHeatTask(HeatTaskEventKafka event) {
+    public void handleHeatTask(HeatTaskEventKafka event, Acknowledgment ack) {
         log.info("Received heat task for userId range: {}-{}", event.getStartUserId(), event.getEndUserId());
 
         cacheHeatService.heatCache(event.getStartUserId(), event.getEndUserId());
-
+        ack.acknowledge();
         log.info("Completed heat task for userId range: {}-{}", event.getStartUserId(), event.getEndUserId());
     }
 }
