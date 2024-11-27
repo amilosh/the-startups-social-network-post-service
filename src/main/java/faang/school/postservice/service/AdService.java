@@ -4,7 +4,6 @@ import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
 import faang.school.postservice.spliterator.Spliterator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +13,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AdService {
     private static final String TASK_EXECUTOR = "taskExecutor";
 
