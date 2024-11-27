@@ -2,7 +2,10 @@ package faang.school.postservice.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.postservice.cache.CommentCache;
+import faang.school.postservice.mapper.comment.CommentCacheMapper;
 import faang.school.postservice.message.CommentPublishMessage;
+import faang.school.postservice.repository.PostRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,14 +18,18 @@ import org.springframework.stereotype.Component;
 public class KafkaCommentConsumer {
 
     private final ObjectMapper mapper;
+    private final CommentCacheMapper commentCacheMapper;
+    private final PostRedisRepository postRedisRepository;
 
     @KafkaListener(topics = "${spring.kafka.topic.comment-publisher}")
     public void consume(String message, Acknowledgment ack) {
         try {
+            log.info("Received comment publish message: {}", message);
+
             CommentPublishMessage commentPublishMessage = mapper.readValue(message, CommentPublishMessage.class);
             Long postId = commentPublishMessage.getPostId();
-            Long commentAuthorId = commentPublishMessage.getCommentAuthorId();
-            log.info("Received comment publish message: postId = {}, commentAuthorId = {}", postId, commentAuthorId);
+            CommentCache commentCache = commentCacheMapper.toCommentCache(commentPublishMessage);
+            postRedisRepository.addCommentToPost(postId, commentCache);
 
             ack.acknowledge();
 
