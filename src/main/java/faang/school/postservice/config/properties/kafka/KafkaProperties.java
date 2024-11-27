@@ -29,10 +29,30 @@ public class KafkaProperties {
     public static class Topics {
 
         private Topic postsTopic;
+        private PostLikeTopic postLikeTopic;
+        private CommentLikeTopic commentLikeTopic;
 
         @Getter
         @Setter
         public static class Topic {
+
+            private String name;
+            private int numPartitions;
+            private short replicationFactor;
+        }
+
+        @Getter
+        @Setter
+        public static class PostLikeTopic {
+
+            private String name;
+            private int numPartitions;
+            private short replicationFactor;
+        }
+
+        @Getter
+        @Setter
+        public static class CommentLikeTopic {
 
             private String name;
             private int numPartitions;

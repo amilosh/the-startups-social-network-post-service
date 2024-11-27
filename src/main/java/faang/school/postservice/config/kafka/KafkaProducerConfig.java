@@ -25,21 +25,16 @@ public class KafkaProducerConfig {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 kafkaProperties.getProducerConfig().getBootstrapServersConfig());
-
-        configProps.put(ProducerConfig.ACKS_CONFIG,
-                kafkaProperties.getProducerConfig().getAcks());
-
-        configProps.put(ProducerConfig.RETRIES_CONFIG,
-                kafkaProperties.getProducerConfig().getRetries());
-
-        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,
-                kafkaProperties.getProducerConfig().isIdempotence());
-
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
-
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class);
+        configProps.put(ProducerConfig.ACKS_CONFIG,
+                kafkaProperties.getProducerConfig().getAcks());
+        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,
+                kafkaProperties.getProducerConfig().isIdempotence());
+        configProps.put(ProducerConfig.RETRIES_CONFIG,
+                kafkaProperties.getProducerConfig().getRetries());
 
         return new DefaultKafkaProducerFactory<>(configProps);
     }
