@@ -9,18 +9,13 @@ import org.springframework.data.redis.core.RedisHash;
 
 import java.util.Set;
 
-@Data
 @Builder
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-@RedisHash(timeToLive = 60 * 60 * 24, value = "post")
-public class PostCache {
+@NoArgsConstructor
+@RedisHash(value = "author", timeToLive = 60 * 60 * 24)
+public class AuthorCache {
     @Id
-    private Long id;
-    private String title;
-    private String content;
-    private Long authorId;
-    private Long likes;
-    private Set<CommentCache> comments;
-    private Long views;
+    private long id;
+    private Set<Long> postIds;
 }

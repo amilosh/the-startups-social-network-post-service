@@ -49,6 +49,7 @@ public class KafkaTopicConfig {
     public NewTopic likeNFTopic() {
         return TopicBuilder
                 .name(likeNFTopic)
+                .partitions(5)
                 .build();
     }
 
@@ -70,6 +71,7 @@ public class KafkaTopicConfig {
     public NewTopic postViewNFTopic() {
         return TopicBuilder
                 .name(postViewNFTopic)
+                .partitions(5)
                 .build();
     }
 

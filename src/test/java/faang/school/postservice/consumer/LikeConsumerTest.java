@@ -8,16 +8,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.redisson.RedissonLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.kafka.support.Acknowledgment;
 
 import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LikeConsumerTest {
@@ -25,13 +26,16 @@ class LikeConsumerTest {
     private RedisPostRepository redisPostRepository;
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedissonClient redissonClient;
+
+    @Mock
+    private RedissonLock redissonLock;
 
     @InjectMocks
     LikeConsumer likeConsumer;
 
     @Test
-    void testConsumeSuccess() {
+    void testConsumeSuccess() throws InterruptedException {
         var likeEvent = LikeNewsFeedEvent.builder()
                 .postId(1)
                 .authorID(2)
@@ -46,12 +50,17 @@ class LikeConsumerTest {
                 .authorId(1L)
                 .comments(new LinkedHashSet<>())
                 .build();
-
         doReturn(Optional.of(postCache)).when(redisPostRepository).findById(anyLong());
+        doReturn(redissonLock).when(redissonClient).getLock(anyString());
+        when(redissonLock.tryLock(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(redissonLock.isHeldByCurrentThread()).thenReturn(true);
+
         Acknowledgment acknowledgment = () -> {};
         likeConsumer.consume(likeEvent, acknowledgment);
         verify(redisPostRepository).findById(anyLong());
-        verify(redisTemplate).watch(anyString());
-        verify(redisTemplate).unwatch();
+        verify(redissonClient).getLock(anyString());
+        verify(redissonLock).tryLock(anyLong(), any(TimeUnit.class));
+        verify(redissonLock).isHeldByCurrentThread();
+        verify(redissonLock).unlock();
     }
 }
