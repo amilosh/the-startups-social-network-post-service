@@ -93,6 +93,16 @@ public class FeedService {
         feedIsUpdating.remove(feedUserKey);
     }
 
+    private List<PostCacheDto> enrichAuthors(List<PostCacheDto> postDtoList) {
+        Set<String> postIds = postDtoList.stream()
+                .map(post -> postIdKey(post.getId()))
+                .collect(Collectors.toSet());
+
+        updatePostsCommentsAuthorInCache(postDtoList);
+
+        return findPostsInCache(postIds);
+    }
+
     private List<PostCacheDto> findPostsInCache(Set<String> postIds) {
         List<PostCacheDto> postDtoList = postCacheRepository.findAll(postIds);
         setAuthors(postDtoList);
@@ -126,16 +136,6 @@ public class FeedService {
         UserDto userDto = userServiceClient.getUser(userId);
         userCacheRepository.save(userDto);
         return userDto;
-    }
-
-    private List<PostCacheDto> enrichAuthors(List<PostCacheDto> postDtoList) {
-        Set<String> postIds = postDtoList.stream()
-                .map(post -> postIdKey(post.getId()))
-                .collect(Collectors.toSet());
-
-        updatePostsCommentsAuthorInCache(postDtoList);
-
-        return findPostsInCache(postIds);
     }
 
     private void updatePostsCommentsAuthorInCache(List<PostCacheDto> postDtoList) {
