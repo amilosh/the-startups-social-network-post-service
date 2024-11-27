@@ -1,13 +1,15 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.dto.event.PostViewEvent;
+import faang.school.postservice.event.like.PostViewEvent;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.post.PostViewEventPublisher;
+import faang.school.postservice.repository.cache.PostCacheRepositoryImpl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ public class PostService {
     private final ExecutorService executor;
     private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
+    private final PostCacheRepositoryImpl postCacheRepository;
 
     public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
@@ -75,6 +78,18 @@ public class PostService {
         return postRepository.findAuthorsWithUnverifiedPosts(limit, fromDate);
     }
 
+    public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        log.info("start createPost with {}", postRequestDto);
+
+        Post post = postRepository.save(buildPost(postRequestDto));
+        log.info("save post in DB: {}", post);
+
+        postCacheRepository.save(postMapper.toCacheDto(post));
+
+        log.info("finish createPost with post: {}", post);
+        return postMapper.toDto(post);
+    }
+
     @Async("executor")
     public void moderatePostsContent() {
         List<Post> unverifiedPosts = postRepository.findReadyToVerified();
@@ -87,6 +102,13 @@ public class PostService {
 
             verifiedEntities.thenAccept(result -> postRepository.saveAll(subList));
         }
+    }
+
+    private Post buildPost(PostRequestDto postRequestDto) {
+        return Post.builder()
+                .content(postRequestDto.getContent())
+                .authorId(userContext.getUserId())
+                .build();
     }
 
     private void publishEvent(Long postId, Long postAuthorId) {
