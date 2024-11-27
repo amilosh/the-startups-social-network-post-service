@@ -47,7 +47,7 @@ public class RedisConfiguration {
     }
 
     @Bean
-    ChannelTopic userBanTopic() {
+    public ChannelTopic userBanTopic() {
         return new ChannelTopic(redisProperties.getChannels().getUserBanChannel().getName());
     }
 

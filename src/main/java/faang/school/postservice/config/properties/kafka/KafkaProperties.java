@@ -11,8 +11,22 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "spring.data.kafka")
 public class KafkaProperties {
 
+    private ConsumerConfig consumerConfig;
     private ProducerConfig producerConfig;
     private Topics topics;
+
+    @Getter
+    @Setter
+    public static class ConsumerConfig {
+
+        private String bootstrapServersConfig;
+        private String groupId;
+        private String autoOffsetReset;
+        private boolean enableAutoCommit;
+        private int interval;
+        private int maxPollRecords;
+        private int sessionTimeout;
+    }
 
     @Getter
     @Setter
@@ -28,8 +42,18 @@ public class KafkaProperties {
     @Setter
     public static class Topics {
 
+        private Topic postsTopic;
         private PostLikeTopic postLikeTopic;
         private CommentLikeTopic commentLikeTopic;
+
+        @Getter
+        @Setter
+        public static class Topic {
+
+            private String name;
+            private int numPartitions;
+            private short replicationFactor;
+        }
 
         @Getter
         @Setter
