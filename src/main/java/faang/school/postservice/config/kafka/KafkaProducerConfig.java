@@ -1,5 +1,6 @@
 package faang.school.postservice.config.kafka;
 
+import faang.school.postservice.config.kafka.properties.KafkaProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;

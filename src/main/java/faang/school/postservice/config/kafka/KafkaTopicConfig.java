@@ -1,5 +1,7 @@
 package faang.school.postservice.config.kafka;
 
+import faang.school.postservice.config.kafka.properties.KafkaProperties;
+import faang.school.postservice.config.kafka.properties.TopicProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -15,6 +17,7 @@ import java.util.Map;
 public class KafkaTopicConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final TopicProperties topicProperties;
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
@@ -26,8 +29,8 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic postTopic() {
         return new NewTopic(
-                kafkaProperties.getPost().getName(),
-                kafkaProperties.getPost().getPartitions(),
-                kafkaProperties.getPost().getReplicationFactor());
+                topicProperties.getPost().getName(),
+                topicProperties.getPost().getPartitions(),
+                topicProperties.getPost().getReplicationFactor());
     }
 }
