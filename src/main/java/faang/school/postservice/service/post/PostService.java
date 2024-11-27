@@ -39,6 +39,7 @@ public class PostService {
         post.setPublished(false);
         post.setDeleted(false);
         post.setLikes(new ArrayList<>());
+        post.setComments(new ArrayList<>());
         post.setResources(new ArrayList<>());
         postRepository.save(post);
         log.info("Post with id {} created", post.getId());
