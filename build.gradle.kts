@@ -27,7 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    implementation ("org.springframework.kafka:spring-kafka")
+    implementation("org.springframework.kafka:spring-kafka")
 
     /**
      * Database
@@ -58,8 +58,6 @@ dependencies {
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     implementation("org.springframework.retry:spring-retry:2.0.9")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind")
 
     /**
      * OpenAPI & swagger dependencies
@@ -87,7 +85,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.github.hakky54:logcaptor:2.9.3")
     testImplementation("org.assertj:assertj-core:3.26.3")
-    testImplementation ("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 
     /**
      * Jacoco
