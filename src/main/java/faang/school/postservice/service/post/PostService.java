@@ -1,5 +1,6 @@
 package faang.school.postservice.service.post;
 
+import faang.school.postservice.config.thread_pool.ThreadPoolConfig;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.exception.EntityNotFoundException;
@@ -9,24 +10,33 @@ import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
+    @Value("${publish-posts.batch-size}")
+    private int batchSize;
+
     private static final String POST = "Post";
 
     private final PostMapper postMapper;
     private final PostRepository postRepository;
     private final PostValidator postValidator;
+    private final ThreadPoolConfig threadPoolConfig;
 
     public PostDto createPost(PostRequestDto postRequestDtoDto) {
         postValidator.checkCreator(postRequestDtoDto);
@@ -40,14 +50,12 @@ public class PostService {
     }
 
     public PostDto publishPost(Long postId) {
-        Post publishPost = getPost(postId);
-        if (publishPost.isPublished()) {
+        Post post = getPost(postId);
+        if (post.isPublished()) {
             throw new PostException("Forbidden republish post");
         }
-        publishPost.setPublished(true);
-
-        log.info("Post with id {} - published", publishPost.getId());
-        return postMapper.toDto(postRepository.save(publishPost));
+        Post publishedPost = setPublished(post);
+        return postMapper.toDto(postRepository.save(publishedPost));
     }
 
     public PostDto updatePost(PostDto postDto) {
@@ -130,7 +138,6 @@ public class PostService {
         postRepository.save(post);
     }
 
-    @Transactional
     public Post getPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException(POST, postId));
@@ -139,5 +146,42 @@ public class PostService {
         return post;
     }
 
+    @Async("threadPoolExecutorForPublishingPosts")
+    public void publishScheduledPosts() {
+        Executor executor = threadPoolConfig.threadPoolExecutorForPublishingPosts();
+        List<Post> postsToPublish = postRepository.findReadyToPublish();
+        List<List<Post>> subLists = divideListToSubLists(postsToPublish);
 
+        log.info("Start publishing {} scheduled posts", postsToPublish.size());
+        List<CompletableFuture<Void>> futures = subLists.stream()
+                .map(sublistOfPosts -> CompletableFuture.runAsync(() -> {
+                    sublistOfPosts.forEach(this::setPublished);
+                    postRepository.saveAll(sublistOfPosts);
+
+                    log.info("Published {} posts, by thread: {}", sublistOfPosts.size(),
+                            Thread.currentThread().getName());
+                }, executor))
+                .toList();
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        log.info("Finished publishing scheduled posts");
+    }
+
+    private Post setPublished(Post post) {
+        post.setPublished(true);
+        post.setPublishedAt(LocalDateTime.now());
+
+        log.info("Post with id {} - published", post.getId());
+        return post;
+    }
+
+    private <T> List<List<T>> divideListToSubLists(List<T> list) {
+        List<List<T>> subLists = new ArrayList<>();
+        int totalSize = list.size();
+
+        for (int i = 0; i < totalSize; i += batchSize) {
+            subLists.add(list.subList(i, Math.min(i + batchSize, totalSize)));
+        }
+        return subLists;
+    }
 }
