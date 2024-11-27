@@ -73,9 +73,8 @@ public class AlbumService {
     public List<AlbumDto> getFavorites(Long userId, AlbumFilterDto filters) {
         albumValidator.validateUser(userId);
         Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(userId);
-        albumFilters.stream().filter(filter -> filter.isApplicable(filters))
-                .forEach(filter -> filter.apply(albums, filters));
-        return albumMapper.toDto(albums.toList());
+        return albumFilters.stream().filter(filter -> filter.isApplicable(filters))
+                .flatMap(filter -> filter.apply(albums, filters)).map(albumMapper::toDto).toList();
     }
 
     public AlbumDto update(AlbumDto albumDto) {
