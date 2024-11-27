@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class PostNewsFeedListener implements KafkaEventListener<byte[]> {
 
-    private final AsyncCacheService<Long> asyncCacheFeedRepository;
+    private final AsyncCacheService<Long, Long> asyncCacheFeedRepository;
 
     @Override
     @KafkaListener(topics = "${spring.kafka.topics.post-for-feed.name}",
@@ -30,7 +30,7 @@ public class PostNewsFeedListener implements KafkaEventListener<byte[]> {
             Long postId = feedEvent.getPostId();
 
             CompletableFuture<?>[] completableFutures = followerIds.stream()
-                    .map(followerId -> asyncCacheFeedRepository.save(followerId.toString(), postId))
+                    .map(followerId -> asyncCacheFeedRepository.save(followerId, postId))
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(completableFutures).join();

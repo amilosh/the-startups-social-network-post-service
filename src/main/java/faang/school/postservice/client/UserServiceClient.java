@@ -23,4 +23,14 @@ public interface UserServiceClient {
 
     @GetMapping("/subscription/followers")
     List<UserDto> getFollowers(@RequestParam Long followeeId, @RequestBody UserFilterDto userFilterDto);
+
+    @GetMapping("following")
+    List<UserDto> getFollowing(@RequestParam Long followeeId, @RequestBody UserFilterDto filter);
+
+    default List<Long> getFollowingIds(Long followeeId) {
+        List<UserDto> followers = getFollowing(followeeId, new UserFilterDto());
+        return followers.stream()
+                .map(UserDto::getId)
+                .toList();
+    }
 }

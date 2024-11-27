@@ -1,8 +1,11 @@
 package faang.school.postservice.service.cache;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface AsyncCacheService<T> {
+public interface AsyncCacheService<K, V> {
 
-    CompletableFuture<T> save(String key, T value);
+    CompletableFuture<V> save(K key, V value);
+
+    CompletableFuture<List<V>> getRange(K key, K startValueKey, int count);
 }
