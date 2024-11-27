@@ -96,12 +96,10 @@ public class PostControllerTest {
     void testDeletePost() throws Exception {
         Long postId = 1L;
 
-        // Correct way to handle a void method
         doNothing().when(postService).deletePost(postId);
 
         mockMvc.perform(delete("/api/v1/posts/{id}", postId))
-                .andExpect(status().isOk())
-                .andExpect(content().string("")); // Verify that no content is returned.
+                .andExpect(status().isNoContent());
 
         verify(postService).deletePost(postId);
     }
@@ -128,8 +126,8 @@ public class PostControllerTest {
 
         when(postService.getPosts(any(PostFilterDto.class))).thenReturn(responseDtos);
 
-        mockMvc.perform(post("/api/v1/posts")
-                        .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(get("/api/v1/posts")
+
                         .content(objectMapper.writeValueAsString(filterDto)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

@@ -19,9 +19,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +53,7 @@ public class PostServiceTest {
         when(postMapper.toEntity(postDto)).thenReturn(post);
         when(postRepository.save(post)).thenReturn(post);
 
-        PostResponseDto result = postService.create(postDto);
+        postService.create(postDto);
 
         verify(postValidator).validateCreate(postDto);
         verify(postMapper).toEntity(postDto);
@@ -132,16 +136,13 @@ public class PostServiceTest {
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
         when(postRepository.save(post)).thenReturn(updatedPost);
-        when(postMapper.toDto(updatedPost)).thenReturn(postDto);
 
-        PostResponseDto result = postService.deletePost(postId);
+        postService.deletePost(postId);
 
         verify(postValidator).validateDelete(post);
         verify(postRepository).findById(postId);
         verify(postRepository).save(post);
-        verify(postMapper).toDto(updatedPost);
 
-        assertEquals(result.getId(), postId);
         assertTrue(updatedPost.isDeleted());
     }
 
@@ -167,8 +168,8 @@ public class PostServiceTest {
 
     @Test
     public void shouldFilterPosts() {
-
         PostFilterDto filterDto = new PostFilterDto();
+        PostFilters filter = mock(PostFilters.class);
 
         Post post1 = new Post();
         Post post2 = new Post();
@@ -177,11 +178,16 @@ public class PostServiceTest {
         PostResponseDto postDto2 = new PostResponseDto();
 
         when(postRepository.findAll()).thenReturn(Arrays.asList(post1, post2));
+        when(postFilters.stream()).thenReturn(Stream.of(filter));
+        when(filter.isApplicable(filterDto)).thenReturn(true);
+        when(filter.apply(any(), eq(filterDto))).thenReturn(Stream.of(post1,post2));
         when(postMapper.toDtoList(anyList())).thenReturn(Arrays.asList(postDto1, postDto2));
 
         List<PostResponseDto> result = postService.getPosts(filterDto);
 
         verify(postRepository).findAll();
+        verify(filter).isApplicable(filterDto);
+        verify(filter).apply(any(), eq(filterDto));
         verify(postMapper).toDtoList(anyList());
         assertEquals(2, result.size());
     }

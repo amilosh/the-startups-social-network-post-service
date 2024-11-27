@@ -16,9 +16,9 @@ public class ProjectPostFilter implements PostFilters{
     }
 
     @Override
-    public void apply(Stream<Post> posts, PostFilterDto filterDto) {
+    public Stream<Post> apply(Stream<Post> posts, PostFilterDto filterDto) {
         postValidator.validateProjectExist(filterDto.getId());
-        posts=posts.filter(post -> post.getProjectId().equals(filterDto.getId()));
+        return posts.filter(post -> post.getProjectId().equals(filterDto.getId()));
 
     }
 }

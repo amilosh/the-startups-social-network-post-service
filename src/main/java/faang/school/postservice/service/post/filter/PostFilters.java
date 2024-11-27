@@ -8,5 +8,5 @@ import java.util.stream.Stream;
 public interface PostFilters {
 
     boolean isApplicable(PostFilterDto postFilterDto);
-    void apply(Stream<Post> posts, PostFilterDto filterDto);
+    Stream<Post> apply(Stream<Post> posts, PostFilterDto filterDto);
 }

@@ -59,7 +59,7 @@ public class PostService {
         return postMapper.toDto(postRepository.save(post));
     }
 
-    public PostResponseDto deletePost(Long id) {
+    public void deletePost(Long id) {
         Post post = postRepository
                 .findById(id)
                 .orElseThrow(EntityNotFoundException::new);
@@ -68,8 +68,6 @@ public class PostService {
         post.setPublished(false);
         post.setDeleted(true);
         postRepository.save(post);
-
-        return postMapper.toDto(post);
     }
 
     public PostResponseDto getPostById(Long id) {
