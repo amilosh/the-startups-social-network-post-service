@@ -1,11 +1,16 @@
 package faang.school.postservice.service.post;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.dto.event.PostViewEvent;
+import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.event.like.PostViewEvent;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.event.kafka.post.PostCreateEvent;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
+import faang.school.postservice.producer.post.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,12 +34,14 @@ public class PostService {
     @Value("${post.moderation.sublist.length}")
     private Long sublistLength;
 
-    private final PostRepository postRepository;
     private final PostMapper postMapper;
-    private final ModerationDictionary moderationDictionary;
-    private final ExecutorService executor;
-    private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
+    private final ExecutorService executor;
+    private final PostRepository postRepository;
+    private final UserServiceClient userServiceClient;
+    private final KafkaPostProducer kafkaPostProducer;
+    private final ModerationDictionary moderationDictionary;
+    private final PostViewEventPublisher postViewEventPublisher;
 
     public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
@@ -75,6 +82,19 @@ public class PostService {
         return postRepository.findAuthorsWithUnverifiedPosts(limit, fromDate);
     }
 
+    public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        log.info("start createPost with {}", postRequestDto);
+
+        UserDto author = userServiceClient.getUser(userContext.getUserId());
+
+        Post post = postRepository.save(buildPost(postRequestDto, author));
+        log.info("save post in DB: {}", post);
+
+        sendPostEvent(post, author);
+
+        return postMapper.toDto(post);
+    }
+
     @Async("executor")
     public void moderatePostsContent() {
         List<Post> unverifiedPosts = postRepository.findReadyToVerified();
@@ -89,6 +109,13 @@ public class PostService {
         }
     }
 
+    private Post buildPost(PostRequestDto postRequestDto, UserDto author) {
+        return Post.builder()
+                .content(postRequestDto.getContent())
+                .authorId(author.getId())
+                .build();
+    }
+
     private void publishEvent(Long postId, Long postAuthorId) {
         PostViewEvent postViewEvent = PostViewEvent.builder()
                 .postId(postId)
@@ -100,6 +127,19 @@ public class PostService {
             postViewEventPublisher.publish(postViewEvent);
         } catch (Exception ex) {
             log.error("Failed to send notification with postViewEvent: {}", postViewEvent.toString(), ex);
+        }
+    }
+
+    private void sendPostEvent(Post post, UserDto author) {
+        PostCreateEvent postCreateEvent = PostCreateEvent.builder()
+                .postId(post.getId())
+                .authorId(post.getAuthorId())
+                .subscribers(author.getFollowers())
+                .build();
+        try {
+            kafkaPostProducer.sendEvent(postCreateEvent);
+        } catch (Exception ex) {
+            log.error("Failed to send postCreateEvent: {}", postCreateEvent.toString(), ex);
         }
     }
 }

@@ -1,7 +1,7 @@
-package faang.school.postservice.producer.like.comment;
+package faang.school.postservice.producer.post;
 
 import faang.school.postservice.config.properties.kafka.KafkaProperties;
-import faang.school.postservice.event.kafka.like.CommentLikeKafkaEvent;
+import faang.school.postservice.event.kafka.post.PostCreateEvent;
 import faang.school.postservice.util.BaseContextTest;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -17,14 +17,19 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-public class KafkaCommentLikeProducerIntegrationTest extends BaseContextTest {
+class KafkaPostProducerIT extends BaseContextTest {
+
+    @Autowired
+    private KafkaPostProducer kafkaPostProducer;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -32,25 +37,22 @@ public class KafkaCommentLikeProducerIntegrationTest extends BaseContextTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @Autowired
-    private KafkaCommentLikeProducer kafkaCommentLikeProducer;
-
-    private CommentLikeKafkaEvent commentLikeKafkaEvent;
+    private static final Long ID = 1L;
+    private PostCreateEvent event;
 
     @BeforeEach
-    void setUp() {
-        commentLikeKafkaEvent = CommentLikeKafkaEvent.builder()
-                .commentAuthorId(1L)
-                .likeAuthorId(2L)
-                .commentId(3L)
-                .createdAt(LocalDateTime.now())
+    public void init() {
+        event = PostCreateEvent.builder()
+                .postId(ID)
+                .authorId(ID)
+                .subscribers(List.of(ID))
                 .build();
     }
 
     @Test
-    @DisplayName("Sending and receiving kafka message comment like then checks it's values")
+    @DisplayName("Sending and receiving kafka message postCreated then checks it's values")
     public void whenSendingKafkaMessageCommentLikeThenDeserializeItPollAndCheck() {
-        kafkaTemplate.send(kafkaProperties.getTopics().getCommentLikeTopic().getName(), commentLikeKafkaEvent);
+        kafkaTemplate.send(kafkaProperties.getTopics().getPostCreatedTopic().getName(), event);
 
         Map<String, Object> consumerProps = new HashMap<>();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -60,20 +62,21 @@ public class KafkaCommentLikeProducerIntegrationTest extends BaseContextTest {
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         consumerProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        DefaultKafkaConsumerFactory<String, CommentLikeKafkaEvent> consumerFactory =
+
+        DefaultKafkaConsumerFactory<String, PostCreateEvent> consumerFactory =
                 new DefaultKafkaConsumerFactory<>(consumerProps);
 
-        Consumer<String, CommentLikeKafkaEvent> consumer = consumerFactory.createConsumer();
-        consumer.subscribe(Collections.singletonList(kafkaProperties.getTopics().getCommentLikeTopic().getName()));
+        Consumer<String, PostCreateEvent> consumer = consumerFactory.createConsumer();
+        consumer.subscribe(Collections.singletonList(kafkaProperties.getTopics().getPostCreatedTopic().getName()));
 
-        ConsumerRecords<String, CommentLikeKafkaEvent> records = consumer.poll(Duration.ofSeconds(3));
+        ConsumerRecords<String, PostCreateEvent> records = consumer.poll(Duration.ofSeconds(3));
         consumer.close();
 
         assertEquals(1, records.count(), "It must be one incoming message");
-        ConsumerRecord<String, CommentLikeKafkaEvent> record = records.iterator().next();
-        assertEquals(commentLikeKafkaEvent.getCreatedAt(), record.value().getCreatedAt());
-        assertEquals(commentLikeKafkaEvent.getCommentId(), record.value().getCommentId());
-        assertEquals(commentLikeKafkaEvent.getLikeAuthorId(), record.value().getLikeAuthorId());
-        assertEquals(commentLikeKafkaEvent.getCommentAuthorId(), record.value().getCommentAuthorId());
+        ConsumerRecord<String, PostCreateEvent> record = records.iterator().next();
+        assertEquals(event.getPostId(), record.value().getPostId());
+        assertEquals(event.getAuthorId(), record.value().getAuthorId());
+        assertEquals(event.getSubscribers().size(), record.value().getSubscribers().size());
+        assertEquals(event.getSubscribers().get(0), record.value().getSubscribers().get(0));
     }
 }

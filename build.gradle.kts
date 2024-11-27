@@ -28,7 +28,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
     implementation("org.redisson:redisson-spring-boot-starter:3.16.2")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    implementation ("org.springframework.kafka:spring-kafka")
+    implementation("org.springframework.kafka:spring-kafka")
 
     /**
      * Database
@@ -86,7 +86,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.github.hakky54:logcaptor:2.9.3")
     testImplementation("org.assertj:assertj-core:3.26.3")
-    testImplementation ("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 
     /**
      * Jacoco

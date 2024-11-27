@@ -26,6 +26,13 @@ public class KafkaTopicConfig {
     }
 
     @Bean
+    public NewTopic postsTopic() {
+        return new NewTopic(kafkaProperties.getTopics().getPostCreatedTopic().getName(),
+                kafkaProperties.getTopics().getPostCreatedTopic().getNumPartitions(),
+                kafkaProperties.getTopics().getPostCreatedTopic().getReplicationFactor());
+    }
+
+    @Bean
     public NewTopic postLikeTopic() {
         return new NewTopic(kafkaProperties.getTopics().getPostLikeTopic().getName(),
                 kafkaProperties.getTopics().getPostLikeTopic().getNumPartitions(),

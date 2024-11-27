@@ -1,7 +1,7 @@
 package faang.school.postservice.producer.like.post;
 
 import faang.school.postservice.config.properties.kafka.KafkaProperties;
-import faang.school.postservice.event.kafka.post.like.PostLikeKafkaEvent;
+import faang.school.postservice.event.kafka.like.PostLikeKafkaEvent;
 import faang.school.postservice.producer.AbstractEventProducer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
