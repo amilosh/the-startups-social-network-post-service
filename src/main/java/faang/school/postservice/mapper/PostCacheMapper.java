@@ -1,42 +1,58 @@
 package faang.school.postservice.mapper;
 
+import faang.school.postservice.cache.CommentCache;
 import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.model.Comment;
-import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
+import faang.school.postservice.model.ResourceEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface PostCacheMapper {
+import static java.util.Comparator.comparing;
 
-    @Mapping(target = "likesIds", source = "likes", qualifiedByName = "mapLikeToIds")
-    @Mapping(target = "commentIds", source = "comments", qualifiedByName = "mapCommentToIds")
-    PostCache toPostCache(Post post);
+@Component
+@RequiredArgsConstructor
+public class PostCacheMapper {
 
-    @Named("mapLikeToIds")
-    static List<Long> mapLikeToIds(List<Like> likes) {
-        if (likes == null) {
-            return null;
-        } else {
-            return likes.stream()
-                    .map(Like::getId)
-                    .toList();
-        }
+    @Value("${spring.data.redis.cache.comment.limit}")
+    private int commentLimit;
+
+    public PostCache toPostCache(Post post) {
+        return PostCache.builder()
+                .id(post.getId())
+                .authorId(post.getAuthorId())
+                .content(post.getContent())
+                .resourceKeys(toResourceKeys(post.getResourceEntities()))
+                .comments(toLimitedCommentCache(post.getComments(), commentLimit))
+                .commentsCount((long) post.getComments().size())
+                .likeCount((long) post.getLikes().size())
+                .publishedAt(post.getPublishedAt())
+                .build();
     }
 
-    @Named("mapCommentToIds")
-    static List<Long> mapCommentToIds(List<Comment> comments) {
-        if (comments == null) {
-            return null;
-        } else {
-            return comments.stream()
-                    .map(Comment::getId)
-                    .toList();
-        }
+    private List<String> toResourceKeys(List<ResourceEntity> resources) {
+        return resources.stream()
+                .map(ResourceEntity::getKey)
+                .toList();
+    }
+
+    private List<CommentCache> toLimitedCommentCache(List<Comment> comments, int limit) {
+        return comments.stream()
+                .sorted(comparing(Comment::getCreatedAt).reversed())
+                .limit(limit)
+                .map(this::toCommentCache)
+                .toList();
+    }
+
+    private CommentCache toCommentCache(Comment comment) {
+        return CommentCache.builder()
+                .id(comment.getId())
+                .authorId(comment.getAuthorId())
+                .content(comment.getContent())
+                .createdAt(comment.getCreatedAt())
+                .build();
     }
 }
