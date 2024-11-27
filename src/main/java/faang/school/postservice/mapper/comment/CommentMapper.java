@@ -1,4 +1,4 @@
-package faang.school.postservice.mapper;
+package faang.school.postservice.mapper.comment;
 
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.mapper.like.LikeListMapper;
@@ -8,9 +8,11 @@ import faang.school.postservice.model.Post;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR,
@@ -25,8 +27,19 @@ public interface CommentMapper {
     @Mapping(target = "post", expression = "java(mapPostId(commentDto.getPostId()))")
     Comment toEntity(CommentDto commentDto);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "authorId", ignore = true)
+    @Mapping(target = "likes", ignore = true)
+    @Mapping(target = "post", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true) //????
+    void update(CommentDto commentDto, @MappingTarget Comment comment);
+
     @Named("mapToLikeId")
     default List<Long> mapToLikeId(List<Like> likes) {
+        if (likes == null) {
+            return new ArrayList<>();
+        }
         return likes.stream()
                 .map(Like::getId)
                 .toList();
@@ -38,3 +51,4 @@ public interface CommentMapper {
                 .build();
     }
 }
+

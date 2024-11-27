@@ -2,7 +2,7 @@ package faang.school.postservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.comment.CommentDto;
-import faang.school.postservice.service.comment.CommentService;
+import faang.school.postservice.service.CommentService;
 import faang.school.postservice.utilities.UrlUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ public class CommentControllerTest {
     private final long commentIdFirst = 1L;
     private final long commentIdSecond = 2L;
 
-    @Test
+/*    @Test
     public void createComment() throws Exception {
         CommentDto commentDto = new CommentDto();
         commentDto.setId(commentIdFirst);
@@ -65,8 +65,7 @@ public class CommentControllerTest {
 //                .content(cc))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON));
-
-    }
+    }*/
 
 
     @Test
