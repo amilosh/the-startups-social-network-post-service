@@ -63,17 +63,18 @@ public class FeedService {
         String feedUserKey = feedUserKey(userId);
         Set<String> postIds = zSetRepository.getValuesInRange(feedUserKey, offset, limit);
 
-        if (postIds.isEmpty()) {
-            List<PostCacheDto> setOfPosts = postService.getSetOfPosts(userId, offset, limit);
-            List<PostCacheDto> postDtoList = enrichAuthors(setOfPosts);
-
-            if (!feedIsUpdating.containsKey(feedUserKey)) {
-                feedIsUpdating.put(feedUserKey, MOCK);
-                usersFeedsUpdatePool.execute(() -> updateUserFeed(userId));
-            }
-            return postDtoList;
+        if (!postIds.isEmpty()) {
+            return findPostsInCache(postIds);
         }
-        return findPostsInCache(postIds);
+
+        List<PostCacheDto> setOfPosts = postService.getSetOfPosts(userId, offset, limit);
+        List<PostCacheDto> postDtoList = enrichAuthors(setOfPosts);
+
+        if (!feedIsUpdating.containsKey(feedUserKey)) {
+            feedIsUpdating.put(feedUserKey, MOCK);
+            usersFeedsUpdatePool.execute(() -> updateUserFeed(userId));
+        }
+        return postDtoList;
     }
 
     public void updateUserFeed(long id) {
