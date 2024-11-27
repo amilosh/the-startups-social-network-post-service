@@ -14,13 +14,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AdService {
-    private static final String TASK_EXECUTOR = "taskExecutor";
+    private static final String ASYNC_CFG_EXECUTOR_BEAN_NAME = "taskExecutor";
 
     private final AdRepository adRepository;
     private final TransactionService transactionService;
     private final Spliterator<Ad> spliterator;
 
-    @Async(TASK_EXECUTOR)
+    @Async(ASYNC_CFG_EXECUTOR_BEAN_NAME)
     public void deleteAllExpiredAdsInBatches() {
         getExpiredAdsInBatches().forEach(this::processBatch);
     }
