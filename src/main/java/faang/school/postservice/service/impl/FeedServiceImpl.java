@@ -131,8 +131,15 @@ public class FeedServiceImpl implements FeedService {
     @Override
     @Transactional
     public List<PostForFeedDto> getFeed(long userId, Long latestPostId) throws ExecutionException, InterruptedException {
-        Feed feed = feedCacheRepository.findById(userId)
-                .orElse(generateFeedForUser(userId).get());
+        Optional<Feed> feedOptional = feedCacheRepository.findById(userId);
+
+        Feed feed;
+        if (feedOptional.isEmpty()) {
+            feed = generateFeedForUser(userId).get();//здесь без метода orElse, потому что с ним вне зависимости от
+            // пустоты Optional блок из or else тоже выполнялся, что тормозило работу программы
+        } else {
+            feed = feedOptional.get();
+        }
 
         if (feed.getPostIds() == null || feed.getPostIds().isEmpty()) {
             return List.of();
