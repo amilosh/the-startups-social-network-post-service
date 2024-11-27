@@ -2,6 +2,7 @@ package faang.school.postservice.service.impl;
 
 import faang.school.postservice.dto.comment.CommentPublishedEvent;
 import faang.school.postservice.dto.like.LikePostEvent;
+import faang.school.postservice.dto.post.PostForFeedDto;
 import faang.school.postservice.dto.post.PostPublishedEvent;
 import faang.school.postservice.dto.post.PostViewEvent;
 import faang.school.postservice.mapper.UserMapper;
@@ -15,6 +16,7 @@ import faang.school.postservice.repository.UserCacheRepository;
 import faang.school.postservice.repository.UserRepository;
 import faang.school.postservice.repository.post.PostCacheRepository;
 import faang.school.postservice.repository.post.PostRepository;
+import faang.school.postservice.service.FeedComposer;
 import faang.school.postservice.service.FeedService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -41,6 +45,7 @@ public class FeedServiceImpl implements FeedService {
     private final CacheablePostMapper cacheablePostMapper;
     private final UserMapper userMapper;
     private final UserCacheRepository userCacheRepository;
+    private final FeedComposer feedComposer;
 
     @Value("${feed.cache.count}")
     private int countOfPostsInFeed;
@@ -93,7 +98,7 @@ public class FeedServiceImpl implements FeedService {
     @Override
     @Async("feedThreadPool")
     @Transactional
-    public void generateFeedForUser(long userId) {
+    public CompletableFuture<Feed> generateFeedForUser(long userId) {
         List<CacheablePost> posts = postRepository.getPostsForFeedByUserId(userId, countOfPostsInFeed).stream()
                 .map(cacheablePostMapper::toCacheablePost)
                 .toList();
@@ -119,6 +124,25 @@ public class FeedServiceImpl implements FeedService {
         userCacheRepository.saveAll(cacheableUsers);
 
         log.info("feed for user with id = " + userId + " generated");
+
+        return CompletableFuture.completedFuture(feed);
+    }
+
+    @Override
+    @Transactional
+    public List<PostForFeedDto> getFeed(long userId, Long latestPostId) throws ExecutionException, InterruptedException {
+        Feed feed = feedCacheRepository.findById(userId)
+                .orElse(generateFeedForUser(userId).get());
+
+        List<Long> postIds = feed.getPostIds().stream().toList();
+        if (latestPostId != null && feed.getPostIds().contains(latestPostId)) {
+            postIds = postIds.subList(postIds.indexOf(latestPostId), postIds.size());
+
+        } else {
+            postIds = postIds.subList((20 > postIds.size()) ? 0 : 20, postIds.size());
+        }
+
+        return feedComposer.getPostForFeed(postIds);
     }
 
     @Retryable(maxAttempts = 5, retryFor = {Exception.class})
