@@ -1,8 +1,7 @@
 package faang.school.postservice.mapper;
 
-import faang.school.postservice.cache.CommentCache;
 import faang.school.postservice.cache.PostCache;
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.mapper.comment.CommentCacheMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.ResourceEntity;
 import lombok.RequiredArgsConstructor;
@@ -11,11 +10,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static java.util.Comparator.comparing;
-
 @Component
 @RequiredArgsConstructor
 public class PostCacheMapper {
+    private final CommentCacheMapper commentCacheMapper;
 
     @Value("${spring.data.redis.cache.comment.limit}")
     private int commentLimit;
@@ -26,7 +24,7 @@ public class PostCacheMapper {
                 .authorId(post.getAuthorId())
                 .content(post.getContent())
                 .resourceKeys(toResourceKeys(post.getResourceEntities()))
-                .comments(toLimitedCommentCache(post.getComments(), commentLimit))
+                .comments(commentCacheMapper.toLimitedCommentCache(post.getComments(), commentLimit))
                 .commentsCount((long) post.getComments().size())
                 .likeCount((long) post.getLikes().size())
                 .publishedAt(post.getPublishedAt())
@@ -37,22 +35,5 @@ public class PostCacheMapper {
         return resources.stream()
                 .map(ResourceEntity::getKey)
                 .toList();
-    }
-
-    private List<CommentCache> toLimitedCommentCache(List<Comment> comments, int limit) {
-        return comments.stream()
-                .sorted(comparing(Comment::getCreatedAt).reversed())
-                .limit(limit)
-                .map(this::toCommentCache)
-                .toList();
-    }
-
-    private CommentCache toCommentCache(Comment comment) {
-        return CommentCache.builder()
-                .id(comment.getId())
-                .authorId(comment.getAuthorId())
-                .content(comment.getContent())
-                .createdAt(comment.getCreatedAt())
-                .build();
     }
 }

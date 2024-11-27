@@ -20,8 +20,11 @@ public class KafkaCommentProducer extends KafkaEventProducer {
 
     public void publishComment(Comment comment) {
         CommentPublishMessage commentPublishMessage = CommentPublishMessage.builder()
+                .commentId(comment.getId())
                 .postId(comment.getPost().getId())
                 .commentAuthorId(comment.getAuthorId())
+                .content(comment.getContent())
+                .createdAt(comment.getCreatedAt())
                 .build();
 
         publishEvent(commentPublishMessage);
