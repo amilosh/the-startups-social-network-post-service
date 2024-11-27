@@ -3,7 +3,6 @@ package faang.school.postservice.listener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.message.CommentPublishMessage;
-import faang.school.postservice.repository.NewsFeedRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,8 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class KafkaCommentConsumer {
 
-    private ObjectMapper mapper;
-    private NewsFeedRepository newsFeedRepository;
+    private final ObjectMapper mapper;
 
     @KafkaListener(topics = "${spring.kafka.topic.comment-publisher}")
     public void consume(String message, Acknowledgment ack) {
@@ -29,6 +27,7 @@ public class KafkaCommentConsumer {
             ack.acknowledge();
 
         } catch (JsonProcessingException e) {
+            log.error("Error deserializing Kafka message: {}", message, e);
             throw new RuntimeException(e);
         }
     }
