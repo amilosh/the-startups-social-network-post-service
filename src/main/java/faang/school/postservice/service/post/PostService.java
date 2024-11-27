@@ -11,6 +11,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.resource.ResourceService;
+import faang.school.postservice.validator.resource.ResourceValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class PostService {
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
+    private final ResourceValidator resourceValidator;
 
     public PostResponseDto createPost(PostRequestDto postDto) {
         isPostAuthorExist(postDto);
@@ -128,6 +130,7 @@ public class PostService {
 
     private void addResourcesToPost(Long postId, List<ResourceDto> resources) {
         Post post = postRepository.getPostById(postId);
+        resourceValidator.validateImagesCountPerPost(resources, post);
         List<Resource> resourcesToAdd = new ArrayList<>();
         for (ResourceDto dto : resources) {
             if (dto.getFile() != null && !dto.getFile().isEmpty()) {

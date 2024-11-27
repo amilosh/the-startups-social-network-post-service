@@ -1,6 +1,7 @@
 package faang.school.postservice.dto.post;
 
 import faang.school.postservice.dto.resource.ResourceDto;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,6 @@ public class PostRequestDto {
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
+    @Valid
     private List<ResourceDto> resources;
 }
