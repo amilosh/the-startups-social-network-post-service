@@ -1,6 +1,7 @@
 package faang.school.postservice.redis.mapper;
 
 import faang.school.postservice.model.dto.UserDto;
+import faang.school.postservice.redis.model.dto.AuthorRedisDto;
 import faang.school.postservice.redis.model.entity.AuthorCache;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
@@ -9,4 +10,5 @@ import org.mapstruct.ReportingPolicy;
 public interface AuthorCacheMapper {
 
     AuthorCache toAuthorCache(UserDto userDto);
+    AuthorRedisDto toAuthorRedisDto(AuthorCache authorCache);
 }

@@ -1,6 +1,6 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.model.dto.FeedDto;
+import faang.school.postservice.redis.model.dto.FeedDto;
 import faang.school.postservice.service.FeedService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

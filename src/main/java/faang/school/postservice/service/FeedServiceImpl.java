@@ -1,6 +1,10 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.model.dto.FeedDto;
+import faang.school.postservice.redis.model.dto.FeedDto;
+import faang.school.postservice.redis.mapper.AuthorCacheMapper;
+import faang.school.postservice.redis.mapper.PostCacheMapper;
+import faang.school.postservice.redis.model.dto.AuthorRedisDto;
+import faang.school.postservice.redis.model.dto.PostRedisDto;
 import faang.school.postservice.redis.model.entity.AuthorCache;
 import faang.school.postservice.redis.model.entity.FeedCache;
 import faang.school.postservice.redis.model.entity.PostCache;
@@ -24,6 +28,8 @@ public class FeedServiceImpl implements FeedService {
     private final FeedsCacheRepository feedsCacheRepository;
     private final PostCacheRedisRepository postCacheRedisRepository;
     private final AuthorCacheRedisRepository authorCacheRedisRepository;
+    private final PostCacheMapper postCacheMapper;
+    private final AuthorCacheMapper authorCacheMapper;
 
     @Override
     public FeedDto getFeed(Long feedId, Long userId, Integer startPostId) {
@@ -43,12 +49,22 @@ public class FeedServiceImpl implements FeedService {
         List<Long> sublist = getSubList(requestedFeed.getPostIds(), startPostId, POSTS_NUMBER);
         List<PostCache> feedPosts = getPosts(sublist);
         Set<Long> authorIds = feedPosts.stream().map(PostCache::getAuthorId).collect(Collectors.toSet());
-        System.out.println("------------");
-        feedPosts.forEach(System.out::println);
-        Map<Long, AuthorCache> authorCachesMap = getAuthors(authorIds);
-        System.out.println("+++++++++++++++++++");
-        authorCachesMap.forEach((key, value) -> System.out.println(key + " : " + value));
-        return null;
+
+        Map<Long, AuthorCache> authorCaches = getAuthors(authorIds);
+        Map<Long, AuthorRedisDto> authorRedisDtos = new HashMap<>();
+        for (var author : authorCaches.entrySet()) {
+            authorRedisDtos.put(author.getKey(), authorCacheMapper.toAuthorRedisDto(author.getValue()));
+        }
+
+        List<PostRedisDto> postRedisDtos = feedPosts.stream().map(post -> {
+            PostRedisDto postRedisDto = postCacheMapper.toPostRedisDto(post);
+            postRedisDto.setAuthor(authorRedisDtos.get(post.getAuthorId()));
+            return postRedisDto;
+        }).toList();
+        return FeedDto.builder()
+                .postRedisDtos(postRedisDtos)
+                .id(requestedFeed.getId())
+                .build();
     }
 
     private List<PostCache> getPosts(List<Long> postIds) {
