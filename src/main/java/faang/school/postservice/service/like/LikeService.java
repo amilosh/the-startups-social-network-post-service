@@ -125,25 +125,38 @@ public class LikeService {
         likes.removeIf(like -> like.getUserId().equals(userId));
     }
 
-    public List<UserDto> getUsersByPostId(long postId) {
-        // Извлечение userId с помощью Stream API
+    public List<String> getUsersByPostId(long postId) {
         List<Long> userIds = likeRepository.findByPostId(postId)
                 .stream()
                 .map(Like::getUserId)
                 .toList();
 
-        return fetchUsersInBatches(userIds);
+        if (!validator.validatePostHasLikes(postId, userIds)) {
+            return List.of("Some users have not liked the given post.");
+        }
+
+        return fetchUsersInBatches(userIds)
+                .stream()
+                .map(UserDto::toString)
+                .toList();
     }
 
-    public List<UserDto> getUsersByCommentId(long commentId) {
-        // Извлечение userId с помощью Stream API
+    public List<String> getUsersByCommentId(long commentId) {
         List<Long> userIds = likeRepository.findByCommentId(commentId)
                 .stream()
                 .map(Like::getUserId)
                 .toList();
 
-        return fetchUsersInBatches(userIds);
+        if (!validator.validateCommentHasLikes(commentId, userIds)) {
+            return List.of("Some users have not liked the given comment.");
+        }
+
+        return fetchUsersInBatches(userIds)
+                .stream()
+                .map(UserDto::toString)
+                .toList();
     }
+
     private List<UserDto> fetchUsersInBatches(List<Long> userIds) {
         List<List<Long>> batches = splitIntoBatches(userIds, BATCH_SIZE);
         List<UserDto> allUsers = new ArrayList<>();
@@ -151,8 +164,8 @@ public class LikeService {
         for (List<Long> batch : batches) {
             try {
                 allUsers.addAll(userServiceClient.getUsersByIds(batch));
-            } catch (FeignException e) {
-                log.error("Error fetching users from user_service: {}", e.getMessage());
+            } catch (Exception e) {
+                log.error("Error fetching users for batch: {}. {}", batch, e.getMessage());
             }
         }
         return allUsers;

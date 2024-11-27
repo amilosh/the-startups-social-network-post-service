@@ -48,6 +48,9 @@ public class LikeServiceTest {
     @Mock
     private LikeValidator validator;
 
+
+    private static final int BATCH_SIZE = 100;
+
     private LikeRequestDto acceptanceLikeDto;
     private Post post;
     private Like like;
@@ -154,5 +157,6 @@ public class LikeServiceTest {
         assertThrows(DataValidationException.class,
                 () -> likeService.deleteLikeFromComment(acceptanceLikeDto, 10L));
     }
+
 
 }

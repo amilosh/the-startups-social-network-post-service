@@ -3,10 +3,15 @@ package faang.school.postservice.validator.like;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Component
 public class LikeValidator {
 
@@ -27,5 +32,21 @@ public class LikeValidator {
     public void validateUserId(Long userId) {
         userServiceClient.getUser(userId);
     }
+
+    public boolean validateCommentHasLikes(long commentId, List<Long> userIds) {
+        Set<Long> likedUserIds = likeRepository.findByCommentId(commentId).stream()
+                .map(Like::getUserId)
+                .collect(Collectors.toSet());
+        return likedUserIds.containsAll(userIds);
+    }
+
+    public boolean validatePostHasLikes(long postId, List<Long> userIds) {
+        Set<Long> likedUserIds = likeRepository.findByPostId(postId).stream()
+                .map(Like::getUserId)
+                .collect(Collectors.toSet());
+        return likedUserIds.containsAll(userIds);
+    }
+
+
 
 }
