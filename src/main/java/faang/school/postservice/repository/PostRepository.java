@@ -1,13 +1,16 @@
 package faang.school.postservice.repository;
 
+import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
 import feign.Param;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,4 +56,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "GROUP BY p.authorId " +
             "HAVING COUNT(p) > 5")
     List<Long> findAuthorsWithMoreThanFiveUnverifiedPostsInRange(Long minAuthorId, Long maxAuthorId);
+
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.likes WHERE p.authorId = :authorId AND p.publishedAt BETWEEN :startDate AND :endDate")
+    List<Post> getUserPublishedPostsByDateRange(@Param("authorId") Long authorId,
+                                                @Param("startDate") LocalDateTime startDate,
+                                                @Param("endDate") LocalDateTime endDate);
 }

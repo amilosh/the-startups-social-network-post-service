@@ -4,6 +4,9 @@ import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 public interface PostCacheService {
 
     void savePostToCache(PostDto post);
@@ -13,4 +16,6 @@ public interface PostCacheService {
     void addPostView(PostDto post);
 
     void updateFeedsInCache(PostEventKafka event);
+
+    CompletableFuture<Void> saveAllPostsToCache(List<PostDto> posts);
 }

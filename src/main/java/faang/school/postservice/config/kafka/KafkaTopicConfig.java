@@ -22,6 +22,9 @@ public class KafkaTopicConfig {
     @Value(value = "${spring.kafka.topics.post-view}")
     private String postViewTopic;
 
+    @Value(value = "${spring.kafka.topics.cache-heat}")
+    private String cacheHeatTopic;
+
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
@@ -48,5 +51,10 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic postViewKafkaTopic() {
         return new NewTopic(postViewTopic, partitionsNum, (short) 1);
+    }
+
+    @Bean
+    public NewTopic cacheHeatKafkaTopic() {
+        return new NewTopic(cacheHeatTopic, partitionsNum, (short) 1);
     }
 }
