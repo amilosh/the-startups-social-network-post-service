@@ -12,20 +12,23 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class FeedServiceImpl implements FeedService {
-    private final RedisTemplate<String, Object> feedRedisTemplate;
-    @Value("${spring.data.redis.feed.key-prefix}")
+    private final RedisTemplate<String, Object> redisTemplate;
+    @Value("${spring.data.redis.news-feed.key-prefix.feed}")
     private String feedPrefix;
+    @Value("${spring.data.redis.news-feed.time-to-live}")
+    private int ttl;
 
     @Retryable(maxAttempts = 3, retryFor = RedisTransactionFailedException.class)
     public void bindPostToFollower(Long followerId, Long postId) {
         String key = feedPrefix + followerId;
-
-        feedRedisTemplate.execute(new SessionCallback<Object>() {
+        redisTemplate.setEnableTransactionSupport(true);
+        redisTemplate.execute(new SessionCallback<Object>() {
             @Override
             public Object execute(RedisOperations operations) throws DataAccessException {
                 operations.watch(key);
@@ -33,6 +36,7 @@ public class FeedServiceImpl implements FeedService {
                 try {
                     ZSetOperations<String, Object> zSetOps = operations.opsForZSet();
                     zSetOps.add(key, postId, System.currentTimeMillis());
+                    operations.expire(key, Duration.ofDays(ttl));
                     zSetOps.removeRange(key, 0, -501);
                     List<Object> execResult = operations.exec();
                     if (execResult.isEmpty()) {
@@ -43,7 +47,7 @@ public class FeedServiceImpl implements FeedService {
                     operations.discard();
                     throw e;
                 } finally {
-                    operations.unwatch();
+                    redisTemplate.setEnableTransactionSupport(false);
                 }
 
                 return null;

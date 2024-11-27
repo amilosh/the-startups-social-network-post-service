@@ -12,11 +12,10 @@ import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.publisher.kafka.PostEventPublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.repository.redis.RedisPostRepository;
-import faang.school.postservice.repository.redis.RedisUserRepository;
 import faang.school.postservice.service.HashtagService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.service.PostServiceAsync;
+import faang.school.postservice.service.RedisCacheService;
 import faang.school.postservice.validator.post.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +44,7 @@ public class PostServiceImpl implements PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final UserServiceClient userServiceClient;
     private final KafkaPostViewProducer kafkaPostViewProducer;
-    private final RedisPostRepository redisPostRepository;
-    private final RedisUserRepository redisUserRepository;
+    private final RedisCacheService redisCacheService;
 
     @Value("${post.correcter.posts-batch-size}")
     private int batchSize;
@@ -81,10 +79,9 @@ public class PostServiceImpl implements PostService {
                 .build();
         sendPostEventForNewsFeed(publishedPost);
         postEventPublisher.publish(event);
-        redisPostRepository.save(postMapper.toRedis(publishedPost));
-        log.info("Post with id {} was sent to redis", publishedPost.getId());
-        redisUserRepository.save(author);
-        log.info("User with id {} was sent to redis", author.getId());
+        redisCacheService.savePost(postMapper.toRedis(publishedPost));
+        redisCacheService.saveUser(author);
+
         return postMapper.toDto(post);
     }
 

@@ -11,9 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -22,7 +20,6 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableRedisRepositories(keyspaceConfiguration = RedisConfig.CustomKeySpaceConfiguration.class)
 public class RedisConfig {
 
     private final ObjectMapper objectMapper;
@@ -64,25 +61,31 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-                new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
+        return configureTemplateByValue(Object.class);
+    }
+
+    @Bean
+    public RedisTemplate<String, PostRedis> postRedisTemplate() {
+        return configureTemplateByValue(PostRedis.class);
+    }
+
+    @Bean
+    public RedisTemplate<String, UserDto> userRedisTemplate() {
+        return configureTemplateByValue(UserDto.class);
+    }
+
+    private <T> RedisTemplate<String, T> configureTemplateByValue(Class<T> clazz) {
+        RedisTemplate<String, T> redisTemplate = new RedisTemplate<>();
+        Jackson2JsonRedisSerializer<T> jackson2JsonRedisSerializer =
+                new Jackson2JsonRedisSerializer<>(objectMapper, clazz);
+
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
-        redisTemplate.setEnableTransactionSupport(true);
-        return redisTemplate;
-    }
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
 
-    public class CustomKeySpaceConfiguration extends KeyspaceConfiguration {
-        @Override
-        protected Iterable<KeyspaceSettings> initialConfiguration() {
-            KeyspaceSettings postKeyspaceSetting = new KeyspaceSettings(PostRedis.class, "Posts");
-            postKeyspaceSetting.setTimeToLive(ttl);
-            KeyspaceSettings userKeyspaceSetting = new KeyspaceSettings(UserDto.class, "Users");
-            userKeyspaceSetting.setTimeToLive(ttl);
-            return List.of(postKeyspaceSetting, userKeyspaceSetting);
-        }
+        return redisTemplate;
     }
 
     @Bean
