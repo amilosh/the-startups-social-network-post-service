@@ -1,8 +1,10 @@
 package faang.school.postservice.producer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.message.LikePublishMessage;
 import faang.school.postservice.model.Like;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -10,19 +12,30 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KafkaLikeProducer extends KafkaEventProducer {
+@RequiredArgsConstructor
+public class KafkaLikeProducer implements KafkaMessageProducer<Like> {
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
-    public KafkaLikeProducer(KafkaTemplate<String, String> kafkaTemplate,
-                             ObjectMapper mapper,
-                             @Value("${spring.kafka.topic.like-publisher}") String likePostTopic) {
-        super(kafkaTemplate, likePostTopic, mapper);
-    }
+    @Value("${spring.kafka.topic.like-publisher}")
+    private String topic;
 
-    public void publishLike(Like like) {
-        LikePublishMessage likePublishMessage = new LikePublishMessage();
-        likePublishMessage.setPostId(like.getPost().getId());
-        likePublishMessage.setUserId(like.getUserId());
+    @Override
+    public void publish(Like like) {
+        try {
+            LikePublishMessage likeMessage = LikePublishMessage.builder()
+                    .postId(like.getPost().getId())
+                    .build();
 
-        publishEvent(likePublishMessage);
+            String message = objectMapper.writeValueAsString(likeMessage);
+            kafkaTemplate.send(topic, message);
+            log.info("Sent message: {}", message);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to convert object to json");
+        }
     }
 }
+
+
+
+
