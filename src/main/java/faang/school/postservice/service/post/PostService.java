@@ -1,8 +1,8 @@
 package faang.school.postservice.service.post;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostRequestDto;
@@ -20,10 +20,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -135,11 +137,8 @@ public class PostService {
         headers.set("x-rapidapi-key", API_KEY);
         HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
         RestTemplate restTemplate = new RestTemplate();
-
-        // Отправляем POST запрос и получаем ответ от сервера
         String response = restTemplate.postForObject(API_ENDPOINT, requestEntity, String.class);
-        HashMap<Long, String> results = parseResponse(response);
-        fromJsonToPosts(results);
+        fromJsonToPostsAndSave(response);
     }
 
     private void validateUserExist(Long id) {
@@ -150,9 +149,12 @@ public class PostService {
         projectServiceClient.getProject(id);
     }
 
-    private void fromJsonToPosts(HashMap<Long, String> results) {
-        results.forEach((key, value) -> {
-            Optional<Post> post = postRepository.findById(key);
+    private void fromJsonToPostsAndSave(String response) {
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String, String>>(){}.getType();
+        Map<String, String> fieldValues = gson.fromJson(response, type);
+        fieldValues.forEach((key, value) -> {
+            Optional<Post> post = postRepository.findById(Long.getLong(key));
             if (post.isEmpty()) {
                 throw new DataValidationException("Post does not exist " + key);
             }
@@ -163,29 +165,29 @@ public class PostService {
 
     private String getJsonString() {
         List<Post> posts = postRepository.findProjectByPublishedFalse();
-        HashMap<Long, String> textMap = new HashMap<>();
+        HashMap<String, String> textMap = new HashMap<>();
         posts.forEach(post -> {
-            textMap.put(post.getId(), post.getContent());
+            textMap.put(post.getId().toString(), post.getContent());
         });
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(textMap);
-        } catch (JsonProcessingException e) {
-            log.error("JsonProcessingException ", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private HashMap<Long, String> parseResponse(String jsonResponse) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            TypeReference<HashMap<Long, String>> typeRef
-                    = new TypeReference<HashMap<Long, String>>() {};
-            return objectMapper.readValue(jsonResponse, typeRef);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new HashMap<>();
-        }
+        String jsonStr = "{"
+                + " \"language\": \"enUS\","
+                + " \"fieldvalues\": {"
+                + " },"
+                + " \"config\": {"
+                + "     \"forceUpperCase\": false,"
+                + "     \"ignoreIrregularCaps\": false,"
+                + "     \"ignoreFirstCaps\": true,"
+                + "     \"ignoreNumbers\": true,"
+                + "     \"ignoreUpper\": false,"
+                + "     \"ignoreDouble\": false,"
+                + "     \"ignoreWordsWithNumbers\": true"
+                + " }"
+                + "}";
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(jsonStr, JsonObject.class);
+        JsonObject fieldvalues = jsonObject.getAsJsonObject("fieldvalues");
+        textMap.forEach(fieldvalues::addProperty);
+        return gson.toJson(textMap);
     }
 
     private List<PostResponseDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
