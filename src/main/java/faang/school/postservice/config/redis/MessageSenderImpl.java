@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class MessageSenderImpl implements MessageSender {
 
-    private final RedisTemplate<Long, String> redisTemplate;
+    private final RedisTemplate<String, List<Long>> redisTemplate;
     private final ChannelTopic topic;
 
     @Override

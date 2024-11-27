@@ -59,8 +59,8 @@ payment-service:
   host: localhost
   port: 9080
 
-
-cron:
-  expression:
-    ban-comments: "0 0 0 * * ?"
+CommentBanner:
+  cron:
+    expression:
+      ban-comments: "0 0 0 * * ?"
 

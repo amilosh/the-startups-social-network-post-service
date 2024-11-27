@@ -11,7 +11,6 @@ import faang.school.postservice.dto.post.PostDraftWithFilesCreateDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.CommentRepository;
@@ -40,8 +39,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,8 +76,7 @@ public class PostService {
     }
 
     @Transactional
-    public PostDraftResponseDto createDraftPostWithFiles(
-            PostDraftWithFilesCreateDto dto, MultipartFile[] files) throws IOException {
+    public PostDraftResponseDto createDraftPostWithFiles(PostDraftWithFilesCreateDto dto, MultipartFile[] files) throws IOException {
         validateUserOrProject(dto.getAuthorId(), dto.getProjectId());
         fileValidator.checkFiles(files);
         Post post = postMapper.toEntityFromDraftDtoWithFiles(dto);
@@ -110,8 +106,7 @@ public class PostService {
         return postMapper.toDtoFromPost(postRepository.save(post));
     }
 
-    public PostResponseDto updatePostWithFiles(
-            @Positive long postId, @NotNull @Valid PostUpdateDto dto, MultipartFile[] files) throws IOException {
+    public PostResponseDto updatePostWithFiles(@Positive long postId, @NotNull @Valid PostUpdateDto dto, MultipartFile[] files) throws IOException {
         fileValidator.checkFiles(files);
         Post post = getPostById(postId);
         fileValidator.checkingTotalOfFiles(files.length, post.getResources().size());
@@ -135,8 +130,7 @@ public class PostService {
 
     public Post findPostById(Long postId) {
         postIdValidator.postIdValidate(postId);
-        return postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
+        return postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Comment not found"));
     }
 
     public PostResponseDto getPost(@Positive long postId) {
@@ -149,47 +143,27 @@ public class PostService {
     }
 
     public List<PostDraftResponseDto> getDraftPostsByUserIdSortedCreatedAtDesc(long userId) {
-        return postRepository.findByNotPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream()
-                .map(postMapper::toDraftDtoFromPost)
-                .toList();
+        return postRepository.findByNotPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream().map(postMapper::toDraftDtoFromPost).toList();
     }
 
     public List<PostDraftResponseDto> getDraftPostsByProjectIdSortedCreatedAtDesc(long projectId) {
-        return postRepository.findByNotPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream()
-                .map(postMapper::toDraftDtoFromPost)
-                .toList();
+        return postRepository.findByNotPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream().map(postMapper::toDraftDtoFromPost).toList();
     }
 
     public List<PostResponseDto> getPublishPostsByUserIdSortedCreatedAtDesc(long userId) {
-        return postRepository.findByPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream()
-                .map(postMapper::toDtoFromPost)
-                .toList();
+        return postRepository.findByPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream().map(postMapper::toDtoFromPost).toList();
     }
 
     public List<PostResponseDto> getPublishPostsByProjectIdSortedCreatedAtDesc(long projectId) {
-        return postRepository.findByPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream()
-                .map(postMapper::toDtoFromPost)
-                .toList();
+        return postRepository.findByPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream().map(postMapper::toDtoFromPost).toList();
     }
 
-    public List<Long> allAuthorIdWithNotVerifyComments() {
-        Map<Long, Long> collect = commentRepository.findAllWereVerifiedFalse()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        Comment::getAuthorId,
-                        Collectors.counting())
-                );
-        return collect.entrySet().stream()
-                .filter(entry -> entry.getValue() > 5)
-                .map(Map.Entry::getKey).toList();
-    }
-
-    public void banUsersWithTooManyUnverifiedComments() {
-        List<Long> usersToBan = allAuthorIdWithNotVerifyComments();
+    public void allAuthorIdWithNotVerifyComments() {
+        List<Long> idsForBan = commentRepository.findAllWereVerifiedFalse();
 
         try {
-            String jsonUserBan = objectMapper.writeValueAsString(usersToBan);
-            messageSender.send(jsonUserBan);
+            String json = objectMapper.writeValueAsString(idsForBan);
+            messageSender.send(json);
         } catch (JsonProcessingException e) {
             log.error("Can`t parse for json ", e);
             throw new RuntimeException(e);
@@ -209,8 +183,7 @@ public class PostService {
         }
     }
 
-    private void uploadAndAddFiles(
-            List<Resource> resources, MultipartFile[] files, Post post) throws IOException {
+    private void uploadAndAddFiles(List<Resource> resources, MultipartFile[] files, Post post) throws IOException {
         String folder = String.format("%d:%s:%d", post.getAuthorId(), "files", post.getProjectId());
         for (MultipartFile file : files) {
             String key = keyKeeper.getKeyFile(folder);
@@ -230,12 +203,6 @@ public class PostService {
     }
 
     private Resource createdResource(MultipartFile file, String key) {
-        return resourceServiceImpl.save(
-                Resource.builder()
-                        .name(file.getOriginalFilename())
-                        .key(key)
-                        .size(file.getSize())
-                        .type(file.getContentType())
-                        .build());
+        return resourceServiceImpl.save(Resource.builder().name(file.getOriginalFilename()).key(key).size(file.getSize()).type(file.getContentType()).build());
     }
 }

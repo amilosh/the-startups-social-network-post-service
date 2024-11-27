@@ -13,6 +13,11 @@ public interface CommentRepository extends CrudRepository<Comment, Long> {
     @Query("SELECT c FROM Comment c WHERE c.post.id = :postId")
     List<Comment> findAllByPostId(long postId);
 
-    @Query("SELECT c FROM Comment c WHERE c.verified = FALSE ")
-    List<Comment> findAllWereVerifiedFalse();
+    @Query(nativeQuery = true, value = """
+                    SELECT author_id FROM comment
+                    WHERE verified = FALSE
+                    GROUP BY author_id
+                    HAVING COUNT(*) > 5;
+            """)
+    List<Long> findAllWereVerifiedFalse();
 }
