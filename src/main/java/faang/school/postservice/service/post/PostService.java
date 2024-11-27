@@ -1,11 +1,20 @@
 package faang.school.postservice.service.post;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.*;
+import faang.school.postservice.config.redis.MessageSender;
+import faang.school.postservice.dto.post.PostDraftCreateDto;
+import faang.school.postservice.dto.post.PostDraftResponseDto;
+import faang.school.postservice.dto.post.PostDraftWithFilesCreateDto;
+import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.album.AlbumService;
 import faang.school.postservice.service.amazons3.Amazons3ServiceImpl;
@@ -20,6 +29,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -29,11 +40,14 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Validated
 public class PostService {
+    private static final Logger log = LoggerFactory.getLogger(PostService.class);
     private final PostMapper postMapper;
     private final PostRepository postRepository;
     private final UserServiceClient userService;
@@ -46,6 +60,9 @@ public class PostService {
     private final Amazons3ServiceImpl amazonS3;
     private final FileValidator fileValidator;
     private final KeyKeeper keyKeeper;
+    private final CommentRepository commentRepository;
+    private final MessageSender messageSender;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public PostDraftResponseDto createDraftPost(@NotNull @Valid PostDraftCreateDto dto) {
@@ -153,6 +170,30 @@ public class PostService {
         return postRepository.findByPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream()
                 .map(postMapper::toDtoFromPost)
                 .toList();
+    }
+
+    public List<Long> allAuthorIdWithNotVerifyComments() {
+        Map<Long, Long> collect = commentRepository.findAllWereVerifiedFalse()
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Comment::getAuthorId,
+                        Collectors.counting())
+                );
+        return collect.entrySet().stream()
+                .filter(entry -> entry.getValue() > 5)
+                .map(Map.Entry::getKey).toList();
+    }
+
+    public void banUsersWithTooManyUnverifiedComments() {
+        List<Long> usersToBan = allAuthorIdWithNotVerifyComments();
+
+        try {
+            String jsonUserBan = objectMapper.writeValueAsString(usersToBan);
+            messageSender.send(jsonUserBan);
+        } catch (JsonProcessingException e) {
+            log.error("Can`t parse for json ", e);
+            throw new RuntimeException(e);
+        }
     }
 
     private Post getPostById(@Positive long postId) {
