@@ -3,7 +3,6 @@ package faang.school.postservice.service;
 import faang.school.postservice.dto.post.PostForFeedDto;
 import faang.school.postservice.mapper.UserMapper;
 import faang.school.postservice.mapper.post.CacheablePostMapper;
-import faang.school.postservice.model.CacheableUser;
 import faang.school.postservice.model.post.CacheablePost;
 import faang.school.postservice.repository.UserCacheRepository;
 import faang.school.postservice.repository.UserRepository;
@@ -38,8 +37,8 @@ public class FeedComposer {
             PostForFeedDto postForFeedDto = cacheablePostMapper.toPostForFeedDto(post);
             postForFeedDto.setAuthor(
                     userMapper.toUserForFeedDto(
-                        userCacheRepository.findById(post.getAuthorId())
-                                .orElse(userMapper.toCacheable(userRepository.getReferenceById(post.getAuthorId())))
+                            userCacheRepository.findById(post.getAuthorId())
+                                    .orElse(userMapper.toCacheable(userRepository.getReferenceById(post.getAuthorId())))
                     )
             );
             posts.add(postForFeedDto);
