@@ -9,6 +9,8 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.like.LikePostEventPublisher;
+import faang.school.postservice.producer.like.comment.KafkaCommentLikeProducer;
+import faang.school.postservice.producer.like.post.KafkaPostLikeProducer;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -65,6 +67,10 @@ public class LikeServiceTest {
 
     @Mock
     private LikePostEventPublisher likePostEventPublisher;
+    @Mock
+    private KafkaPostLikeProducer kafkaPostLikeProducer;
+    @Mock
+    private KafkaCommentLikeProducer kafkaCommentLikeProducer;
 
     @InjectMocks
     private LikeService likeService;
@@ -84,10 +90,15 @@ public class LikeServiceTest {
         void shouldAddLikeToPost() {
             likeRequestDto.setPostId(postId);
 
-            Post post = new Post();
+            Post post = Post.builder()
+                    .id(1)
+                    .authorId(2L)
+                    .build();
             when(postRepository.findById(likeRequestDto.getPostId())).thenReturn(Optional.of(post));
 
-            Like like = new Like();
+            Like like = Like.builder()
+                    .post(post)
+                    .build();
             when(likeMapper.toEntity(likeRequestDto)).thenReturn(like);
             LikeResponseDto likeResponseDto = new LikeResponseDto();
             when(likeMapper.toResponseDto(like)).thenReturn(likeResponseDto);
@@ -104,6 +115,7 @@ public class LikeServiceTest {
             verify(userServiceClient).getUser(likeRequestDto.getUserId());
             verify(likePostEventPublisher).publish(any());
             verify(likePostEventPublisher).publish(any());
+            verify(kafkaPostLikeProducer).sendEvent(any());
         }
 
 
@@ -112,10 +124,15 @@ public class LikeServiceTest {
         void shouldAddLikeToComment() {
             likeRequestDto.setCommentId(commentId);
 
-            Comment comment = new Comment();
+            Comment comment = Comment.builder()
+                    .id(2)
+                    .authorId(1)
+                    .build();
             when(commentRepository.findById(likeRequestDto.getCommentId())).thenReturn(Optional.of(comment));
 
-            Like like = new Like();
+            Like like = Like.builder()
+                    .comment(comment)
+                    .build();
             when(likeMapper.toEntity(likeRequestDto)).thenReturn(like);
             LikeResponseDto likeResponseDto = new LikeResponseDto();
             when(likeMapper.toResponseDto(like)).thenReturn(likeResponseDto);
@@ -131,6 +148,7 @@ public class LikeServiceTest {
             verify(likeValidator).validateLikeForCommentExists(likeRequestDto.getCommentId(),
                     likeRequestDto.getUserId());
             verify(userServiceClient).getUser(likeRequestDto.getUserId());
+            verify(kafkaCommentLikeProducer).sendEvent(any());
         }
 
 
