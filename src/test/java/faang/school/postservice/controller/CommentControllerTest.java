@@ -1,6 +1,7 @@
 package faang.school.postservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.postservice.controller.comment.CommentController;
 import faang.school.postservice.dto.comment.CommentRequestDto;
 import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CommentUpdateRequestDto;

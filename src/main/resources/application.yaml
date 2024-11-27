@@ -32,13 +32,12 @@ logging:
   level:
     root: info
 
-    services:
-      s3:
-        endpoint: 9000
-        accessKey: user
-        secretKey: password
-        bucketName: postbucket
-
+services:
+  s3:
+    endpoint: http://127.0.0.1:9000
+    accessKey: user
+    secretKey: password
+    bucketName: post-bucket
 user-service:
   host: localhost
   port: 8080

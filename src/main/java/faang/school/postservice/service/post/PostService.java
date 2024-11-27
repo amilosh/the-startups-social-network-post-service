@@ -4,21 +4,28 @@ import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.resource.ResourceDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.resource.ResourceService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostService {
+    private final ResourceService resourceService;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
@@ -28,10 +35,18 @@ public class PostService {
         isPostAuthorExist(postDto);
 
         Post post = postMapper.toEntity(postDto);
+        post.setId(null);
         post.setPublished(false);
         post.setDeleted(false);
-
+        post.setLikes(new ArrayList<>());
+        post.setResources(new ArrayList<>());
         postRepository.save(post);
+        log.info("Post with id {} created", post.getId());
+
+        if(postDto.getResources() != null) {
+            addResourcesToPost(post.getId(), postDto.getResources());
+        }
+
         return postMapper.toDto(post);
     }
 
@@ -108,6 +123,21 @@ public class PostService {
         validateProjectExist(id);
 
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
+    }
+
+    private void addResourcesToPost(Long postId, List<ResourceDto> resources) {
+        Post post = postRepository.getPostById(postId);
+        List<Resource> resourcesToAdd = new ArrayList<>();
+        for (ResourceDto dto : resources) {
+            if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+                Resource resource = resourceService.add(postId, dto.getFile(), dto.getType());
+                log.info("Processing resource of type: {}", dto.getType());
+                resourcesToAdd.add(resource);
+            }
+        }
+        post.getResources().addAll(resourcesToAdd);
+        log.info("{} resources added to the post with id {}", resourcesToAdd.size(), postId);
+        postRepository.save(post);
     }
 
     private void validateUserExist(Long id) {
