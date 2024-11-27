@@ -68,4 +68,20 @@ public class PostRedisRepository {
         });
         return Optional.ofNullable(postCache);
     }
+
+    public void addLikeToPost(Long postId) {
+
+        String postIdKey = "post-" + postId;
+        postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
+            operations.watch(postIdKey);
+            PostCache postCache = operations.opsForValue().get(postIdKey);
+            postCache.setLikeCount(postCache.getLikeCount() + 1);
+
+            operations.multi();
+
+            operations.opsForValue().set(postIdKey, postCache, ttl, SECONDS);
+            return operations.exec();
+        });
+        log.info("Added like to post: {}", postId);
+    }
 }
