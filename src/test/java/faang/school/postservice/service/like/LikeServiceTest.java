@@ -86,6 +86,18 @@ public class LikeServiceTest {
     }
 
     @Test
+    public void testPostLikeFailure() {
+        when(postRepository.findById(5L)).thenReturn(Optional.empty());
+        assertThrows(DataValidationException.class, () -> likeService.postLike(acceptanceLikeDto, 5L));
+    }
+
+    @Test
+    public void testCommentLikeFailure() {
+        when(commentRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(DataValidationException.class, () -> likeService.commentLike(acceptanceLikeDto, 1L));
+    }
+
+    @Test
     public void testPostLikeWithPostHatLike() {
         when(postRepository.findById(5L)).thenReturn(Optional.ofNullable(post));
         when(validator.validatePostHasLike(5L, 1L)).thenReturn(false);

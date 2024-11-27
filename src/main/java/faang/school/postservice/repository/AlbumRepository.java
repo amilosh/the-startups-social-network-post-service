@@ -34,4 +34,8 @@ public interface AlbumRepository extends CrudRepository<Album, Long> {
             )
             """)
     Stream<Album> findFavoriteAlbumsByUserId(long userId);
+
+    @Query(nativeQuery = true, value = """
+            SELECT * FROM album""")
+    Stream<Album> findAllAlbums();
 }
