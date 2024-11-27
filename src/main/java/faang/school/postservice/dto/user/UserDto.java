@@ -8,8 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 public class UserDto {
     @Min(value = 1, message = "ID must be a positive number")
     private Long id;

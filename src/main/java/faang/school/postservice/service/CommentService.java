@@ -43,7 +43,7 @@ public class CommentService {
     public CommentDto updateComment(long commentId, String content) {
         log.info("Trying to update comment: {} with the following content: {}",
                 commentId, content);
-        Comment comment = getById(commentId);
+        Comment comment = getCommentById(commentId);
         comment.setContent(content);
         return commentMapper.toDto(comment);
     }
@@ -60,16 +60,23 @@ public class CommentService {
         commentRepository.deleteById(commentId);
     }
 
+
+    public Comment getCommentById(long commentId) {
+        log.debug("start searching comment by ID {}", commentId);
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Comment is not found"));
+    }
+
+    public boolean isCommentNotExist(long commentId) {
+        log.debug("start searching for existence comment with id {}", commentId);
+        return !commentRepository.existsById(commentId);
+    }
+
     private void validateUserExists(long userId) {
         try {
             userServiceClient.getUser(userId);
         } catch (FeignException ex) {
             throw new EntityNotFoundException("User does not exist");
         }
-    }
-
-    private Comment getById(long commentId) {
-        return commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
     }
 }

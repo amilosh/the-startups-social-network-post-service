@@ -45,7 +45,7 @@ public class PostControllerV1 {
 
     @GetMapping("/{id}")
     public PostDto getById(@PathVariable @Positive long id) {
-        return postService.getPostById(id);
+        return postService.getPostDtoById(id);
     }
 
     @DeleteMapping("/{id}")

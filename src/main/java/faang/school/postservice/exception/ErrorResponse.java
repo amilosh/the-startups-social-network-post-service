@@ -1,12 +1,9 @@
 package faang.school.postservice.exception;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
-import java.time.LocalDateTime;
-
-@Getter
+@Data
 @AllArgsConstructor
 public class ErrorResponse {
     private String message;

@@ -17,7 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,5 +131,43 @@ public class CommentServiceTest {
         // act and assert
         assertThrows(EntityNotFoundException.class,
                 () -> commentService.updateComment(commentId, content));
+    }
+
+    @Test
+    public void testGetPostByIdWithExistentPost(){
+        when(commentRepository.findById(commentId))
+                .thenReturn(Optional.ofNullable(comment));
+
+        Comment result = commentService.getCommentById(commentId);
+
+        assertNotNull(result);
+        assertEquals(commentId, result.getId());
+    }
+
+    @Test
+    public void testGetPostByIdWhenPostNotExist(){
+        when(commentRepository.findById(commentId))
+                .thenThrow(EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> commentService.getCommentById(commentId));
+    }
+
+    @Test
+    public void testIsPostNotExistWithExistentPost(){
+        when(commentRepository.existsById(commentId)).thenReturn(true);
+
+        boolean result = commentService.isCommentNotExist(commentId);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsPostNotExistWhenPostNotExist() {
+        when(commentRepository.existsById(commentId)).thenReturn(false);
+
+        boolean result = commentService.isCommentNotExist(commentId);
+
+        assertTrue(result);
     }
 }

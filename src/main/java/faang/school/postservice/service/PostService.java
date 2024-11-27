@@ -120,15 +120,6 @@ public class PostService {
                 .toList();
     }
 
-    public Post findPostById(long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Post with id %s not found".formatted(id)));
-    }
-
-    public PostDto getPostById(long id) {
-        return postMapper.toDto(findPostById(id));
-    }
-
     public void addCommentToPost(Post post, Comment comment) {
         post.addComment(comment);
     }
@@ -146,9 +137,30 @@ public class PostService {
         }
     }
 
+    public Post findPostById(long id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Post with id %s not found".formatted(id)));
+    }
+
+    public PostDto getPostDtoById(long id) {
+        return postMapper.toDto(findPostById(id));
+    }
+
+    public Post getPostById(long postId) {
+        log.debug("start searching post by id {}", postId);
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Post is not found"));
+
+    }
+
     private void validateThatPostDeleted(Post post) {
         if (post.isDeleted()) {
             throw new DataValidationException("It is not possible to update a deleted post");
         }
+    }
+
+    public boolean isPostNotExist(long postId) {
+        log.debug("start searching for existence post with id {}", postId);
+        return !postRepository.existsById(postId);
     }
 }
