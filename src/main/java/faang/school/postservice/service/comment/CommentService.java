@@ -48,7 +48,7 @@ public class CommentService {
         publishCommentEventToNotificationService(savedComment, post);
 
         authorCacheManager.cacheAuthor(savedComment);
-        kafkaCommentProducer.publishComment(savedComment);
+        kafkaCommentProducer.publish(savedComment);
         return savedComment;
     }
 

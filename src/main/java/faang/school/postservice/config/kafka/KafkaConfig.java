@@ -18,6 +18,8 @@ public class KafkaConfig {
     private String publishLikeTopicName;
     @Value(value = "${spring.kafka.topic.view-publisher}")
     private String publishViewTopicName;
+    @Value(value = "${spring.kafka.topic.view-publisher}")
+    private String publishViewTopicName;
 
     @Bean
     public NewTopic publishPostTopic() {
@@ -37,5 +39,10 @@ public class KafkaConfig {
     @Bean
     public NewTopic publishPostViewTopic() {
         return new NewTopic(publishViewTopicName, 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic publishHeatFeedBatchTopic() {
+        return new NewTopic(publishHeatFeedBatchTopicName, 1, (short) 1);
     }
 }

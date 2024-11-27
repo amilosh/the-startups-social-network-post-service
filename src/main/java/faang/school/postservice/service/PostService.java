@@ -63,7 +63,7 @@ public class PostService {
         postRedisRepository.save(postCache);
 
         authorCacheManager.cacheAuthor(savedPost);
-        kafkaPostProducer.publishPost(savedPost);
+        kafkaPostProducer.publish(savedPost);
         return savedPost;
     }
 

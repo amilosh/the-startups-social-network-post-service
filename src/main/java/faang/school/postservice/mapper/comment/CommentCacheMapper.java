@@ -37,4 +37,14 @@ public class CommentCacheMapper {
                 .authorId(commentPublishMessage.getCommentAuthorId())
                 .build();
     }
+
+    public CommentPublishMessage toCommentPublishMessage(Comment comment) {
+        return CommentPublishMessage.builder()
+                .commentId(comment.getId())
+                .postId(comment.getPost().getId())
+                .commentAuthorId(comment.getAuthorId())
+                .content(comment.getContent())
+                .createdAt(comment.getCreatedAt())
+                .build();
+    }
 }

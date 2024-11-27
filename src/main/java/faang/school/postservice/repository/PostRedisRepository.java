@@ -40,7 +40,6 @@ public class PostRedisRepository {
         String postIdKey = "post-" + postId;
         postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(postIdKey);
-
             PostCache postCache = operations.opsForValue().get(postIdKey);
             postCache.setCommentsCount(postCache.getCommentsCount() + 1);
             List<CommentCache> comments = postCache.getComments();
@@ -48,11 +47,8 @@ public class PostRedisRepository {
                 comments.remove(commentsLimit - 1);
             }
             comments.add(0, commentCache);
-
             operations.multi();
-
             operations.opsForValue().set(postIdKey, postCache, ttl, SECONDS);
-
             return operations.exec();
         });
         log.info("Saved comment cache to post: {}", postId);

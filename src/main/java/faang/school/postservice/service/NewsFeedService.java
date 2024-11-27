@@ -36,7 +36,6 @@ public class NewsFeedService {
     @Value("${spring.data.redis.cache.news-feed.batch-size}")
     private int batchSize;
 
-
     public void allocateToFeeds(Long postId, Long createdAt, List<Long> userIds) {
         userIds.forEach(userId -> newsFeedRedisRepository.addPostId(postId, userId, createdAt));
         log.info("Post allocated to feeds. PostId: {}", postId);
@@ -50,16 +49,26 @@ public class NewsFeedService {
         } else {
             cachedPostIds = newsFeedRedisRepository.getPostIdsBatch(userId, lastPostId);
         }
-
         List<PostCache> postCaches = new ArrayList<>(findPostCaches(cachedPostIds));
-
         if (postCaches.size() < batchSize) {
             List<PostCache> additionalPostCaches = findPersistedPostsForUser(userId, cachedPostIds, batchSize - postCaches.size());
             postCaches.addAll(additionalPostCaches);
         }
-
         return feedPostMapper.toFeedPostsList(postCaches);
     }
+
+    public void startHeat() {
+        int page = 0;
+        while (true) {
+            List<UserDto> users = userServiceClient.getUsersWithFollowings(page++, 2);
+            if (users.isEmpty()) {
+                break;
+            }
+            System.out.println(users);
+        }
+    }
+
+
 
     private List<PostCache> findPostCaches(List<Long> postIds) {
         return postIds.stream()
@@ -79,4 +88,6 @@ public class NewsFeedService {
                 .map(postCacheMapper::toPostCache)
                 .toList();
     }
+
+
 }
