@@ -11,16 +11,11 @@ import java.util.Set;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-@RedisHash(timeToLive = 60 * 60 * 24, value = "post")
-public class PostCache {
+@NoArgsConstructor
+@RedisHash(value = "user", timeToLive = 60 * 60 * 24)
+public class UserCache {
     @Id
-    private Long id;
-    private String title;
-    private String content;
-    private Long authorId;
-    private Long likes;
-    private Set<CommentCache> comments;
-    private Long views;
+    long userId;
+    Set<Long> postIds;
 }
