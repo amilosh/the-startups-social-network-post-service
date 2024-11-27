@@ -1,6 +1,7 @@
 package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.comment.CommentPublishedEvent;
+import faang.school.postservice.dto.post.PostForFeedDto;
 import faang.school.postservice.mapper.comment.CommentPublishedEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
@@ -28,6 +29,8 @@ public abstract class CacheablePostMapper {
     @Mapping(target = "comments", source = "comments", qualifiedByName = "commentsMap")
     @Mapping(target = "timeToLive", source = "comments", qualifiedByName = "timeToLive")
     public abstract CacheablePost toCacheablePost(Post post);
+
+    public abstract PostForFeedDto toPostForFeedDto(CacheablePost cacheablePost);
 
     @Named("commentsMap")
     protected List<CommentPublishedEvent> toCommentPublishedEvents(List<Comment> comments) {

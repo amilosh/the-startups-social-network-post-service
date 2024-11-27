@@ -1,5 +1,6 @@
 package faang.school.postservice.mapper;
 
+import faang.school.postservice.dto.user.UserForFeedDto;
 import faang.school.postservice.model.CacheableUser;
 import faang.school.postservice.model.User;
 import org.mapstruct.Mapper;
@@ -16,6 +17,8 @@ public abstract class UserMapper {
 
     @Mapping(target = "timeToLive", source = "id", qualifiedByName = "getTimeToLive")
     public abstract CacheableUser toCacheable(User user);
+
+    public abstract UserForFeedDto toUserForFeedDto(CacheableUser cacheableUser);
 
     @Named("getTimeToLive")
     protected long getTimeToLive(Long id) {
