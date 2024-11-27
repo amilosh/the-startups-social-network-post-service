@@ -2,7 +2,7 @@ package faang.school.postservice.redis.model.dto;
 
 import lombok.*;
 
-import java.util.List;
+import java.util.TreeSet;
 
 @Getter
 @Setter
@@ -12,5 +12,5 @@ import java.util.List;
 @ToString
 public class FeedDto {
     private Long id;
-    private List<PostRedisDto> postRedisDtos;
+    private TreeSet<PostRedisDto> postRedisDtos;
 }

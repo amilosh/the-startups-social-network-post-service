@@ -6,9 +6,12 @@ import faang.school.postservice.redis.model.entity.AuthorCache;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AuthorCacheMapper {
 
     AuthorCache toAuthorCache(UserDto userDto);
     AuthorRedisDto toAuthorRedisDto(AuthorCache authorCache);
+    List<AuthorRedisDto> toAuthorRedisDto(List<UserDto> userDtos);
 }

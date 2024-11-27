@@ -11,7 +11,7 @@ import java.util.TreeSet;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class PostRedisDto {
+public class PostRedisDto implements Comparable<PostRedisDto> {
     private Long id;
     private String content;
     private AuthorRedisDto author;
@@ -19,4 +19,9 @@ public class PostRedisDto {
     private int numberOfViews;
     private TreeSet<CommentRedisDto> comments;
     private LocalDateTime publishedAt;
+
+    @Override
+    public int compareTo(PostRedisDto o) {
+        return o.publishedAt.compareTo(this.publishedAt);
+    }
 }

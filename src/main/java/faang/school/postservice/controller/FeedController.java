@@ -5,7 +5,7 @@ import faang.school.postservice.service.FeedService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +23,8 @@ public class FeedController {
     public FeedDto getAlbumById(
             @Parameter(description = "ID of the user", required = true)
             @RequestHeader("x-user-id") Long userId,
-            @RequestParam(required = false) Integer startPostId,
-            @NotNull @PathVariable Long id) {
+            @Positive @RequestParam(required = false) Integer startPostId,
+            @Positive @PathVariable Long id) {
         return feedService.getFeed(id, userId, startPostId);
     }
 }
