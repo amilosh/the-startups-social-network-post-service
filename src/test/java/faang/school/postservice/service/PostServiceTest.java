@@ -83,7 +83,7 @@ class PostServiceTest {
 
     @Test
     @DisplayName("Успешный вызов метода moderationPostContent")
-    public void whenModeratePostsContentThenSuccess() {
+    void whenModeratePostsContentThenSuccess() {
         when(postRepository.findReadyToVerified()).thenReturn(unverifiedPosts);
         when(postRepository.saveAll(verifiedPosts)).thenReturn(verifiedPosts);
 
