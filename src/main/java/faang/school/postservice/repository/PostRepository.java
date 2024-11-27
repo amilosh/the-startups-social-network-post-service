@@ -24,5 +24,5 @@ public interface PostRepository extends CrudRepository<Post, Long> {
     List<Post> findReadyToPublish();
 
     @Query("SELECT p FROM Post p WHERE p.published = false")
-    List<Post> findProjectByPublishedFalse();
+    List<Post> findByPublishedFalse();
 }

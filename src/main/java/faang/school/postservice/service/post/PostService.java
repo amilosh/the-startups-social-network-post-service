@@ -14,19 +14,21 @@ import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -127,52 +129,13 @@ public class PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
-    public void checkSpelling() {
-        String json = getJsonString();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Content-Type", "application/json");
-        headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
-        headers.set("x-rapidapi-key", API_KEY);
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        String response = restTemplate.postForObject(API_ENDPOINT, requestEntity, String.class);
-        fromJsonToPostsAndSave(response);
-    }
-
-    private void validateUserExist(Long id) {
-        userServiceClient.getUser(id);
-    }
-
-    private void validateProjectExist(Long id) {
-        projectServiceClient.getProject(id);
-    }
-
-    private void fromJsonToPostsAndSave(String response) {
-        Gson gson = new Gson();
-        Type type = new TypeToken<Map<String, String>>(){}.getType();
-        Map<String, String> fieldValues = gson.fromJson(response, type);
-        fieldValues.forEach((key, value) -> {
-            Optional<Post> post = postRepository.findById(Long.getLong(key));
-            if (post.isEmpty()) {
-                throw new DataValidationException("Post does not exist " + key);
-            }
-            post.get().setContent(value);
-            postRepository.save(post.get());
-        });
-    }
-
-    private String getJsonString() {
-        List<Post> posts = postRepository.findProjectByPublishedFalse();
-        HashMap<String, String> textMap = new HashMap<>();
-        posts.forEach(post -> {
-            textMap.put(post.getId().toString(), post.getContent());
-        });
-        String jsonStr = "{"
+    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
+            backoff = @Backoff(delay = 1000,multiplier = 2))
+    @Async("taskExecutor")
+    public void checkSpelling(Post post) {
+        String json = "{"
                 + " \"language\": \"enUS\","
-                + " \"fieldvalues\": {"
-                + " },"
+                + " \"fieldvalues\": \"" + post.getContent().replace("\"", "\\\"") + "\","
                 + " \"config\": {"
                 + "     \"forceUpperCase\": false,"
                 + "     \"ignoreIrregularCaps\": false,"
@@ -183,11 +146,41 @@ public class PostService {
                 + "     \"ignoreWordsWithNumbers\": true"
                 + " }"
                 + "}";
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(jsonStr, JsonObject.class);
-        JsonObject fieldvalues = jsonObject.getAsJsonObject("fieldvalues");
-        textMap.forEach(fieldvalues::addProperty);
-        return gson.toJson(textMap);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Content-Type", "application/json");
+        headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
+        headers.set("x-rapidapi-key", API_KEY);
+        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        String response = restTemplate.postForObject(API_ENDPOINT, requestEntity, String.class);
+        JSONObject jsonObject = new JSONObject(response);
+        int errorCount = jsonObject.getInt("spellingErrorCount");
+        if (errorCount == 0) {
+            return;
+        }
+        setCorrectContent(jsonObject, post);
+        log.info("Added corrected content {} to the post {}", post.getContent(), post.getId());
+        postRepository.save(post);
+    }
+
+    private Post setCorrectContent(JSONObject jsonObject, Post post) {
+        JSONArray elementsArray = jsonObject.getJSONArray("elements");
+        JSONObject firstElement = elementsArray.getJSONObject(0);
+        JSONArray errorsArray = firstElement.getJSONArray("errors");
+        JSONObject firstError = errorsArray.getJSONObject(0);
+        JSONArray suggestionsArray = firstError.getJSONArray("suggestions");
+        String firstSuggestion = suggestionsArray.getString(0);
+        post.setContent(firstSuggestion);
+        return post;
+    }
+
+    private void validateUserExist(Long id) {
+        userServiceClient.getUser(id);
+    }
+
+    private void validateProjectExist(Long id) {
+        projectServiceClient.getProject(id);
     }
 
     private List<PostResponseDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
