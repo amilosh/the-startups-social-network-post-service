@@ -39,7 +39,7 @@ public class PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final PostCacheMapper postCacheMapper;
     private final PostRedisRepository postRedisRepository;
-    private final AuthorCacheManager cachingAuthor;
+    private final AuthorCacheManager authorCacheManager;
 
     @Transactional
     public Post createDraftPost(Post post) {
@@ -62,7 +62,7 @@ public class PostService {
         PostCache postCache = postCacheMapper.toPostCache(savedPost);
         postRedisRepository.save(postCache);
 
-        cachingAuthor.cacheAuthor(savedPost);
+        authorCacheManager.cacheAuthor(savedPost);
         kafkaPostProducer.publishPost(savedPost);
         return savedPost;
     }

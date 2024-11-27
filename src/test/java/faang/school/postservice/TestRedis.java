@@ -1,12 +1,18 @@
 package faang.school.postservice;
 
 
-import faang.school.postservice.repository.NewsFeedRedisRepository;
+import faang.school.postservice.dto.post.FeedPost;
+import faang.school.postservice.model.Post;
+import faang.school.postservice.repository.PostRedisRepository;
+import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.NewsFeedService;
+import faang.school.postservice.service.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -15,22 +21,64 @@ import java.util.List;
 public class TestRedis {
 
     @Autowired
-    private NewsFeedRedisRepository newsFeedRedisRepository;
+    private PostRepository postRepository;
 
-    private final Long KEY = 2L;
+    @Autowired
+    private PostRedisRepository postRedisRepository;
 
-    private int counter = 0;
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private NewsFeedService newsFeedService;
 
     @Test
     public void test() throws InterruptedException {
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(1L)
+                    .published(true)
+                    .publishedAt(LocalDateTime.now())
+                    .build();
+            postRepository.save(post);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(2L)
+                    .published(true)
+                    .publishedAt(LocalDateTime.now())
+                    .build();
+            postRepository.save(post);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(1L)
+                    .build();
+            Post saved = postService.createDraftPost(post);
+            postService.publishPost(saved.getId());
+        }
+
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(2L)
+                    .build();
+            Post saved = postService.createDraftPost(post);
+            postService.publishPost(saved.getId());
+        }
+
+        Thread.sleep(5000);
 
 
-        Thread one = new Thread(() -> newsFeedRedisRepository.addPostId(100L, KEY, counter++));
-        one.start();
-        one.join();
-
-
-        List<Long> postIds = newsFeedRedisRepository.getPostIdsFirstBatch(KEY);
-        System.out.println(postIds);
+        List<FeedPost> feedPosts = newsFeedService.getFeedBatch(3L, null);
+        feedPosts.forEach(System.out::println);
     }
+
+
+
 }

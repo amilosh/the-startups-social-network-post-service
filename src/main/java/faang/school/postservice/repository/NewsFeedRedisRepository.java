@@ -27,16 +27,12 @@ public class NewsFeedRedisRepository {
         String key = "news-feed-" + userId;
         longRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(key);
-
             long feedSize = requireNonNullElse(operations.opsForZSet().size(key), 0L);
-
             operations.multi();
-
             if (feedSize == feedCapacity) {
                 operations.opsForZSet().popMin(key);
             }
             operations.opsForZSet().add(key, postId, createdAt);
-
             return operations.exec();
         });
     }
@@ -45,13 +41,9 @@ public class NewsFeedRedisRepository {
         String key = "news-feed-" + userId;
         Set<Long> postIdsSet = longRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(key);
-
             double score = requireNonNullElse(operations.opsForZSet().score(key, firstExclusivePostId), 0.0);
-
             operations.multi();
-
             operations.opsForZSet().reverseRangeByScore(key, score, Double.MAX_VALUE, 0, batchSize + 1);
-
             return operations.exec();
         });
 
@@ -65,9 +57,7 @@ public class NewsFeedRedisRepository {
         Set<Long> postIdsSet = longRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(key);
             operations.multi();
-
             operations.opsForZSet().reverseRangeByScore(key, 0, Double.MAX_VALUE, 0, batchSize);
-
             return operations.exec();
         });
 

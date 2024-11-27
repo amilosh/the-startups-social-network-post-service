@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Repository
@@ -23,5 +25,16 @@ public class PostRedisRepository {
             operations.opsForValue().set(postIdKey, postCache, ttl, SECONDS);
             return operations.exec();
         });
+    }
+
+    public Optional<PostCache> findById(Long postId) {
+        String postIdKey = "post-" + postId;
+        PostCache postCache =  postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
+            operations.watch(postIdKey);
+            operations.multi();
+            operations.opsForValue().get(postIdKey);
+            return operations.exec();
+        });
+        return Optional.ofNullable(postCache);
     }
 }
