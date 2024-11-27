@@ -72,7 +72,7 @@ spring:
       like-publisher: like_publisher
       comment-publisher: comment_publisher
       view-publisher: view_publisher
-      heat-heap-publisher: heat_heap_publisher
+      heat-feed-publisher: heat_feed_publisher
 
 
   servlet:

@@ -45,6 +45,7 @@ public class KafkaPostProducer implements KafkaMessageProducer<Post> {
 
                 String message = objectMapper.writeValueAsString(postMessage);
                 kafkaTemplate.send(topic, message);
+                log.info("Sent message to kafka Topic: {} Message: {}", topic, message);
             } catch (JsonProcessingException e) {
                 log.error("Failed to convert object to json");
             }

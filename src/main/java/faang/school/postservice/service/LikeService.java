@@ -52,7 +52,7 @@ public class LikeService {
         likeList.add(newLike);
         post.setLikes(likeList);
 
-        kafkaLikeProducer.publishLike(newLike);
+        kafkaLikeProducer.publish(newLike);
         return newLike;
     }
 

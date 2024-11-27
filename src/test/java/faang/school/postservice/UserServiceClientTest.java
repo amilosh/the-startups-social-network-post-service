@@ -12,8 +12,9 @@ public class UserServiceClientTest {
     private NewsFeedService newsFeedService;
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
         newsFeedService.startHeat();
-    }
 
+        Thread.sleep(10000);
+    }
 }

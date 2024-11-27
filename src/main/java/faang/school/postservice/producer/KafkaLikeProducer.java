@@ -29,7 +29,7 @@ public class KafkaLikeProducer implements KafkaMessageProducer<Like> {
 
             String message = objectMapper.writeValueAsString(likeMessage);
             kafkaTemplate.send(topic, message);
-            log.info("Sent message: {}", message);
+            log.info("Sent message to kafka Topic: {} Message: {}", topic, message);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert object to json");
         }

@@ -29,7 +29,7 @@ public class KafkaCommentProducer implements KafkaMessageProducer<Comment> {
             CommentPublishMessage commentMessage = commentCacheMapper.toCommentPublishMessage(comment);
             String message = objectMapper.writeValueAsString(commentMessage);
             kafkaTemplate.send(topic, message);
-            log.info("Send message: {}", commentMessage);
+            log.info("Sent message to kafka Topic: {} Message: {}", topic, message);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert object to json");
         }

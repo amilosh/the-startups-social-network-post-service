@@ -20,7 +20,7 @@ public class KafkaHeatFeedProducer implements KafkaMessageProducer<List<UserDto>
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${spring.kafka.topic.heat-heap-publisher}")
+    @Value("${spring.kafka.topic.heat-feed-publisher}")
     private String topic;
 
     @Override
@@ -35,6 +35,7 @@ public class KafkaHeatFeedProducer implements KafkaMessageProducer<List<UserDto>
             HeatFeedBatchMessage messageBatch = new HeatFeedBatchMessage(batch);
             String message = objectMapper.writeValueAsString(messageBatch);
             kafkaTemplate.send(topic, message);
+            log.info("Sent message to kafka Topic: {} Message: {}", topic, message);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert object to json");
         }

@@ -7,6 +7,7 @@ import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.FeedPostMapper;
 import faang.school.postservice.mapper.PostCacheMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaMessageProducer;
 import faang.school.postservice.repository.NewsFeedRedisRepository;
 import faang.school.postservice.repository.PostRedisRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -32,6 +33,7 @@ public class NewsFeedService {
     private final UserServiceClient userServiceClient;
     private final PostCacheMapper postCacheMapper;
     private final FeedPostMapper feedPostMapper;
+    private final KafkaMessageProducer<List<UserDto>> kafkaHeatFeedMessageProducer;
 
     @Value("${spring.data.redis.cache.news-feed.batch-size}")
     private int batchSize;
@@ -64,7 +66,7 @@ public class NewsFeedService {
             if (users.isEmpty()) {
                 break;
             }
-            System.out.println(users);
+            kafkaHeatFeedMessageProducer.publish(users);
         }
     }
 

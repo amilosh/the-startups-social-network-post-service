@@ -12,6 +12,7 @@ import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.mapper.PostCacheMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaMessageProducer;
 import faang.school.postservice.producer.KafkaPostProducer;
 import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
 import faang.school.postservice.repository.PostRedisRepository;
@@ -36,7 +37,7 @@ public class PostService {
     private final ProjectServiceClient projectServiceClient;
     private final UserContext userContext;
     private final YandexSpeller yandexSpeller;
-    private final KafkaPostProducer kafkaPostProducer;
+    private final KafkaMessageProducer<Post> kafkaPostProducer;
     private final PostCacheMapper postCacheMapper;
     private final PostRedisRepository postRedisRepository;
     private final AuthorCacheManager authorCacheManager;
