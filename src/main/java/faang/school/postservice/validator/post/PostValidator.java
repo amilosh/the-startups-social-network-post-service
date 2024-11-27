@@ -3,6 +3,7 @@ package faang.school.postservice.validator.post;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostDto;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.excaption.post.PostException;
 import faang.school.postservice.model.Post;
 import lombok.Data;
@@ -22,13 +23,13 @@ public class PostValidator {
         projectServiceClient.getProject(id);
     }
 
-    public void validateCreate(PostDto postDto) {
-        if (postDto.getAuthorId() != null) {
-            userServiceClient.getUser(postDto.getAuthorId());
+    public void validateCreate(PostRequestDto postRequestDto) {
+        if (postRequestDto.getAuthorId() != null) {
+            userServiceClient.getUser(postRequestDto.getAuthorId());
         } else {
-            projectServiceClient.getProject(postDto.getProjectId());
+            projectServiceClient.getProject(postRequestDto.getProjectId());
         }
-        if (postDto.getId() != null) {
+        if (postRequestDto.getId() != null) {
             throw new IllegalArgumentException("ID must be null when creating a new post.");
         }
     }

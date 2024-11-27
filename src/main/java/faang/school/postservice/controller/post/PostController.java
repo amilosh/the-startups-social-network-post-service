@@ -3,6 +3,8 @@ package faang.school.postservice.controller.post;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostFilterDto;
 
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,20 +15,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1//posts")
+@RequestMapping("api/v1/posts")
 public class PostController {
     private final PostService postService;
 
     @PostMapping()
-    public PostDto createPost(@RequestBody PostDto postDto) {
-        return postService.create(postDto);
+    public PostResponseDto createPost(@RequestBody PostRequestDto postRequestDto) {
+        return postService.create(postRequestDto);
     }
 
     @PutMapping("{id}/publish")

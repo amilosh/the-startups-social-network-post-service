@@ -2,6 +2,8 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostFilterDto;
+import faang.school.postservice.dto.post.PostRequestDto;
+import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
@@ -25,15 +27,15 @@ public class PostService {
     private final PostValidator postValidator;
     private final List<PostFilters> postFilters;
 
-    public PostDto create(PostDto postDto) {
-        postValidator.validateCreate(postDto);
+    public PostResponseDto create(PostRequestDto postRequestDto) {
+        postValidator.validateCreate(postRequestDto);
 
-        Post post = postMapper.toEntity(postDto);
+        Post post = postMapper.toEntity(postRequestDto);
 
         post.setPublished(false);
         post.setDeleted(false);
         postRepository.save(post);
-        return postDto;
+        return postRequestDto;
     }
 
     public PostDto publishPost(Long id) {
