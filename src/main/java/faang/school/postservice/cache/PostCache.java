@@ -1,32 +1,41 @@
 package faang.school.postservice.cache;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.TimeToLive;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash(value = "Post")
+@Builder
+@ToString
 public class PostCache implements Serializable {
-
-    @Id
-    private Long Id;
-    private String content;
+    private Long id;
     private Long authorId;
+    private String content;
     private LocalDateTime publishedAt;
-    private List<Long> likesIds;
-    private List<Long> commentIds;
 
-    @TimeToLive
-    private Long ttl;
+    @Builder.Default
+    private List<String> resourceKeys = new ArrayList<>();
+
+    @Builder.Default
+    private Long likeCount = 0L;
+
+    @Builder.Default
+    private Long viewCount = 0L;
+
+    @Builder.Default
+    private Long commentsCount = 0L;
+
+    @Builder.Default
+    private List<CommentCache> comments = new ArrayList<>();
 }

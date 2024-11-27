@@ -50,13 +50,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Long> findAuthorsWithExcessVerifiedFalsePosts();
 
     @Query("""
-             SELECT p.id FROM Post p
-             WHERE p.published = true
-             AND p.deleted = false
-             AND p.authorId in (:authorIds)
-             AND p.id > :offset
-             ORDER BY p.createdAt DESC
-             LIMIT :limit
-            """)
-    List<Post> getPersistentPostBatch(List<Long> authorsIds, long offset, int limit);
+       SELECT p FROM Post p
+       WHERE p.published = true
+       AND p.deleted = false
+       AND p.authorId in (:authorIds)
+       AND p.id < :lastPostId
+       ORDER BY p.publishedAt DESC
+       LIMIT :limit
+       """)
+    List<Post> findFeedPost(List<Long> authorIds, Long lastPostId, int limit);
 }

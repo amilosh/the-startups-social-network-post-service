@@ -1,17 +1,19 @@
 package faang.school.postservice;
 
 
-import faang.school.postservice.repository.NewsFeedRepository;
+import faang.school.postservice.dto.post.FeedPost;
+import faang.school.postservice.model.Post;
+import faang.school.postservice.repository.PostRedisRepository;
+import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.NewsFeedService;
+import faang.school.postservice.service.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.LongStream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @SpringBootTest
@@ -19,32 +21,64 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestRedis {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private PostRepository postRepository;
 
     @Autowired
-    private NewsFeedRepository newsFeedRepository;
+    private PostRedisRepository postRedisRepository;
 
-    private static final Long KEY = 1234L;
+    @Autowired
+    private PostService postService;
 
-    private long counter = 0;
+    @Autowired
+    private NewsFeedService newsFeedService;
 
     @Test
     public void test() throws InterruptedException {
-        List<Long> values = newsFeedRepository.getPostBatch(KEY, 3L);
-        values.forEach(val -> System.out.print(val + " "));
-        System.out.println();
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(1L)
+                    .published(true)
+                    .publishedAt(LocalDateTime.now())
+                    .build();
+            postRepository.save(post);
+        }
 
-        Thread one = new Thread(() -> newsFeedRepository.addPost(100L, KEY, counter++));
-        Thread two = new Thread(() -> newsFeedRepository.addPost(200L, KEY, counter++));
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(2L)
+                    .published(true)
+                    .publishedAt(LocalDateTime.now())
+                    .build();
+            postRepository.save(post);
+        }
 
-        one.start();
-        two.start();
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(1L)
+                    .build();
+            Post saved = postService.createDraftPost(post);
+            postService.publishPost(saved.getId());
+        }
 
-        one.join();
-        two.join();
+        for (int i = 0; i < 4; i++) {
+            Post post = Post.builder()
+                    .content("aaa")
+                    .authorId(2L)
+                    .build();
+            Post saved = postService.createDraftPost(post);
+            postService.publishPost(saved.getId());
+        }
 
-        List<Long> newValues = newsFeedRepository.getPostBatch(KEY);
-        newValues.forEach(val -> System.out.print(val + " "));
-        System.out.println();
+        Thread.sleep(5000);
+
+
+        List<FeedPost> feedPosts = newsFeedService.getFeedBatch(3L, null);
+        feedPosts.forEach(System.out::println);
     }
+
+
+
 }
