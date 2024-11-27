@@ -6,11 +6,12 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
-import faang.school.postservice.exeption.DataValidationException;
+import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.PostValidator;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,8 @@ public class PostServiceTest {
     private ProjectDto projectDto;
     private UserDto userDto;
     private List<Post> postList;
+    long postId;
+    Post post5;
 
     @BeforeEach
     public void setUp() {
@@ -52,17 +55,21 @@ public class PostServiceTest {
         post.setId(1L);
         post.setCreatedAt(LocalDateTime.MIN);
         post.setPublishedAt(LocalDateTime.now());
+
         userDto = UserDto.builder()
                 .id(1L)
                 .username("John")
                 .email("john@example.com")
                 .build();
+
         projectDto = ProjectDto.builder()
                 .id(1L)
                 .build();
+
         postDto = PostDto.builder()
                 .authorId(1L)
                 .build();
+
         Post secondPost = new Post();
         secondPost.setId(2L);
         secondPost.setAuthorId(2L);
@@ -70,13 +77,17 @@ public class PostServiceTest {
         secondPost.setPublishedAt(LocalDateTime.now());
         postList = List.of(post, secondPost);
 
+        postId = 5L;
+        post5 = Post.builder()
+                .id(postId)
+                .build();
     }
 
     @Test
     public void testCreatePost() {
         when(postMapper.toEntity(postDto)).thenReturn(post);
         when(postMapper.toDto(post)).thenReturn(postDto);
-        when(userServiceClient.getUser(userDto.id())).thenReturn(userDto);
+        when(userServiceClient.getUser(userDto.getId())).thenReturn(userDto);
         when(postRepository.save(post)).thenReturn(post);
 
         postService.createPost(postDto);
@@ -84,7 +95,7 @@ public class PostServiceTest {
         verify(postMapper, times(1)).toEntity(postDto);
         verify(postMapper, times(1)).toDto(post);
         verify(postRepository, times(1)).save(post);
-        verify(userServiceClient, times(1)).getUser(userDto.id());
+        verify(userServiceClient, times(1)).getUser(userDto.getId());
     }
 
     @Test
@@ -196,5 +207,44 @@ public class PostServiceTest {
         verify(postRepository, times(1)).findByAuthorId(anyLong());
         assertTrue(dtoList.stream()
                 .allMatch(dto -> dto.published() && !dto.deleted()));
+    }
+
+
+    @Test
+    public void testGetPostByIdWithExistentPost(){
+        when(postRepository.findById(postId))
+                .thenReturn(Optional.ofNullable(post5));
+
+        Post result = postService.getPostById(postId);
+
+        assertNotNull(result);
+        assertEquals(postId, result.getId());
+    }
+
+    @Test
+    public void testGetPostByIdWhenPostNotExist(){
+        when(postRepository.findById(postId))
+                .thenThrow(EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> postService.getPostById(postId));
+    }
+
+    @Test
+    public void testIsPostNotExistWithExistentPost(){
+        when(postRepository.existsById(postId)).thenReturn(true);
+
+        boolean result = postService.isPostNotExist(postId);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsPostNotExistWhenPostNotExist() {
+        when(postRepository.existsById(postId)).thenReturn(false);
+
+        boolean result = postService.isPostNotExist(postId);
+
+        assertTrue(result);
     }
 }

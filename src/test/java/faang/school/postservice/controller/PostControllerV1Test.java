@@ -48,7 +48,7 @@ public class PostControllerV1Test {
 
     @Test
     public void testGetPost() throws Exception {
-        when(postService.getPostById(1L)).thenReturn(postDto);
+        when(postService.getPostDtoById(1L)).thenReturn(postDto);
 
         mockMvc.perform(get("/api/v1/post/1"))
                 .andExpect(status().isOk())
@@ -56,7 +56,7 @@ public class PostControllerV1Test {
                 .andExpect(jsonPath("$.authorId").value(1L))
                 .andExpect(jsonPath("$.content").value("content"))
                 .andExpect(jsonPath("$.published").value(false));
-        verify(postService, times(1)).getPostById(1L);
+        verify(postService, times(1)).getPostDtoById(1L);
     }
 
     @Test
