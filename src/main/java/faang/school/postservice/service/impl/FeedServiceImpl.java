@@ -134,6 +134,10 @@ public class FeedServiceImpl implements FeedService {
         Feed feed = feedCacheRepository.findById(userId)
                 .orElse(generateFeedForUser(userId).get());
 
+        if (feed.getPostIds() == null || feed.getPostIds().isEmpty()) {
+            return List.of();
+        }
+
         List<Long> postIds = feed.getPostIds().stream().toList();
         if (latestPostId != null && feed.getPostIds().contains(latestPostId)) {
             postIds = postIds.subList(postIds.indexOf(latestPostId), postIds.size());

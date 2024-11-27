@@ -27,7 +27,8 @@ public class FeedController {
 
 
     @GetMapping("/feed")
-    public List<PostForFeedDto> getFeed(@RequestParam(value = "postId", required = false) Long latestPostId) throws ExecutionException, InterruptedException {
+    public List<PostForFeedDto> getFeed(@RequestParam(value = "postId", required = false) Long latestPostId)
+            throws ExecutionException, InterruptedException {
         return feedService.getFeed(userContext.getUserId(), latestPostId);
     }
 }
