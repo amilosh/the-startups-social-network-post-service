@@ -1,4 +1,4 @@
-package faang.school.postservice.event.kafka.post.like;
+package faang.school.postservice.event.kafka.like;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
