@@ -132,6 +132,7 @@ cache:
     prefix: "posts:"
     fields:
       views: numberOfViews
+      number-of-likes: numberOfLikes
   author:
     prefix: "author:"
   heat:

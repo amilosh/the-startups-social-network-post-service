@@ -1,9 +1,9 @@
 package faang.school.postservice.config.kafka;
 
-
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.HeatTaskEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
+import faang.school.postservice.model.event.kafka.PostLikeEventKafka;
 import faang.school.postservice.model.event.kafka.PostViewEventKafka;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -58,9 +58,9 @@ public class KafkaConsumerConfig {
         mappings.put("post_event", PostEventKafka.class);
         mappings.put("post_view_event", PostViewEventKafka.class);
         mappings.put("heat_task_event", HeatTaskEventKafka.class);
+        mappings.put("like_event", PostLikeEventKafka.class);
         typeMapper.setIdClassMapping(mappings);
         converter.setTypeMapper(typeMapper);
         return converter;
     }
-
 }

@@ -16,9 +16,12 @@ import faang.school.postservice.service.LikeService;
 import faang.school.postservice.util.ExceptionThrowingValidator;
 import faang.school.postservice.validator.LikeValidator;
 import feign.FeignException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -99,6 +102,11 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
+    @Retryable(
+            retryFor = OptimisticLockException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
+    )
     @Transactional
     public LikeDto addLikeToPost(Long postId, LikeDto likeDto) {
         likeValidator.userValidation(likeDto.getUserId());
@@ -113,11 +121,18 @@ public class LikeServiceImpl implements LikeService {
         like.setCreatedAt(LocalDateTime.now());
         like.setComment(null); // иначе TransientPropertyValueException
         likeRepository.save(like);
-        Long postAuthorId = getPostById(postId).getAuthorId(); // иначе like.getPost().getAuthorId() == null
-        likeEventPublisher.publish(new LikePostEvent(like.getUserId(), like.getPost().getId(), postAuthorId));
-        kafkaPostLikeProducer.sendEvent(new PostLikeEventKafka(likeDto.getUserId(), postId, LocalDateTime.now()));
 
-        return likeMapper.toDto(like);
+        Post likedPost = getPostById(postId);
+        Long postAuthorId = likedPost.getAuthorId(); // иначе like.getPost().getAuthorId() == null
+        likeEventPublisher.publish(new LikePostEvent(like.getUserId(), like.getPost().getId(), postAuthorId));
+
+        likedPost.incrementLikes();
+        postRepository.save(likedPost);
+
+        LikeDto savedLike = likeMapper.toDto(like);
+        kafkaPostLikeProducer.sendEvent(new PostLikeEventKafka(savedLike));
+
+        return savedLike;
     }
 
     @Override

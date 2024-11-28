@@ -20,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TreeSet;
@@ -34,6 +35,9 @@ public class PostCacheServiceImpl implements PostCacheService {
 
     @Value("${cache.post.fields.views}")
     private String postCacheViewsField;
+
+    @Value("${cache.post.fields.number-of-likes}")
+    private String numberOfLikesField;
 
     @Value("${cache.post.prefix}")
     private String cachePrefix;
@@ -50,7 +54,8 @@ public class PostCacheServiceImpl implements PostCacheService {
     @Autowired
     public PostCacheServiceImpl(PostCacheRedisRepository postCacheRedisRepository,
                                 @Qualifier("redisCacheTemplate") RedisTemplate<String, Object> redisTemplate,
-                                PostCacheMapper postCacheMapper, RedissonClient redissonClient, FeedCacheService feedCacheService) {
+                                PostCacheMapper postCacheMapper, RedissonClient redissonClient,
+                                FeedCacheService feedCacheService) {
         this.postCacheRedisRepository = postCacheRedisRepository;
         this.redisTemplate = redisTemplate;
         this.postCacheMapper = postCacheMapper;
@@ -74,6 +79,10 @@ public class PostCacheServiceImpl implements PostCacheService {
 
     @Override
     public void addPostView(PostDto post) {
+        if (!postCacheRedisRepository.existsById(post.getId())) {
+            throw new NoSuchElementException("Can't find post in redis with id: " + post.getId());
+        }
+
         String lockKey = "lock:" + post.getId();
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock();
@@ -89,12 +98,34 @@ public class PostCacheServiceImpl implements PostCacheService {
 
     @Override
     public void addPostLike(LikeDto like) {
+        if (!postCacheRedisRepository.existsById(like.getPostId())) {
+            throw new NoSuchElementException("Can't find post in redis with id: " + like.getPostId());
+        }
 
+        String lockKey = "lock:" + like.getPostId();
+        RLock lock = redissonClient.getLock(lockKey);
+        lock.lock();
+        try {
+            log.debug("Lock acquired for postId: {}", like.getPostId());
+            incrementNumberOfPostLikes(like.getPostId());
+            log.info("Successfully incremented likes for postId: {}", like.getPostId());
+            updatePostLikes(like);
+            log.info("Successfully updated likes for postId: {}", like.getPostId());
+
+        } finally {
+            lock.unlock();
+            log.debug("Lock released for postId: {}", like.getPostId());
+        }
     }
 
     private void incrementNumberOfPostViews(Long postId) {
         redisTemplate.opsForHash()
                 .increment(createPostCacheKey(postId), String.valueOf(postCacheViewsField), 1);
+    }
+
+    private void incrementNumberOfPostLikes(Long postId) {
+        redisTemplate.opsForHash()
+                .increment(createPostCacheKey(postId), String.valueOf(numberOfLikesField), 1);
     }
 
     private String createPostCacheKey(Long postId) {
@@ -182,5 +213,18 @@ public class PostCacheServiceImpl implements PostCacheService {
             redisTemplate.expire(key, Duration.ofSeconds(postTtl));
             log.info("Set TTL for post {} in cache.", postCache.getId());
         });
+    }
+
+    private void updatePostLikes(LikeDto like) {
+        PostCache postCache = postCacheRedisRepository.findById(like.getPostId())
+                .orElseThrow(() -> new NoSuchElementException("Can't find post in redis with id: " + like.getPostId()));
+
+        List<LikeDto> postLikes = postCache.getLikes();
+        if (postLikes == null) {
+            postLikes = new ArrayList<>();
+        }
+        postLikes.add(like);
+        postCache.setLikes(postLikes);
+        postCacheRedisRepository.save(postCache);
     }
 }
