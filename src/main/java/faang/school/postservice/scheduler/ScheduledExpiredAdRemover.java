@@ -1,5 +1,6 @@
 package faang.school.postservice.scheduler;
 
+import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
 import faang.school.postservice.service.ad.AdService;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +25,13 @@ public class ScheduledExpiredAdRemover {
 
     @Scheduled(cron = "${post.ad-remover.scheduler.cron}")
     public void deleteExpiredAdsScheduled() {
-        List<Long> adsToDelete = adRepository.findAllExpiredIds();
+        List<Ad> adsToDelete = adRepository.findAllExpiredAds();
 
         if (adsToDelete.isEmpty()) {
             return;
         }
 
-        List<List<Long>> partitionedAdsToDelete = ListUtils.partition(adsToDelete, maxListSize);
+        List<List<Ad>> partitionedAdsToDelete = ListUtils.partition(adsToDelete, maxListSize);
 
         partitionedAdsToDelete.forEach(adService::deleteAds);
     }
