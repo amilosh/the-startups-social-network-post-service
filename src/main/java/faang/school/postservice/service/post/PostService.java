@@ -40,9 +40,7 @@ public class PostService {
     }
 
     public PostResponseDto publishPost(Long id) {
-        Post post = postRepository
-                .findById(id)
-                .orElseThrow(EntityExistsException::new);
+        Post post =postValidator.validateAndGetPostById(id);
         postValidator.validatePublish(post);
         post.setPublished(true);
         post.setDeleted(false);
@@ -53,9 +51,7 @@ public class PostService {
         Objects.requireNonNull(postDto, "PostUpdateDto cannot be null");
         postValidator.validateUpdate(postDto);
 
-        Post post = postRepository.findById(postDto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Post with id " + postDto.getId() + " not found"));
-
+        Post post =postValidator.validateAndGetPostById(postDto.getId());
         post.setContent(postDto.getContent());
         return postMapper.toDto(postRepository.save(post));
     }

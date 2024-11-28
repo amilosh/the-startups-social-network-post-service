@@ -3,20 +3,28 @@ package faang.school.postservice.validator.post;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.dto.post.PostResponseDto;
+
+import java.util.Optional;
+
 import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.excaption.post.PostException;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityExistsException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PostValidateTest {
@@ -26,9 +34,34 @@ public class PostValidateTest {
 
     @Mock
     private ProjectServiceClient projectServiceClient;
+    @Mock
+    private PostRepository postRepository;
 
     @InjectMocks
     private PostValidator postValidator;
+
+
+    @BeforeEach
+    public void setUp() {
+        postValidator = new PostValidator(userServiceClient, projectServiceClient, postRepository); // ensure this matches your actual constructor/setup
+    }
+
+    @Test
+    public void shouldReturnPostWhenFoundById() {
+
+        Long postId = 1L;
+        Post existingPost = new Post();
+        existingPost.setId(postId);
+        existingPost.setContent("Sample content");
+        when(postRepository.findById(postId)).thenReturn(Optional.of(existingPost));
+
+        Post result = postValidator.validateAndGetPostById(postId);
+
+        assertNotNull(result);
+        assertEquals(postId, result.getId());
+        assertEquals("Sample content", result.getContent());
+        verify(postRepository).findById(postId);
+    }
 
     @Test
     void shouldValidateUserExist() {
@@ -139,7 +172,6 @@ public class PostValidateTest {
         post.setDeleted(false);
 
         postValidator.validateDelete(post);
-
     }
 
     @Test
@@ -153,5 +185,4 @@ public class PostValidateTest {
 
         assertEquals("Post already deleted", exception.getMessage());
     }
-
 }

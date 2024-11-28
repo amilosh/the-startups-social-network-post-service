@@ -22,7 +22,7 @@ public class PostValidator {
     public Post validateAndGetPostById(Long id) {
         return postRepository
                 .findById(id)
-                .orElseThrow(EntityExistsException::new);
+                .orElseThrow(() -> new EntityExistsException("Post not found with id: " + id));
     }
 
     public void validateUserExist(Long id) {

@@ -77,13 +77,15 @@ public class PostServiceTest {
         PostResponseDto postDto = new PostResponseDto();
         postDto.setId(postId);
 
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        // Настройка мока для метода findPostById
+        when(postValidator.validateAndGetPostById(postId)).thenReturn(post);
         when(postRepository.save(post)).thenReturn(updatedPost);
         when(postMapper.toDto(updatedPost)).thenReturn(postDto);
 
-
+        // Вызов метода
         PostResponseDto result = postService.publishPost(postId);
 
+        // Проверки
         verify(postValidator).validatePublish(post);
         verify(postRepository).save(post);
         verify(postMapper).toDto(updatedPost);
@@ -106,13 +108,13 @@ public class PostServiceTest {
         updatedPost.setId(1L);
         updatedPost.setContent("Updated content");
 
-        when(postRepository.findById(1L)).thenReturn(Optional.of(existingPost));
+        when(postValidator.validateAndGetPostById(1L)).thenReturn(existingPost);
         when(postRepository.save(existingPost)).thenReturn(updatedPost);
 
         PostResponseDto result = postService.updatePost(postDto);
 
         verify(postValidator).validateUpdate(postDto);
-        verify(postRepository).findById(1L);
+        verify(postValidator).validateAndGetPostById(1L);
         verify(postRepository).save(existingPost);
         verify(postMapper).toDto(updatedPost);
 
