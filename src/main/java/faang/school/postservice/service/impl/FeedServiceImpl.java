@@ -10,6 +10,7 @@ import faang.school.postservice.service.FeedService;
 import faang.school.postservice.service.RedisTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,9 @@ import java.util.Set;
 public class FeedServiceImpl implements FeedService, RedisTransactional {
     private static final String KEY_PREFIX = "newsfeed:user:";
     private static final String POST_KEY_PREFIX = "post:";
+
+    @Value("${redis.feed.size}")
+    private int newsFeedSize;
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -54,8 +58,8 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
                 redisTemplate.opsForZSet().add(key, member, score);
 
                 Long size = redisTemplate.opsForZSet().size(key);
-                if (size != null && size > 500) {
-                    redisTemplate.opsForZSet().removeRange(key, 0, size - 501);
+                if (size != null && size > newsFeedSize) {
+                    redisTemplate.opsForZSet().removeRange(key, 0, size - newsFeedSize - 1);
                 }
             }
             return null;
@@ -69,7 +73,7 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
         int start = page * pageSize;
         int end = start + pageSize - 1;
 
-        Set<Object> postIds = redisTemplate.opsForZSet().range(key, start, end);
+        Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(key, start, end);
         if (postIds == null || postIds.isEmpty()) {
             return List.of();
         }

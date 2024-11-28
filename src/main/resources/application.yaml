@@ -52,9 +52,9 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: faang.school.postservice.model.event.kafka
-      listener:
-        type: batch
-        concurrency: 3
+    listener:
+      concurrency: 3
+      ack-mode: manual
 
 server:
   port: 8081
@@ -132,6 +132,7 @@ redis:
     ttl:
       post: 86400
       user: 86400
+    size: 500
 
 kafka:
   batch-size:

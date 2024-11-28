@@ -5,6 +5,7 @@ import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,8 +15,9 @@ public class PostKafkaConsumer extends AbstractKafkaConsumer<PostPublishedEvent>
 
     @Override
     @KafkaListener(topics = "${kafka.topics.post}")
-    public void consume(ConsumerRecord<String, PostPublishedEvent> record) {
-        super.consume(record);
+    public void consume(ConsumerRecord<String, PostPublishedEvent> record, Acknowledgment acknowledgment) {
+        super.consume(record, acknowledgment);
+        acknowledgment.acknowledge();
     }
 
     @Override
