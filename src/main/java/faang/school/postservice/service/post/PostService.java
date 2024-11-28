@@ -17,10 +17,7 @@ import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -125,8 +122,6 @@ public class PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
-    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
-            backoff = @Backoff(delay = 1000, multiplier = 2))
     public List<Post> checkSpelling(List<Post> posts) {
         String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
