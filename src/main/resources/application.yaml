@@ -133,7 +133,7 @@ cache:
 post-comments:
   size: 3
 feed-posts:
-  size: 500
+  size: 3
 
 thread:
   queue:

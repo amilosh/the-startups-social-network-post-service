@@ -53,4 +53,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "GROUP BY p.authorId " +
             "HAVING COUNT(p) > 5")
     List<Long> findAuthorsWithMoreThanFiveUnverifiedPostsInRange(Long minAuthorId, Long maxAuthorId);
+
+    @Query(nativeQuery = true, value = "SELECT p.* FROM post p WHERE p.author_id IN (:authorIds) order by published_at desc limit :limit")
+    List<Post> findAllByAuthorIdIn(List<Long> authorIds, int limit);
 }

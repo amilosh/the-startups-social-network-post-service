@@ -16,6 +16,7 @@ import faang.school.postservice.redis.repository.PostCacheRedisRepository;
 import faang.school.postservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -36,10 +37,13 @@ public class FeedServiceImpl implements FeedService {
     private final AuthorCacheMapper authorCacheMapper;
     private final UserServiceClient userServiceClient;
 
+    @Value(value = "${feed-posts.size}")
+    private int postsSize;
+
     @Override
     public FeedDto getFeed(Long feedId, Long userId, Integer startPostId) {
         startPostId = (startPostId == null) ? 0 : startPostId;
-        FeedCache requestedFeed = null;
+        FeedCache requestedFeed;
         try {
             requestedFeed = feedsCacheRepository.findById(feedId).orElseThrow(() -> {
                 log.info("Feed with id {} not found in Redis", feedId);
@@ -47,14 +51,13 @@ public class FeedServiceImpl implements FeedService {
             });
         } catch (NoSuchElementException e) {
             log.info("Try to make feed with id {} from Postgres", feedId);
-            getFeedFromPostgres(feedId);
-            // TODO asdf
+            return getFeedFromPostgres(feedId);
         }
         List<Long> sublist = getSubList(requestedFeed.getPostIds(), startPostId, POSTS_NUMBER);
-        List<PostCache> feedPosts = getPostsFromRedis(sublist);
+        List<PostCache> feedPosts = getPostsFromCache(sublist);
 
         Set<Long> authorIds = feedPosts.stream().map(PostCache::getAuthorId).collect(Collectors.toSet());
-        Map<Long, AuthorCache> authorCaches = getAuthorsFromRedis(authorIds);
+        Map<Long, AuthorCache> authorCaches = getAuthorsFromCache(authorIds);
         Map<Long, AuthorRedisDto> authorRedisDtos = new HashMap<>();
         authorCaches.forEach((key, value) ->
                 authorRedisDtos.put(key, authorCacheMapper.toAuthorRedisDto(value)));
@@ -75,7 +78,7 @@ public class FeedServiceImpl implements FeedService {
         return FeedDto.builder().postRedisDtos(postRedisDtos).id(requestedFeed.getId()).build();
     }
 
-    private List<PostCache> getPostsFromRedis(List<Long> postIds) {
+    private List<PostCache> getPostsFromCache(List<Long> postIds) {
         return StreamSupport
                 .stream(postCacheRedisRepository.findAllById(postIds).spliterator(), false)
                 .toList();
@@ -90,7 +93,7 @@ public class FeedServiceImpl implements FeedService {
         return originalList.subList(startIndex, endIndex);
     }
 
-    private Map<Long, AuthorCache> getAuthorsFromRedis(Set<Long> authorIds) {
+    private Map<Long, AuthorCache> getAuthorsFromCache(Set<Long> authorIds) {
         Map<Long, AuthorCache> authorCachesMap = new HashMap<>();
         List<AuthorCache> authorCaches = StreamSupport
                 .stream(authorCacheRedisRepository.findAllById(authorIds).spliterator(), false)
@@ -106,11 +109,24 @@ public class FeedServiceImpl implements FeedService {
             throw new NoSuchElementException("Posts not found in Postgres");
         }
         List<Long> authorIds = posts.stream().map(Post::getAuthorId).distinct().toList();
-        List<AuthorRedisDto> authorRedisDtos = authorCacheMapper.toAuthorRedisDto(userServiceClient.getUsersByIds(authorIds));
+        List<AuthorRedisDto> authorRedisDtos = authorCacheMapper.toAuthorRedisDtos(userServiceClient.getUsersByIds(authorIds));
 
+        return createFeedDto(posts,authorRedisDtos);
+    }
+
+    private FeedDto getFeedFromPostgres(Long feedId) {
+        List<AuthorRedisDto> allAuthors = userServiceClient.getAllFollowing(feedId.toString());
+        List<Long> allAuthorIds = allAuthors.stream().map(AuthorRedisDto::getId).toList();
+        List<Post> allPosts = postRepository.findAllByAuthorIdIn(allAuthorIds, postsSize);
+        allPosts.forEach(post -> System.out.println(post.getId() + " " + post.getAuthorId() + " " + post.getContent()));
+        return FeedDto.builder().id(feedId).postRedisDtos(createFeedDto(allPosts, allAuthors))
+                .build();
+    }
+
+    private TreeSet<PostRedisDto> createFeedDto(List<Post> posts, List<AuthorRedisDto> authors) {
         TreeSet<PostRedisDto> postRedisDtos = new TreeSet<>();
         for (Post post : posts) {
-            for (AuthorRedisDto author : authorRedisDtos) {
+            for (AuthorRedisDto author : authors) {
                 if (post.getAuthorId().equals(author.getId())) {
                     PostRedisDto postRedisDto = postCacheMapper.toPostRedisDto(post);
                     postRedisDto.setAuthor(author);
@@ -119,11 +135,6 @@ public class FeedServiceImpl implements FeedService {
                 }
             }
         }
-
         return postRedisDtos;
-    }
-
-    private void getFeedFromPostgres (Long feedId) {
-
     }
 }

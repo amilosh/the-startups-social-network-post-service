@@ -13,5 +13,5 @@ public interface AuthorCacheMapper {
 
     AuthorCache toAuthorCache(UserDto userDto);
     AuthorRedisDto toAuthorRedisDto(AuthorCache authorCache);
-    List<AuthorRedisDto> toAuthorRedisDto(List<UserDto> userDtos);
+    List<AuthorRedisDto> toAuthorRedisDtos(List<UserDto> userDtos);
 }
