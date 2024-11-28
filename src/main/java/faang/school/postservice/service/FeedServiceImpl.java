@@ -27,8 +27,6 @@ import java.util.stream.StreamSupport;
 @Service
 @RequiredArgsConstructor
 public class FeedServiceImpl implements FeedService {
-    // TODO set POST_NUMBER to 20
-    private final int POSTS_NUMBER = 2;
     private final FeedsCacheRepository feedsCacheRepository;
     private final PostCacheRedisRepository postCacheRedisRepository;
     private final AuthorCacheRedisRepository authorCacheRedisRepository;
@@ -39,6 +37,9 @@ public class FeedServiceImpl implements FeedService {
 
     @Value(value = "${feed-posts.size}")
     private int postsSize;
+
+    @Value(value = "${feed-posts-per-request.size}")
+    private int postsPerRequest;
 
     @Override
     public FeedDto getFeed(Long feedId, Long userId, Integer startPostId) {
@@ -53,7 +54,7 @@ public class FeedServiceImpl implements FeedService {
             log.info("Try to make feed with id {} from Postgres", feedId);
             return getFeedFromPostgres(feedId);
         }
-        List<Long> sublist = getSubList(requestedFeed.getPostIds(), startPostId, POSTS_NUMBER);
+        List<Long> sublist = getSubList(requestedFeed.getPostIds(), startPostId, postsPerRequest);
         List<PostCache> feedPosts = getPostsFromCache(sublist);
 
         Set<Long> authorIds = feedPosts.stream().map(PostCache::getAuthorId).collect(Collectors.toSet());
@@ -104,6 +105,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     private TreeSet<PostRedisDto> getFromPostgres(List<Long> postIds) {
+        System.out.println("33333333"+postIds);
         List<Post> posts = postRepository.findAllById(postIds);
         if (posts.isEmpty()) {
             throw new NoSuchElementException("Posts not found in Postgres");
