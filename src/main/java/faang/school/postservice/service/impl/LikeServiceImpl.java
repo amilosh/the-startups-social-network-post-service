@@ -5,7 +5,6 @@ import faang.school.postservice.kafka.producer.KafkaLikeProducer;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.dto.kafka.KafkaLikeDto;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
@@ -20,7 +19,6 @@ import faang.school.postservice.validator.LikeValidator;
 import feign.FeignException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +42,6 @@ public class LikeServiceImpl implements LikeService {
     private final LikeValidator likeValidator;
     private final LikeMapper likeMapper;
     private final LikeEventPublisher likeEventPublisher;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final KafkaLikeProducer kafkaLikeProducer;
 
     @Override
@@ -196,12 +193,20 @@ public class LikeServiceImpl implements LikeService {
     }
 
     private void sendLikeEventToKafka(Like like) {
-        KafkaLikeDto kafkaLikeDto = KafkaLikeDto.builder()
-                .authorId(like.getUserId())
-                .postId(like.getPost().getId())
-                .commentId(like.getComment().getId())
-                .build();
+        KafkaLikeDto.KafkaLikeDtoBuilder kafkaLikeDtoBuilder = KafkaLikeDto.builder()
+                .authorId(like.getUserId());
+        if (like.getPost() != null) {
+            kafkaLikeDtoBuilder.postId(like.getPost().getId());
+        } else {
+            kafkaLikeDtoBuilder.postId(null);
+        }
+        if (like.getComment() != null) {
+            kafkaLikeDtoBuilder.commentId(like.getComment().getId());
+        } else {
+            kafkaLikeDtoBuilder.commentId(null);
+        }
 
+        KafkaLikeDto kafkaLikeDto = kafkaLikeDtoBuilder.build();
         KafkaLikeEvent kafkaLikeEvent = new KafkaLikeEvent(kafkaLikeDto);
         kafkaLikeProducer.sendEvent(kafkaLikeEvent);
     }

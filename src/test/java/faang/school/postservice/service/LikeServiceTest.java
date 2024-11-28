@@ -1,6 +1,7 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.kafka.producer.KafkaLikeProducer;
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.mapper.LikeMapper;
@@ -64,6 +65,8 @@ class LikeServiceTest {
     private LikeValidator likeValidator;
     @Mock
     private LikeMapper likeMapper;
+    @Mock
+    private  KafkaLikeProducer kafkaLikeProducer;
     @InjectMocks
     private LikeServiceImpl likeService;
 

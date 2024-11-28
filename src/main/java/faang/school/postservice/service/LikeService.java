@@ -2,7 +2,6 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
