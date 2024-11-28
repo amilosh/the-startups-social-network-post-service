@@ -65,6 +65,7 @@ public class CommentServiceImpl implements CommentService {
                 .authorId(comment.getAuthorId())
                 .postId(comment.getPost().getId())
                 .content(comment.getContent())
+                .user(user)
                 .build();
         commentEventPublisher.publish(event);
         commentNewsFeedProducer.produce(commentNFEvent);

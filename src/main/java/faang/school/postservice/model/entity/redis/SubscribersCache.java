@@ -13,8 +13,8 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@RedisHash(value = "user", timeToLive = 60 * 60 * 24)
-public class UserCache {
+@RedisHash(value = "subscriber", timeToLive = 60 * 60 * 24)
+public class SubscribersCache {
     @Id
     long userId;
     Set<Long> postIds;
