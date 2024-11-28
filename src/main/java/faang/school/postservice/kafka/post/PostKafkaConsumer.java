@@ -3,7 +3,7 @@ package faang.school.postservice.kafka.post;
 import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
 import faang.school.postservice.kafka.post.event.PostViewedKafkaEvent;
 import faang.school.postservice.service.feed.FeedService;
-import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.service.post.redis.PostRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostKafkaConsumer {
     private final FeedService feedService;
-    private final PostService postService;
+    private final PostRedisService postRedisService;
 
     @KafkaListener(
             topics = "${kafka.topic.post-published-topic.name}",
@@ -37,7 +37,7 @@ public class PostKafkaConsumer {
             containerFactory = "kafkaListenerContainerFactory")
     public void handlePostViewedEvent(PostViewedKafkaEvent postViewedKafkaEvent, Acknowledgment acknowledgment) {
         try {
-            postService.incrementView(postViewedKafkaEvent.getPostId());
+            postRedisService.incrementView(postViewedKafkaEvent.getPostId());
             acknowledgment.acknowledge();
         } catch (Exception e) {
             log.error("Post View with id {} is not added ???", postViewedKafkaEvent.getPostId());

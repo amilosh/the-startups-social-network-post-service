@@ -1,7 +1,6 @@
 package faang.school.postservice.config.redis;
 
 import faang.school.postservice.model.comment.CommentRedis;
-import faang.school.postservice.model.post.PostRedis;
 import faang.school.postservice.model.user.UserRedis;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,9 +16,6 @@ import java.util.List;
 public class RedisKeyspaceConfig {
     @Value("${redis.ttl.user}")
     private Long userTtl;
-
-    @Value("${redis.ttl.post}")
-    private Long postTtl;
 
     @Value("${redis.ttl.comment}")
     private Long commentTtl;
@@ -37,13 +33,10 @@ public class RedisKeyspaceConfig {
                 KeyspaceSettings userKeyspace = new KeyspaceSettings(UserRedis.class, "user");
                 userKeyspace.setTimeToLive(userTtl);
 
-                KeyspaceSettings postKeyspace = new KeyspaceSettings(PostRedis.class, "post");
-                postKeyspace.setTimeToLive(postTtl);
-
                 KeyspaceSettings commentKeyspace = new KeyspaceSettings(CommentRedis.class, "comment");
                 commentKeyspace.setTimeToLive(commentTtl);
 
-                return List.of(userKeyspace, postKeyspace, commentKeyspace);
+                return List.of(userKeyspace, commentKeyspace);
             }
         };
     }

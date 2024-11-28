@@ -15,7 +15,6 @@ import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
-import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
