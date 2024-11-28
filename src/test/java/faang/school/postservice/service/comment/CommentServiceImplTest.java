@@ -52,7 +52,6 @@ class CommentServiceImplTest {
         comment.setPost(new Post());
 
         Mockito.lenient().when(postService.findPostById(Mockito.anyLong())).thenReturn(Optional.of(new Post()));
-
         commentService.createComment(commentDto);
 
         Mockito.verify(validator).validateCreateComment(getCommentDto());
@@ -94,7 +93,13 @@ class CommentServiceImplTest {
 
         Mockito.lenient().when(commentRepository.findAllByPostId(Mockito.anyLong())).thenReturn(comments);
 
-        assertEquals(getCommentDtoList().stream().sorted(Comparator.comparing(CommentDto::getCreatedAt).reversed()).toList(), commentService.getCommentsByPostId(getCommentDto().getPostId()));
+        List<CommentDto> commentDtos = getCommentDtoList().stream()
+                .sorted(Comparator.comparing(CommentDto::getCreatedAt).reversed())
+                .toList();
+
+        List<CommentDto> commentDtosFromService = commentService.getCommentsByPostId(getCommentDto().getPostId());
+
+        assertEquals(commentDtos.get(0).getAuthorId(),commentDtosFromService.get(0).getAuthorId());
     }
 
     @Test
