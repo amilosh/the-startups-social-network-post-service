@@ -5,13 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
-import java.math.BigInteger;
-
 @Builder
 public record ResourceDto(
         Long id,
         @Positive long postId,
-        @NotBlank ResourceType type,
-        @Positive BigInteger size
+        @NotBlank ResourceType type
 ) {
 }

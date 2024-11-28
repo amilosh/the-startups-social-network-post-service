@@ -1,6 +1,9 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.exeption.DataValidationException;
+import faang.school.postservice.exeption.ImageProcessingException;
+import faang.school.postservice.util.ImageUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Slf4j
 @Component
 public class FileValidator {
@@ -17,8 +21,12 @@ public class FileValidator {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
     private static final int MAX_WIDTH = 1080;
     private static final int MAX_HEIGHT = 1080;
+    private static final int MIN_WIDTH = 200;
+    private static final int MIN_HEIGHT = 200;
 
-    public void validateFile(MultipartFile file) {
+    private final ImageUtil imageUtil;
+
+    public BufferedImage getValidatedImage(MultipartFile file) {
         if (file.getSize() > MAX_FILE_SIZE) {
             log.warn("File size exceeds the maximum limit of 5 MB");
             throw new DataValidationException("File size exceeds the maximum limit of 5 MB");
@@ -26,15 +34,18 @@ public class FileValidator {
 
         try {
             BufferedImage image = ImageIO.read(file.getInputStream());
-            if (image != null) {
-                if (image.getWidth() > MAX_WIDTH || image.getHeight() > MAX_HEIGHT) {
-                    log.warn("Image resolution exceeds the maximum limit");
-                    throw new DataValidationException("Image resolution exceeds the maximum limit");
-                }
+            if (image.getWidth() > MAX_WIDTH || image.getHeight() > MAX_HEIGHT) {
+                log.warn("Image resolution exceeds the maximum limit, resizing the image");
+                return imageUtil.resizeImage(image, MAX_WIDTH, MAX_HEIGHT);
+            } else if (image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
+                log.warn("Image resolution is below the minimum limit, resizing the image");
+                return imageUtil.resizeImage(image, MIN_WIDTH, MIN_HEIGHT);
+            } else {
+                return image;
             }
         } catch (IOException e) {
             log.error("Error reading image file", e);
-            throw new RuntimeException("Error reading image file", e);
+            throw new ImageProcessingException("Error reading image file", e);
         }
     }
 

@@ -25,7 +25,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleDataValidationException(DataValidationException e) {
         log.error(e.getMessage(), e);
         return new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
                 e.getMessage(),
                 LocalDateTime.now());
     }
@@ -35,7 +34,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleEntityNotFoundException(EntityNotFoundException e) {
         log.error(e.getMessage(), e);
         return new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
                 e.getMessage(),
                 LocalDateTime.now());
     }
@@ -55,7 +53,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleRuntimeException(RuntimeException e) {
         log.error(e.getMessage(), e);
         return new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 e.getLocalizedMessage(),
                 LocalDateTime.now());
     }
@@ -65,7 +62,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
         log.error(RESOURCE_NOT_FOUND, ex.getMessage(), ex);
         return new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
                 LocalDateTime.now());
     }

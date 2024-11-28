@@ -6,6 +6,7 @@ import faang.school.postservice.exeption.ResourceNotFoundException;
 import faang.school.postservice.mapper.ResourceMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.ResourceType;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.validator.FileValidator;
 import faang.school.postservice.validator.PostValidator;
@@ -14,12 +15,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
+import java.math.BigInteger;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceService {
+
+    private final static int MAX_FILES = 10;
 
     private final PostService postService;
     private final UserContext userContext;
@@ -33,11 +38,14 @@ public class ResourceService {
         Post post = postService.findPostById(postId);
 
         postValidator.validateAuthorUpdatesPost(post, userContext.getUserId());
-        fileValidator.validateNumberOfFiles(files, 10);
-        files.forEach(fileValidator::validateFile);
+        fileValidator.validateNumberOfFiles(files, MAX_FILES);
+        List<BufferedImage> images = files.stream()
+                .map(fileValidator::getValidatedImage)
+                .toList();
 
         String folder = "post_" + postId;
-        List<Resource> resources = uploadFiles(files, folder);
+        List<String> keys = uploadFilesToCloud(files, folder, images);
+        List<Resource> resources = buildResources(keys, files);
 
         resources.forEach(resource -> resource.setPost(post));
 
@@ -47,11 +55,14 @@ public class ResourceService {
 
     public ResourceDto updateFiles(Long resourceId, MultipartFile file) {
         Resource resource = findResourceById(resourceId);
-        fileValidator.validateFile(file);
+        postValidator.validateAuthorUpdatesPost(resource.getPost(), userContext.getUserId());
+        fileValidator.getValidatedImage(file);
         s3Service.deleteResource(resource.getKey());
 
+        BufferedImage image = fileValidator.getValidatedImage(file);
         String folder = "post_" + resource.getPost().getId();
-        Resource updatedResource = s3Service.uploadFile(file, folder);
+        String key = s3Service.uploadFile(file, folder, image);
+        Resource updatedResource = buildResource(key, file);
 
         updateResourceFields(resource, updatedResource);
 
@@ -62,6 +73,7 @@ public class ResourceService {
 
     public void deleteFiles(Long resourceId) {
         Resource resource = findResourceById(resourceId);
+        postValidator.validateAuthorUpdatesPost(resource.getPost(), userContext.getUserId());
         s3Service.deleteResource(resource.getKey());
         resourceRepository.delete(resource);
     }
@@ -81,9 +93,29 @@ public class ResourceService {
         resource.setType(updatedResource.getType());
     }
 
-    private List<Resource> uploadFiles(List<MultipartFile> files, String folder) {
+    private List<String> uploadFilesToCloud(List<MultipartFile> files, String folder, List<BufferedImage> images) {
         return files.stream()
-                .map(file -> s3Service.uploadFile(file, folder))
+                .map(file -> s3Service.uploadFile(file, folder, images.get(files.indexOf(file))))
+                .toList();
+    }
+
+    private Resource buildResource(String key, MultipartFile file) {
+        String name = file.getOriginalFilename();
+        BigInteger size = BigInteger.valueOf(file.getSize());
+        ResourceType type = ResourceType.getResourceType(file.getContentType());
+        return Resource.builder()
+                .key(key)
+                .name(name)
+                .size(size)
+                .type(type)
+                .build();
+    }
+
+    private List<Resource> buildResources(List<String> keys, List<MultipartFile> files) {
+        return files.stream()
+                .map(file -> buildResource(
+                        keys.get(files.indexOf(file)),
+                        file))
                 .toList();
     }
 }
