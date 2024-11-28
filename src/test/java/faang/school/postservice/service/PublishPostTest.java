@@ -50,28 +50,12 @@ public class PublishPostTest {
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
 
-    @Mock
-    private UserShortInfoRepository userShortInfoRepository;
-
-    @Mock
-    private RedisUserServiceImpl redisUserService;
-
-    @Mock
-    private UserWithFollowersMapper userWithFollowersMapper;
-
-    @Mock
-    private RedisPostDtoMapper redisPostDtoMapper;
-
-    @Mock
-    private RedisPostServiceImpl redisPostService;
-
     @InjectMocks
     private PostServiceImpl postService;
 
     private Post unpublishedPost;
     private Post publishedPost;
     private PostDto publishedPostDto;
-    private UserWithFollowersDto userWithFollowersDto;
 
     @BeforeEach
     void setUp() {
@@ -92,16 +76,11 @@ public class PublishPostTest {
         publishedPostDto.setId(1L);
         publishedPostDto.setPublished(true);
         publishedPostDto.setContent("Here is the published post");
-
-        userWithFollowersDto = new UserWithFollowersDto();
-        userWithFollowersDto.setUserId(1L);
-        userWithFollowersDto.setFollowerIds(List.of(2L, 3L));
     }
 
     @Test
     void shouldPublishPostSuccessfully() {
         when(postRepository.findById(1L)).thenReturn(java.util.Optional.of(unpublishedPost));
-        when(userServiceClient.getUserWithFollowers(1L)).thenReturn(userWithFollowersDto);
         when(postRepository.save(any(Post.class))).thenAnswer(i -> {
             Post savedPost = i.getArgument(0);
             unpublishedPost.setPublished(savedPost.isPublished());
