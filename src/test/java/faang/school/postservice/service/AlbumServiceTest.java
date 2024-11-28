@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,8 +67,7 @@ public class AlbumServiceTest {
     public void testAddPost() {
         Album album = albumSetUp();
         when(postService.findEntityById(anyLong())).thenReturn(new Post());
-        when(albumValidator.getValidAlbum(anyLong())).thenReturn(album);
-
+        when(albumRepository.findByIdWithPosts(1L)).thenReturn(Optional.of(album));
         albumService.addPost(1L, 1L);
 
         Mockito.verify(albumRepository, times(1)).save(any());
@@ -76,7 +76,6 @@ public class AlbumServiceTest {
     @Test
     public void testAddPostToNotExistingAlbum() {
         when(postService.findEntityById(1L)).thenReturn(new Post());
-        when(albumValidator.getValidAlbum(1L)).thenThrow(new AlbumException("Не существующий альбом"));
 
         assertThrows(AlbumException.class, () -> albumService.addPost(1L, 1L));
     }
@@ -84,7 +83,7 @@ public class AlbumServiceTest {
     @Test
     public void testDeletePost() {
         Album album = albumSetUp();
-        when(albumValidator.getValidAlbum(anyLong())).thenReturn(album);
+        when(albumRepository.findByIdWithPosts(1L)).thenReturn(Optional.of(album));
 
         albumService.deletePost(1L, 1L);
 
@@ -98,6 +97,7 @@ public class AlbumServiceTest {
     private Album albumSetUp() {
         List<Post> posts = new ArrayList<>();
         return Album.builder()
+                .id(1L)
                 .posts(posts)
                 .build();
     }

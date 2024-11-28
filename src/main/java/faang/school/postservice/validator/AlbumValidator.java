@@ -24,13 +24,6 @@ public class AlbumValidator {
         }
     }
 
-    public Album getValidAlbum(Long albumId) {
-        return albumRepository.findByIdWithPosts(albumId).orElseThrow(() -> {
-            log.error("Альбом {} не существует", albumId);
-            return new AlbumException("Не существующий альбом");
-        });
-    }
-
     public void validateUser(Long userId) {
         try {
             userServiceClient.getUser(userId);

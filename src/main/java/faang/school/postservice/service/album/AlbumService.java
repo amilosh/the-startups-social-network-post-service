@@ -2,6 +2,7 @@ package faang.school.postservice.service.album;
 
 import faang.school.postservice.dto.album.AlbumDto;
 import faang.school.postservice.dto.album.AlbumFilterDto;
+import faang.school.postservice.exception.AlbumException;
 import faang.school.postservice.filter.album.AlbumFilter;
 import faang.school.postservice.mapper.AlbumMapper;
 import faang.school.postservice.model.Album;
@@ -36,31 +37,31 @@ public class AlbumService {
 
     public AlbumDto addPost(Long albumId, Long postId) {
         Post post = postService.findEntityById(postId);
-        Album album = albumValidator.getValidAlbum(albumId);
+        Album album = getValidAlbum(albumId);
         album.addPost(post);
         albumRepository.save(album);
         return albumMapper.toDto(album);
     }
 
     public AlbumDto deletePost(Long albumId, Long postId) {
-        Album album = albumValidator.getValidAlbum(albumId);
+        Album album = getValidAlbum(albumId);
         album.removePost(postId);
         albumRepository.save(album);
         return albumMapper.toDto(album);
     }
 
     public void addAlbumToFavorites(Long albumId, Long userId) {
-        albumValidator.getValidAlbum(albumId);
+        getValidAlbum(albumId);
         albumRepository.addAlbumToFavorites(albumId, userId);
     }
 
     public void removeAlbumFromFavorites(Long albumId, Long userId) {
-        albumValidator.getValidAlbum(albumId);
+        getValidAlbum(albumId);
         albumRepository.deleteAlbumFromFavorites(albumId, userId);
     }
 
     public AlbumDto get(Long albumId) {
-        return albumMapper.toDto(albumValidator.getValidAlbum(albumId));
+        return albumMapper.toDto(getValidAlbum(albumId));
     }
 
     public List<AlbumDto> getAlbums(Long userId, AlbumFilterDto filters) {
@@ -78,7 +79,7 @@ public class AlbumService {
     }
 
     public AlbumDto update(AlbumDto albumDto) {
-        Album album = albumValidator.getValidAlbum(albumDto.getId());
+        Album album = getValidAlbum(albumDto.getId());
         albumMapper.update(albumDto, album);
         albumRepository.save(album);
 
@@ -87,9 +88,16 @@ public class AlbumService {
 
     public void delete(Long albumId, Long userId) {
         albumValidator.validateUser(userId);
-        Album album = albumValidator.getValidAlbum(albumId);
+        Album album = getValidAlbum(albumId);
 
         if (album.getAuthorId() == userId) {albumRepository.delete(album);}
+    }
+
+    public Album getValidAlbum(Long albumId) {
+        return albumRepository.findByIdWithPosts(albumId).orElseThrow(() -> {
+            log.error("Альбом {} не существует", albumId);
+            return new AlbumException("Не существующий альбом");
+        });
     }
 }
 
