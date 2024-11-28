@@ -6,6 +6,8 @@ import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.excaption.post.PostException;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityExistsException;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,14 @@ import org.springframework.stereotype.Component;
 public class PostValidator {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
+    private final PostRepository postRepository;
+
+
+    public Post validateAndGetPostById(Long id) {
+        return postRepository
+                .findById(id)
+                .orElseThrow(EntityExistsException::new);
+    }
 
     public void validateUserExist(Long id) {
         userServiceClient.getUser(id);
@@ -29,9 +39,7 @@ public class PostValidator {
         } else {
             projectServiceClient.getProject(postRequestDto.getProjectId());
         }
-        if (postRequestDto.getId() != null) {
-            throw new IllegalArgumentException("ID must be null when creating a new post.");
-        }
+
     }
 
     public void validateUpdate(PostUpdateDto postDto) {

@@ -53,7 +53,7 @@ public class PostControllerTest {
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(objectMapper.writeValueAsString(responseDto)));
 
@@ -128,7 +128,9 @@ public class PostControllerTest {
 
         mockMvc.perform(get("/api/v1/posts")
 
-                        .content(objectMapper.writeValueAsString(filterDto)))
+                        .param("category", "tech")  // Параметры запроса
+                        .param("author", "John")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(objectMapper.writeValueAsString(responseDtos)));

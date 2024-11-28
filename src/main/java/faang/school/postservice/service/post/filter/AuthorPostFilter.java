@@ -2,6 +2,7 @@ package faang.school.postservice.service.post.filter;
 
 import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.model.enums.PostType;
 import faang.school.postservice.validator.post.PostValidator;
 import lombok.AllArgsConstructor;
 
@@ -13,12 +14,13 @@ public class AuthorPostFilter implements PostFilters {
 
     @Override
     public Stream<Post> apply(Stream<Post> posts, PostFilterDto filterDto) {
-        postValidator.validateUserExist(filterDto.getId());
-        return posts.filter(post -> post.getAuthorId().equals(filterDto.getId()));
+        postValidator.validateUserExist(filterDto.getAuthorId());
+        return posts.filter(post -> post.getAuthorId().equals(filterDto.getAuthorId()));
     }
 
     @Override
     public boolean isApplicable(PostFilterDto postFilterDto) {
-        return "author".equalsIgnoreCase(postFilterDto.getType());
+        return postFilterDto.getType() != null && PostType.AUTHOR == postFilterDto.getType();
+
     }
 }

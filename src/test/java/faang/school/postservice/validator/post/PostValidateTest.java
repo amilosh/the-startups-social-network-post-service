@@ -54,6 +54,7 @@ public class PostValidateTest {
     void shouldValidateCreateWithAuthorId() {
 
         PostRequestDto postDto = new PostRequestDto();
+
         postDto.setAuthorId(1L);
 
         postValidator.validateCreate(postDto);

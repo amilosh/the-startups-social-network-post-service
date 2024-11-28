@@ -15,8 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PostRequestDto {
 
-    @NotNull
-    private Long id;
+
     @NotNull
     @NotBlank
     private Long authorId;

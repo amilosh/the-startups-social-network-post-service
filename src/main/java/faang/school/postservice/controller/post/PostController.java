@@ -30,6 +30,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
     public PostResponseDto createPost(@RequestBody PostRequestDto postRequestDto) {
         return postService.create(postRequestDto);
     }

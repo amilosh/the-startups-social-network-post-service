@@ -1,5 +1,6 @@
 package faang.school.postservice.dto.post;
 
+import faang.school.postservice.model.enums.PostType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class PostFilterDto {
-    private Long id;
+    private Long authorId;
+    private Long projectId;
     private boolean published;
-    private String type;
+    private PostType type;
 
 }

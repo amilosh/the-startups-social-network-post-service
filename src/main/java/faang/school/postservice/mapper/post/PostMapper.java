@@ -12,13 +12,9 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PostMapper {
 
-    Post toEntity(PostResponseDto postResponseDto);
-
-    PostResponseDto toDto (Post post);
+    PostResponseDto toDto(Post post);
 
     Post toEntity(PostRequestDto postRequestDto);
-
-    Post toEntity(PostUpdateDto postUpdateDto);
 
     List<PostResponseDto> toDtoList(List<Post> posts);
 }

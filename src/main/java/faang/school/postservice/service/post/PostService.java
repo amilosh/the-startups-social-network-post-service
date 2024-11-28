@@ -45,6 +45,7 @@ public class PostService {
                 .orElseThrow(EntityExistsException::new);
         postValidator.validatePublish(post);
         post.setPublished(true);
+        post.setDeleted(false);
         return postMapper.toDto(postRepository.save(post));
     }
 
