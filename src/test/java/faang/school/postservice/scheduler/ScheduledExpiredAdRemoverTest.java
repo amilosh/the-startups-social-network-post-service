@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
@@ -68,12 +70,11 @@ public class ScheduledExpiredAdRemoverTest {
     void deleteExpiredAdsScheduledException() {
         when(adRepository.findAllExpiredAds()).thenThrow(new RuntimeException("Database error"));
 
-        try {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             scheduledExpiredAdRemover.deleteExpiredAdsScheduled();
-        } catch (Exception e) {
-            assert(e instanceof RuntimeException);
-            assert(e.getMessage().contains("Ошибка при удалении устаревших объявлений"));
-        }
+        });
+
+        assertTrue(exception.getMessage().contains("Ошибка при удалении устаревших объявлений"));
 
         verify(adRepository, times(1)).findAllExpiredAds();
         verifyNoMoreInteractions(adRepository, adService);
