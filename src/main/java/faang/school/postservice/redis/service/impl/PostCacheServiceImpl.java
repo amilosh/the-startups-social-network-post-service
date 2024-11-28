@@ -132,4 +132,51 @@ public class PostCacheServiceImpl implements PostCacheService {
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(features.toArray(new CompletableFuture[0]));
         allFutures.join();
     }
+
+    @Override
+    public CompletableFuture<Void> saveAllPostsToCache(List<PostDto> posts) {
+
+        List<PostCache> newPostCaches = filterNewPosts(posts).stream()
+                .map(postCacheMapper::toPostCache)
+                .toList();
+
+        if (!newPostCaches.isEmpty()) {
+            log.info("Saving {} new posts to cache.", newPostCaches.size());
+            return CompletableFuture.runAsync(() -> {
+                postCacheRedisRepository.saveAll(newPostCaches);
+                setTtlForPosts(newPostCaches);
+            });
+        }
+
+        log.info("No new posts to cache.");
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private List<PostDto> filterNewPosts(List<PostDto> posts) {
+        List<String> keys = posts.stream()
+                .map(post -> "post:" + post.getId())
+                .toList();
+
+        List<Object> results = redisTemplate.opsForValue().multiGet(keys);
+
+        if (results == null) {
+            log.warn("Failed to retrieve keys from Redis. Assuming all posts are new.");
+            return posts;
+        }
+
+        return posts.stream()
+                .filter(user -> {
+                    int index = posts.indexOf(user);
+                    return results.get(index) == null;
+                })
+                .toList();
+    }
+
+    private void setTtlForPosts(List<PostCache> newPostCaches) {
+        newPostCaches.forEach(postCache -> {
+            String key = createPostCacheKey(postCache.getId());
+            redisTemplate.expire(key, Duration.ofSeconds(postTtl));
+            log.info("Set TTL for post {} in cache.", postCache.getId());
+        });
+    }
 }

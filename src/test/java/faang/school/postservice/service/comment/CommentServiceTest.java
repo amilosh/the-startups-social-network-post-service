@@ -142,7 +142,7 @@ class CommentServiceTest {
         comment.setPost(post);
 
         when(userServiceClient.getUser(commentDto.getAuthorId())).thenReturn(new UserDto(commentDto.getAuthorId(),
-                "User1", "email@somedomain.com"));
+                "User1", "email@somedomain.com", null));
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         commentService.updateComment(commentId, commentDto, userId);

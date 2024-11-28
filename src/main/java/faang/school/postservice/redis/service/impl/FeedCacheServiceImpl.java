@@ -61,4 +61,10 @@ public class FeedCacheServiceImpl implements FeedCacheService {
         feedCache.setPostIds(restoredPostIds);
         return feedCache;
     }
+
+    public void savePreparedFeed(FeedCache feedCache) {
+        feedsCacheRepository.save(feedCache);
+        log.info("Successfully saved feed for user with id {} : {} posts in total",
+                feedCache.getId(), feedCache.getPostIds().size());
+    }
 }
