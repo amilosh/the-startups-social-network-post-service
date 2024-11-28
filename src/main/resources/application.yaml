@@ -46,3 +46,12 @@ project-service:
 payment-service:
   host: localhost
   port: 9080
+
+file-upload:
+  types:
+    image:
+      max-size: 5242880
+    video:
+      max-size: 10485760
+    audio:
+      max-size: 3145728
