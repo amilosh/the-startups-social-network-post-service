@@ -111,7 +111,7 @@ public class FeedServiceImpl implements FeedService {
         List<Long> authorIds = posts.stream().map(Post::getAuthorId).distinct().toList();
         List<AuthorRedisDto> authorRedisDtos = authorCacheMapper.toAuthorRedisDtos(userServiceClient.getUsersByIds(authorIds));
 
-        return createFeedDto(posts,authorRedisDtos);
+        return createFeedDto(posts, authorRedisDtos);
     }
 
     private FeedDto getFeedFromPostgres(Long feedId) {
@@ -124,17 +124,13 @@ public class FeedServiceImpl implements FeedService {
     }
 
     private TreeSet<PostRedisDto> createFeedDto(List<Post> posts, List<AuthorRedisDto> authors) {
-        TreeSet<PostRedisDto> postRedisDtos = new TreeSet<>();
-        for (Post post : posts) {
-            for (AuthorRedisDto author : authors) {
-                if (post.getAuthorId().equals(author.getId())) {
-                    PostRedisDto postRedisDto = postCacheMapper.toPostRedisDto(post);
-                    postRedisDto.setAuthor(author);
-                    postRedisDto.getComments().forEach(comment -> comment.setPostId(post.getId()));
-                    postRedisDtos.add(postRedisDto);
-                }
-            }
-        }
-        return postRedisDtos;
+        Map<Long, AuthorRedisDto> authorsMap = authors.stream()
+                .collect(Collectors.toMap(AuthorRedisDto::getId, author -> author));
+        return posts.stream().map(post -> {
+            PostRedisDto postRedisDto = postCacheMapper.toPostRedisDto(post);
+            postRedisDto.setAuthor(authorsMap.get(post.getAuthorId()));
+            postRedisDto.getComments().forEach(comment -> comment.setPostId(post.getId()));
+            return postRedisDto;
+        }).collect(Collectors.toCollection(TreeSet::new));
     }
 }
