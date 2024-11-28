@@ -2,7 +2,7 @@ name: CI pipeline for post service
 
 on:
   pull_request:
-    branches: [ "Minotaur-master-stream7-feature/BJS2-40829" ]
+    branches: [ "Minotaur-stream7-feature/BJS2-40890" ]
 
 jobs:
   test:
