@@ -1,63 +1,79 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
-@Validated
-@RequestMapping("/api/v1/post")
 public class PostController {
+
     private final PostService postService;
 
-    @PostMapping
-    public PostDto create(@RequestBody @Valid PostDto postDto) {
-        return postService.createPost(postDto);
+    @PostMapping("/posts")
+    public PostDto createPostDraft(@Valid @RequestBody PostDto postDto) {
+        log.info("Received a request to create a post");
+        return postService.createPostDraft(postDto);
     }
 
-    @PutMapping("/{id}")
-    public PostDto publish(@PathVariable Long id) {
-        return postService.publishPost(id);
+    @PatchMapping("/posts/{postId}/publish")
+    public PostDto publishPost(@PathVariable Long postId) {
+        log.info("Received a request to publish the post with ID: {}", postId);
+        return postService.publishPost(postId);
     }
 
-    @PutMapping("/delete/{id}")
-    public PostDto markDeleted(@PathVariable Long id) {
-        return postService.deletePost(id);
+    @PatchMapping("/posts/{postId}")
+    public PostDto updatePost(@PathVariable Long postId,
+                              @RequestBody PostDto postDto) {
+        log.info("Received a request to update the post with ID: {}", postId);
+        return postService.updatePost(postId, postDto);
     }
 
-    @PutMapping
-    public PostDto update(@RequestBody PostDto postDto) {
-        return postService.updatePost(postDto);
+    @DeleteMapping("/posts/{postId}")
+    public void softDelete(@PathVariable Long postId) {
+        log.info("Received a request to delete softly the post with ID: {}", postId);
+        postService.softDelete(postId);
     }
 
-    @GetMapping("/{id}")
-    public PostDto getPost(@PathVariable Long id) {
-        return postService.getPost(id);
+    @GetMapping("/posts/{postId}")
+    public PostDto getPostById(@PathVariable Long postId) {
+        log.info("Received a request to fetch the post with ID: {}", postId);
+        return postService.getPostById(postId);
     }
 
-    @GetMapping("/author_posts/{id}")
-    public List<PostDto> getAllNonPublishedByAuthorId(@PathVariable Long id) {
-        return postService.getAllNonPublishedByAuthorId(id);
+    @GetMapping("/users/{userId}/posts/drafts")
+    public List<PostDto> getAllPostDraftsByUserId(@PathVariable Long userId) {
+        log.info("Received a request to fetch all post drafts for the user with ID: {}", userId);
+        return postService.getAllPostDraftsByUserId(userId);
     }
 
-    @GetMapping("/project_posts/{id}")
-    public List<PostDto> getAllNonPublishedByProjectId(@PathVariable Long id) {
-        return postService.getAllNonPublishedByProjectId(id);
+    @GetMapping("/projects/{projectId}/posts/drafts")
+    public List<PostDto> getAllPostDraftsByProjectId(@PathVariable Long projectId) {
+        log.info("Received a request to fetch all post drafts for the project with ID: {}", projectId);
+        return postService.getAllPostDraftsByProjectId(projectId);
     }
 
-    @GetMapping("/published_by_user/{id}")
-    public List<PostDto> getAllPublishedByAuthorId(@PathVariable Long id) {
-        return postService.getAllPublishedByAuthorId(id);
+    @GetMapping("/users/{userId}/posts/published")
+    public List<PostDto> getAllPublishedPostsByUserId(@PathVariable Long userId) {
+        log.info("Received a request to fetch all published posts for the user with ID: {}", userId);
+        return postService.getAllPublishedPostsByUserId(userId);
     }
 
-    @GetMapping("/published_by_project/{id}")
-    public List<PostDto> getAllPublishedByProjectId(@PathVariable Long id) {
-        return postService.getAllPublishedByProjectId(id);
+    @GetMapping("/projects/{projectId}/posts/published")
+    public List<PostDto> getAllPublishedPostsByProjectId(@PathVariable Long projectId) {
+        log.info("Received a request to fetch all published posts for the project with ID: {}", projectId);
+        return postService.getAllPublishedPostsByProjectId(projectId);
     }
 }

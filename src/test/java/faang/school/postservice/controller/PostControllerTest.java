@@ -1,97 +1,232 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.dto.post.PostDto;
-import faang.school.postservice.service.post.PostService;
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.exception.ExternalServiceException;
+import faang.school.postservice.exception.PostValidationException;
+import faang.school.postservice.service.PostService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import java.util.List;
 
-@ExtendWith(SpringExtension.class)
-class PostControllerTest {
-    @Mock
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(PostController.class)
+public class PostControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
     private PostService postService;
 
-    @InjectMocks
-    private PostController postController;
+    @MockBean
+    private UserContext userContext;
 
-    private PostDto postDto;
-    private Long id = 1L;
+    @Test
+    void testCreatePostDraftSuccessful() throws Exception {
+        PostDto postDto = createPostDto(null, "New test post", 1L, null, false);
 
-    @BeforeEach
-    void setUp() {
-        postDto = new PostDto();
-        postDto.setId(1L);
-        postDto.setContent("content");
+        when(postService.createPostDraft(postDto)).thenReturn(postDto);
+
+        mockMvc.perform(post("/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postDto)));
     }
 
     @Test
-    void testPostCreateByUser() {
-        postDto.setAuthorId(2L);
-        postDto.setContent("content");
+    void testCreatePostDraftWithInvalidPostData() throws Exception {
+        PostDto postDto = createPostDto(null, "New test post", 1L, 1L, false);
 
-        postController.create(postDto);
-        verify(postService, times(1)).createPost(postDto);
+        doThrow(new PostValidationException("A post can be created by a user or a project"))
+                .when(postService).createPostDraft(postDto);
+
+        mockMvc.perform(post("/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Post validation failure"))
+                .andExpect(jsonPath("$.message").value("A post can be created by a user or a project"));
     }
 
     @Test
-    void testPostCreateByProject() {
-        postDto.setProjectId(2L);
+    void testCreatePostDraftWithFailedInterServiceCommunication() throws Exception {
+        PostDto postDto = createPostDto(null, "New test post", 1L, null, false);
 
-        postController.create(postDto);
-        verify(postService, times(1)).createPost(postDto);
+        doThrow(new ExternalServiceException("Failed to communicate with User Service. Please try again later."))
+                .when(postService).createPostDraft(postDto);
+
+        mockMvc.perform(post("/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postDto)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Interaction failure"))
+                .andExpect(jsonPath("$.message").value("Failed to communicate with User Service. Please try again later."));
     }
 
     @Test
-    void testPublish() {
-        postController.publish(id);
-        verify(postService, times(1)).publishPost(id);
+    void testPublishPostSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "New test post", 1L, null, true);
+
+        when(postService.publishPost(1L)).thenReturn(postDto);
+
+        mockMvc.perform(patch("/posts/1/publish")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postDto)));
     }
 
     @Test
-    void testDelete() {
-        postController.markDeleted(id);
-        verify(postService, times(1)).deletePost(id);
+    void testPublishPostWithInvalidPostState() throws Exception {
+        doThrow(new PostValidationException("The post is already published"))
+                .when(postService).publishPost(1L);
+
+        mockMvc.perform(patch("/posts/1/publish"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Post validation failure"))
+                .andExpect(jsonPath("$.message").value("The post is already published"));
     }
 
     @Test
-    void testUpdate() {
-        postController.update(postDto);
-        verify(postService, times(1)).updatePost(postDto);
+    void testUpdatePostSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "Updated test post's content", 1L, null, false);
+
+        when(postService.updatePost(1L, postDto)).thenReturn(postDto);
+
+        mockMvc.perform(patch("/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postDto)));
     }
 
     @Test
-    void testGet() {
-        postController.getPost(id);
-        verify(postService, times(1)).getPost(id);
+    void testUpdatePostWithInvalidPostContent() throws Exception {
+        PostDto postDto = createPostDto(1L, "Updated test post's content", 1L, null, false);
+        doThrow(new PostValidationException("Post content cannot be empty, post ID: " + postDto.getId()))
+                .when(postService).updatePost(1L, postDto);
+
+        mockMvc.perform(patch("/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Post validation failure"))
+                .andExpect(jsonPath("$.message").value("Post content cannot be empty, post ID: " + postDto.getId()));
     }
 
     @Test
-    void testGetAllByAuthorId() {
-        postController.getAllNonPublishedByAuthorId(id);
-        verify(postService, times(1)).getAllNonPublishedByAuthorId(id);
+    void testSoftDeleteSuccessful() throws Exception {
+        doNothing().when(postService).softDelete(1L);
+
+        mockMvc.perform(delete("/posts/1"))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void testGetAllByProjectId() {
-        postController.getAllNonPublishedByProjectId(id);
-        verify(postService, times(1)).getAllNonPublishedByProjectId(id);
+    void testSoftDeletePostAlreadyDeleted() throws Exception {
+        long postId = 1L;
+
+        doThrow(new PostValidationException("Post with ID: " + postId + " is already deleted"))
+                .when(postService).softDelete(postId);
+
+        mockMvc.perform(delete("/posts/1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Post validation failure"))
+                .andExpect(jsonPath("$.message").value("Post with ID: " + postId + " is already deleted"));
     }
 
     @Test
-    void testGetAllPublishedByAuthorId() {
-        postController.getAllPublishedByAuthorId(id);
-        verify(postService, times(1)).getAllPublishedByAuthorId(id);
+    void testGetPostByIdSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "Post content", 1L, null, false);
+
+        when(postService.getPostById(1L)).thenReturn(postDto);
+
+        mockMvc.perform(get("/posts/1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postDto)));
     }
 
     @Test
-    void testGetAllPublishedByProjectId() {
-        postController.getAllPublishedByProjectId(id);
-        verify(postService, times(1)).getAllPublishedByProjectId(id);
+    void testGetAllPostDraftsByUserIdSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "Post content", 1L, null, false);
+        List<PostDto> postDrafts = List.of(postDto);
+
+        when(postService.getAllPostDraftsByUserId(postDto.getAuthorId())).thenReturn(postDrafts);
+
+        mockMvc.perform(get("/users/1/posts/drafts")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postDrafts)));
+    }
+
+    @Test
+    void testGetAllPostDraftsByProjectIdSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "Post content", null, 1L, false);
+        List<PostDto> postDrafts = List.of(postDto);
+
+        when(postService.getAllPostDraftsByProjectId(postDto.getProjectId())).thenReturn(postDrafts);
+
+        mockMvc.perform(get("/projects/1/posts/drafts")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(postDrafts)));
+    }
+
+    @Test
+    void testGetAllPublishedPostsByUserIdSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "Post content", 1L, null, true);
+        List<PostDto> posts = List.of(postDto);
+
+        when(postService.getAllPublishedPostsByUserId(postDto.getAuthorId())).thenReturn(posts);
+
+        mockMvc.perform(get("/users/1/posts/published")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(posts)));
+    }
+
+    @Test
+    void testGetAllPublishedPostsByProjectIdSuccessful() throws Exception {
+        PostDto postDto = createPostDto(1L, "Post content", null, 1L, true);
+        List<PostDto> posts = List.of(postDto);
+
+        when(postService.getAllPublishedPostsByProjectId(postDto.getProjectId())).thenReturn(posts);
+
+        mockMvc.perform(get("/projects/1/posts/published")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(posts)));
+    }
+
+    private PostDto createPostDto(Long id, String content, Long authorId, Long projectId, boolean published) {
+        PostDto postDto = new PostDto();
+        postDto.setId(id);
+        postDto.setContent(content);
+        postDto.setAuthorId(authorId);
+        postDto.setProjectId(projectId);
+        postDto.setPublished(published);
+        return postDto;
     }
 }
