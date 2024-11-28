@@ -29,6 +29,9 @@ public interface UserServiceClient {
     @GetMapping("/subscriptions/{followeeId}/followers/count")
     UserAmountDto getFollowersCount(@PathVariable long followeeId);
 
+    @GetMapping("/subscriptions/{followeeId}/followerIds")
+    List<Long> getFollowerIds(@PathVariable long followeeId);
+
     @PostMapping("/users/active")
     List<Long> getOnlyActiveUsersFromList(@RequestBody List<Long> ids);
 }

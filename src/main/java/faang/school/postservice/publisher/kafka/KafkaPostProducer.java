@@ -1,15 +1,13 @@
 package faang.school.postservice.publisher.kafka;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.PostFeedEventDto;
-import faang.school.postservice.dto.user.UserAmountDto;
-import faang.school.postservice.dto.user.UserExtendedFilterDto;
-import faang.school.postservice.dto.user.UserResponseShortDto;
+import faang.school.postservice.exception.kafka.KafkaPublishPostException;
 import faang.school.postservice.model.Post;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.retry.annotation.Backoff;
@@ -27,7 +25,6 @@ import java.util.concurrent.Executors;
 public class KafkaPostProducer {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final UserServiceClient userServiceClient;
-    private final UserContext userContext;
 
     @Value("${spring.data.kafka.topics.posts-created}")
     private String topic;
@@ -38,25 +35,27 @@ public class KafkaPostProducer {
     @Value("${post.publisher.batch-size}")
     private int batchSize;
 
-    @Async("singleThreadExecutor")
+    @Async
     public void sendPostEvent(Post post) {
-        setTechnicalUserInContext();
-
         ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
-        UserAmountDto followersCount = userServiceClient.getFollowersCount(post.getAuthorId());
-        int pageCount = (followersCount.getUserAmount() + batchSize - 1) / batchSize;
+        List<Long> followerIds = getSubscriberIds(post.getAuthorId());
+        List<List<Long>> partitionsFollowers = ListUtils.partition(followerIds, batchSize);
 
-        for (int page = 0; page < pageCount; page++) {
-            int finalPage = page;
+        for (List<Long> batchFollowers : partitionsFollowers) {
             executorService.execute(() -> {
-                setTechnicalUserInContext();
-                publishMessage(post, finalPage, batchSize);
+                try {
+                    publishMessage(post, batchFollowers);
+                } catch (KafkaPublishPostException exception) {
+                    log.error(exception.getMessage(), exception);
+                }
             });
         }
     }
 
-    private void publishMessage(Post post, int page, int pageSize) {
-        List<Long> followerIds = getSubscribersByPages(post.getAuthorId(), page, pageSize);
+    @Retryable(retryFor = KafkaPublishPostException.class, backoff = @Backoff(
+            delayExpression = "#{${post.publisher.retry.delay}}",
+            multiplierExpression = "#{${post.publisher.retry.multiplier}}"))
+    private void publishMessage(Post post, List<Long> followerIds) {
         PostFeedEventDto postDto = PostFeedEventDto.builder()
                 .id(post.getId())
                 .subscribersIds(followerIds)
@@ -66,27 +65,20 @@ public class KafkaPostProducer {
         try {
             kafkaTemplate.send(topic, postDto);
         } catch (Exception exception) {
-            log.error("Не была обработана page={} pageSize={} часть подписчиков пользователя {}",
-                    page, pageSize, post.getAuthorId(), exception);
+            throw new KafkaPublishPostException(
+                    "Не отправлено событие для подписчиков [%s] пользователя %s".formatted(followerIds, post.getAuthorId()),
+                    exception
+            );
         }
     }
 
     @Retryable(retryFor = FeignException.class, backoff = @Backoff(
             delayExpression = "#{${post.publisher.retry.delay}}",
             multiplierExpression = "#{${post.publisher.retry.multiplier}}"))
-    private List<Long> getSubscribersByPages(long authorId, int page, int pageSize) {
-        UserExtendedFilterDto filter = UserExtendedFilterDto.builder()
-                .page(page)
-                .pageSize(pageSize)
-                .build();
-        List<UserResponseShortDto> followers = userServiceClient.getFollowers(authorId, filter);
+    private List<Long> getSubscriberIds(long authorId) {
+        List<Long> followerIds = userServiceClient.getFollowerIds(authorId);
 
-        return followers.stream()
-                .map(UserResponseShortDto::getId)
-                .toList();
+        return followerIds;
     }
 
-    private void setTechnicalUserInContext() {
-        userContext.setUserId(-1);
-    }
 }
