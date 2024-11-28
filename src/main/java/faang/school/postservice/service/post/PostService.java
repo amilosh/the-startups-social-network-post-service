@@ -39,15 +39,14 @@ public class PostService {
     private final ExecutorService executor;
     private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
-    private final UserServiceClient userServiceClient;
-    private final PostEventProducer postEventProducer;
+    private final Sender sender;
 
     public PostResponseDto createPost(PostRequestDto postRequestDto) {
         log.info("start createPost with {}", postRequestDto);
         Post post = postMapper.toPost(postRequestDto);
         post = postRepository.save(post);
         log.debug("save post in DB: {}", post);
-        sendPostEvent(post);
+        sender.batchSending(post);
         return postMapper.toResponseDto(post, post.getLikes().size());
     }
 
@@ -115,30 +114,6 @@ public class PostService {
             postViewEventPublisher.publish(postViewEvent);
         } catch (Exception ex) {
             log.error("Failed to send notification with postViewEvent: {}", postViewEvent.toString(), ex);
-        }
-    }
-
-    private void sendPostEvent(Post post) {
-        List<Long> userSubscribers = userServiceClient.getUserSubscribers(post.getAuthorId());
-        log.info("the list of the author's subscribers has " +
-                "been received, number of subscribers: {}", userSubscribers.size());
-
-        if (userSubscribers.isEmpty()) {
-            throw new IllegalArgumentException("User subscribers not found for post author: " + post.getAuthorId());
-        }
-
-        PostEvent postEvent = PostEvent.builder()
-                .postId(post.getId())
-                .authorId(post.getAuthorId())
-                .subscribers(userSubscribers)
-                .build();
-        log.debug("PostEvent is created: {}", postEvent.toString());
-
-        try {
-            postEventProducer.sendEvent(postEvent);
-            log.debug("PostEvent has been sent to Kafka topic: {}", postEvent);
-        } catch (Exception ex) {
-            log.error("Failed to publish postEvent: {}", postEvent.toString(), ex);
         }
     }
 }

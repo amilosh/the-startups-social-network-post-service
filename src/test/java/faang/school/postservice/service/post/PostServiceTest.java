@@ -1,25 +1,20 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
-import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.kafkaProducer.PostEventProducer;
-import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.redisPublisher.post.PostViewEventPublisher;
+import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -27,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,7 +29,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -72,10 +65,7 @@ public class PostServiceTest {
     private List<Post> posts;
 
     @Mock
-    private UserServiceClient userServiceClient;
-
-    @Mock
-    private PostEventProducer postEventProducer;
+    private Sender sender;
 
     @BeforeEach
     public void setup() {
@@ -99,8 +89,6 @@ public class PostServiceTest {
                 .authorId(authorId)
                 .authorId(authorId)
                 .build();
-
-        subscribers = List.of(1L, 2L, 3L);
     }
 
     @Nested
@@ -190,7 +178,6 @@ public class PostServiceTest {
         void testCreatePost_WhenArgsValid_ReturnPostResponseDto() {
             when(postMapper.toPost(postRequestDto)).thenReturn(post);
             when(postRepository.save(post)).thenReturn(post);
-            when(userServiceClient.getUserSubscribers(post.getAuthorId())).thenReturn(subscribers);
             when(postMapper.toResponseDto(post, 0)).thenReturn(postResponseDto);
 
             PostResponseDto result = postService.createPost(postRequestDto);
@@ -198,17 +185,8 @@ public class PostServiceTest {
             assertNotNull(result);
             verify(postMapper).toPost(postRequestDto);
             verify(postRepository).save(post);
-            verify(userServiceClient).getUserSubscribers(post.getAuthorId());
+            verify(sender).batchSending(post);
             verify(postMapper).toResponseDto(any(Post.class), anyInt());
-
-            ArgumentCaptor<PostEvent> captor = ArgumentCaptor.forClass(PostEvent.class);
-            verify(postEventProducer).sendEvent(captor.capture());
-
-            PostEvent postEventCaptor = captor.getValue();
-
-            assertEquals(postEventCaptor.getPostId(), post.getId());
-            assertEquals(postEventCaptor.getAuthorId(), post.getAuthorId());
-            assertEquals(postEventCaptor.getSubscribers(), subscribers);
         }
     }
 
@@ -250,17 +228,6 @@ public class PostServiceTest {
 
             assertThrows(EntityNotFoundException.class,
                     () -> postService.getPost(ID));
-        }
-
-        @Test
-        void testCreatePost_WhenUserSubscribersIsEmpty_ReturnIllegalArgumentException() {
-            List<Long> emptySubscribers = Collections.emptyList();
-
-            when(postMapper.toPost(postRequestDto)).thenReturn(post);
-            when(postRepository.save(post)).thenReturn(post);
-            when(userServiceClient.getUserSubscribers(post.getAuthorId())).thenReturn(emptySubscribers);
-
-            assertThrows(IllegalArgumentException.class, () -> postService.createPost(postRequestDto));
         }
     }
 }
