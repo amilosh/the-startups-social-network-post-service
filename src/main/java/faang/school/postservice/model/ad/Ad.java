@@ -4,10 +4,12 @@ import faang.school.postservice.model.Post;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@RequiredArgsConstructor
 @Builder
 @Entity
 @Table(name = "post_ad")
