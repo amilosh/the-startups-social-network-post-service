@@ -1,5 +1,6 @@
 package faang.school.postservice.redis.service;
 
+import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
@@ -14,6 +15,8 @@ public interface PostCacheService {
     void updatePostComments(CommentEventKafka event);
 
     void addPostView(PostDto post);
+
+    void addPostLike(LikeDto like);
 
     void updateFeedsInCache(PostEventKafka event);
 

@@ -6,10 +6,12 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.kafka.PostLikeEventKafka;
+import faang.school.postservice.publisher.kafka.KafkaPostLikeProducer;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.LikeEventPublisher;
-import faang.school.postservice.model.enums.LikePostEvent;
+import faang.school.postservice.model.event.LikePostEvent;
 import faang.school.postservice.service.LikeService;
 import faang.school.postservice.util.ExceptionThrowingValidator;
 import faang.school.postservice.validator.LikeValidator;
@@ -40,6 +42,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeMapper likeMapper;
 
     private final LikeEventPublisher likeEventPublisher;
+    private final KafkaPostLikeProducer kafkaPostLikeProducer;
 
     @Override
     public List<UserDto> getAllUsersLikedPost(long postId) {
@@ -112,6 +115,8 @@ public class LikeServiceImpl implements LikeService {
         likeRepository.save(like);
         Long postAuthorId = getPostById(postId).getAuthorId(); // иначе like.getPost().getAuthorId() == null
         likeEventPublisher.publish(new LikePostEvent(like.getUserId(), like.getPost().getId(), postAuthorId));
+        kafkaPostLikeProducer.sendEvent(new PostLikeEventKafka(likeDto.getUserId(), postId, LocalDateTime.now()));
+
         return likeMapper.toDto(like);
     }
 

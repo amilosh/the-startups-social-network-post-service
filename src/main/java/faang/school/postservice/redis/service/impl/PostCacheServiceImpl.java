@@ -1,5 +1,6 @@
 package faang.school.postservice.redis.service.impl;
 
+import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
@@ -86,6 +87,10 @@ public class PostCacheServiceImpl implements PostCacheService {
         }
     }
 
+    @Override
+    public void addPostLike(LikeDto like) {
+
+    }
 
     private void incrementNumberOfPostViews(Long postId) {
         redisTemplate.opsForHash()
