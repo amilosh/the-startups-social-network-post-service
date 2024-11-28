@@ -25,15 +25,24 @@ public class ScheduledExpiredAdRemover {
 
     @Scheduled(cron = "${post.ad-remover.scheduler.cron}")
     public void deleteExpiredAdsScheduled() {
-        List<Ad> adsToDelete = adRepository.findAllExpiredAds();
+        try {
+            log.info("Начинаем удаление устаревших объявлений...");
+            List<Ad> adsToDelete = adRepository.findAllExpiredAds();
+            if (adsToDelete.isEmpty()) {
+                log.info("Не найдено устаревших объявлений для удаления.");
+                return;
+            }
 
-        if (adsToDelete.isEmpty()) {
-            return;
+            log.info("Найдено {} устаревших объявлений для удаления.", adsToDelete.size());
+            List<List<Ad>> partitionedAdsToDelete = ListUtils.partition(adsToDelete, maxListSize);
+            log.info("Объявления разбиты на {} группы для удаления.", partitionedAdsToDelete.size());
+            partitionedAdsToDelete.forEach(adService::deleteAds);
+            log.info("Удаление устаревших объявлений завершено успешно.");
+
+        } catch (Exception e) {
+            log.error("Произошла ошибка при удалении устаревших объявлений: {}", e.getMessage(), e);
+            throw new RuntimeException("Ошибка при удалении устаревших объявлений", e);
         }
-
-        List<List<Ad>> partitionedAdsToDelete = ListUtils.partition(adsToDelete, maxListSize);
-
-        partitionedAdsToDelete.forEach(adService::deleteAds);
     }
 }
 
