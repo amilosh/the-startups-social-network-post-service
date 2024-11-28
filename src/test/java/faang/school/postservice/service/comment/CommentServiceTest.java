@@ -9,6 +9,7 @@ import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
+import faang.school.postservice.redis.service.impl.AuthorCacheServiceImpl;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.impl.CommentServiceImpl;
@@ -61,6 +62,9 @@ class CommentServiceTest {
     @Mock
     private KafkaCommentProducer kafkaCommentProducer;
 
+    @Mock
+    AuthorCacheServiceImpl authorCacheService;
+
     @InjectMocks
     private CommentServiceImpl commentService;
 
@@ -97,6 +101,7 @@ class CommentServiceTest {
         verify(commentRepository).save(commentCaptor.capture());
         verify(postRepository).findById(any(Long.class));
         verify(commentEventPublisher).publish(any(CommentEvent.class));
+        verify(authorCacheService,times(1)).saveAuthorToCache(commentDto.getAuthorId());
 
         Comment savedComment = commentCaptor.getValue();
         assertAll(
@@ -117,8 +122,8 @@ class CommentServiceTest {
         verify(commentRepository, times(1)).findAllByPostId(postId);
         assertAll(
                 () -> assertEquals(2, commentDtos.size()),
-                () -> assertEquals(commentDtos.get(0).getPostId(), postId),
-                () -> assertEquals(commentDtos.get(1).getPostId(), postId),
+                () -> assertEquals(postId, commentDtos.get(0).getPostId()),
+                () -> assertEquals(postId, commentDtos.get(1).getPostId()),
                 () -> assertTrue(commentDtos.get(0).getUpdatedAt().isAfter(commentDtos.get(1).getUpdatedAt()))
         );
     }
