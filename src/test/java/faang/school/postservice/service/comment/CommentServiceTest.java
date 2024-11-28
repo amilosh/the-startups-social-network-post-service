@@ -1,12 +1,15 @@
 package faang.school.postservice.service.comment;
 
+import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -46,6 +49,12 @@ class CommentServiceTest {
     private CommentEventPublisher commentEventPublisher;
     @Mock
     private CommentEventMapper commentEventMapper;
+    @Mock
+    private UserContext userContext;
+    @Mock
+    private AuthorCacheManager authorCacheManager;
+    @Mock
+    private KafkaCommentProducer kafkaCommentProducer;
     @InjectMocks
     private CommentService commentService;
 
@@ -84,6 +93,8 @@ class CommentServiceTest {
             verify(commentServiceHandler, atLeastOnce()).userExistValidation(userDto.getId());
             verify(commentRepository, atLeastOnce()).save(comment);
             verify(commentEventPublisher, atLeastOnce()).publish(commentEventDto);
+            verify(authorCacheManager, times(1)).cacheAuthor(createdComment);
+            verify(kafkaCommentProducer, times(1)).publish(createdComment);
         }
 
         @Test

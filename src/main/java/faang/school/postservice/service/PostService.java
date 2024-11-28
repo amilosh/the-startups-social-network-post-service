@@ -13,7 +13,6 @@ import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.mapper.PostCacheMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.producer.KafkaMessageProducer;
-import faang.school.postservice.producer.KafkaPostProducer;
 import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
 import faang.school.postservice.repository.PostRedisRepository;
 import faang.school.postservice.repository.PostRepository;

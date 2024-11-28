@@ -33,7 +33,6 @@ public class CommentService {
 
     @Transactional
     public Comment createComment(Comment comment) {
-        // todo доделать тесты с тем что ту появился контекст
         userContext.setUserId(comment.getAuthorId());
         UserDto user = userServiceClient.getUser(comment.getAuthorId());
         commentServiceHandler.userExistValidation(user.getId());

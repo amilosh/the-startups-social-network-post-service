@@ -51,10 +51,8 @@ public class PostServiceTest {
     @Mock
     private YandexSpeller yandexSpeller;
 
-
     @InjectMocks
     PostService postService;
-
 
     private Post post;
 

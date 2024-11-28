@@ -31,7 +31,7 @@ public class KafkaHeatFeedConsumer {
             heatFeedUsers.forEach(heatFeedUser -> {
                 Long userId = heatFeedUser.getUserId();
                 List<Long> followingIds = heatFeedUser.getFollowingIds();
-                newsFeedService.heatFeed(userId, followingIds);
+                newsFeedService.heatUserFeed(userId, followingIds);
             });
 
             ack.acknowledge();

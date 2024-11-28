@@ -17,7 +17,6 @@ import faang.school.postservice.repository.UserRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,8 +71,7 @@ public class NewsFeedService {
     }
 
     @Transactional(readOnly = true)
-    @Async("treadPool")
-    public void heatFeed(Long userId, List<Long> followingsIds) {
+    public void heatUserFeed(Long userId, List<Long> followingsIds) {
         List<Post> feedPosts = postRepository.findFeedPost(followingsIds, Long.MAX_VALUE, feedCapacity);
         List<PostCache> postCaches = feedPosts.stream()
                 .map(postCacheMapper::toPostCache)
@@ -128,6 +126,4 @@ public class NewsFeedService {
                 .map(postCacheMapper::toPostCache)
                 .toList();
     }
-
-
 }
