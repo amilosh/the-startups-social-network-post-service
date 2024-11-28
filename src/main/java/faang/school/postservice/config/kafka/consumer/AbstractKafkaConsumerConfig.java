@@ -33,11 +33,13 @@ public abstract class AbstractKafkaConsumerConfig<T> {
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
             bootstrapAddress
         );
+        /*
         props.put(
             ConsumerConfig.GROUP_ID_CONFIG,
             groupId
         );
-
+        */
+        props.put("spring.json.trusted.packages", "*");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
         return new DefaultKafkaConsumerFactory<>(

@@ -1,6 +1,5 @@
 package faang.school.postservice.model.redis;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Version;
 import lombok.Builder;
@@ -9,16 +8,15 @@ import org.springframework.data.redis.core.RedisHash;
 
 import java.util.LinkedHashSet;
 
-@RedisHash("feed")
+@RedisHash("post_comments")
 @Data
 @Builder
-public class FeedCache {
+public class PostCommentsCache {
 
     @Id
-    private Long id; // userId
-    //private Long userId; - спринга ругается, если @Id называется не id
-    private LinkedHashSet<Long> postIds;
+    private Long id; // postId
+    private LinkedHashSet<Long> commentIds;
 
     @Version
-    private Long version;
+    private long version;
 }

@@ -19,5 +19,5 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
         order by created_at
         limit :feedAmount
         """)
-    List<Feed> findFeedsByUserId(long userId, long postId, long feedAmount);
+    List<Feed> findFeedsByUserId(long userId, Long postId, long feedAmount);
 }

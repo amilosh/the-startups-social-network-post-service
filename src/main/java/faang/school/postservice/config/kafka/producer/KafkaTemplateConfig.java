@@ -1,9 +1,11 @@
 package faang.school.postservice.config.kafka.producer;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,9 +35,9 @@ public class KafkaTemplateConfig {
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");
         configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
-        return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(),
-            new StringSerializer());
+        return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(), new StringSerializer());
     }
+
 
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {

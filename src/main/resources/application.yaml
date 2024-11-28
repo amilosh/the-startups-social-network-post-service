@@ -171,7 +171,7 @@ retryable:
   delay: 5000
 
 user-service:
-  host: localhost
+  host: 127.0.0.1
   port: 8080
 project-service:
   host: localhost
@@ -181,10 +181,33 @@ payment-service:
   port: 9080
 
 feed:
-  default-feed-amount: 20
-  #issued-feed-size: 100
-  cache:
-    max-feed-cache-size: 500
-  retry:
-    max-attempts: 3
-    delay: 800
+  feed:
+    default-feed-amount: 20
+    #issued-feed-size: 100
+    cache:
+      max-cache-size: 500
+    retry:
+      max-attempts: 3
+      delay: 800
+  comment:
+    default-comment-amount: 5
+    cache:
+      max-cache-size: 10
+    retry:
+      max-attempts: 3
+      delay: 800
+  like:
+    default-like-amount: 5
+    cache:
+      max-cache-size: 10
+    retry:
+      max-attempts: 3
+      delay: 800
+
+  post-view:
+    default-post-view-amount: 5
+    cache:
+      max-cache-size: 5
+    retry:
+      max-attempts: 3
+      delay: 800
