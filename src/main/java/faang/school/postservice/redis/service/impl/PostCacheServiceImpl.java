@@ -108,6 +108,7 @@ public class PostCacheServiceImpl implements PostCacheService {
         try {
             TreeSet<CommentRedisDto> postComments = postCache.getComments();
             CommentRedisDto commentRedisDto = CommentRedisDto.builder()
+                    .id(event.getCommentId())
                     .postId(event.getPostId()).content(event.getContent())
                     .createdAt(event.getCreatedAt()).authorId(event.getAuthorId()).build();
             if (postComments == null) {

@@ -1,6 +1,7 @@
 package faang.school.postservice.client;
 
 import faang.school.postservice.model.dto.UserDto;
+import faang.school.postservice.redis.model.dto.AuthorRedisDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,4 +27,7 @@ public interface UserServiceClient {
 
     @GetMapping("/users/range")
     List<UserDto> getUsersByIdRange(@RequestParam("first") long first, @RequestParam("last") long last);
+
+    @GetMapping("/api/v1/subscribe/allfollowing/{followerId}")
+    List<AuthorRedisDto> getAllFollowing(@PathVariable String followerId);
 }
