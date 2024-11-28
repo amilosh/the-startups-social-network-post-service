@@ -20,11 +20,11 @@ public class PostCorrecter {
 
 //    @Scheduled(cron = "0/4 * * * * *")
 
-    @GetMapping("/check")
+    @GetMapping("check")
     public void checkSpelling() {
 //        List<Post> posts = postRepository.findByPublishedFalse();
 //        posts.forEach(postService::checkSpelling);
-        Post post = Post.builder().content("This is errror from").build();
+        Post post = Post.builder().content("This is errror from exeption").build();
 
         postService.checkSpelling(post);
     }

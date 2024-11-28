@@ -1,8 +1,5 @@
 package faang.school.postservice.service.post;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostRequestDto;
@@ -19,11 +16,10 @@ import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+//import org.springframework.retry.annotation.Backoff;
+//import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -129,8 +125,8 @@ public class PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
-    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
-            backoff = @Backoff(delay = 1000,multiplier = 2))
+    //    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
+//            backoff = @Backoff(delay = 1000,multiplier = 2))
     @Async("taskExecutor")
     public void checkSpelling(Post post) {
         String json = "{"
@@ -164,15 +160,20 @@ public class PostService {
         postRepository.save(post);
     }
 
-    private Post setCorrectContent(JSONObject jsonObject, Post post) {
+    private void setCorrectContent(JSONObject jsonObject, Post post) {
+        String content = post.getContent();
+        int errorCount = jsonObject.getInt("spellingErrorCount");
         JSONArray elementsArray = jsonObject.getJSONArray("elements");
         JSONObject firstElement = elementsArray.getJSONObject(0);
         JSONArray errorsArray = firstElement.getJSONArray("errors");
-        JSONObject firstError = errorsArray.getJSONObject(0);
-        JSONArray suggestionsArray = firstError.getJSONArray("suggestions");
-        String firstSuggestion = suggestionsArray.getString(0);
-        post.setContent(firstSuggestion);
-        return post;
+        for (int i = 0; i < errorCount; i++) {
+            JSONObject error = errorsArray.getJSONObject(i);
+            String word = error.getString("word");
+            JSONArray suggestionsArray = error.getJSONArray("suggestions");
+            String correctWord = suggestionsArray.getString(0);
+            content = content.replace(word, correctWord);
+        }
+        post.setContent(content);
     }
 
     private void validateUserExist(Long id) {
