@@ -1,6 +1,7 @@
 package faang.school.postservice.app.listener;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.kafka.producer.PostProducer;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.mapper.RedisPostDtoMapper;
@@ -35,6 +36,8 @@ public class PostPublishCommitedEventListener {
 
     @Value("${kafka.batch-size.follower:1000}")
     private int followerBatchSize;
+    @Value("${system-user-id}")
+    private int systemUserId;
 
     private final RedisPostService redisPostService;
     private final RedisPostDtoMapper redisPostDtoMapper;
@@ -44,6 +47,7 @@ public class PostPublishCommitedEventListener {
     private final UserWithFollowersMapper userWithFollowersMapper;
     private final UserServiceClient userServiceClient;
     private final PostMapper postMapper;
+    private final UserContext userContext;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostsPublishCommittedEvent(PostsPublishCommittedEvent event) {
@@ -78,6 +82,7 @@ public class PostPublishCommitedEventListener {
     }
 
     private void updateUserShortInfoIfStale(Long userId) {
+        userContext.setUserId(systemUserId);
         Optional<LocalDateTime> lastSavedAt = userShortInfoRepository.findLastSavedAtByUserId(userId);
         if (lastSavedAt.isEmpty() || lastSavedAt.get().isBefore(LocalDateTime.now().minusHours(REFRESH_TIME_IN_HOURS))) {
             UserWithFollowersDto userWithFollowers = userServiceClient.getUserWithFollowers(userId);
