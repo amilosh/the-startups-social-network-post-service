@@ -2,6 +2,7 @@ package faang.school.postservice.service.ad;
 
 import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
+import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,17 @@ public class AdServiceImpl implements AdService {
     @Async("adRemoverExecutorService")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteAds(List<Ad> ads) {
-        adRepository.deleteAll(ads);
+        if (ads == null || ads.isEmpty()) {
+            log.warn("Попытка удалить пустой или null список объявлений");
+            throw new IllegalArgumentException("Список объявлений не может быть null или пустым");
+        }
+
+        try {
+            adRepository.deleteAll(ads);
+            log.info("Успешно удалено {} объявлений", ads.size());
+        } catch (DataAccessException e) {
+            log.error("Произошла ошибка при удалении объявлений", e);
+            throw new RuntimeException("Не удалось удалить объявления", e);
+        }
     }
 }
