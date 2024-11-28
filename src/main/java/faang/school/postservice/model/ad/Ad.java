@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@RequiredArgsConstructor
 @Builder
 @Entity
 @Table(name = "post_ad")
