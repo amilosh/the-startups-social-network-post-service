@@ -6,7 +6,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
-import faang.school.postservice.service.s3.S3ServiceImpl;
+import faang.school.postservice.service.s3.S3Service;
 import faang.school.postservice.utilities.ImageResizer;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -20,17 +20,18 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class ResourceService {
+public class PostResourceService {
 
     private final ResourceRepository resourceRepository;
     private final PostRepository postRepository;
-    private final S3ServiceImpl s3Service;
+    private final S3Service s3Service;
     private final ResourceMapper resourceMapper;
     private final ImageResizer imageResizer;
 
@@ -38,15 +39,27 @@ public class ResourceService {
     private long maxImageSizeMb;
     @Value("${services.s3.max-images-count-for-post}")
     private int maxCountImagesForPost;
+    @Value("${services.s3.max-width-horizontal-image}")
+    private int maxWidthHorizontalImage;
+    @Value("${services.s3.max-height-horizontal-image}")
+    private int maxHeightHorizontalImage;
+    @Value("${services.s3.max-side-square-image}")
+    private int maxSideSquareImage;
 
     public ResourceDto addPostImage(Long postId, MultipartFile image) {
-        Post post = checkPostExist(postId);
+        Post post = getPostOrThrow(postId);
 
-        checkAndResizeImage(image);
+        image = resizeOrThrow(image);
         checkImagesCountForPost(postId);
 
         String folder = "Post" + postId;
-        Resource resource = s3Service.uploadFile(image, folder);
+        String key = s3Service.uploadFile(image, folder);
+        Resource resource = new Resource();
+        resource.setKey(key);
+        resource.setName(image.getOriginalFilename());
+        resource.setSize(image.getSize());
+        resource.setType(image.getContentType());
+        resource.setCreatedAt(LocalDateTime.now());
         resource.setPost(post);
         resourceRepository.save(resource);
 
@@ -97,7 +110,8 @@ public class ResourceService {
         return listIdResources;
     }
 
-    private void checkAndResizeImage(MultipartFile image) {
+    private MultipartFile resizeOrThrow(MultipartFile image) {
+        MultipartFile resultImage = image;
         try {
             BufferedImage bufferedImage = ImageIO.read(image.getInputStream());
             if (bufferedImage == null) {
@@ -107,12 +121,12 @@ public class ResourceService {
             int width = bufferedImage.getWidth();
             int height = bufferedImage.getHeight();
             if (width > height) {
-                if (width > 1080 || height > 566) {
-                    imageResizer.resizeImage(image, 1080, 566);
+                if (width > maxWidthHorizontalImage || height > maxHeightHorizontalImage) {
+                    resultImage = imageResizer.resizeImage(image, maxWidthHorizontalImage, maxHeightHorizontalImage);
                 }
             } else if (width == height) {
-                if (width > 1080) {
-                    imageResizer.resizeImage(image, 1080, 1080);
+                if (width > maxSideSquareImage) {
+                    resultImage = imageResizer.resizeImage(image, maxSideSquareImage, maxSideSquareImage);
                 }
             } else {
                 log.error("Wrong size of image " + width + "x" + height);
@@ -129,10 +143,11 @@ public class ResourceService {
             log.error("The image size must not exceed 5MB");
             throw new IllegalArgumentException("The image size must not exceed 5MB.");
         }
+        return resultImage;
     }
 
 
-    private Post checkPostExist(Long postId) {
+    private Post getPostOrThrow(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> {
                     log.error("Error: Post with id " + postId + " was deleted");

@@ -24,7 +24,7 @@ public class S3ServiceImpl implements S3Service {
     private String bucketName;
 
     @Override
-    public Resource uploadFile(MultipartFile file, String folder) {
+    public String uploadFile(MultipartFile file, String folder) {
         long fileSize = file.getSize();
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentLength(fileSize);
@@ -41,19 +41,9 @@ public class S3ServiceImpl implements S3Service {
             log.error("Error uploading file to storage", e);
             throw new RuntimeException("Error uploading file to storage", e);
         }
-        Resource resource = new Resource();
-        resource.setKey(key);
-        resource.setName(file.getOriginalFilename());
-        resource.setSize(fileSize);
-        resource.setType(file.getContentType());
-        resource.setCreatedAt(LocalDateTime.now());
 
-        return resource;
-    }
 
-    @Override
-    public void uploadFile(String key, InputStream fileInputStream, ObjectMetadata metadata) {
-
+        return key;
     }
 
     @Override

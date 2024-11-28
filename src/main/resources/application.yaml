@@ -54,3 +54,6 @@ services:
     bucketName: corpbucket
     max-image-size-mb: 5
     max-images-count-for-post: 10
+    max-width-horizontal-image: 1080
+    max-height-horizontal-image: 566
+    max-side-square-image: 1080
