@@ -37,4 +37,16 @@ public class Like {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    public Like(Long userId, Long postId) {
+        this.userId = userId;
+        this.post = new Post();
+        this.post.setId(postId);
+    }
+
+    public Like(Long userId, Long commentId, boolean isComment) {
+        this.userId = userId;
+        this.comment = new Comment();
+        this.comment.setId(commentId);
+    }
 }
+

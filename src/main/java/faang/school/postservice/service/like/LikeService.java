@@ -125,36 +125,34 @@ public class LikeService {
         likes.removeIf(like -> like.getUserId().equals(userId));
     }
 
-    public List<String> getUsersByPostId(long postId) {
+    public List<UserDto> getUsersByPostId(long postId) {
         List<Long> userIds = likeRepository.findByPostId(postId)
                 .stream()
                 .map(Like::getUserId)
                 .toList();
 
-        if (!validator.validatePostHasLikes(postId, userIds)) {
-            return List.of("Some users have not liked the given post.");
+        if (userIds.isEmpty()) {
+            UserDto userDto = new UserDto();
+            userDto.setEmail("Some users have not liked the given post.");
+            return List.of(userDto);
         }
-
-        return fetchUsersInBatches(userIds)
-                .stream()
-                .map(UserDto::toString)
-                .toList();
+        if (!validator.validatePostHasLikes(postId, userIds)) {
+            return List.of();
+        }
+        return fetchUsersInBatches(userIds);
     }
 
-    public List<String> getUsersByCommentId(long commentId) {
+    public List<UserDto> getUsersByCommentId(long commentId) {
         List<Long> userIds = likeRepository.findByCommentId(commentId)
                 .stream()
                 .map(Like::getUserId)
                 .toList();
 
         if (!validator.validateCommentHasLikes(commentId, userIds)) {
-            return List.of("Some users have not liked the given comment.");
+            return List.of();
         }
 
-        return fetchUsersInBatches(userIds)
-                .stream()
-                .map(UserDto::toString)
-                .toList();
+        return fetchUsersInBatches(userIds);
     }
 
     private List<UserDto> fetchUsersInBatches(List<Long> userIds) {
@@ -178,4 +176,5 @@ public class LikeService {
         }
         return batches;
     }
+
 }

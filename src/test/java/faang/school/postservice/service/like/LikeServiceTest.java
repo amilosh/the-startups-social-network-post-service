@@ -1,6 +1,8 @@
 package faang.school.postservice.service.like;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.like.LikeRequestDto;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
@@ -25,7 +27,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +51,8 @@ public class LikeServiceTest {
     private LikeMapperImpl likeMapper;
     @Mock
     private LikeValidator validator;
+    @Mock
+    private UserServiceClient userServiceClient;
 
 
     private static final int BATCH_SIZE = 100;
@@ -70,8 +76,8 @@ public class LikeServiceTest {
         like = new Like();
         like.setId(1L);
         like.setUserId(1L);
-    }
 
+    }
 
     @Test
     public void testPostLikeSuccess() {
@@ -158,5 +164,55 @@ public class LikeServiceTest {
                 () -> likeService.deleteLikeFromComment(acceptanceLikeDto, 10L));
     }
 
+    @Test
+    void testGetUsersByPostId_Success() {
+        List<Like> likes = List.of(new Like(1L, 1L), new Like(2L, 2L));
+        List<Long> userIds = List.of(1L, 2L);
+        List<UserDto> userDtos = List.of(
+                new UserDto(1L, "User1", "user1@example.com", "Address1", 25),
+                new UserDto(2L, "User2", "user2@example.com", "Address2", 30)
+        );
 
+        when(likeRepository.findByPostId(5L)).thenReturn(likes);
+        when(validator.validatePostHasLikes(5L, userIds)).thenReturn(true);
+        when(userServiceClient.getUsersByIds(anyList())).thenReturn(userDtos);
+
+        List<UserDto> result = likeService.getUsersByPostId(5L);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(new UserDto(1L, "User1", "user1@example.com", "Address1", 25)));
+        assertTrue(result.contains(new UserDto(2L, "User2", "user2@example.com", "Address2", 30)));
+
+        verify(likeRepository).findByPostId(5L);
+        verify(userServiceClient).getUsersByIds(userIds);
+    }
+
+    @Test
+    void testGetUsersByPostId_NoLikes() {
+        when(likeRepository.findByPostId(5L)).thenReturn(List.of());
+
+        List<UserDto> result = likeService.getUsersByPostId(5L);
+
+        assertEquals(1, result.size());
+        assertEquals("Some users have not liked the given post.", result.get(0).getEmail());
+
+        verify(likeRepository).findByPostId(5L);
+        verifyNoInteractions(userServiceClient);
+    }
+
+    @Test
+    void testGetUsersByPostId_UserServiceError() {
+        List<Like> likes = List.of(new Like(1L, 1L), new Like(2L, 2L));
+        List<Long> userIds = List.of(1L, 2L);
+
+        when(likeRepository.findByPostId(5L)).thenReturn(likes);
+        when(validator.validatePostHasLikes(5L, userIds)).thenReturn(true);
+        when(userServiceClient.getUsersByIds(anyList())).thenThrow(new RuntimeException("Service unavailable"));
+
+        List<UserDto> result = likeService.getUsersByPostId(5L);
+
+        assertTrue(result.isEmpty());
+        verify(likeRepository).findByPostId(5L);
+        verify(userServiceClient).getUsersByIds(userIds);
+    }
 }
