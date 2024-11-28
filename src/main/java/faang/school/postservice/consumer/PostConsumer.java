@@ -2,12 +2,12 @@ package faang.school.postservice.consumer;
 
 import faang.school.postservice.model.entity.redis.AuthorCache;
 import faang.school.postservice.model.entity.redis.PostCache;
-import faang.school.postservice.model.entity.redis.UserCache;
+import faang.school.postservice.model.entity.redis.SubscribersCache;
 import faang.school.postservice.model.event.newsfeed.PostNewsFeedEvent;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.redis.AuthorCacheRepository;
 import faang.school.postservice.repository.redis.RedisPostRepository;
-import faang.school.postservice.repository.redis.RedisUserRepository;
+import faang.school.postservice.repository.redis.RedisSubscribersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -21,7 +21,7 @@ import java.util.Set;
 public class PostConsumer {
     private final PostRepository postRepository;
     private final RedisPostRepository redisPostRepository;
-    private final RedisUserRepository redisUserRepository;
+    private final RedisSubscribersRepository redisUserRepository;
     private final AuthorCacheRepository authorCacheRepository;
 
     @KafkaListener(topics = "${spring.data.kafka.channels.post-channel}", groupId = "${spring.data.kafka.group}")
@@ -49,7 +49,7 @@ public class PostConsumer {
                 userCache.getPostIds().add(post.getId());
                 redisUserRepository.save(userCache);
             }, () -> {
-                var newUserCache = UserCache.builder()
+                var newUserCache = SubscribersCache.builder()
                         .userId(userId)
                         .postIds(new LinkedHashSet<>(Set.of(post.getId())))
                         .build();
