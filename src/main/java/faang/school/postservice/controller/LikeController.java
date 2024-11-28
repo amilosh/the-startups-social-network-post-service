@@ -52,7 +52,7 @@ public class LikeController {
 
     @GetMapping("/published_likes/{postId}")
     public List<LikeDto> findLikesOfPublishedPost(@PathVariable("postId") long postId) {
-        return service.findLikesOfPublishedPost(postId);
+        return service.getLikesForPublishedPost(postId);
     }
 }
 

@@ -47,10 +47,6 @@ public class PostCacheService implements SingleCacheService<Long, PostDto>,
         return Collections.singletonList(postDto);
     }
 
-    private static String createKey(Long postId) {
-        return postId + "::post";
-    }
-
     @Override
     public void saveAll(List<PostDto> posts) {
         Map<String, PostDto> postKeyByPost = posts.stream()
@@ -59,5 +55,9 @@ public class PostCacheService implements SingleCacheService<Long, PostDto>,
                         post -> post)
                 );
         cacheRepository.multiSetIfAbsent(postKeyByPost);
+    }
+
+    private static String createKey(Long postId) {
+        return postId + "::post";
     }
 }

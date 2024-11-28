@@ -16,4 +16,6 @@ public interface CommentService {
     List<CommentDto> getCommentsByPostId(long postId, long count);
 
     void deleteComment(long id);
+
+    void assignAuthorsToComments(List<CommentDto> commentDtos);
 }

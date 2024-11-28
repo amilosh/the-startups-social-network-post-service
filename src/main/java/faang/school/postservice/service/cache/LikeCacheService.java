@@ -9,7 +9,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LikeGetCacheService implements SingleCacheService<Long, LikeDto>, MultiGetCacheService<Long, LikeDto> {
+public class LikeCacheService implements SingleCacheService<Long, LikeDto>, MultiGetCacheService<Long, LikeDto> {
 
     private final ListCacheRepository<LikeDto> listCacheRepository;
 

@@ -13,6 +13,7 @@ import faang.school.postservice.publisher.CommentEventPublisher;
 import faang.school.postservice.publisher.EventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.UserService;
 import faang.school.postservice.service.cache.MultiGetCacheService;
 import faang.school.postservice.service.cache.MultiSaveCacheService;
 import faang.school.postservice.service.cache.SingleCacheService;
@@ -24,6 +25,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -32,6 +36,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final UserService userService;
     private final UserServiceClient userServiceClient;
     private final CommentMapper commentMapper;
     private final CommentEventPublisher commentEventPublisher;
@@ -100,6 +105,26 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(long commentId) {
         commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    public void assignAuthorsToComments(List<CommentDto> commentDtos) {
+        List<Long> commentAuthorIds = commentDtos.stream()
+                .map(CommentDto::getAuthorId)
+                .toList();
+        List<UserDto> commentAuthors = userService.getUsersFromCacheOrService(commentAuthorIds);
+
+        Map<Long, UserDto> authorMap = commentAuthors.stream()
+                .collect(Collectors.toMap(
+                        UserDto::getId,
+                        Function.identity(),
+                        (existing, replacement) -> existing)
+                );
+
+        commentDtos.forEach(comment -> {
+            UserDto author = authorMap.getOrDefault(comment.getAuthorId(), null);
+            comment.setAuthor(author);
+        });
     }
 
     private void publishEvents(CommentDto commentDto) {

@@ -9,7 +9,6 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.cache.AsyncCacheService;
-import faang.school.postservice.service.cache.MultiGetCacheService;
 import faang.school.postservice.service.cache.SingleCacheService;
 import faang.school.postservice.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +24,11 @@ public class NewsFeedServiceImpl implements NewsFeedService {
 
     private final PostService postService;
     private final CommentService commentService;
-    private final SingleCacheService<Long, UserDto> userCacheService;
+    private final UserService userService;
     private final SingleCacheService<Long, Long> viewCacheService;
     private final ExecutorService newsFeedThreadPoolExecutor;
     private final UserServiceClient userServiceClient;
-    private final MultiGetCacheService<Long, LikeDto> likeCacheService;
+    private final LikeService likeService;
     private final PostRepository postRepository;
     private final NewsFeedProperties newsFeedProperties;
     private final AsyncCacheService<Long, Long> newsFeedAsyncCacheService;
@@ -60,7 +59,7 @@ public class NewsFeedServiceImpl implements NewsFeedService {
 
         if (postIds.isEmpty()) {
             List<Long> followerIds = userServiceClient.getFollowingIds(userId);
-            List<Long> postIdsForFullNewsFeed = postRepository.getIdsForNewsFeed(followerIds, newsFeedSize);
+            List<Long> postIdsForFullNewsFeed = postRepository.findIdsForNewsFeed(followerIds, newsFeedSize);
             int lastIndexBatchSize = newsFeedProperties.getBatchSize() - 1;
 
             List<Long> postIdsForCache = postIdsForFullNewsFeed.subList(lastIndexBatchSize, postIdsForFullNewsFeed.size() - 1);
@@ -82,19 +81,15 @@ public class NewsFeedServiceImpl implements NewsFeedService {
         return CompletableFuture.runAsync(() -> {
             Long postId = post.getId();
 
-            UserDto postAuthor = userCacheService.get(post.getAuthorId());
+            UserDto postAuthor = userService.getUserFromCacheOrService(post.getAuthorId());
             post.setAuthor(postAuthor);
 
-            List<LikeDto> likes = likeCacheService.getAll(postId);
+            List<LikeDto> likes = likeService.getLikesForPublishedPostFromCacheOrDb(postId);
             post.setLikes(likes);
 
             List<CommentDto> comments = commentService.getCommentsByPostId(postId, newsFeedProperties.getLimitCommentsOnPost());
+            commentService.assignAuthorsToComments(comments);
             post.setComments(comments);
-
-            comments.forEach(comment -> {
-                UserDto commentAuthor = userCacheService.get(comment.getAuthorId());
-                comment.setAuthor(commentAuthor);
-            });
 
             Long viewsCount = viewCacheService.get(postId);
             post.setViewsCount(viewsCount);

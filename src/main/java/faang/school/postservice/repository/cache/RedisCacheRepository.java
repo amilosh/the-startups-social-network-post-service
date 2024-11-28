@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,5 +39,15 @@ public class RedisCacheRepository<T> implements CacheRepository<T> {
         T valueOrNull = redisTemplate.opsForValue().get(key);
         return Optional.ofNullable(valueOrNull)
                 .map(value -> objectMapper.convertValue(value, clazz));
+    }
+
+    @Override
+    public Optional<List<T>> getAll(List<String> keys, Class<T> clazz) {
+        List<T> valueOrNull = redisTemplate.opsForValue().multiGet(keys);
+        return Optional.ofNullable(valueOrNull)
+                .map(values -> values.stream()
+                        .map(value -> objectMapper.convertValue(value, clazz))
+                        .toList()
+                );
     }
 }

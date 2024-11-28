@@ -8,11 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserCacheService implements SingleCacheService<Long, UserDto> {
+public class UserCacheService implements SingleCacheService<Long, UserDto>, MultiGetCacheService<List<Long>, UserDto> {
 
     private final CacheRepository<UserDto> cacheRepository;
 
@@ -33,6 +35,21 @@ public class UserCacheService implements SingleCacheService<Long, UserDto> {
             log.warn("Cannot find user with id {}", userId);
             return null;
         });
+    }
+
+    @Override
+    public List<UserDto> getAll(List<Long> userIds) {
+        List<String> userKeys = userIds.stream()
+                .map(this::createKey)
+                .toList();
+        return cacheRepository.getAll(userKeys, UserDto.class)
+                .map(users -> users.stream()
+                        .filter(Objects::nonNull)
+                        .toList())
+                .orElseGet(() -> {
+                    log.warn("Cannot find users with ids {}", userIds);
+                    return null;
+                });
     }
 
     private String createKey(Long userId) {

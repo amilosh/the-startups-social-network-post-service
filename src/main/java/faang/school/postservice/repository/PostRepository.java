@@ -76,5 +76,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             ORDER BY p.created_at DESC
             LIMIT :count
             """)
-    List<Long> getIdsForNewsFeed(List<Long> followeeIds, int count);
+    List<Long> findIdsForNewsFeed(List<Long> followeeIds, int count);
 }

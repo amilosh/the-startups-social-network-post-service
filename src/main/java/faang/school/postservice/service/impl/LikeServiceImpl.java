@@ -16,10 +16,12 @@ import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.LikeService;
+import faang.school.postservice.service.cache.MultiGetCacheService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ public class LikeServiceImpl implements LikeService {
     private final CommentRepository commentRepository;
     private final LikeMapper likeMapper;
     private final LikeRepository likeRepository;
+    private final MultiGetCacheService<Long, LikeDto> likeCacheService;
     private final UserServiceClient client;
     private final UserServiceClient userServiceClient;
     private final LikeEventPublisherImpl likeEventPublisher;
@@ -118,8 +121,9 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public List<LikeDto> findLikesOfPublishedPost(long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new DataValidationException("There is no such post"));
+    public List<LikeDto> getLikesForPublishedPost(long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new DataValidationException("There is no such post"));
         if (post.isPublished()) {
             return postRepository.findById(postId)
                     .orElseThrow(() -> new DataValidationException("There is no such comment"))
@@ -127,6 +131,16 @@ public class LikeServiceImpl implements LikeService {
         } else {
             throw new DataValidationException("Post is not published");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LikeDto> getLikesForPublishedPostFromCacheOrDb(long postId) {
+        List<LikeDto> likes = likeCacheService.getAll(postId);
+        if (likes.isEmpty()) {
+            return getLikesForPublishedPost(postId);
+        }
+        return likes;
     }
 
     private void checkUser(long userId) {

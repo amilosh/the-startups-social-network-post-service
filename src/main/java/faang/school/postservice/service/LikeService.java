@@ -21,7 +21,9 @@ public interface LikeService {
 
     void deleteLikeFromComment(LikeDto likeDto, long commentId);
 
-    List<LikeDto> findLikesOfPublishedPost(long postId);
+    List<LikeDto> getLikesForPublishedPost(long postId);
+
+    List<LikeDto> getLikesForPublishedPostFromCacheOrDb(long postId);
 
     void publish(LikeEvent likeEvent) throws JsonProcessingException;
 }

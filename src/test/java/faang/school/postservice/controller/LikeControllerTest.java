@@ -80,7 +80,7 @@ class LikeControllerTest {
     void findLikesOfPublishedPost() {
         likeController.findLikesOfPublishedPost(postId);
 
-        verify(likeService, times(1)).findLikesOfPublishedPost(postId);
+        verify(likeService, times(1)).getLikesForPublishedPost(postId);
     }
 }
 
