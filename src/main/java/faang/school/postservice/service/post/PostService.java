@@ -164,6 +164,7 @@ public class PostService {
         try {
             String json = objectMapper.writeValueAsString(idsForBan);
             messageSender.send(json);
+            log.info("Ids was sending");
         } catch (JsonProcessingException e) {
             log.error("Can`t parse for json ", e);
             throw new RuntimeException(e);

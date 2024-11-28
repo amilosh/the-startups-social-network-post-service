@@ -1,14 +1,22 @@
 package faang.school.postservice.service.post;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.post.*;
+import faang.school.postservice.config.redis.MessageSender;
+import faang.school.postservice.dto.post.PostDraftCreateDto;
+import faang.school.postservice.dto.post.PostDraftResponseDto;
+import faang.school.postservice.dto.post.PostDraftWithFilesCreateDto;
+import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.post.PostMapperImpl;
 import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.album.AlbumService;
 import faang.school.postservice.service.amazons3.Amazons3ServiceImpl;
@@ -42,10 +50,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
@@ -75,8 +93,13 @@ class PostServiceTest {
     private FileValidator fileValidator;
     @Mock
     private KeyKeeper keyKeeper;
-
     private Validator validator;
+    @Mock
+    private CommentRepository commentRepository;
+    @Mock
+    private ObjectMapper objectMapper;
+    @Mock
+    private MessageSender messageSender;
 
     @BeforeEach
     void setUp() {
@@ -808,6 +831,35 @@ class PostServiceTest {
         PostResponseDto expectedDto = postService.updatePostWithFiles(postId, updateDto, files);
 
         assertEquals(expectedDto, responseDto);
+    }
+
+    @Test
+    @DisplayName("Positive allAuthorIdWithNotVerifyComments")
+    void PositiveAllAuthorIdWithNotVerifyComments() throws JsonProcessingException {
+        List<Long> list = List.of(1L, 2L, 3L, 4L, 5L);
+        String json = "[1L,2L,3L,4L,5L]";
+
+        when(commentRepository.findAllWereVerifiedFalse()).thenReturn(list);
+        when(objectMapper.writeValueAsString(list)).thenReturn(json);
+        doNothing().when(messageSender).send(json);
+
+        postService.allAuthorIdWithNotVerifyComments();
+
+        verify(commentRepository, times(1)).findAllWereVerifiedFalse();
+        verify(objectMapper, times(1)).writeValueAsString(list);
+        verify(messageSender, times(1)).send(json);
+    }
+
+    @Test
+    void NegativeAllAuthorIdWithNotVerifyComments() throws JsonProcessingException {
+        List<Long> list = List.of(1L, 2L, 3L, 4L, 5L);
+
+        when(commentRepository.findAllWereVerifiedFalse()).thenReturn(list);
+        doThrow(new JsonProcessingException("Test Exception") {
+        }).when(objectMapper).writeValueAsString(any());
+
+        assertThrows(RuntimeException.class, () -> postService.allAuthorIdWithNotVerifyComments());
+        verify(commentRepository, times(1)).findAllWereVerifiedFalse();
     }
 
     private MockMultipartFile createMultipartFile(String fileName) {
