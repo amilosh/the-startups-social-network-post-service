@@ -1,5 +1,7 @@
 package faang.school.postservice.config.kafka;
 
+import faang.school.postservice.config.kafka.properties.ConsumerProperties;
+import faang.school.postservice.config.kafka.properties.KafkaProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final ConsumerProperties consumerProperties;
 
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
@@ -30,7 +33,7 @@ public class KafkaConsumerConfig {
                 kafkaProperties.getBootstrapServers());
         props.put(
                 ConsumerConfig.GROUP_ID_CONFIG,
-                kafkaProperties.getConsumer().getGroupId());
+                consumerProperties.getGroupId());
         props.put(
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 kafkaProperties.getConsumer().getKeyDeserializer());
@@ -39,7 +42,7 @@ public class KafkaConsumerConfig {
                 kafkaProperties.getConsumer().getValueDeserializer());
         props.put(
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-                kafkaProperties.getConsumer().getAutoOffsetReset());
+                consumerProperties.getAutoOffsetReset());
         return new DefaultKafkaConsumerFactory<>(props);
     }
 

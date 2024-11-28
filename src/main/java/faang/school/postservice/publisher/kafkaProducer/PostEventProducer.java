@@ -11,8 +11,4 @@ public class PostEventProducer extends AbstractEventProducer<PostEvent> {
     public PostEventProducer(KafkaTemplate<String, Object> kafkaTemplate, NewTopic postTopic) {
         super(kafkaTemplate, postTopic);
     }
-
-    public void sendEvent(PostEvent event) {
-        super.sendEvent(event);
-    }
 }

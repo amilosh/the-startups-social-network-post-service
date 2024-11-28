@@ -16,11 +16,6 @@ import java.util.List;
 @NoArgsConstructor
 public class PostEvent {
     private long postId;
-    private String content;
     private long authorId;
-    private long projectId;
-    private int likeCount;
-    private LocalDateTime scheduledAt;
-    private LocalDateTime publishedAt;
     private List<Long> subscribers;
 }
