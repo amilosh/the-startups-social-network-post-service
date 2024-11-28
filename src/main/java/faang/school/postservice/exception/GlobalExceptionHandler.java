@@ -2,10 +2,12 @@ package faang.school.postservice.exception;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.validation.FieldError;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,14 +23,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleDataValidationException(DataValidationException e) {
-        log.error("Data Validation Exception: ", e);
+        log.error("DataValidationException: ", e);
         return new ErrorResponse(e.getMessage());
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({EntityNotFoundException.class, JpaObjectRetrievalFailureException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleEntityNotFoundException(EntityNotFoundException e) {
-        log.error("Entity Not Found Exception: ", e);
+        log.error("EntityNotFoundException: ", e);
         return new ErrorResponse(e.getMessage());
     }
 
@@ -39,10 +41,17 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ErrorResponse handleConstraintViolationException(ConstraintViolationException ex) {
+        log.error("ConstraintViolationException: ", ex);
+        return new ErrorResponse(ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.error("Method Argument Not Valid Exception: ", e);
+        log.error("MethodArgumentNotValidException: ", e);
         return e.getBindingResult().getAllErrors().stream()
                 .collect(Collectors.toMap(
                         error -> ((FieldError) error).getField(),
@@ -53,21 +62,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FeignException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleFeignException(FeignException e) {
-        log.error("Feign Exception: ", e);
+        log.error("FeignException: ", e);
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleRuntimeException(RuntimeException e) {
-        log.error("RuntimeException: ", e);
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleRuntimeException(Exception e) {
-        log.error("Exception: ", e);
+    public ErrorResponse handleUnexpectedException(Exception e) {
+        log.error("An unexpected exception has occurred: ", e);
         return new ErrorResponse(e.getMessage());
     }
 }

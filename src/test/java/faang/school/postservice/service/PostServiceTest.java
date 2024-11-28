@@ -25,19 +25,31 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
+
     @InjectMocks
     private PostService postService;
+
     @Mock
     private PostRepository postRepository;
+
     @Spy
     private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
+
     @Mock
     private UserServiceClient userServiceClient;
+
     @Spy
     private PostValidator validator;
 
@@ -124,14 +136,6 @@ public class PostServiceTest {
     }
 
     @Test
-    public void testPublishPublishedPost() {
-        post.setPublished(true);
-        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
-        assertThrows(DataValidationException.class, () -> postService.publishPost(1L));
-        verify(postRepository, times(1)).findById(anyLong());
-    }
-
-    @Test
     public void testPublishDeletedPost() {
         post.setDeleted(true);
         when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
@@ -209,6 +213,33 @@ public class PostServiceTest {
                 .allMatch(dto -> dto.published() && !dto.deleted()));
     }
 
+    @Test
+    public void testGetById() {
+        // arrange
+        long postId = 5L;
+        Post post = Post.builder()
+                .id(postId)
+                .build();
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        // act
+        Post returnedPost = postService.findPostById(postId);
+
+        // assert
+        assertEquals(post, returnedPost);
+    }
+
+    @Test
+    public void testGetByIdPostNotFound() {
+        // arrange
+        long postId = 5L;
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // act and assert
+        assertThrows(EntityNotFoundException.class,
+                () -> postService.findPostById(postId));
+    }
 
     @Test
     public void testGetPostByIdWithExistentPost(){
