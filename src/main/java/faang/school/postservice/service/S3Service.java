@@ -26,13 +26,11 @@ public class S3Service {
     private String bucketName;
 
     public String uploadFile(MultipartFile file, String folder, BufferedImage image) {
-        long fileSize = file.getSize();
         String type = file.getContentType();
         String originalName = file.getOriginalFilename();
         String key = String.format("%s/%d:%s", folder, System.currentTimeMillis(), originalName);
 
         ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentLength(fileSize);
         objectMetadata.setContentType(type);
 
         try {
