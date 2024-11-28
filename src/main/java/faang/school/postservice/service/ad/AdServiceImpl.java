@@ -1,5 +1,6 @@
 package faang.school.postservice.service.ad;
 
+import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class AdServiceImpl implements AdService {
     @Override
     @Async("adRemoverExecutorService")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteAds(List<Long> adIds) {
-        adRepository.deleteAllById(adIds);
+    public void deleteAds(List<Ad> ads) {
+        adRepository.deleteAll(ads);
     }
 }
