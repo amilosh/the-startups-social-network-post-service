@@ -1,5 +1,6 @@
 package faang.school.postservice.service.ad;
 
+import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +24,11 @@ public class AdServiceImplTest {
 
     @Test
     void deleteAds() {
-        List<Long> ids = List.of(1L, 2L, 3L);
+        List<Ad> ids = List.of();
 
         adService.deleteAds(ids);
 
         InOrder inOrder = inOrder(adRepository);
-        inOrder.verify(adRepository, times(1)).deleteAllById(ids);
+        inOrder.verify(adRepository, times(1)).deleteAll(ids);
     }
 }
