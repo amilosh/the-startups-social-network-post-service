@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.api.SpellingConfig;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.exception.DataValidationException;
@@ -16,9 +17,10 @@ import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-//import org.springframework.retry.annotation.Backoff;
-//import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -31,13 +33,11 @@ import java.util.List;
 @Slf4j
 public class PostService {
 
-    private final String API_KEY = "c2b61bcbe1msh7baed25073c44a3p111bcfjsn7841c9808baa";
-    private final String API_ENDPOINT = "https://jspell-checker.p.rapidapi.com/check";
-
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
+    private final SpellingConfig api;
 
     public PostResponseDto createPost(PostRequestDto postDto) {
         isPostAuthorExist(postDto);
@@ -125,18 +125,18 @@ public class PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
-    //    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
-//            backoff = @Backoff(delay = 1000,multiplier = 2))
+    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
+            backoff = @Backoff(delay = 1000, multiplier = 2))
     public List<Post> checkSpelling(List<Post> posts) {
         String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Content-Type", "application/json");
         headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
-        headers.set("x-rapidapi-key", API_KEY);
+        headers.set("x-rapidapi-key", api.getKey());
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
         RestTemplate restTemplate = new RestTemplate();
-        String response = restTemplate.postForObject(API_ENDPOINT, requestEntity, String.class);
+        String response = restTemplate.postForObject(api.getEndpoint(), requestEntity, String.class);
         JSONObject jsonObject = new JSONObject(response);
         int errorCount = jsonObject.getInt("spellingErrorCount");
         if (errorCount == 0) {
@@ -144,7 +144,7 @@ public class PostService {
         }
         int i = 0;
         for (Post post : posts) {
-            setCorrectContent(jsonObject,post,i);
+            setCorrectContent(jsonObject, post, i);
             i++;
         }
         return posts;
@@ -152,13 +152,7 @@ public class PostService {
 
     private String getJsonFromPosts(List<Post> posts) {
         List<String> contentFromPosts = new ArrayList<>();
-        posts.forEach(post -> {
-            StringBuilder contentBuilder = new StringBuilder();
-            contentBuilder.append(post.getId());
-            contentBuilder.append(":");
-            contentBuilder.append(post.getContent());
-            contentFromPosts.add(contentBuilder.toString());
-        });
+        posts.forEach(post -> contentFromPosts.add(post.getContent()));
         JSONObject json = new JSONObject();
         json.put("language", "enUS");
         JSONArray fieldvalues = new JSONArray();

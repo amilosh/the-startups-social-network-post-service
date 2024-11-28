@@ -26,16 +26,21 @@ spring:
           name: calculations_channel
 
 
+
 server:
   port: 8081
 
-api:
+scheduling:
+  cron: "0 12 * * *"
+
+spelling:
   key: c2b61bcbe1msh7baed25073c44a3p111bcfjsn7841c9808baa
   endpoint: https://jspell-checker.p.rapidapi.com/check
 
 logging:
   level:
     root: info
+
 
 user-service:
   host: localhost
