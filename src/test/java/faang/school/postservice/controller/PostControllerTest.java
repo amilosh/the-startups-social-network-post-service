@@ -18,8 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -49,6 +49,8 @@ class PostControllerTest {
     private MockMultipartFile validImage;
     private ResourceDto resourceDto;
 
+    private final static String mainUrl = UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS;
+
     @BeforeEach
     void setUp() {
         validImage = new MockMultipartFile(
@@ -73,7 +75,7 @@ class PostControllerTest {
         Long expectedPostId = 1L;
         when(postService.createDraftPost(postDto)).thenReturn(1L);
 
-        mockMvc.perform(post(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(post(mainUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isCreated())
@@ -88,7 +90,7 @@ class PostControllerTest {
         Long expectedPostId = 2L;
         when(postService.createDraftPost(postDto)).thenReturn(2L);
 
-        mockMvc.perform(post(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(post(mainUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isCreated())
@@ -101,7 +103,7 @@ class PostControllerTest {
     void createDraftPostByUserContentIsBlankFailTest() throws Exception {
         PostDto postDto = new PostDto("  ", 1L, null);
 
-        mockMvc.perform(post(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(post(mainUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isBadRequest())
@@ -113,7 +115,7 @@ class PostControllerTest {
     void createDraftPostByUserContentNullFailTest() throws Exception {
         PostDto postDto = new PostDto(null, 1L, null);
 
-        mockMvc.perform(post(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(post(mainUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isBadRequest())
@@ -125,7 +127,7 @@ class PostControllerTest {
     void createDraftPostByUserIdNullAndProjectIdNullFailTest() throws Exception {
         PostDto postDto = new PostDto("Test for test", null, null);
 
-        mockMvc.perform(post(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(post(mainUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isBadRequest())
@@ -136,7 +138,7 @@ class PostControllerTest {
     void createDraftPostByUserIdAndProjectIdFailTest() throws Exception {
         PostDto postDto = new PostDto("Test for test", 1L, 2L);
 
-        mockMvc.perform(post(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(post(mainUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isBadRequest())
@@ -149,7 +151,7 @@ class PostControllerTest {
         Long postId = 1L;
 
         when(postService.publishPost(postId)).thenReturn(postDto);
-        mockMvc.perform(patch(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, postId)
+        mockMvc.perform(patch(mainUrl + UrlUtils.ID, postId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDto)))
                 .andExpect(status().isOk())
@@ -165,7 +167,7 @@ class PostControllerTest {
         String errorMessage = "Post already published, id: " + postId;
 
         when(postService.publishPost(anyLong())).thenThrow(new IllegalArgumentException(errorMessage));
-        mockMvc.perform(patch(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, postId)
+        mockMvc.perform(patch(mainUrl + UrlUtils.ID, postId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -178,7 +180,7 @@ class PostControllerTest {
         String errorMessage = "Post not found with ID: " + invalidPostId;
 
         when(postService.publishPost(anyLong())).thenThrow(new EntityNotFoundException(errorMessage));
-        mockMvc.perform(patch(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, 999L)
+        mockMvc.perform(patch(mainUrl + UrlUtils.ID, 999L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound())
@@ -190,7 +192,7 @@ class PostControllerTest {
         Long postId = 1L;
         when(postService.deletePost(postId)).thenReturn(postId);
 
-        mockMvc.perform(delete(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, postId))
+        mockMvc.perform(delete(mainUrl + UrlUtils.ID, postId))
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.valueOf(postId)));
 
@@ -203,7 +205,7 @@ class PostControllerTest {
         String errorMessage = "Post with id: " + postId + " was deleted";
 
         when(postService.deletePost(anyLong())).thenThrow(new IllegalArgumentException("Post with id: " + postId + " was deleted"));
-        mockMvc.perform(delete(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, postId))
+        mockMvc.perform(delete(mainUrl + UrlUtils.ID, postId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(errorMessage));
 
@@ -216,7 +218,7 @@ class PostControllerTest {
         PostDto postDto = new PostDto("Sample Post", 1L, 2L);
         when(postService.getPost(anyLong())).thenReturn(postDto);
 
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS)
+        mockMvc.perform(get(mainUrl)
                         .param("postId", String.valueOf(1L)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").value("Sample Post"))
@@ -231,7 +233,7 @@ class PostControllerTest {
         String errorMessage = "Post not found with ID: " + invalidPostId;
 
         when(postService.publishPost(anyLong())).thenThrow(new EntityNotFoundException(errorMessage));
-        mockMvc.perform(patch(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, 999L)
+        mockMvc.perform(patch(mainUrl + UrlUtils.ID, 999L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound())
@@ -247,7 +249,7 @@ class PostControllerTest {
         );
         when(postService.getDraftPostsForUser(userId)).thenReturn(drafts);
 
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.USER + UrlUtils.DRAFT, userId)
+        mockMvc.perform(get(mainUrl + UrlUtils.USER + UrlUtils.DRAFT, userId)
                         .param("idUser", String.valueOf(userId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(drafts.size()))
@@ -261,7 +263,7 @@ class PostControllerTest {
 
     @Test
     void getDraftPostsByUserBadUserIdFailTest() throws Exception {
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.USER + UrlUtils.DRAFT, 0)
+        mockMvc.perform(get(mainUrl + UrlUtils.USER + UrlUtils.DRAFT, 0)
                         .param("idUser", "0"))
                 .andExpect(status().isBadRequest());
     }
@@ -272,7 +274,7 @@ class PostControllerTest {
         String errorMessage = "User id: " + userId + " not found";
 
         when(postService.getDraftPostsForUser(anyLong())).thenThrow(new IllegalArgumentException(errorMessage));
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.USER + UrlUtils.DRAFT, userId)
+        mockMvc.perform(get(mainUrl + UrlUtils.USER + UrlUtils.DRAFT, userId)
                         .param("idUser", String.valueOf(userId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(errorMessage));
@@ -287,7 +289,7 @@ class PostControllerTest {
         );
         when(postService.getDraftPostsForProject(projectId)).thenReturn(drafts);
 
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.PROJECT + UrlUtils.DRAFT, projectId)
+        mockMvc.perform(get(mainUrl + UrlUtils.PROJECT + UrlUtils.DRAFT, projectId)
                         .param("idProject", String.valueOf(projectId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(drafts.size()))
@@ -301,7 +303,7 @@ class PostControllerTest {
 
     @Test
     void getDraftPostsByProjectBadProjectIdFailTest() throws Exception {
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.PROJECT + UrlUtils.DRAFT, 0)
+        mockMvc.perform(get(mainUrl + UrlUtils.PROJECT + UrlUtils.DRAFT, 0)
                         .param("idProject", "0"))
                 .andExpect(status().isBadRequest());
     }
@@ -312,7 +314,7 @@ class PostControllerTest {
         String errorMessage = "Project id: " + projectId + " not found";
 
         when(postService.getDraftPostsForProject(anyLong())).thenThrow(new IllegalArgumentException(errorMessage));
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.PROJECT + UrlUtils.DRAFT, projectId)
+        mockMvc.perform(get(mainUrl + UrlUtils.PROJECT + UrlUtils.DRAFT, projectId)
                         .param("idProject", String.valueOf(projectId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(errorMessage));
@@ -327,7 +329,7 @@ class PostControllerTest {
         );
         when(postService.getPublishedPostsForUser(userId)).thenReturn(drafts);
 
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.USER + UrlUtils.PUBLISHED, userId)
+        mockMvc.perform(get(mainUrl + UrlUtils.USER + UrlUtils.PUBLISHED, userId)
                         .param("idUser", String.valueOf(userId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(drafts.size()))
@@ -341,7 +343,7 @@ class PostControllerTest {
 
     @Test
     void getPublishedPostsByUserBadUserIdFailTest() throws Exception {
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.USER + UrlUtils.PUBLISHED, 0)
+        mockMvc.perform(get(mainUrl + UrlUtils.USER + UrlUtils.PUBLISHED, 0)
                         .param("idUser", "0"))
                 .andExpect(status().isBadRequest());
     }
@@ -352,7 +354,7 @@ class PostControllerTest {
         String errorMessage = "User id: " + userId + " not found";
 
         when(postService.getPublishedPostsForUser(anyLong())).thenThrow(new IllegalArgumentException(errorMessage));
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.USER + UrlUtils.PUBLISHED, userId)
+        mockMvc.perform(get(mainUrl + UrlUtils.USER + UrlUtils.PUBLISHED, userId)
                         .param("idUser", String.valueOf(userId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(errorMessage));
@@ -367,7 +369,7 @@ class PostControllerTest {
         );
         when(postService.getPublishedPostForProject(projectId)).thenReturn(publishedPosts);
 
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.PROJECT + UrlUtils.PUBLISHED, projectId)
+        mockMvc.perform(get(mainUrl + UrlUtils.PROJECT + UrlUtils.PUBLISHED, projectId)
                         .param("idProject", String.valueOf(projectId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(publishedPosts.size()))
@@ -381,7 +383,7 @@ class PostControllerTest {
 
     @Test
     void getPublishedPostsByProjectBadProjectIdFailTest() throws Exception {
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.PROJECT + UrlUtils.PUBLISHED, 0)
+        mockMvc.perform(get(mainUrl + UrlUtils.PROJECT + UrlUtils.PUBLISHED, 0)
                         .param("idProject", "0"))
                 .andExpect(status().isBadRequest());
     }
@@ -392,7 +394,7 @@ class PostControllerTest {
         String errorMessage = "Project id: " + projectId + " not found";
 
         when(postService.getPublishedPostForProject(anyLong())).thenThrow(new IllegalArgumentException(errorMessage));
-        mockMvc.perform(get(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.PROJECT + UrlUtils.PUBLISHED, projectId)
+        mockMvc.perform(get(mainUrl + UrlUtils.PROJECT + UrlUtils.PUBLISHED, projectId)
                         .param("idProject", String.valueOf(projectId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(errorMessage));
@@ -403,7 +405,7 @@ class PostControllerTest {
         Long postId = 1L;
         Mockito.when(postResourceService.addPostImage(eq(postId), any())).thenReturn(resourceDto);
 
-        mockMvc.perform(multipart(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID + UrlUtils.IMAGE, postId)
+        mockMvc.perform(multipart(mainUrl + UrlUtils.ID + UrlUtils.IMAGE, postId)
                         .file(validImage)
                         .with(request -> {
                             request.setMethod("PUT");
@@ -416,9 +418,9 @@ class PostControllerTest {
     }
 
     @Test
-    void addImageImageIsNullShouldFail() throws Exception {
+    void addImageImageIsNullFailTest() throws Exception {
         Long postId = 1L;
-        mockMvc.perform(multipart(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID + UrlUtils.IMAGE, postId)
+        mockMvc.perform(multipart(mainUrl + UrlUtils.ID + UrlUtils.IMAGE, postId)
                         .with(request -> {
                             request.setMethod("PUT");
                             return request;
@@ -427,75 +429,143 @@ class PostControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-
-//    @Test
-//    void addImage_ShouldReturnInternalServerError_WhenServiceFails() throws Exception {
-//        Long postId = 1L;
-//
-//        Mockito.when(postResourceService.addPostImage(eq(postId), any()))
-//                .thenThrow(new RuntimeException("Internal Server Error"));
-//
-//        mockMvc.perform(multipart(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID + UrlUtils.IMAGE, postId)
-//                        .file(validImage)
-//                        .with(request -> {
-//                            request.setMethod("PUT");
-//                            return request;
-//                        })
-//                        .contentType(MediaType.MULTIPART_FORM_DATA))
-//                .andExpect(status().isInternalServerError());
-//    }
-
     @Test
-    void deleteImageByKey_ShouldReturnId_WhenKeyIsValid() throws Exception {
-        // Arrange
+    void deleteImageByKeySuccessTest() throws Exception {
         String key = "valid-key";
         Long expectedId = 1L;
 
-        when(postResourceService.deletePostImageByKey(key)).thenReturn(expectedId);
+        when(postResourceService.deleteImageByKey(key)).thenReturn(expectedId);
 
-        // Act & Assert
-        mockMvc.perform(delete(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.RESOURCE)
+        mockMvc.perform(delete(mainUrl)
                         .param("key", key))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(expectedId));
     }
 
     @Test
-    void deleteImageByKey_ShouldReturnBadRequest_WhenKeyIsBlank() throws Exception {
-        // Act & Assert
-        mockMvc.perform(delete(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.RESOURCE)
+    void deleteImageByKeyWhenKeyIsBlankFailTest() throws Exception {
+        mockMvc.perform(delete(mainUrl)
                         .param("key", ""))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void deleteImageByKey_ShouldReturnInternalServerError_WhenServiceFails() throws Exception {
-        // Arrange
-        String key = "valid-key";
-
-        Mockito.when(postResourceService.deletePostImageByKey(key))
-                .thenThrow(new RuntimeException("Internal Server Error"));
-
-        // Act & Assert
-        mockMvc.perform(delete(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.RESOURCE)
-                        .param("key", key))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void deleteImageByKey_ShouldReturnNotFound_WhenKeyDoesNotExist() throws Exception {
-        Long postId = 1L;
-
+    void deleteImageByKeyResourceNotFoundFailTest() throws Exception {
         String key = "nonexistent-key";
         String errorMessage = "Resource with key '" + key + "' not found";
 
-        Mockito.when(postResourceService.deletePostImageByKey(key))
-                .thenThrow(new IllegalArgumentException(errorMessage));
+        when(postResourceService.deleteImageByKey(key))
+                .thenThrow(new EntityNotFoundException(errorMessage));
 
-
-        mockMvc.perform(delete(UrlUtils.MAIN_URL + UrlUtils.V1 + UrlUtils.POSTS + UrlUtils.ID, postId)
-                        .param("", key))
-                .andExpect(status().isBadRequest())
+        mockMvc.perform(delete(mainUrl)
+                        .param("key", key))
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+   @Test
+    void getImageByKey_ShouldReturnImage_WhenKeyExists() throws Exception {
+        Long postId = 1L;
+        String key = "valid-key";
+        byte[] imageData = "fakeImageData".getBytes();
+
+        when(postResourceService.getImageByKey(key)).thenReturn(imageData);
+
+
+        mockMvc.perform(get(mainUrl + UrlUtils.ID + UrlUtils.IMAGE, postId)
+                        .param("key", key))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_JPEG_VALUE))
+                .andExpect(content().bytes(imageData));
+    }
+
+    @Test
+    void getImageByKeyWhenKeyIsBlankFailTest() throws Exception {
+        Long postId = 1L;
+        String key = "";
+
+        mockMvc.perform(get(mainUrl + UrlUtils.ID + UrlUtils.IMAGE, postId)
+                        .param("key", key))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getImagesByKeyWhenPostIdIsInvalidFailTest() throws Exception {
+        Long postId = 0L;
+        String key = "valid-key";
+
+        mockMvc.perform(get(mainUrl + UrlUtils.ID + UrlUtils.IMAGE, postId)
+                        .param("key", key))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getAllImagesByPostIdSuccessTest() throws Exception {
+        Long postId = 1L;
+        byte[] image1 = "image1Data".getBytes();
+        byte[] image2 = "image2Data".getBytes();
+        List<byte[]> images = List.of(image1, image2);
+
+        when(postResourceService.getAllImagesByPostId(postId)).thenReturn(images);
+
+        mockMvc.perform(get(mainUrl + UrlUtils.ID + UrlUtils.IMAGE + UrlUtils.ALL, postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(images.size()));
+    }
+
+
+    @Test
+    void getAllImagesByPostIdWhenPostIdIsInvalidFailTest() throws Exception {
+        Long postId = 0L;
+
+        mockMvc.perform(get(mainUrl + UrlUtils.ID + UrlUtils.IMAGE + UrlUtils.ALL, postId))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getAllImagesByPostIdWhenNoImagesExistFailTest() throws Exception {
+        Long postId = 1L;
+
+        when(postResourceService.getAllImagesByPostId(postId))
+                .thenThrow(new EntityNotFoundException("Image for id Post " + postId + " not found"));
+
+        mockMvc.perform(get(mainUrl + UrlUtils.ID + UrlUtils.IMAGE + UrlUtils.ALL, postId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Image for id Post " + postId + " not found"));
+    }
+
+    @Test
+    void deleteAllImageByPostIdSuccessTest() throws Exception {
+        Long postId = 1L;
+        List<Long> deletedImageIds = List.of(101L, 102L, 103L);
+
+        when(postResourceService.deleteAllPostImages(postId)).thenReturn(deletedImageIds);
+
+        mockMvc.perform(delete(mainUrl + UrlUtils.ID + UrlUtils.IMAGE + UrlUtils.ALL, postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(deletedImageIds.size()))
+                .andExpect(jsonPath("$[0]").value(101L))
+                .andExpect(jsonPath("$[1]").value(102L))
+                .andExpect(jsonPath("$[2]").value(103L));
+    }
+
+    @Test
+    void deleteAllImageByPostIdWhenPostIdIsInvalidFailTest() throws Exception {
+        Long postId = 0L;
+
+        mockMvc.perform(delete(mainUrl + UrlUtils.ID + UrlUtils.IMAGE + UrlUtils.ALL, postId))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteAllImageByPostIdWhenNoImagesExistFailTest() throws Exception {
+        Long postId = 1L;
+
+        when(postResourceService.deleteAllPostImages(postId))
+                .thenThrow(new EntityNotFoundException("No images found for post with ID " + postId));
+
+        mockMvc.perform(delete(mainUrl + UrlUtils.ID + UrlUtils.IMAGE + UrlUtils.ALL, postId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("No images found for post with ID " + postId));
     }
 }

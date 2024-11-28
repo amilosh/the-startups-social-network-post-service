@@ -1,6 +1,5 @@
 package faang.school.postservice.controller;
 
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.resource.ResourceDto;
@@ -95,7 +94,7 @@ public class PostController {
 
     @DeleteMapping
     public ResponseEntity<Long> deleteImageByKey(@RequestParam @NotBlank String key) {
-        Long idImage = postResourceService.deletePostImageByKey(key);
+        Long idImage = postResourceService.deleteImageByKey(key);
         return ResponseEntity.ok().body(idImage);
     }
 

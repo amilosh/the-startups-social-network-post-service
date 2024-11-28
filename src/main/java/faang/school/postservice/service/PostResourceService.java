@@ -67,8 +67,9 @@ public class PostResourceService {
     }
 
     @Transactional
-    public long deletePostImageByKey(String key) {
-        Resource resource = resourceRepository.findByKey(key);
+    public long deleteImageByKey(String key) {
+        Resource resource = getResourceOrThrow(key);
+
         resourceRepository.deleteByKey(key);
 
         s3Service.deleteFile(key);
@@ -85,7 +86,11 @@ public class PostResourceService {
     }
 
     public List<byte[]> getAllImagesByPostId(Long postId) {
-        List<String> listKeys = resourceRepository.getAllKeysForPost(postId);
+        List<String> listKeys = resourceRepository.getAllKeysForPost(postId).orElseThrow(()
+                -> {
+            log.error("Image for id Post '{}' not found", postId);
+            return new EntityNotFoundException("Image for id Post " + postId + " not found");
+        });
         List<byte[]> bytesList = new ArrayList<>();
         listKeys.forEach(key -> {
             try (InputStream inputStream = s3Service.downloadFile(key)) {
@@ -100,10 +105,14 @@ public class PostResourceService {
 
     @Transactional
     public List<Long> deleteAllPostImages(Long postId) {
-        List<String> allKeys = resourceRepository.getAllKeysForPost(postId);
+        List<String> allKeys = resourceRepository.getAllKeysForPost(postId).orElseThrow(()
+                -> {
+            log.error("Image for id Post '{}' not found", postId);
+            return new EntityNotFoundException("Image for id Post " + postId + " not found");
+        });
         List<Long> listIdResources = new ArrayList<>();
         if (!allKeys.isEmpty()) {
-            listIdResources = allKeys.stream().map(key -> resourceRepository.findByKey(key).getId()).toList();
+            listIdResources = allKeys.stream().map(key -> getResourceOrThrow(key).getId()).toList();
             allKeys.forEach(resourceRepository::deleteByKey);
             allKeys.forEach(s3Service::deleteFile);
         }
@@ -146,15 +155,22 @@ public class PostResourceService {
         return resultImage;
     }
 
+    private Resource getResourceOrThrow(String key) {
+        return resourceRepository.findByKey(key).orElseThrow(()
+                -> {
+            log.error("Image with key '{}' not found", key);
+            return new EntityNotFoundException("Image with key '" + key + "' not found");
+        });
+    }
 
     private Post getPostOrThrow(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> {
-                    log.error("Error: Post with id " + postId + " was deleted");
+                    log.error("Error: Post with id {} was deleted", postId);
                     return new EntityNotFoundException("Post not found with ID: " + postId);
                 });
         if (post.isDeleted()) {
-            log.error("Error: Post with id " + postId + "was deleted");
+            log.error("Error: Post with id {}was deleted", postId);
             throw new IllegalArgumentException("Error: Post with id " + postId + "was deleted");
         }
         return post;
@@ -163,8 +179,8 @@ public class PostResourceService {
     private void checkImagesCountForPost(Long postId) {
         if (resourceRepository.countImagesForPostById(postId) > maxCountImagesForPost) {
             log.error("One post can has {} images, not more  postId={}", maxCountImagesForPost, postId);
-            throw new IllegalArgumentException(String.format("One post can has %d images, not more  postId=%d", maxCountImagesForPost, postId));
+            throw new IllegalArgumentException(String.format("One post can has %d images, not more  postId=%d",
+                    maxCountImagesForPost, postId));
         }
     }
-
 }
