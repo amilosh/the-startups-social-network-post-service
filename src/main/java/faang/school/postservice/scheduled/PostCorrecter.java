@@ -24,9 +24,11 @@ public class PostCorrecter {
     public void checkSpelling() {
 //        List<Post> posts = postRepository.findByPublishedFalse();
 //        posts.forEach(postService::checkSpelling);
-        Post post = Post.builder().content("This is errror from exeption").build();
-
-        postService.checkSpelling(post);
+        Post post = Post.builder().content("This is errror. From exeption").build();
+        Post post2 = Post.builder().content("This is error").build();
+        List<Post> posts = List.of(post, post2);
+        posts = postService.checkSpelling(posts);
+        postRepository.saveAll(posts);
     }
 
 }

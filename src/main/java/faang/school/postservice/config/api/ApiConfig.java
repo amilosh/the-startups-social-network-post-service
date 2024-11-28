@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class ApiConfig {
 
-    @Value("${api.key}")
+//    @Value("${api.key}")
     private String apiKey;
 
-    @Value("${api.endpoint}")
+//    @Value("${api.endpoint}")
     private String apiEndpoint;
 
 }

@@ -18,11 +18,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 //import org.springframework.retry.annotation.Backoff;
 //import org.springframework.retry.annotation.Retryable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -127,46 +127,65 @@ public class PostService {
 
     //    @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,
 //            backoff = @Backoff(delay = 1000,multiplier = 2))
-    @Async("taskExecutor")
-    public void checkSpelling(Post post) {
-        String json = "{"
-                + " \"language\": \"enUS\","
-                + " \"fieldvalues\": \"" + post.getContent().replace("\"", "\\\"") + "\","
-                + " \"config\": {"
-                + "     \"forceUpperCase\": false,"
-                + "     \"ignoreIrregularCaps\": false,"
-                + "     \"ignoreFirstCaps\": true,"
-                + "     \"ignoreNumbers\": true,"
-                + "     \"ignoreUpper\": false,"
-                + "     \"ignoreDouble\": false,"
-                + "     \"ignoreWordsWithNumbers\": true"
-                + " }"
-                + "}";
+    public List<Post> checkSpelling(List<Post> posts) {
+        String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Content-Type", "application/json");
         headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
         headers.set("x-rapidapi-key", API_KEY);
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
         RestTemplate restTemplate = new RestTemplate();
         String response = restTemplate.postForObject(API_ENDPOINT, requestEntity, String.class);
         JSONObject jsonObject = new JSONObject(response);
         int errorCount = jsonObject.getInt("spellingErrorCount");
         if (errorCount == 0) {
-            return;
+            return posts;
         }
-        setCorrectContent(jsonObject, post);
-        log.info("Added corrected content {} to the post {}", post.getContent(), post.getId());
-        postRepository.save(post);
+        int i = 0;
+        for (Post post : posts) {
+            setCorrectContent(jsonObject,post,i);
+            i++;
+        }
+        return posts;
     }
 
-    private void setCorrectContent(JSONObject jsonObject, Post post) {
+    private String getJsonFromPosts(List<Post> posts) {
+        List<String> contentFromPosts = new ArrayList<>();
+        posts.forEach(post -> {
+            StringBuilder contentBuilder = new StringBuilder();
+            contentBuilder.append(post.getId());
+            contentBuilder.append(":");
+            contentBuilder.append(post.getContent());
+            contentFromPosts.add(contentBuilder.toString());
+        });
+        JSONObject json = new JSONObject();
+        json.put("language", "enUS");
+        JSONArray fieldvalues = new JSONArray();
+        contentFromPosts.forEach(content -> fieldvalues.put(escapeJson(content)));
+        json.put("fieldvalues", fieldvalues);
+        JSONObject config = new JSONObject();
+        config.put("forceUpperCase", false)
+                .put("ignoreIrregularCaps", false)
+                .put("ignoreFirstCaps", true)
+                .put("ignoreNumbers", true)
+                .put("ignoreUpper", false)
+                .put("ignoreDouble", false)
+                .put("ignoreWordsWithNumbers", true);
+        json.put("config", config);
+        return json.toString();
+    }
+
+    private void setCorrectContent(JSONObject jsonObject, Post post, int id) {
         String content = post.getContent();
-        int errorCount = jsonObject.getInt("spellingErrorCount");
         JSONArray elementsArray = jsonObject.getJSONArray("elements");
-        JSONObject firstElement = elementsArray.getJSONObject(0);
+        JSONObject firstElement = elementsArray.getJSONObject(id);
         JSONArray errorsArray = firstElement.getJSONArray("errors");
-        for (int i = 0; i < errorCount; i++) {
+        int size = errorsArray.length();
+        if (size == 0) {
+            return;
+        }
+        for (int i = 0; i < size; i++) {
             JSONObject error = errorsArray.getJSONObject(i);
             String word = error.getString("word");
             JSONArray suggestionsArray = error.getJSONArray("suggestions");
@@ -174,6 +193,12 @@ public class PostService {
             content = content.replace(word, correctWord);
         }
         post.setContent(content);
+        log.info("Added corrected content {} to the post {}", post.getContent(), post.getId());
+    }
+
+    private static String escapeJson(String data) {
+        return data.replace("\\", "\\\\")
+                .replace("\"", "\\\"");
     }
 
     private void validateUserExist(Long id) {
