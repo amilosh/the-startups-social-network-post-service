@@ -14,9 +14,8 @@ import java.util.Set;
 @Getter
 @Builder
 @ToString
-@RedisHash(value = "Feed")
 public class FeedCacheDto implements Serializable {
-    @Id
+
     private Long subscriberId;
     private Set<Long> postsIds;
 }

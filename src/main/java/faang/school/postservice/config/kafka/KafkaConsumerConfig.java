@@ -10,7 +10,6 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.HashMap;
@@ -52,8 +51,8 @@ public class KafkaConsumerConfig {
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 JsonDeserializer.class);
 
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES
-                , kafkaProperties.getConsumerConfig().getTrustedPackages());
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES,
+                kafkaProperties.getConsumerConfig().getTrustedPackages());
 
         return new DefaultKafkaConsumerFactory<>(configProps,
                 new StringDeserializer(), new JsonDeserializer<>());

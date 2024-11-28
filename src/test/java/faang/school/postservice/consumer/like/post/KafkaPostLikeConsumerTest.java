@@ -1,8 +1,8 @@
 package faang.school.postservice.consumer.like.post;
 
 import faang.school.postservice.config.properties.kafka.KafkaProperties;
-import faang.school.postservice.event.kafka.post.like.PostLikeKafkaEvent;
-import faang.school.postservice.repository.redis.PostCacheRepository;
+import faang.school.postservice.event.kafka.like.PostLikeKafkaEvent;
+import faang.school.postservice.repository.cache.post.PostCacheRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class KafkaPostLikeConsumerTest {
 
     @Mock
-    private PostCacheRepository postCacheRepository;
+    private PostCacheRepositoryImpl postCacheRepository;
     @Mock
     private RedissonClient redissonClient;
     @Mock

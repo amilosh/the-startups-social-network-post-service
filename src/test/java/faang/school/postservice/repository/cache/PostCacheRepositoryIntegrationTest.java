@@ -1,8 +1,9 @@
-package faang.school.postservice.repository.redis;
+package faang.school.postservice.repository.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.config.redis.RedisProperties;
-import faang.school.postservice.dto.post.PostCacheDto;
+import faang.school.postservice.dto.cache.post.PostCacheDto;
+import faang.school.postservice.repository.cache.post.PostCacheRepositoryImpl;
 import faang.school.postservice.util.BaseContextTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class PostCacheRepositoryIntegrationTest extends BaseContextTest {
 
     @Autowired
-    private PostCacheRepository postCacheRepository;
+    private PostCacheRepositoryImpl postCacheRepository;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
     @Autowired
@@ -32,9 +33,7 @@ public class PostCacheRepositoryIntegrationTest extends BaseContextTest {
                 .postId(1L)
                 .content("This is test")
                 .authorId(3L)
-                .likeAuthorId(10L)
-                .likesCount(4L)
-                .commentsCount(2L)
+                .likesCount(4)
                 .build();
     }
 
@@ -48,12 +47,8 @@ public class PostCacheRepositoryIntegrationTest extends BaseContextTest {
             assertEquals(authorId, 3);
             long postId = foundDto.get().getPostId();
             assertEquals(postId, 1);
-            long likeAuthorId = foundDto.get().getLikeAuthorId();
-            assertEquals(likeAuthorId, 10);
             long likesCount = foundDto.get().getLikesCount();
             assertEquals(likesCount, 4);
-            long commentsCount = foundDto.get().getCommentsCount();
-            assertEquals(commentsCount, 2);
             String content = foundDto.get().getContent();
             assertEquals(content, "This is test");
         }

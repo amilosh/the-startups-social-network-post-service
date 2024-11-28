@@ -27,7 +27,6 @@ spring:
       maxPostCountInFeed: 500
       defaultTtl: 12 # hours
       commentTtl: 24 # hours
-      postPrefix: "Post"
       redissonAddress: redis://localhost:6379
       channels:
         calculationsChannel:

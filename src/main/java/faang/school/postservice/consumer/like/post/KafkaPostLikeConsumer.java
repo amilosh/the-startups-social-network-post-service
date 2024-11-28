@@ -1,8 +1,8 @@
 package faang.school.postservice.consumer.like.post;
 
 import faang.school.postservice.config.properties.kafka.KafkaProperties;
-import faang.school.postservice.event.kafka.post.like.PostLikeKafkaEvent;
-import faang.school.postservice.repository.redis.PostCacheRepository;
+import faang.school.postservice.event.kafka.like.PostLikeKafkaEvent;
+import faang.school.postservice.repository.cache.post.PostCacheRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class KafkaPostLikeConsumer {
 
-    private final PostCacheRepository postCacheRepository;
+    private final PostCacheRepositoryImpl postCacheRepository;
     private final RedissonClient redissonClient;
     private final KafkaProperties kafkaProperties;
 

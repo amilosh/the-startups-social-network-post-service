@@ -14,7 +14,6 @@ public class KafkaProperties {
     private ConsumerConfig consumerConfig;
     private ProducerConfig producerConfig;
     private Topics topics;
-    private ConsumerConfig consumerConfig;
 
     @Getter
     @Setter
@@ -27,6 +26,7 @@ public class KafkaProperties {
         private int interval;
         private int maxPollRecords;
         private int sessionTimeout;
+        private String trustedPackages;
     }
 
     @Getter
@@ -37,18 +37,6 @@ public class KafkaProperties {
         private String acks;
         private int retries;
         private boolean idempotence;
-    }
-
-    @Getter
-    @Setter
-    public static class ConsumerConfig {
-
-        private String bootstrapServersConfig;
-        private String groupId;
-        private String autoOffsetReset;
-        private boolean autoCommit;
-        private int maxPollRecords;
-        private String trustedPackages;
     }
 
     @Getter
