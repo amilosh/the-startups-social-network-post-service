@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Cache Heat", description = "Operations for cache heating process")
-public class FeedControllerHeat {
+public class FeedHeatController {
 
     private final KafkaHeatTaskProducer heatTaskProducer;
 

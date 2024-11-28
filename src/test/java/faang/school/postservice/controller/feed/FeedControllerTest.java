@@ -36,9 +36,6 @@ class FeedControllerTest {
     @Autowired
     MockMvc mockMvc;
 
-//    @Value("${feed-posts.size}")
-//    private int feedPostsSize;
-
     @Container
     private static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:13.3")
             .withDatabaseName("testdb")
