@@ -2,6 +2,7 @@ package faang.school.postservice.repository;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cglib.core.internal.Function;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -14,6 +15,7 @@ import org.springframework.retry.annotation.Retryable;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class RedisTransactionRetryWrapper<KEY, VAL> {
     private final RedisTemplate<KEY, VAL> redisTemplate;
@@ -33,6 +35,7 @@ public class RedisTransactionRetryWrapper<KEY, VAL> {
         });
 
         if (result.isEmpty()) {
+            log.error("Optimistic lock");
             throw new OptimisticLockingFailureException("Optimistic Lock");
         }
 

@@ -35,5 +35,4 @@ public class NewsFeedController {
     public void heat() {
         newsFeedService.startHeat();
     }
-
 }

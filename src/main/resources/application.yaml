@@ -46,7 +46,8 @@ spring:
           limit: 3
         news-feed:
           capacity: 500
-          batch-size: 20
+          post-batch-size: 20
+          user-heat-batch-size: 100
         optimistic-lock-retry:
           max-attempt: 5
           delay: 300 #milliseconds

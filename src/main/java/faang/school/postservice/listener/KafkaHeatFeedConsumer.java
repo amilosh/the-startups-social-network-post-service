@@ -2,12 +2,9 @@ package faang.school.postservice.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import faang.school.postservice.cache.CommentCache;
-import faang.school.postservice.mapper.comment.CommentCacheMapper;
-import faang.school.postservice.message.CommentPublishMessage;
 import faang.school.postservice.message.HeatFeedBatchMessage;
 import faang.school.postservice.message.HeatFeedUserMessage;
-import faang.school.postservice.repository.PostRedisRepository;
+import faang.school.postservice.service.NewsFeedService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,6 +19,7 @@ import java.util.List;
 public class KafkaHeatFeedConsumer {
 
     private final ObjectMapper mapper;
+    private final NewsFeedService newsFeedService;
 
     @KafkaListener(topics = "${spring.kafka.topic.heat-feed-publisher}")
     public void consume(String message, Acknowledgment ack) {
@@ -30,7 +28,11 @@ public class KafkaHeatFeedConsumer {
 
             HeatFeedBatchMessage heatFeedBatchMessage = mapper.readValue(message, HeatFeedBatchMessage.class);
             List<HeatFeedUserMessage> heatFeedUsers = heatFeedBatchMessage.getMessages();
-            heatFeedUsers.forEach(System.out::println);
+            heatFeedUsers.forEach(heatFeedUser -> {
+                Long userId = heatFeedUser.getUserId();
+                List<Long> followingIds = heatFeedUser.getFollowingIds();
+                newsFeedService.heatFeed(userId, followingIds);
+            });
 
             ack.acknowledge();
 

@@ -1,10 +1,13 @@
 package faang.school.postservice.repository;
 
+import faang.school.postservice.cache.PostCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -20,10 +23,10 @@ public class NewsFeedRedisRepository {
     @Value("${spring.data.redis.cache.news-feed.capacity}")
     private long feedCapacity;
 
-    @Value("${spring.data.redis.cache.news-feed.batch-size}")
+    @Value("${spring.data.redis.cache.news-feed.post-batch-size}")
     private int batchSize;
 
-    public void addPostId(Long postId, Long userId, long createdAt) {
+    public void addPostId(Long postId, Long userId, long publishedAt) {
         String key = "news-feed-" + userId;
         longRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(key);
@@ -32,9 +35,24 @@ public class NewsFeedRedisRepository {
             if (feedSize == feedCapacity) {
                 operations.opsForZSet().popMin(key);
             }
-            operations.opsForZSet().add(key, postId, createdAt);
+            operations.opsForZSet().add(key, postId, publishedAt);
             return operations.exec();
         });
+    }
+
+    public void addAllPost(List<PostCache> posts, Long userId) {
+        String key = "news-feed-" + userId;
+        longRedisTemplateWrapper.executeWithRetry(operations -> {
+            operations.watch(key);
+            operations.multi();
+            posts.forEach(post -> {
+                Long postId = post.getId();
+                long publishedAt = convertToMillis(post);
+                operations.opsForZSet().add(key, postId, publishedAt);
+            });
+            return operations.exec();
+        });
+
     }
 
     public List<Long> getPostIdsBatch(Long userId, Long firstExclusivePostId) {
@@ -60,8 +78,13 @@ public class NewsFeedRedisRepository {
             operations.opsForZSet().reverseRangeByScore(key, 0, Double.MAX_VALUE, 0, batchSize);
             return operations.exec();
         });
-
         return new ArrayList<>(postIdsSet);
+    }
+
+    private long convertToMillis(PostCache post) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime zonedDateTime = post.getPublishedAt().atZone(zoneId);
+        return zonedDateTime.toInstant().toEpochMilli();
     }
 }
 
