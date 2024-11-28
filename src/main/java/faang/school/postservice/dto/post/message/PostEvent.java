@@ -17,5 +17,6 @@ import java.util.List;
 public class PostEvent {
     private long postId;
     private long authorId;
+    private LocalDateTime publishedAt;
     private List<Long> subscribers;
 }

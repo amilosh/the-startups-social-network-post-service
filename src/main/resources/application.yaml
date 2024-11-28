@@ -132,5 +132,10 @@ executor:
   maximumPoolSize: 10
   keepAliveTime: 60
 
+batchSize:
+  BatchSizeSubscribers: 100
+
+thread-pool-config:
+  size: 4
 feed:
   maxFeedSize: 300
