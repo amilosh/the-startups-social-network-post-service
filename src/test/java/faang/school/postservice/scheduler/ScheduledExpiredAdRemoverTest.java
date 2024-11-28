@@ -51,7 +51,7 @@ public class ScheduledExpiredAdRemoverTest {
 
         InOrder inOrder = inOrder(adRepository, adService);
         inOrder.verify(adRepository, times(1)).findAllExpiredAds();
-        inOrder.verify(adService, times(3)).deleteAds(anyList()); // maxListSize=1, поэтому 3 вызова удаления
+        inOrder.verify(adService, times(3)).deleteAds(anyList());
     }
 
     @Test
@@ -61,6 +61,21 @@ public class ScheduledExpiredAdRemoverTest {
         scheduledExpiredAdRemover.deleteExpiredAdsScheduled();
 
         verify(adRepository, times(1)).findAllExpiredAds();
-        verify(adService, never()).deleteAds(anyList()); // Убедимся, что deleteAds не вызывается
+        verify(adService, never()).deleteAds(anyList());
+    }
+
+    @Test
+    void deleteExpiredAdsScheduledException() {
+        when(adRepository.findAllExpiredAds()).thenThrow(new RuntimeException("Database error"));
+
+        try {
+            scheduledExpiredAdRemover.deleteExpiredAdsScheduled();
+        } catch (Exception e) {
+            assert(e instanceof RuntimeException);
+            assert(e.getMessage().contains("Ошибка при удалении устаревших объявлений"));
+        }
+
+        verify(adRepository, times(1)).findAllExpiredAds();
+        verifyNoMoreInteractions(adRepository, adService);
     }
 }
