@@ -61,4 +61,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> getUserPublishedPostsByDateRange(@Param("authorId") Long authorId,
                                                 @Param("startDate") LocalDateTime startDate,
                                                 @Param("endDate") LocalDateTime endDate);
+
+    @Query(nativeQuery = true, value = "SELECT p.* FROM post p WHERE p.author_id IN (:authorIds) order by published_at desc limit :limit")
+    List<Post> findAllByAuthorIdIn(List<Long> authorIds, int limit);
 }
