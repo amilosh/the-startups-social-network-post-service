@@ -44,6 +44,7 @@ public interface PostMapper {
 
     List<PostResponseDto> listEntitiesToListDto(List<Post> posts);
 
+
     PostResponseDto toDto(PostCacheDto postCacheDto);
 
     List<PostResponseDto> postCacheDtoToPostResponseDto(List<PostCacheDto> postCacheDtos);
