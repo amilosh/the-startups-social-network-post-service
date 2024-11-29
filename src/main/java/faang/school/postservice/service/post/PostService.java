@@ -75,7 +75,8 @@ public class PostService {
     }
 
     @Transactional
-    public PostDraftResponseDto createDraftPostWithFiles(PostDraftWithFilesCreateDto dto, MultipartFile[] files) throws IOException {
+    public PostDraftResponseDto createDraftPostWithFiles(
+            PostDraftWithFilesCreateDto dto, MultipartFile[] files) throws IOException {
         validateUserOrProject(dto.getAuthorId(), dto.getProjectId());
         fileValidator.checkFiles(files);
         Post post = postMapper.toEntityFromDraftDtoWithFiles(dto);
@@ -105,7 +106,9 @@ public class PostService {
         return postMapper.toDtoFromPost(postRepository.save(post));
     }
 
-    public PostResponseDto updatePostWithFiles(@Positive long postId, @NotNull @Valid PostUpdateDto dto, MultipartFile[] files) throws IOException {
+    @Transactional
+    public PostResponseDto updatePostWithFiles(
+            @Positive long postId, @NotNull @Valid PostUpdateDto dto, MultipartFile[] files) throws IOException {
         fileValidator.checkFiles(files);
         Post post = getPostById(postId);
         fileValidator.checkingTotalOfFiles(files.length, post.getResources().size());
@@ -129,7 +132,8 @@ public class PostService {
 
     public Post findPostById(Long postId) {
         postIdValidator.postIdValidate(postId);
-        return postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Comment not found"));
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
     }
 
     public PostResponseDto getPost(@Positive long postId) {
@@ -142,19 +146,27 @@ public class PostService {
     }
 
     public List<PostDraftResponseDto> getDraftPostsByUserIdSortedCreatedAtDesc(long userId) {
-        return postRepository.findByNotPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream().map(postMapper::toDraftDtoFromPost).toList();
+        return postRepository.findByNotPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream()
+                .map(postMapper::toDraftDtoFromPost)
+                .toList();
     }
 
     public List<PostDraftResponseDto> getDraftPostsByProjectIdSortedCreatedAtDesc(long projectId) {
-        return postRepository.findByNotPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream().map(postMapper::toDraftDtoFromPost).toList();
+        return postRepository.findByNotPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream()
+                .map(postMapper::toDraftDtoFromPost)
+                .toList();
     }
 
     public List<PostResponseDto> getPublishPostsByUserIdSortedCreatedAtDesc(long userId) {
-        return postRepository.findByPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream().map(postMapper::toDtoFromPost).toList();
+        return postRepository.findByPublishedAndNotDeletedAndAuthorIdOrderCreatedAtDesc(userId).stream()
+                .map(postMapper::toDtoFromPost)
+                .toList();
     }
 
     public List<PostResponseDto> getPublishPostsByProjectIdSortedCreatedAtDesc(long projectId) {
-        return postRepository.findByPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream().map(postMapper::toDtoFromPost).toList();
+        return postRepository.findByPublishedAndNotDeletedAndProjectIdOrderCreatedAtDesc(projectId).stream()
+                .map(postMapper::toDtoFromPost)
+                .toList();
     }
 
     public void allAuthorIdWithNotVerifyComments() {
@@ -183,7 +195,8 @@ public class PostService {
         }
     }
 
-    private void uploadAndAddFiles(List<Resource> resources, MultipartFile[] files, Post post) throws IOException {
+    private void uploadAndAddFiles(
+            List<Resource> resources, MultipartFile[] files, Post post) throws IOException {
         String folder = String.format("%d:%s:%d", post.getAuthorId(), "files", post.getProjectId());
         for (MultipartFile file : files) {
             String key = keyKeeper.getKeyFile(folder);
@@ -195,6 +208,9 @@ public class PostService {
     }
 
     private void removeIrrelevantResourcesFromMinio(List<Resource> resourcesFromDateBase, List<Resource> resourcesToUpdate) {
+        if (resourcesToUpdate == null) {
+            resourcesToUpdate = new ArrayList<>();
+        }
         for (Resource resource : resourcesFromDateBase) {
             if (!resourcesToUpdate.contains(resource)) {
                 amazonS3.deleteFile(resource.getKey());
@@ -203,6 +219,12 @@ public class PostService {
     }
 
     private Resource createdResource(MultipartFile file, String key) {
-        return resourceServiceImpl.save(Resource.builder().name(file.getOriginalFilename()).key(key).size(file.getSize()).type(file.getContentType()).build());
+        return resourceServiceImpl.save(
+                Resource.builder()
+                        .name(file.getOriginalFilename())
+                        .key(key)
+                        .size(file.getSize())
+                        .type(file.getContentType())
+                        .build());
     }
 }
