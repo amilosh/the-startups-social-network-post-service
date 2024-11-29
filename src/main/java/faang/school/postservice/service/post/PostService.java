@@ -6,21 +6,16 @@ import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.EntityNotFoundException;
-import faang.school.postservice.exception.FeignClientException;
-import faang.school.postservice.exception.MessageError;
 import faang.school.postservice.exception.PostException;
-import faang.school.postservice.exception.UnauthorizedException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.redis.RedisMessagePublisher;
 import faang.school.postservice.validator.post.PostValidator;
-import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -34,6 +29,9 @@ import java.util.Map;
 public class PostService {
 
     private static final String POST = "Post";
+    private static final Integer defaultValue = 0;
+    private static final Integer addValue = 1;
+    private static final Integer banCount = 5;
 
     private final PostMapper postMapper;
     private final PostRepository postRepository;
@@ -41,15 +39,6 @@ public class PostService {
     private final RedisMessagePublisher redisMessagePublisher;
     private final UserServiceClient userServiceClient;
     private final UserContext userContext;
-
-    @Value("${count.default}")
-    private Integer defaultValue;
-
-    @Value("${count.add}")
-    private Integer addValue;
-
-    @Value("${count.ban}")
-    private Integer banCount;
 
     public PostDto createPost(PostRequestDto postRequestDtoDto) {
         postValidator.checkCreator(postRequestDtoDto);
@@ -183,16 +172,13 @@ public class PostService {
     private void handleUserBan(Long userId) {
         try {
             userContext.setUserId(defaultValue);
-            UserDto userDto;
-            try {
-                userDto = userServiceClient.getUser(userId);
-                log.info("User id is : "  + userDto.getId() + " banned : " + userDto.isBanned());
-            } catch (FeignException.NotFound e) {
-                throw new UnauthorizedException(userId, e);
-            } catch (FeignException e) {
-                String errorMessage = "There was an attempt to get %s by ID: %d".formatted("User", userId);
-                throw new FeignClientException(MessageError.FEIGN_CLIENT_UNEXPECTED_EXCEPTION.getMessage(errorMessage), e);
+            UserDto userDto = userServiceClient.getUser(userId);
+
+            if (userDto == null) {
+                log.error("User with id: {} not found.", userId);
+                return;
             }
+
             if (userDto.isBanned()) {
                 log.info("User with id: {} is already banned. Skipping...", userId);
                 return;

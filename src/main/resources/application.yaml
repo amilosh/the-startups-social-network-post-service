@@ -50,11 +50,8 @@ payment-service:
   port: 9080
 
 cron:
-  expression: 0 16 12 * * ?
+  expression: 0 25 18 * * ?
 
-count:
-  default: 0
-  add: 1
-  ban: 5
+
 
 
