@@ -164,7 +164,7 @@ public class PostService {
                 .toList();
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        log.info("Finished publishing scheduled posts");
+        log.info("Finished publishing {} scheduled posts",postsToPublish.size());
     }
 
     private Post setPublished(Post post) {

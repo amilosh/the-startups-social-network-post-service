@@ -1,5 +1,6 @@
 package faang.school.postservice.service.post;
 
+import faang.school.postservice.config.thread_pool.ThreadPoolConfig;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.exception.EntityNotFoundException;
@@ -9,6 +10,7 @@ import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.post.PostValidator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -18,11 +20,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,6 +54,14 @@ public class PostServiceTest {
 
     @Captor
     private ArgumentCaptor<Post> captor;
+
+    @Mock
+    private ThreadPoolConfig threadPoolConfig;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(postService, "batchSize", 2);
+    }
 
     @Test
     public void createPostTest() {
@@ -413,5 +426,45 @@ public class PostServiceTest {
 
         verify(postRepository).save(post);
         assertFalse(post.getLikes().contains(like));
+    }
+
+    @Test
+    public void publishScheduledPostTest() {
+        Post post1 = Post.builder()
+                .id(1L)
+                .published(false)
+                .build();
+        Post post2 = Post.builder()
+                .id(2L)
+                .published(false)
+                .build();
+        Post post3 = Post.builder()
+                .id(3L)
+                .published(false)
+                .build();
+
+        List<Post> mockPosts = new ArrayList<>(List.of(post1, post2, post3));
+        Executor executor = Executors.newFixedThreadPool(10);
+        ArgumentCaptor<List<Post>> captor = ArgumentCaptor.forClass(List.class);
+
+
+        when(threadPoolConfig.threadPoolExecutorForPublishingPosts()).thenReturn(executor);
+        when(postRepository.findReadyToPublish()).thenReturn(mockPosts);
+
+        postService.publishScheduledPosts();
+
+        verify(threadPoolConfig, times(1)).threadPoolExecutorForPublishingPosts();
+        verify(postRepository, times(1)).findReadyToPublish();
+        verify(postRepository, times(2)).saveAll(captor.capture());
+
+        List<List<Post>> capturedPosts = captor.getAllValues();
+        assertEquals(2, capturedPosts.size());
+
+        List<Post> allCapturedPosts = new ArrayList<>();
+        capturedPosts.forEach(allCapturedPosts::addAll);
+
+        assertTrue(allCapturedPosts.containsAll(mockPosts));
+        allCapturedPosts.forEach(post ->
+                assertTrue(post.isPublished()));
     }
 }
