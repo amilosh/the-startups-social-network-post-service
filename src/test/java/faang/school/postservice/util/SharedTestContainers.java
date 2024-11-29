@@ -14,7 +14,8 @@ public class SharedTestContainers {
             .withDatabaseName("testdb")
             .withUsername("admin")
             .withPassword("admin")
-            .withInitScript("schema_for_feed-controller.sql");
+            .withInitScript("schema_for_feed-controller.sql")
+            .withCreateContainerCmdModifier(cmd -> cmd.withName("feed_containers"));
 
     public static final GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>(DockerImageName.parse("redis:7.0-alpine"))
             .withExposedPorts(6379)

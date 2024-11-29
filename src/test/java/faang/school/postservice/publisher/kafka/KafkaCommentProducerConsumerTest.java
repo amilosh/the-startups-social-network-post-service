@@ -3,6 +3,7 @@ package faang.school.postservice.publisher.kafka;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.util.SharedTestContainers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -21,6 +23,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class KafkaCommentProducerConsumerTest {
 
     @Value("${spring.kafka.topics.comment}")
@@ -45,12 +48,17 @@ public class KafkaCommentProducerConsumerTest {
         registry.add("spring.kafka.bootstrap-servers", SharedTestContainers.KAFKA_CONTAINER::getBootstrapServers);
     }
 
+    @BeforeEach
+    void setUp() {
+        kafkaTemplate.flush();
+    }
+
 
     @Test
     public void testProducerAndConsumer() throws InterruptedException {
-        String key = "test-key";
+        String key = "test-key-comment";
         CommentEventKafka testEvent =
-                new CommentEventKafka(1L, 2L, 3L, "Test comment", LocalDateTime.now());
+                new CommentEventKafka(1L, 2L, 3L, "Test comment content", LocalDateTime.now());
 
         kafkaTemplate.send(topic, key, testEvent);
 
