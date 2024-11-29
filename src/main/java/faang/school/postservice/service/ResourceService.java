@@ -27,7 +27,6 @@ public class ResourceService {
     private final static int MAX_FILES = 10;
 
     private final PostService postService;
-    private final UserContext userContext;
     private final S3Service s3Service;
     private final ResourceRepository resourceRepository;
     private final PostValidator postValidator;
