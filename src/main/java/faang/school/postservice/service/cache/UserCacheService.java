@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,9 +44,7 @@ public class UserCacheService implements SingleCacheService<Long, UserDto>, Mult
                 .map(this::createKey)
                 .toList();
         return cacheRepository.getAll(userKeys, UserDto.class)
-                .map(users -> users.stream()
-                        .filter(Objects::nonNull)
-                        .toList())
+                .map(ArrayList::new)
                 .orElseGet(() -> {
                     log.warn("Cannot find users with ids {}", userIds);
                     return null;

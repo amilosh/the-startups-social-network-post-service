@@ -13,9 +13,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.Mockito.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,44 +39,55 @@ class NewsFeedAsyncCacheServiceTest {
     @Captor
     private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
-    private String userId;
+    private Long userId;
+    private String userKey;
     private Long postId;
-    private Duration ttl;
 
     @BeforeEach
     void setUp() {
-        int newsFeedSize = 3;
-        int countHoursTimeToLive = 24;
-
-        newsFeedProperties.setNewsFeedSize(newsFeedSize);
-        newsFeedProperties.setCountHoursTimeToLive(countHoursTimeToLive);
-
-        userId = "user123";
+        userId = 123L;
+        userKey = userId + "::news_feed";
         postId = 42L;
-        ttl = Duration.ofHours(countHoursTimeToLive);
+
+        newsFeedProperties.setNewsFeedSize(3);
     }
 
     @Test
     void save_shouldAddPostToCache() {
-        when(sortedSetCacheRepository.size(userId)).thenReturn(4L);
+        when(sortedSetCacheRepository.size(userKey)).thenReturn(4L);
 
         newsFeedAsyncCacheService.save(userId, postId);
 
-        verify(sortedSetCacheRepository).executeInOptimisticLock(runnableArgumentCaptor.capture(), );
+        verify(sortedSetCacheRepository).executeInOptimisticLock(runnableArgumentCaptor.capture(), eq(userKey));
         runnableArgumentCaptor.getValue().run();
-        verify(sortedSetCacheRepository).put(userId, postId, ttl);
-        verify(sortedSetCacheRepository).popMin(userId, Long.class);
+        verify(sortedSetCacheRepository).put(eq(userKey), eq(postId), anyDouble());
+        verify(sortedSetCacheRepository).popMin(userKey);
     }
 
     @Test
     void save_shouldRemoveOldestPostWhenSizeExceedsLimit() {
-        when(sortedSetCacheRepository.size(userId)).thenReturn(0L);
+        when(sortedSetCacheRepository.size(userKey)).thenReturn(0L);
 
         newsFeedAsyncCacheService.save(userId, postId);
 
-        verify(sortedSetCacheRepository).executeInOptimisticLock(runnableArgumentCaptor.capture(), );
+        verify(sortedSetCacheRepository).executeInOptimisticLock(runnableArgumentCaptor.capture(), eq(userKey));
         runnableArgumentCaptor.getValue().run();
-        verify(sortedSetCacheRepository).put(userId, postId, ttl);
-        verify(sortedSetCacheRepository, never()).popMin(userId, Long.class);
+        verify(sortedSetCacheRepository).put(eq(userKey), eq(postId), anyDouble());
+        verify(sortedSetCacheRepository, never()).popMin(userKey);
+    }
+
+    @Test
+    void getRange() {
+        int count = 5, offset = 0;
+        String stringPostId = Long.toString(postId);
+        List<Long> correctResult = List.of(1L, 2L, 3L, 4L, 5L);
+        when(sortedSetCacheRepository.getRange(userKey, stringPostId, 0, count, Long.class)).thenReturn(correctResult);
+
+        CompletableFuture<List<Long>> futureResult = newsFeedAsyncCacheService.getRange(userId, postId, count);
+        List<Long> result = futureResult.join();
+
+        verify(sortedSetCacheRepository).getRange(userKey, stringPostId, offset, count, Long.class);
+        assertNotNull(result);
+        assertEquals(correctResult, result);
     }
 }

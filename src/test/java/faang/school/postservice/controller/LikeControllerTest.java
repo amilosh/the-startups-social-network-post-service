@@ -28,7 +28,11 @@ class LikeControllerTest {
     void setUp() {
         postId = 3L;
         commentId = 3L;
-        likeDto = new LikeDto(1L, 2L, LocalDateTime.now());
+        likeDto = LikeDto.builder()
+                .id(1L)
+                .userId(2L)
+                .likeDate(LocalDateTime.now())
+                .build();
     }
     @Test
     void getUsersLikedPost_whenOk() {

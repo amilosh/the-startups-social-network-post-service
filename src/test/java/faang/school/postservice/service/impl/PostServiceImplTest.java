@@ -121,7 +121,7 @@ class PostServiceImplTest {
         postService.publishPost(postId);
 
         verify(postRepository, never()).save(post);
-        verify(newsFeedAsyncCacheService, never()).save(post.getAuthorId().toString(), postId);
+        verify(newsFeedAsyncCacheService, never()).save(post.getAuthorId(), postId);
     }
 
     @Test
@@ -132,7 +132,7 @@ class PostServiceImplTest {
 
         postService.publishPost(postId);
 
-        verify(newsFeedAsyncCacheService).save(post.getAuthorId().toString(), postId);
+        verify(newsFeedAsyncCacheService).save(post.getAuthorId(), postId);
         verify(postRepository).save(postCaptor.capture());
 
         Post post = postCaptor.getValue();

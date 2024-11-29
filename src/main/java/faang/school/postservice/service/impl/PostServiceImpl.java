@@ -15,11 +15,13 @@ import faang.school.postservice.service.AsyncPostPublishService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.service.cache.MultiSaveCacheService;
 import faang.school.postservice.service.cache.SingleCacheService;
+import faang.school.postservice.util.CollectionUtils;
 import faang.school.postservice.validator.PostValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.aspectj.weaver.Utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,7 @@ public class PostServiceImpl implements PostService {
     private final EventPublisher<PostDto> viewPostPublisher;
     private final TransactionTemplate transactionTemplate;
     private final ExecutorService newsFeedThreadPoolExecutor;
+    private final CollectionUtils collectionUtils;
 
     @Override
     public void createDraftPost(PostDto postDto) {
@@ -110,13 +113,7 @@ public class PostServiceImpl implements PostService {
         List<Post> missingPosts = postRepository.findAllById(missingPostIds);
         List<PostDto> missingPostDtos = postMapper.toDto(missingPosts);
         multiSaveCacheService.saveAll(missingPostDtos);
-
-        for (int i = 0, missingIndex = 0; i < posts.size(); i++) {
-            if (posts.get(i) == null) {
-                PostDto missingPost = missingPostDtos.get(missingIndex++);
-                posts.set(i, missingPost);
-            }
-        }
+        collectionUtils.replaceNullsWith(posts, missingPostDtos);
 
         return posts;
     }

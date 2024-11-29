@@ -16,7 +16,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -67,9 +68,7 @@ class RedisZSetCacheServiceTest {
 
     @Test
     void testPut() {
-        Duration ttl = Duration.ofMinutes(5);
-
-        redisListCacheService.put(key, value, ttl);
+        redisListCacheService.put(eq(key), eq(value), anyLong());
 
         verify(redisTemplate.opsForList()).leftPush(key, value);
     }
@@ -100,7 +99,7 @@ class RedisZSetCacheServiceTest {
         when(redisTemplate.execute(callbackCaptor.capture())).thenReturn(Collections.emptyList());
         when(mockOperations.exec()).thenReturn(Collections.emptyList());
 
-        redisListCacheService.executeInOptimisticLock(task, );
+        redisListCacheService.executeInOptimisticLock(task, key);
 
         SessionCallback<?> capturedCallback = callbackCaptor.getValue();
         capturedCallback.execute(mockOperations);
@@ -116,7 +115,7 @@ class RedisZSetCacheServiceTest {
         when(redisTemplate.execute(callbackCaptor.capture())).thenThrow(new RedisTransactionException());
 
         assertThrows(RedisTransactionException.class,
-                () -> redisListCacheService.executeInOptimisticLock(task, ));
+                () -> redisListCacheService.executeInOptimisticLock(task, key));
 
         SessionCallback<?> capturedCallback = callbackCaptor.getValue();
         doThrow(new RuntimeException("Test Exception")).when(mockOperations).exec();
@@ -136,7 +135,7 @@ class RedisZSetCacheServiceTest {
         when(redisTemplate.opsForList().leftPop(key)).thenReturn(value);
         when(objectMapper.convertValue(value, Object.class)).thenReturn(expectedObject);
 
-        Optional<Object> result = redisListCacheService.popMin(key, Object.class);
+        Optional<Object> result = redisListCacheService.popMin(key);
 
         assertTrue(result.isPresent());
         assertEquals(expectedObject, result.get());
@@ -149,7 +148,7 @@ class RedisZSetCacheServiceTest {
         when(redisTemplate.opsForList()).thenReturn(listOperations);
         when(listOperations.leftPop(key)).thenReturn(null);
 
-        Optional<Object> result = redisListCacheService.popMin(key, Object.class);
+        Optional<Object> result = redisListCacheService.popMin(key);
 
         assertTrue(result.isEmpty());
         verify(redisTemplate.opsForList()).leftPop(key);
