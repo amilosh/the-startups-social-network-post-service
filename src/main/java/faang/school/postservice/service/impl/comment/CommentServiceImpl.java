@@ -58,7 +58,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setPost(post);
         Comment savedComment = commentRepository.save(comment);
         CommentEvent event = getCommentEvent(savedComment, user, post);
-        PostCommentEvent kafkaEvent = getPostCommentEvent(savedComment);
+        PostCommentEvent kafkaEvent = commentMapper.toKafkaCommentEvent(savedComment);
         commentEventPublisher.publish(event);
         kafkaCommentProducer.publish(kafkaEvent);
         redisCacheService.saveUser(user);
@@ -124,14 +124,5 @@ public class CommentServiceImpl implements CommentService {
                 .commentId(savedComment.getId())
                 .build();
         return event;
-    }
-
-    private static PostCommentEvent getPostCommentEvent(Comment savedComment) {
-        PostCommentEvent kafkaEvent = PostCommentEvent.builder()
-                .id(savedComment.getId())
-                .authorId(savedComment.getAuthorId())
-                .postId(savedComment.getPost().getId())
-                .build();
-        return kafkaEvent;
     }
 }

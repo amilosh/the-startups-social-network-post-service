@@ -3,6 +3,7 @@ package faang.school.postservice.mapper.comment;
 import faang.school.postservice.model.dto.comment.CommentRequestDto;
 import faang.school.postservice.model.dto.comment.CommentResponseDto;
 import faang.school.postservice.model.entity.Comment;
+import faang.school.postservice.model.event.kafka.PostCommentEvent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -19,4 +20,7 @@ public interface CommentMapper {
     Comment toEntity(CommentRequestDto dto);
 
     List<CommentResponseDto> toResponseDto(List<Comment> comments);
+
+    @Mapping(target = "postId", source = "post.id")
+    PostCommentEvent toKafkaCommentEvent(Comment comment);
 }

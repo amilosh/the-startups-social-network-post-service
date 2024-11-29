@@ -23,6 +23,7 @@ spring:
       host: localhost
       ttl: 86400
       news-feed:
+        post-comments-size: 3
         time-to-live: 1
         key-prefix:
           feed: "Feed:"
