@@ -9,7 +9,6 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.filter.PostFilters;
 import faang.school.postservice.validator.post.PostValidator;
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,7 +39,7 @@ public class PostService {
     }
 
     public PostResponseDto publishPost(Long id) {
-        Post post =postValidator.validateAndGetPostById(id);
+        Post post = postValidator.validateAndGetPostById(id);
         postValidator.validatePublish(post);
         post.setPublished(true);
         post.setDeleted(false);
@@ -49,9 +48,8 @@ public class PostService {
 
     public PostResponseDto updatePost(PostUpdateDto postDto) {
         Objects.requireNonNull(postDto, "PostUpdateDto cannot be null");
-        postValidator.validateUpdate(postDto);
 
-        Post post =postValidator.validateAndGetPostById(postDto.getId());
+        Post post = postValidator.validateAndGetPostById(postDto.getId());
         post.setContent(postDto.getContent());
         return postMapper.toDto(postRepository.save(post));
     }

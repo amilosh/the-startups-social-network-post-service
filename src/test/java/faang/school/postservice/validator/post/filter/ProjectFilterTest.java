@@ -46,10 +46,8 @@ public class ProjectFilterTest {
 
         Stream<Post> posts = Stream.of(post1, post2);
 
-        // Act
         Stream<Post> result = projectPostFilter.apply(posts, filterDto);
 
-        // Assert
         List<Post> filteredPosts = result.collect(Collectors.toList());
         assertEquals(1, filteredPosts.size());
         assertEquals(projectId, filteredPosts.get(0).getProjectId());

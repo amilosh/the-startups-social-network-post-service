@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,8 +20,8 @@ public class PostResponseDto {
     private Long projectId;
     private LocalDateTime publishedAt;
     private LocalDateTime scheduledAt;
-    private boolean deleted;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
+    private List<Long> likeIds;
+    private Long countLikes;
+    private List<Long> commentIds;
 }

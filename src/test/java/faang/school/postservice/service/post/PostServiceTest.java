@@ -77,15 +77,13 @@ public class PostServiceTest {
         PostResponseDto postDto = new PostResponseDto();
         postDto.setId(postId);
 
-        // Настройка мока для метода findPostById
         when(postValidator.validateAndGetPostById(postId)).thenReturn(post);
         when(postRepository.save(post)).thenReturn(updatedPost);
         when(postMapper.toDto(updatedPost)).thenReturn(postDto);
 
-        // Вызов метода
+
         PostResponseDto result = postService.publishPost(postId);
 
-        // Проверки
         verify(postValidator).validatePublish(post);
         verify(postRepository).save(post);
         verify(postMapper).toDto(updatedPost);
@@ -113,7 +111,6 @@ public class PostServiceTest {
 
         PostResponseDto result = postService.updatePost(postDto);
 
-        verify(postValidator).validateUpdate(postDto);
         verify(postValidator).validateAndGetPostById(1L);
         verify(postRepository).save(existingPost);
         verify(postMapper).toDto(updatedPost);
@@ -182,7 +179,7 @@ public class PostServiceTest {
         when(postRepository.findAll()).thenReturn(Arrays.asList(post1, post2));
         when(postFilters.stream()).thenReturn(Stream.of(filter));
         when(filter.isApplicable(filterDto)).thenReturn(true);
-        when(filter.apply(any(), eq(filterDto))).thenReturn(Stream.of(post1,post2));
+        when(filter.apply(any(), eq(filterDto))).thenReturn(Stream.of(post1, post2));
         when(postMapper.toDtoList(anyList())).thenReturn(Arrays.asList(postDto1, postDto2));
 
         List<PostResponseDto> result = postService.getPosts(filterDto);

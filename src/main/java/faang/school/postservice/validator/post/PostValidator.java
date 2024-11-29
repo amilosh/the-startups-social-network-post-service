@@ -42,14 +42,7 @@ public class PostValidator {
 
     }
 
-    public void validateUpdate(PostUpdateDto postDto) {
-        if (postDto.getId() == null) {
-            throw new IllegalArgumentException("ID cannot be null when updating a post.");
-        }
-        if (postDto.getContent() == null || postDto.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("Content cannot be null or empty.");
-        }
-    }
+
 
     public void validatePublish(Post post) {
         if (post.isPublished()) {

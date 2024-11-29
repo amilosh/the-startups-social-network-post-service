@@ -5,18 +5,14 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostRequestDto;
 
 import java.util.Optional;
-
-import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.excaption.post.PostException;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
-import jakarta.persistence.EntityExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,43 +104,6 @@ public class PostValidateTest {
         verifyNoInteractions(userServiceClient);
     }
 
-    @Test
-    void shouldValidateUpdate() {
-
-        PostUpdateDto postDto = new PostUpdateDto();
-        postDto.setId(1L);
-        postDto.setContent("Valid content");
-
-        postValidator.validateUpdate(postDto);
-
-
-    }
-
-    @Test
-    void shouldThrowWhenIdIsNullForUpdate() {
-
-        PostUpdateDto postDto = new PostUpdateDto();
-        postDto.setContent("Valid content");
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            postValidator.validateUpdate(postDto);
-        });
-
-        assertEquals("ID cannot be null when updating a post.", exception.getMessage());
-    }
-
-    @Test
-    void shouldThrowWhenContentIsNullForUpdate() {
-        PostUpdateDto postDto = new PostUpdateDto();
-        postDto.setId(1L);
-        postDto.setContent(null);
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            postValidator.validateUpdate(postDto);
-        });
-
-        assertEquals("Content cannot be null or empty.", exception.getMessage());
-    }
 
     @Test
     void shouldValidatePublish() {

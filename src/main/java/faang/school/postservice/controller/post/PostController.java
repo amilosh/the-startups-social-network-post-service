@@ -6,7 +6,6 @@ import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.service.post.PostService;
-import io.lettuce.core.dynamic.annotation.Value;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -60,6 +59,4 @@ public class PostController {
     public List<PostResponseDto> getPost(@Valid @ModelAttribute PostFilterDto postFilterDto){
         return postService.getPosts(postFilterDto);
     }
-
-
 }
