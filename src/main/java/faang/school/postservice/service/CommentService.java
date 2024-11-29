@@ -51,7 +51,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found with ID: " + commentId));
 
-        if (commentDto.getContent() != null && commentDto.getContent().isBlank()) {
+        if (commentDto.getContent() == null && commentDto.getContent().isBlank()) {
             throw new IllegalArgumentException("Comment cannot be Empty or null");
         }
 
@@ -68,18 +68,15 @@ public class CommentService {
         if (comments.isEmpty()) {
             throw new IllegalArgumentException("Comments not found for post with ID:" + postId);
         }
-
-
         return comments.stream()
                 .sorted(Comparator.comparing(Comment::getCreatedAt).reversed())
                 .map(commentMapper::toDto)
                 .collect(Collectors.toList());
     }
-
     public void deleteCommentById(Long commentId) {
         log.info("Request to delete comment ID: {}", commentId);
         if (!commentRepository.existsById(commentId)) {
-            throw new IllegalArgumentException("Comment already deleted / Comment not found with ID: " + commentId);
+            throw new IllegalArgumentException("Comment not found with ID: " + commentId);
         }
         commentRepository.deleteById(commentId);
         log.info("Comment with ID: {} is deleted", commentId);

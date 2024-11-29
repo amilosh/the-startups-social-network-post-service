@@ -43,15 +43,7 @@ public class CommentsControllerTest {
         commentDto = createTestCommentDto();
     }
 
-    private CommentDto createTestCommentDto() {
-        CommentDto dto = new CommentDto();
-        dto.setId(1L);
-        dto.setContent("Test Comment");
-        dto.setAuthorId(100L);
-        dto.setPostId(5L);
-        dto.setCreatedAt(LocalDateTime.now());
-        return dto;
-    }
+
 
     @Test
     void createComment_Success() throws Exception {
@@ -106,5 +98,14 @@ public class CommentsControllerTest {
         return mockMvc.perform(put(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentDto)));
+    }
+    private CommentDto createTestCommentDto() {
+        CommentDto dto = new CommentDto();
+        dto.setId(1L);
+        dto.setContent("Test Comment");
+        dto.setAuthorId(100L);
+        dto.setPostId(5L);
+        dto.setCreatedAt(LocalDateTime.now());
+        return dto;
     }
 }

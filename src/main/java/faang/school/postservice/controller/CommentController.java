@@ -20,7 +20,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("comments")
+@RequestMapping("/comments")
 @RequiredArgsConstructor
 @ControllerAdvice
 public class CommentController {
