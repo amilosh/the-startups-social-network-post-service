@@ -80,7 +80,7 @@ public class RedisConfiguration {
                         .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
 
         RedisCacheConfiguration authorCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofDays(redisProperties.getPostTtl()));
+                .entryTtl(Duration.ofDays(redisProperties.getAuthorTtl()));
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
         cacheConfigurations.put("Author", authorCacheConfig);
 
