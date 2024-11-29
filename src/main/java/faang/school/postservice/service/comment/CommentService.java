@@ -30,9 +30,9 @@ public class CommentService {
         Comment comment = commentMapper.toEntity(commentRequestDto);
         comment.setLikes(new ArrayList<>());
 
-        commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
         log.info("New comment with id: {} created", comment.getId());
-        return commentMapper.toDto(comment);
+        return commentMapper.toDto(savedComment);
     }
 
     public CommentResponseDto updateComment(CommentUpdateRequestDto commentUpdateRequestDto) {

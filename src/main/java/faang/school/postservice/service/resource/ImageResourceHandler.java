@@ -1,6 +1,6 @@
 package faang.school.postservice.service.resource;
 
-import faang.school.postservice.dto.resource.ResourceType;
+import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.service.s3.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Slf4j
@@ -21,34 +21,43 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ImageResourceHandler implements ResourceHandler {
     private final S3Service s3Service;
-    private final static ResourceType type = ResourceType.IMAGE;
+    private final static String TYPE = "image";
 
     private static final int MAX_HORIZONTAL_WIDTH = 1080;
     private static final int MAX_HORIZONTAL_HEIGHT = 566;
     private static final int MAX_SQUARE_SIZE = 1080;
 
     @Override
-    public Resource addResource(MultipartFile file, String folder) {
-        log.info("File with the name {} processed by Image handler", file.getOriginalFilename());
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
+    public Resource addResource(MultipartFile file, Post post) {
+        String folder = constructFolder(post.getId());
+        String key = constructKey(folder, file.getOriginalFilename());
+
         MultipartFile processedFile = processImage(file);
-        return s3Service.uploadFile(processedFile, folder);
+
+        s3Service.uploadFile(processedFile, key);
+
+        Resource resource = new Resource();
+        resource.setKey(key);
+        resource.setSize(file.getSize());
+        resource.setCreatedAt(LocalDateTime.now());
+        resource.setName(file.getOriginalFilename());
+        resource.setType("image");
+
+        log.info("Image resource created with key {}", key);
+        return resource;
     }
 
-    @Override
-    public void deleteResource(String key) {
-        log.info("Deleting image with key {} with the image handler", key);
-        s3Service.deleteFile(key);
+    private String constructFolder(Long postId) {
+        return String.format("Post: %d/image", postId);
     }
 
-    @Override
-    public InputStream getResource(String key) {
-        log.info("Retrieving image with key {} with the image handler", key);
-        return s3Service.downloadFile(key);
-    }
-
-    @Override
-    public ResourceType getType() {
-        return type;
+    private String constructKey(String folder, String filename) {
+        return String.format("%s/%d_%s", folder, System.currentTimeMillis(), filename);
     }
 
     private MultipartFile processImage(MultipartFile file) {

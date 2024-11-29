@@ -8,17 +8,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = ResourceFileSizeValidator.class)
+@Constraint(validatedBy = ResourceFileTypeValidator.class)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidResourceFileSize {
-    String message() default "File size exceeds the allowed limit.";
+public @interface ValidResourceFileType {
+    String message() default "Invalid file type";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-
-    long maxSizeInBytes() default 100 * 1024 * 1024;
 
     String resourceType() default "other";
 }

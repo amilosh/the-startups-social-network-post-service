@@ -1,54 +1,57 @@
 package faang.school.postservice.validator.resource;
 
-import faang.school.postservice.dto.resource.ResourceDto;
-import faang.school.postservice.dto.resource.ResourceType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 
-public class ResourceFileSizeValidator implements ConstraintValidator<ValidResourceFileSize, ResourceDto> {
+public class ResourceFileSizeValidator implements ConstraintValidator<ValidResourceFileSize, Object> {
 
-    private long defaultMaxSizeInBytes;
-    private ResourceType[] applicableTypes;
+    private long maxSizeInBytes;
+    private String resourceType;
 
     @Override
     public void initialize(ValidResourceFileSize constraintAnnotation) {
-        this.defaultMaxSizeInBytes = constraintAnnotation.defaultMaxSizeInBytes();
-        this.applicableTypes = constraintAnnotation.applicableTypes();
+        this.maxSizeInBytes = constraintAnnotation.maxSizeInBytes();
+        this.resourceType = constraintAnnotation.resourceType();
     }
 
     @Override
-    public boolean isValid(ResourceDto resourceDto, ConstraintValidatorContext context) {
-        if (resourceDto == null || resourceDto.getFile() == null || resourceDto.getType() == null) {
-            return true;
-        }
-        if (!isApplicableType(resourceDto.getType())) {
+    public boolean isValid(Object value, ConstraintValidatorContext context) {
+        if (value == null) {
             return true;
         }
 
-        MultipartFile file = resourceDto.getFile();
-        ResourceType type = resourceDto.getType();
 
-        long maxSizeInBytes = getMaxSizeForResourceType(type);
-        return file.getSize() < maxSizeInBytes;
-    }
-
-    private boolean isApplicableType(ResourceType type) {
-        for (ResourceType applicableType : applicableTypes) {
-            if (applicableType == type) {
-                return true;
-            }
+        if (value instanceof MultipartFile) {
+            return isValidFile((MultipartFile) value, context);
         }
+
+
+        if (value instanceof List<?> files) {
+            return files.stream()
+                    .filter(MultipartFile.class::isInstance)
+                    .map(MultipartFile.class::cast)
+                    .allMatch(file -> isValidFile(file, context));
+        }
+
         return false;
     }
 
-    private long getMaxSizeForResourceType(ResourceType type) {
-        switch (type) {
-            case IMAGE:
-                return 5 * 1024 * 1024;
-            default:
-                return defaultMaxSizeInBytes;
+    private boolean isValidFile(MultipartFile file, ConstraintValidatorContext context) {
+        if (file == null) {
+            return true;
         }
+
+        if (file.getSize() > maxSizeInBytes) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                    String.format("File '%s' exceeds the maximum allowed size for %s: %d bytes.",
+                            file.getOriginalFilename(), resourceType, maxSizeInBytes)
+            ).addConstraintViolation();
+            return false;
+        }
+        return true;
     }
 }

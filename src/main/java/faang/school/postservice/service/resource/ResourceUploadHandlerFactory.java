@@ -1,6 +1,5 @@
 package faang.school.postservice.service.resource;
 
-import faang.school.postservice.dto.resource.ResourceType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,15 +10,15 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class ResourceHandlerFactory {
-    private final Map<ResourceType, ResourceHandler> handlers;
+public class ResourceUploadHandlerFactory {
+    private final Map<String, ResourceHandler> handlers;
 
-    public ResourceHandlerFactory(List<ResourceHandler> handlers) {
+    public ResourceUploadHandlerFactory(List<ResourceHandler> handlers) {
         this.handlers = handlers.stream()
                 .collect(Collectors.toMap(ResourceHandler::getType, Function.identity()));
     }
 
-    public ResourceHandler getHandler(ResourceType type) {
+    public ResourceHandler getHandler(String type) {
         ResourceHandler handler = handlers.get(type);
         log.info("handler for the type {} was assigned by ResourceHandleFactory", type);
         if (handler == null) {

@@ -1,21 +1,21 @@
 package faang.school.postservice.service.s3;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import faang.school.postservice.exception.FileDownloadException;
+import faang.school.postservice.exception.FileDeletionException;
 import faang.school.postservice.exception.ResourceNotFoundException;
-import faang.school.postservice.model.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
-import java.time.LocalDateTime;
+import java.net.URL;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -26,41 +26,44 @@ public class S3Service {
     @Value("${services.s3.bucketName}")
     private String bucketName;
 
-    public Resource uploadFile(MultipartFile file, String folder) {
-        long fileSize = file.getSize();
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentLength(fileSize);
-        objectMetadata.setContentType(file.getContentType());
-        String key = String.format("%s/%d/%s", folder, System.currentTimeMillis(), file.getOriginalFilename());
+    public void uploadFile(MultipartFile file, String key) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        metadata.setContentType(file.getContentType());
         try {
-            PutObjectRequest putObjectRequest = new PutObjectRequest(
-                    bucketName, key, file.getInputStream(), objectMetadata);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file.getInputStream(), metadata);
             s3Client.putObject(putObjectRequest);
+            log.info("File {} uploaded successfully with key {}", file.getOriginalFilename(), key);
         } catch (Exception e) {
-            log.error("Error occurred while uploading file {} to the cloud", file.getOriginalFilename(), e);
-            throw new ResourceNotFoundException("No stream to upload file to the cloud");
+            log.error("Error occurred while uploading file {} with key {}", file.getOriginalFilename(), key, e);
+            throw new ResourceNotFoundException("Error uploading file to S3");
         }
-        Resource resource = new Resource();
-        resource.setKey(key);
-        resource.setSize(fileSize);
-        resource.setCreatedAt(LocalDateTime.now());
-        resource.setName(file.getOriginalFilename());
-        resource.setType(file.getContentType());
-        return resource;
     }
 
     public void deleteFile(String key) {
-        s3Client.deleteObject(new DeleteObjectRequest(bucketName, key));
-        log.info("Successfully deleted file {} with s3Client", key);
+        try {
+            s3Client.deleteObject(new DeleteObjectRequest(bucketName, key));
+            log.info("Successfully deleted file with key {} from S3", key);
+        } catch (Exception e) {
+            log.error("Error occurred while deleting file with key {} from S3", key, e);
+            throw new FileDeletionException("Error deleting file from S3");
+        }
     }
 
-    public InputStream downloadFile(String key) {
-        try{
-            S3Object s3Object = s3Client.getObject(bucketName, key);
-            return s3Object.getObjectContent();
-        }catch (Exception e){
-            log.error("Can't get a stream to download file from the cloud", e);
-            throw new FileDownloadException("Error occurred while downloading file with the key: " + key);
+    public String generatePresignedUrl(String key) {
+        try {
+            Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
+
+            GeneratePresignedUrlRequest presignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, key)
+                    .withMethod(HttpMethod.GET)
+                    .withExpiration(expiration);
+
+            URL url = s3Client.generatePresignedUrl(presignedUrlRequest);
+            log.info("Generated pre-signed URL for key {}: {}", key, url.toString());
+            return url.toString();
+        } catch (Exception e) {
+            log.error("Error occurred while generating pre-signed URL for key {}", key, e);
+            throw new RuntimeException("Error generating pre-signed URL", e);
         }
     }
 }

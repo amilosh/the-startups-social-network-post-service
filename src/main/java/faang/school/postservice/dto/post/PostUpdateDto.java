@@ -2,8 +2,6 @@ package faang.school.postservice.dto.post;
 
 import faang.school.postservice.validator.resource.ValidResourceFileSize;
 import faang.school.postservice.validator.resource.ValidResourceFileType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,12 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Data
-public class PostRequestDto {
-    @NotNull
-    private Long authorId;
-    @NotNull
-    private Long projectId;
-    @NotBlank
+public class PostUpdateDto {
     private String content;
     @Size(max = 10, message = "You can only have 10 images in your post")
     @ValidResourceFileSize(resourceType = "image", maxSizeInBytes = 5 * 1024 * 1024)
@@ -26,4 +19,6 @@ public class PostRequestDto {
     @ValidResourceFileSize(resourceType = "audio", maxSizeInBytes = 10 * 1024 * 1024)
     @ValidResourceFileType(resourceType = "audio")
     private List<MultipartFile> audio;
+    private List<Long> imageFilesIdsToDelete;
+    private List<Long> audioFilesIdsToDelete;
 }
