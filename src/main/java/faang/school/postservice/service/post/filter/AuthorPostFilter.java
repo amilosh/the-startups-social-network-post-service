@@ -14,7 +14,6 @@ public class AuthorPostFilter implements PostFilters {
 
     @Override
     public Stream<Post> apply(Stream<Post> posts, PostFilterDto filterDto) {
-        postValidator.validateUserExist(filterDto.getAuthorId());
         return posts.filter(post -> post.getAuthorId().equals(filterDto.getAuthorId()));
     }
 

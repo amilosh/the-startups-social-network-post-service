@@ -34,8 +34,9 @@ public class PostService {
 
         post.setPublished(false);
         post.setDeleted(false);
-        postRepository.save(post);
-        return postMapper.toDto(post);
+        Post savePost = postRepository.save(post);
+
+        return  postMapper.toDto(savePost);
     }
 
     public PostResponseDto publishPost(Long id) {
@@ -43,6 +44,7 @@ public class PostService {
         postValidator.validatePublish(post);
         post.setPublished(true);
         post.setDeleted(false);
+
         return postMapper.toDto(postRepository.save(post));
     }
 

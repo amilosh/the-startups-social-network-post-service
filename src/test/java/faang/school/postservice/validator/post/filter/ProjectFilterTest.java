@@ -51,8 +51,6 @@ public class ProjectFilterTest {
         List<Post> filteredPosts = result.collect(Collectors.toList());
         assertEquals(1, filteredPosts.size());
         assertEquals(projectId, filteredPosts.get(0).getProjectId());
-
-        verify(postValidator).validateProjectExist(projectId); // Проверяем вызов валидации
     }
 
     @Test

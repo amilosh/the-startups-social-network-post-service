@@ -49,7 +49,6 @@ public class AuthorPostFilterTest {
         assertEquals(1, filteredPosts.size());
         assertEquals(authorId, filteredPosts.get(0).getAuthorId());
 
-        verify(postValidator).validateUserExist(authorId); // Проверяем вызов валидации
     }
 
 
