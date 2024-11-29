@@ -2,14 +2,17 @@ package faang.school.postservice.redis.service.impl;
 
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.PostDto;
+import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
+import faang.school.postservice.redis.mapper.CommentRedisMapper;
 import faang.school.postservice.redis.mapper.PostCacheMapper;
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
 import faang.school.postservice.redis.model.entity.PostCache;
 import faang.school.postservice.redis.repository.PostCacheRedisRepository;
 import faang.school.postservice.redis.service.FeedCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
+import faang.school.postservice.repository.CommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -21,10 +24,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -50,17 +55,22 @@ public class PostCacheServiceImpl implements PostCacheService {
     private final PostCacheMapper postCacheMapper;
     private final RedissonClient redissonClient;
     private final FeedCacheService feedCacheService;
+    private final CommentRepository commentRepository;
+    private final CommentRedisMapper commentRedisMapper;
 
     @Autowired
     public PostCacheServiceImpl(PostCacheRedisRepository postCacheRedisRepository,
                                 @Qualifier("redisCacheTemplate") RedisTemplate<String, Object> redisTemplate,
                                 PostCacheMapper postCacheMapper, RedissonClient redissonClient,
-                                FeedCacheService feedCacheService) {
+                                FeedCacheService feedCacheService, CommentRepository commentRepository,
+                                CommentRedisMapper commentRedisMapper) {
         this.postCacheRedisRepository = postCacheRedisRepository;
         this.redisTemplate = redisTemplate;
         this.postCacheMapper = postCacheMapper;
         this.redissonClient = redissonClient;
         this.feedCacheService = feedCacheService;
+        this.commentRepository = commentRepository;
+        this.commentRedisMapper = commentRedisMapper;
     }
 
     @Override
@@ -172,7 +182,12 @@ public class PostCacheServiceImpl implements PostCacheService {
     public CompletableFuture<Void> saveAllPostsToCache(List<PostDto> posts) {
 
         List<PostCache> newPostCaches = filterNewPosts(posts).stream()
-                .map(postCacheMapper::toPostCache)
+                .map(post -> {
+                    PostCache postCache = postCacheMapper.toPostCache(post);
+                    TreeSet<CommentRedisDto> lastThreeComments = getLastThreeComments(post.getId());
+                    postCache.setComments(lastThreeComments);
+                    return postCache;
+                })
                 .toList();
 
         if (!newPostCaches.isEmpty()) {
@@ -226,5 +241,15 @@ public class PostCacheServiceImpl implements PostCacheService {
         postLikes.add(like);
         postCache.setLikes(postLikes);
         postCacheRedisRepository.save(postCache);
+    }
+
+    private TreeSet<CommentRedisDto> getLastThreeComments(long postId) {
+        List<Comment> comments = commentRepository.findAllByPostId(postId);
+
+        return comments.stream()
+                .sorted(Comparator.comparing(Comment::getCreatedAt).reversed())
+                .limit(3)
+                .map(commentRedisMapper::toCommentRedisDto)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 }
