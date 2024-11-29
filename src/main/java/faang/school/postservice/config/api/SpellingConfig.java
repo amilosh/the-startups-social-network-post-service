@@ -12,5 +12,7 @@ public class SpellingConfig {
 
     private String key;
     private String endpoint;
+    private String host;
+    private String content;
 
 }

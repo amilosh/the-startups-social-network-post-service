@@ -24,6 +24,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -125,11 +128,13 @@ public class PostService {
 
     public void checkSpelling() {
         List<Post> posts = postRepository.findByPublishedFalse();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CountDownLatch countDownLatch = new CountDownLatch(posts.size());
         String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Content-Type", "application/json");
-        headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
+        headers.set("Content-Type", api.getContent());
+        headers.set("x-rapidapi-host", api.getHost());
         headers.set("x-rapidapi-key", api.getKey());
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
         String response = restTemplate.postForObject(api.getEndpoint(), requestEntity, String.class);
@@ -140,10 +145,18 @@ public class PostService {
         }
         int i = 0;
         for (Post post : posts) {
-            setCorrectContent(jsonObject, post, i);
+            int finalI = i;
+            executorService.execute(() -> setCorrectContent(jsonObject, post, finalI, countDownLatch));
             i++;
         }
-        postRepository.saveAll(posts);
+        executorService.shutdown();
+        try {
+            countDownLatch.await();
+            postRepository.saveAll(posts);
+        } catch (InterruptedException e) {
+            log.error("An interrupt error occurred in the methon of checking the spelling ", e);
+            throw new RuntimeException(e);
+        }
     }
 
     private String getJsonFromPosts(List<Post> posts) {
@@ -166,7 +179,7 @@ public class PostService {
         return json.toString();
     }
 
-    private void setCorrectContent(JSONObject jsonObject, Post post, int id) {
+    private void setCorrectContent(JSONObject jsonObject, Post post, int id, CountDownLatch countDownLatch) {
         String content = post.getContent();
         JSONArray elementsArray = jsonObject.getJSONArray("elements");
         JSONObject firstElement = elementsArray.getJSONObject(id);
@@ -184,6 +197,7 @@ public class PostService {
         }
         post.setContent(content);
         log.info("Added corrected content {} to the post {}", post.getContent(), post.getId());
+        countDownLatch.countDown();
     }
 
     private static String escapeJson(String data) {

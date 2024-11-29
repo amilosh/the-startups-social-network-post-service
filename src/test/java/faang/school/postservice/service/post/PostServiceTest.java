@@ -116,11 +116,10 @@ class PostServiceTest {
     }
 
     @Test
-    void testCheckSpellingSuccess() {
+    void testCheckSpellingSuccess() throws InterruptedException {
         String prepareDate = "{\"elements\":[{\"id\":0,\"errors\":[{\"suggestions\":" +
                 "[\"error\",\"Rorer\",\"eerier\",\"arrear\",\"rower\",\"Euro\",\"rehear\",\"err\",\"ROR\",\"Orr\"]" +
                 ",\"position\":8,\"word\":\"errror\"}]}],\"spellingErrorCount\":1}";
-
         List<Post> posts = List.of(post);
         when(postRepository.findByPublishedFalse()).thenReturn(posts);
         when(api.getKey()).thenReturn("key");
@@ -133,6 +132,7 @@ class PostServiceTest {
         verify(api, times(1)).getKey();
         verify(api, times(1)).getEndpoint();
         verify(postRepository, times(1)).saveAll(posts);
+        Thread.sleep(200);
         assertEquals("This is error", posts.get(0).getContent());
     }
 

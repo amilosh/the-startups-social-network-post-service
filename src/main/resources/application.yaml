@@ -36,6 +36,8 @@ scheduling:
 spelling:
   key: c2b61bcbe1msh7baed25073c44a3p111bcfjsn7841c9808baa
   endpoint: https://jspell-checker.p.rapidapi.com/check
+  content: application/json
+  host: jspell-checker.p.rapidapi.com
 
 logging:
   level:
