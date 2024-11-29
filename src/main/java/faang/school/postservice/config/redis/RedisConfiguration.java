@@ -109,7 +109,7 @@ public class RedisConfiguration {
     }
 
     @Bean
-    @Profile("local")
+    @Profile("prod")
     public RedissonClient redissonClient() {
         Config config = new Config();
         config.useSingleServer()

@@ -9,12 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.when;
 
@@ -23,10 +22,6 @@ public class KafkaPostLikeConsumerTest {
 
     @Mock
     private PostCacheRepositoryImpl postCacheRepository;
-    @Mock
-    private RedissonClient redissonClient;
-    @Mock
-    private RLock rlock;
     @Mock
     private KafkaProperties kafkaProperties;
     @InjectMocks
@@ -46,11 +41,9 @@ public class KafkaPostLikeConsumerTest {
 
     @Test
     @DisplayName("When method called then handle given kafka event and increment postCacheDto likesCount field by one")
-    public void whenPostIdGivenFromKafkaLikeEventThenIncrementLikesCountByOneInPostCacheDto()
-            throws InterruptedException {
-        String keyLock = "lock:Post:" + postLikeKafkaEvent.getPostId();
-        when(redissonClient.getLock(keyLock)).thenReturn(rlock);
-        when(rlock.tryLock(1, 5, TimeUnit.SECONDS)).thenReturn(true);
+    public void whenPostIdGivenFromKafkaLikeEventThenIncrementLikesCountByOneInPostCacheDto() {
+        when(postCacheRepository.incrementLikesCount(postLikeKafkaEvent.getPostId())).thenReturn(true);
         kafkaPostLikeConsumer.likePostListener(postLikeKafkaEvent);
+        Mockito.verify(postCacheRepository).incrementLikesCount(postLikeKafkaEvent.getPostId());
     }
 }

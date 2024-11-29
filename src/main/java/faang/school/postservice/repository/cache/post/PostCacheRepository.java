@@ -8,7 +8,7 @@ public interface PostCacheRepository {
 
     void save(PostCacheDto postCacheDto);
 
-    void incrementLikesCount(Long postId);
+    boolean incrementLikesCount(Long postId);
 
     Optional<PostCacheDto> findById(Long postId);
 }
