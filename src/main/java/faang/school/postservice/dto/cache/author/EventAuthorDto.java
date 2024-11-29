@@ -20,5 +20,5 @@ public class EventAuthorDto {
 
     @Id
     private Long authorId;
-    private List<Long> followers;
+    private List<Long> followerIds;
 }
