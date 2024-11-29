@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.dictionary.ModerationDictionary;
 import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
@@ -9,10 +10,15 @@ import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.PostValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -21,12 +27,16 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final PostValidator postValidator;
+    private final ModerationDictionary moderationDictionary;
+    @Value("${moderation.batch-size}")
+    private int batchSize;
 
     public ResponsePostDto create(CreatePostDto createPostDto) {
         postValidator.validateContent(createPostDto.getContent());
         postValidator.validateAuthorIdAndProjectId(createPostDto.getAuthorId(), createPostDto.getProjectId());
         postValidator.validateAuthorId(createPostDto.getAuthorId());
         postValidator.validateProjectId(createPostDto.getProjectId(), createPostDto.getAuthorId());
+
 
         if (createPostDto.getAuthorId() != null && createPostDto.getProjectId() != null) {
             createPostDto.setProjectId(null);
@@ -120,5 +130,38 @@ public class PostService {
     public Post getPostById(Long id) {
         return postRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException(String.format("Post with id: %s not found", id)));
+    }
+
+
+    @Transactional
+    public void checkAndVerifyPosts() {
+        List<Post> postsToVerify = postRepository.findAllByVerifiedDateIsNull();
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int i = 0; i < postsToVerify.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, postsToVerify.size());
+            List<Post> batch = postsToVerify.subList(i, end);
+
+            CompletableFuture<Void> future = checkAndVerifyPostsInBatch(batch);
+            futures.add(future);
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+    @Transactional
+    @Async("taskExecutor")
+    public CompletableFuture<Void> checkAndVerifyPostsInBatch(List<Post> postsToVerify) {
+        for (Post post : postsToVerify) {
+            if (moderationDictionary.containsForbiddenWord(post.getContent())) {
+                post.setVerified(false);
+            } else {
+                post.setVerified(true);
+                post.setVerifiedDate(LocalDateTime.now());
+            }
+            postRepository.save(post);
+        }
+        return CompletableFuture.completedFuture(null);
     }
 }

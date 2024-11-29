@@ -35,4 +35,6 @@ public interface PostRepository extends CrudRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.published = true AND p.deleted = false AND p.projectId = " +
             ":projectId ORDER BY p.publishedAt DESC")
     List<Post> findPublishedByProject(long projectId);
+
+    List<Post> findAllByVerifiedDateIsNull();
 }
