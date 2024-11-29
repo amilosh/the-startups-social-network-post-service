@@ -57,25 +57,9 @@ public class FeedServiceImpl implements FeedService {
         List<Long> sublist = getSubList(requestedFeed.getPostIds(), startPostId, postsPerRequest);
         List<PostCache> feedPosts = getPostsFromCache(sublist);
 
-        Set<Long> authorIds = feedPosts.stream().map(PostCache::getAuthorId).collect(Collectors.toSet());
-        Map<Long, AuthorCache> authorCaches = getAuthorsFromCache(authorIds);
-        Map<Long, AuthorRedisDto> authorRedisDtos = new HashMap<>();
-        authorCaches.forEach((key, value) ->
-                authorRedisDtos.put(key, authorCacheMapper.toAuthorRedisDto(value)));
+        Map<Long, AuthorRedisDto> authorDtos = getAuthors(feedPosts);
+        TreeSet<PostRedisDto> postRedisDtos = getPosts(feedPosts, authorDtos, sublist);
 
-        TreeSet<PostRedisDto> postRedisDtos = feedPosts.stream().map(post -> {
-            PostRedisDto postRedisDto = postCacheMapper.toPostRedisDto(post);
-            postRedisDto.setAuthor(authorRedisDtos.get(post.getAuthorId()));
-            return postRedisDto;
-        }).collect(Collectors.toCollection(TreeSet::new));
-
-        if (postRedisDtos.size() == sublist.size()) {
-            return FeedDto.builder().postRedisDtos(postRedisDtos).id(requestedFeed.getId()).build();
-        }
-        log.info("Can't find posts in Redis, try to get posts from Postgres");
-        List<Long> receivedPostIds = postRedisDtos.stream().map(PostRedisDto::getId).toList();
-        sublist.removeAll(receivedPostIds);
-        postRedisDtos.addAll(getFromPostgres(sublist));
         return FeedDto.builder().postRedisDtos(postRedisDtos).id(requestedFeed.getId()).build();
     }
 
@@ -105,7 +89,6 @@ public class FeedServiceImpl implements FeedService {
     }
 
     private TreeSet<PostRedisDto> getFromPostgres(List<Long> postIds) {
-        System.out.println("33333333"+postIds);
         List<Post> posts = postRepository.findAllById(postIds);
         if (posts.isEmpty()) {
             throw new NoSuchElementException("Posts not found in Postgres");
@@ -120,7 +103,6 @@ public class FeedServiceImpl implements FeedService {
         List<AuthorRedisDto> allAuthors = userServiceClient.getAllFollowing(feedId.toString());
         List<Long> allAuthorIds = allAuthors.stream().map(AuthorRedisDto::getId).toList();
         List<Post> allPosts = postRepository.findAllByAuthorIdIn(allAuthorIds, postsSize);
-        allPosts.forEach(post -> System.out.println(post.getId() + " " + post.getAuthorId() + " " + post.getContent()));
         return FeedDto.builder().id(feedId).postRedisDtos(createFeedDto(allPosts, allAuthors))
                 .build();
     }
@@ -134,5 +116,42 @@ public class FeedServiceImpl implements FeedService {
             postRedisDto.getComments().forEach(comment -> comment.setPostId(post.getId()));
             return postRedisDto;
         }).collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    private Map<Long, AuthorRedisDto> getAuthors(List<PostCache> feedPosts) {
+        Set<Long> authorIds = feedPosts.stream().map(PostCache::getAuthorId).collect(Collectors.toSet());
+        Map<Long, AuthorCache> authorCaches = getAuthorsFromCache(authorIds);
+        Map<Long, AuthorRedisDto> authors = new HashMap<>();
+        authorCaches.forEach((key, value) ->
+                authors.put(key, authorCacheMapper.toAuthorRedisDto(value)));
+        if (authors.size() == authorIds.size()) {
+            return authors;
+        }
+
+        log.info("Can't find authors in Redis, try to get authors from Postgres");
+        List<Long> authorsList = authors.values().stream().map(AuthorRedisDto::getId).toList();
+        authorsList.forEach(authorIds::remove);
+        List<AuthorRedisDto> authorPostgresDtos =
+                authorCacheMapper.toAuthorRedisDtos(userServiceClient.getUsersByIds(authorIds.stream().toList()));
+        authorPostgresDtos.forEach(author -> authors.put(author.getId(), author));
+
+        return authors;
+    }
+
+    private TreeSet<PostRedisDto> getPosts(List<PostCache> feedPosts, Map<Long, AuthorRedisDto> authorDtos, List<Long> sublist) {
+        TreeSet<PostRedisDto> postRedisDtos = feedPosts.stream().map(post -> {
+            PostRedisDto postRedisDto = postCacheMapper.toPostRedisDto(post);
+            postRedisDto.setAuthor(authorDtos.get(post.getAuthorId()));
+            return postRedisDto;
+        }).collect(Collectors.toCollection(TreeSet::new));
+
+        if (postRedisDtos.size() == sublist.size()) {
+            return postRedisDtos;
+        }
+        log.info("Can't find posts in Redis, try to get posts from Postgres");
+        List<Long> receivedPostIds = postRedisDtos.stream().map(PostRedisDto::getId).toList();
+        sublist.removeAll(receivedPostIds);
+        postRedisDtos.addAll(getFromPostgres(sublist));
+        return postRedisDtos;
     }
 }
