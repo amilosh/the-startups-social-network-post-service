@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
+    checkstyle
 }
 
 group = "faang.school"
@@ -70,4 +71,30 @@ val test by tasks.getting(Test::class) { testLogging.showStandardStreams = true 
 
 tasks.bootJar {
     archiveFileName.set("service.jar")
+}
+
+checkstyle {
+    toolVersion = "10.0"
+    configFile = file("config/checkstyle/checkstyle.xml")
+}
+
+tasks.checkstyleMain {
+    source = sourceSets.main.get().allJava
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+    }
+}
+
+tasks.checkstyleTest {
+    source = sourceSets.test.get().allJava
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.checkstyleMain)
+    dependsOn(tasks.checkstyleTest)
 }
