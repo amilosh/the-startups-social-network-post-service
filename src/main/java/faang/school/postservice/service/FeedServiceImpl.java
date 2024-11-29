@@ -105,7 +105,6 @@ public class FeedServiceImpl implements FeedService {
     }
 
     private TreeSet<PostRedisDto> getFromPostgres(List<Long> postIds) {
-        System.out.println("33333333"+postIds);
         List<Post> posts = postRepository.findAllById(postIds);
         if (posts.isEmpty()) {
             throw new NoSuchElementException("Posts not found in Postgres");
