@@ -1,6 +1,7 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.properties.BatchProperties;
 import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.kafkaProducer.PostEventProducer;
@@ -20,9 +21,7 @@ public class Sender {
 
     private final UserServiceClient userServiceClient;
     private final PostEventProducer postEventProducer;
-
-//    @Value("${batchSize.BatchSizeSubscribers}")
-    private final int batchSizeSubscribers = 10;
+    private final BatchProperties batchProperties;
 
     @Async("customExecutor")
     public void batchSending(Post post) {
@@ -34,11 +33,11 @@ public class Sender {
             return;
         }
 
-        int totalBatches = (int) Math.ceil((double) userSubscribersIds.size() / batchSizeSubscribers);
+        int totalBatches = (int) Math.ceil((double) userSubscribersIds.size() / batchProperties.getBatchSizeSubscribers());
 
         for (int batchNumber = 1; batchNumber <= totalBatches; batchNumber++) {
-            int start = (batchNumber - 1) * batchSizeSubscribers;
-            int end = Math.min(start + batchSizeSubscribers, userSubscribersIds.size());
+            int start = (batchNumber - 1) * batchProperties.getBatchSizeSubscribers();
+            int end = Math.min(start + batchProperties.getBatchSizeSubscribers(), userSubscribersIds.size());
 
             List<Long> batch = userSubscribersIds.subList(start, end);
             buildAndSendEvent(post, batch);

@@ -1,6 +1,7 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.properties.BatchProperties;
 import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.kafkaProducer.PostEventProducer;
@@ -37,16 +38,14 @@ class SenderTest {
     @Mock
     private PostEventProducer postEventProducer;
 
+    @Mock
+    private BatchProperties batchProperties;
+
     @InjectMocks
     private Sender sender;
 
     @BeforeEach
-    void setUp() throws Exception {
-        Field field = Sender.class.getDeclaredField("batchSizeSubscribers");
-        field.setAccessible(true);
-        field.set(sender, 10);
-
-
+    void setUp() {
         post = Post.builder()
                 .id(1L)
                 .content("content")
@@ -61,6 +60,7 @@ class SenderTest {
     @Test
     void testBatchSending_WhenArgsValid_SuccessfulCompletion() {
         when(userServiceClient.getUserSubscribers(post.getAuthorId())).thenReturn(subscribers);
+        when(batchProperties.getBatchSizeSubscribers()).thenReturn(10);
 
         sender.batchSending(post);
 

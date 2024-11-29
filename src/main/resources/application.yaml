@@ -132,7 +132,7 @@ executor:
   maximumPoolSize: 10
   keepAliveTime: 60
 
-batchSize:
+batch:
   BatchSizeSubscribers: 100
 
 feed:

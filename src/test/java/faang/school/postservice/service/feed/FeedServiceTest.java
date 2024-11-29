@@ -1,5 +1,6 @@
 package faang.school.postservice.service.feed;
 
+import faang.school.postservice.config.properties.FeedProperties;
 import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.service.newsFeed.FeedService;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ class FeedServiceTest {
     private RedisTemplate<String, Object> redisTemplate;
     private ZSetOperations<String, Object> zSetOperations;
     private FeedService feedService;
+    private FeedProperties feedProperties;
     private int maxFeedSize = 10;
     private PostEvent postEvent;
 
@@ -41,8 +43,12 @@ class FeedServiceTest {
 
         redisTemplate = Mockito.mock(RedisTemplate.class);
         zSetOperations = Mockito.mock(ZSetOperations.class);
+        feedProperties = Mockito.mock(FeedProperties.class);
 
-        feedService = new FeedService(redisTemplate, maxFeedSize);
+        when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
+        when(feedProperties.getMaxFeedSize()).thenReturn(10);
+
+        feedService = new FeedService(redisTemplate, feedProperties);
 
         postEvent = PostEvent.builder()
                 .postId(12345)
@@ -50,8 +56,6 @@ class FeedServiceTest {
                 .publishedAt(LocalDateTime.of(2023, 10, 25, 14, 30))
                 .subscribers(List.of(1001L, 1002L))
                 .build();
-
-        when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
     }
 
     @Test
