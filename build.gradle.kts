@@ -59,6 +59,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql")
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit-jupiter:1.4.6")
     testImplementation("org.springframework.kafka:spring-kafka-test:3.3.0")
+    testImplementation("org.testcontainers:kafka")
 
     /**
      * Tests
