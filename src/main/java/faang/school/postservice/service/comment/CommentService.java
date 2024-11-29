@@ -57,7 +57,7 @@ public class CommentService {
                 postId, createCommentRequest);
         authorCacheRepository.save(EventAuthorDto.builder()
                 .authorId(userDto.getId())
-                .followers(userDto.getFollowers())
+                .followerIds(userDto.getFollowers())
                 .build());
 
         Comment comment = commentMapper.toComment(createCommentRequest);
