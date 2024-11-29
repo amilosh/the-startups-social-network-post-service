@@ -47,5 +47,5 @@ public class Comment {
     private LocalDateTime updatedAt;
 
     @Column(name = "verified")
-    private boolean verified;
+    private Boolean verified;
 }
