@@ -96,7 +96,7 @@ public class PostService {
         sendPostEvent(post, author);
         authorCacheRepository.save(EventAuthorDto.builder()
                 .authorId(author.getId())
-                .followers(author.getFollowers())
+                .followerIds(author.getFollowers())
                 .build());
 
         return postMapper.toDto(post);

@@ -23,7 +23,7 @@ public class AuthorCacheRepositoryTest {
     public void whenEventAuthorDtoPassedThenSaveItToRedis() {
         EventAuthorDto eventAuthorDto = EventAuthorDto.builder()
                 .authorId(5L)
-                .followers(List.of(10L, 20L, 30L))
+                .followerIds(List.of(10L, 20L, 30L))
                 .build();
 
         when(authorCacheRepository.save(eventAuthorDto)).thenAnswer(invocationOnMock -> null);
@@ -36,7 +36,7 @@ public class AuthorCacheRepositoryTest {
             fail();
         }
         assertEquals(resultDto.get().getAuthorId(), 5L);
-        assertEquals(resultDto.get().getFollowers().size(), 3);
-        assertEquals(resultDto.get().getFollowers().get(2), 30L);
+        assertEquals(resultDto.get().getFollowerIds().size(), 3);
+        assertEquals(resultDto.get().getFollowerIds().get(2), 30L);
     }
 }
