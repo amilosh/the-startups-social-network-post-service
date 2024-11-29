@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 public class AsyncConfig {
     @Value("${post.ad-remover.threads-count}")
     private int threadsCount;
+
     @Bean
     public ExecutorService adRemoverExecutorService() {
         return Executors.newFixedThreadPool(threadsCount);
