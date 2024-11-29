@@ -2,6 +2,7 @@ package faang.school.postservice.validator;
 
 import faang.school.postservice.exeption.DataValidationException;
 import faang.school.postservice.exeption.ImageProcessingException;
+import faang.school.postservice.model.ResourceType;
 import faang.school.postservice.util.ImageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.List;
 @Component
 public class FileValidator {
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
     private static final int MAX_WIDTH = 1080;
     private static final int MAX_HEIGHT = 1080;
     private static final int MIN_WIDTH = 200;
@@ -30,6 +31,12 @@ public class FileValidator {
         if (file.getSize() > MAX_FILE_SIZE) {
             log.warn("File size exceeds the maximum limit of 5 MB");
             throw new DataValidationException("File size exceeds the maximum limit of 5 MB");
+        }
+
+        ResourceType resourceType = ResourceType.getResourceType(file.getContentType());
+        if (resourceType != ResourceType.IMAGE) {
+            log.warn("Invalid file type, only images are allowed");
+            throw new DataValidationException("Invalid file type, only images are allowed");
         }
 
         try {

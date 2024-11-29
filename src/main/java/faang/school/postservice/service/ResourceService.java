@@ -37,7 +37,7 @@ public class ResourceService {
     public List<ResourceDto> uploadFiles(Long postId, List<MultipartFile> files) {
         Post post = postService.findPostById(postId);
 
-        postValidator.validateAuthorUpdatesPost(post, userContext.getUserId());
+        postValidator.validateAuthorUpdatesPost(post);
         fileValidator.validateNumberOfFiles(files, MAX_FILES);
         List<BufferedImage> images = files.stream()
                 .map(fileValidator::getValidatedImage)
@@ -55,13 +55,13 @@ public class ResourceService {
 
     public ResourceDto updateFiles(Long resourceId, MultipartFile file) {
         Resource resource = findResourceById(resourceId);
-        postValidator.validateAuthorUpdatesPost(resource.getPost(), userContext.getUserId());
+        postValidator.validateAuthorUpdatesPost(resource.getPost());
         fileValidator.getValidatedImage(file);
         s3Service.deleteResource(resource.getKey());
 
         BufferedImage image = fileValidator.getValidatedImage(file);
         String folder = "post_" + resource.getPost().getId();
-        String key = s3Service.uploadFile(file, folder, image);
+        String key = s3Service.uploadImageFile(file, folder, image);
         Resource updatedResource = buildResource(key, file);
 
         updateResourceFields(resource, updatedResource);
@@ -73,7 +73,7 @@ public class ResourceService {
 
     public void deleteFiles(Long resourceId) {
         Resource resource = findResourceById(resourceId);
-        postValidator.validateAuthorUpdatesPost(resource.getPost(), userContext.getUserId());
+        postValidator.validateAuthorUpdatesPost(resource.getPost());
         s3Service.deleteResource(resource.getKey());
         resourceRepository.delete(resource);
     }
@@ -95,7 +95,7 @@ public class ResourceService {
 
     private List<String> uploadFilesToCloud(List<MultipartFile> files, String folder, List<BufferedImage> images) {
         return files.stream()
-                .map(file -> s3Service.uploadFile(file, folder, images.get(files.indexOf(file))))
+                .map(file -> s3Service.uploadImageFile(file, folder, images.get(files.indexOf(file))))
                 .toList();
     }
 

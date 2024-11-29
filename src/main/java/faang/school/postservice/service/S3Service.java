@@ -25,7 +25,7 @@ public class S3Service {
     @Value("${s3.bucketName}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile file, String folder, BufferedImage image) {
+    public String uploadImageFile(MultipartFile file, String folder, BufferedImage image) {
         String type = file.getContentType();
         String originalName = file.getOriginalFilename();
         String key = String.format("%s/%d:%s", folder, System.currentTimeMillis(), originalName);
@@ -38,7 +38,7 @@ public class S3Service {
                     bucketName, key, imageUtil.bufferedImageToInputStream(image, file), objectMetadata);
             s3Client.putObject(putObjectRequest);
         } catch (Exception e) {
-            log.warn("Unable to upload file to S3: {}", e.getMessage());
+            log.warn("Unable to upload image file to S3: {}", e.getMessage());
             throw new IllegalStateException("Unable to upload file to S3", e);
         }
 
