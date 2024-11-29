@@ -24,7 +24,7 @@ public class Sender {
 //    @Value("${batchSize.BatchSizeSubscribers}")
     private final int batchSizeSubscribers = 10;
 
-    @Async("batchSendingThreadPool")
+    @Async("customExecutor")
     public void batchSending(Post post) {
         List<Long> userSubscribersIds = userServiceClient.getUserSubscribers(post.getAuthorId());
         log.info("Received {} subscribers for post {}", userSubscribersIds.size(), post.getId());

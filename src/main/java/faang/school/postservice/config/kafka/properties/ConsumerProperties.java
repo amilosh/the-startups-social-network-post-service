@@ -12,4 +12,6 @@ import org.springframework.stereotype.Component;
 public class ConsumerProperties {
     private String groupId;
     private String autoOffsetReset;
+    private Object keyDeserializer;
+    private Object valueDeserializer;
 }
