@@ -1,7 +1,6 @@
 package faang.school.postservice.dto.post;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import faang.school.postservice.model.enums.PostType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +10,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PostRequestDto {
+public class PostFilterDto {
     private Long authorId;
-    @NotNull
-    @NotBlank
-    private String content;
     private Long projectId;
+    private boolean published;
+    private PostType type;
+
 }
