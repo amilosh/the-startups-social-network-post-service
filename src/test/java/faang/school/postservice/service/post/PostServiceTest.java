@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.api.SpellingConfig;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.project.ProjectDto;
@@ -16,10 +17,14 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.http.HttpEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,10 +33,15 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 class PostServiceTest {
+
+    @Captor
+    private ArgumentCaptor<HttpEntity<String>> httpCaptor;
+
     @Mock
     private PostRepository postRepository;
 
@@ -41,8 +51,14 @@ class PostServiceTest {
     @Mock
     private ProjectServiceClient projectServiceClient;
 
+    @Mock
+    private RestTemplate restTemplate;
+
     @Spy
     private PostMapperImpl postMapper;
+
+    @Mock
+    private SpellingConfig api;
 
     @InjectMocks
     private PostService postService;
@@ -63,6 +79,7 @@ class PostServiceTest {
 
         post = new Post();
         post.setId(1L);
+        post.setContent("This is errror");
         postDto.setAuthorId(1L);
         post.setLikes(List.of(new Like(), new Like(), new Like()));
         post.setPublished(false);
@@ -96,6 +113,27 @@ class PostServiceTest {
         postResponseDto = new PostResponseDto();
         postResponseDto.setId(1L);
         postResponseDto.setAuthorId(1L);
+    }
+
+    @Test
+    void testCheckSpellingSuccess() {
+        String prepareDate = "{\"elements\":[{\"id\":0,\"errors\":[{\"suggestions\":" +
+                "[\"error\",\"Rorer\",\"eerier\",\"arrear\",\"rower\",\"Euro\",\"rehear\",\"err\",\"ROR\",\"Orr\"]" +
+                ",\"position\":8,\"word\":\"errror\"}]}],\"spellingErrorCount\":1}";
+
+        List<Post> posts = List.of(post);
+        when(postRepository.findByPublishedFalse()).thenReturn(posts);
+        when(api.getKey()).thenReturn("key");
+        when(api.getEndpoint()).thenReturn("endpoint");
+        when(restTemplate.postForObject(any(String.class), any(HttpEntity.class), eq(String.class))).thenReturn(prepareDate);
+
+        postService.checkSpelling();
+
+        verify(postRepository, times(1)).findByPublishedFalse();
+        verify(api, times(1)).getKey();
+        verify(api, times(1)).getEndpoint();
+        verify(postRepository, times(1)).saveAll(posts);
+        assertEquals("This is error", posts.get(0).getContent());
     }
 
     @Test

@@ -35,6 +35,7 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final SpellingConfig api;
+    private final RestTemplate restTemplate;
 
     public PostResponseDto createPost(PostRequestDto postDto) {
         isPostAuthorExist(postDto);
@@ -122,7 +123,8 @@ public class PostService {
         return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
-    public List<Post> checkSpelling(List<Post> posts) {
+    public void checkSpelling() {
+        List<Post> posts = postRepository.findByPublishedFalse();
         String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -130,19 +132,18 @@ public class PostService {
         headers.set("x-rapidapi-host", "jspell-checker.p.rapidapi.com");
         headers.set("x-rapidapi-key", api.getKey());
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
-        RestTemplate restTemplate = new RestTemplate();
         String response = restTemplate.postForObject(api.getEndpoint(), requestEntity, String.class);
         JSONObject jsonObject = new JSONObject(response);
         int errorCount = jsonObject.getInt("spellingErrorCount");
         if (errorCount == 0) {
-            return posts;
+            return;
         }
         int i = 0;
         for (Post post : posts) {
             setCorrectContent(jsonObject, post, i);
             i++;
         }
-        return posts;
+        postRepository.saveAll(posts);
     }
 
     private String getJsonFromPosts(List<Post> posts) {
