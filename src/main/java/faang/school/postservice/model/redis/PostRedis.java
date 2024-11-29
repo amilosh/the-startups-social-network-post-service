@@ -1,12 +1,12 @@
 package faang.school.postservice.model.redis;
 
-import faang.school.postservice.model.dto.comment.CommentResponseDto;
+import faang.school.postservice.model.event.kafka.PostCommentEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.LinkedHashSet;
 
 @Data
 @Builder
@@ -18,6 +18,6 @@ public class PostRedis {
     private String content;
     private Long authorId;
     private Long likes;
-    private List<CommentResponseDto> comments;
+    private LinkedHashSet<PostCommentEvent> comments;
     private Long views;
 }
