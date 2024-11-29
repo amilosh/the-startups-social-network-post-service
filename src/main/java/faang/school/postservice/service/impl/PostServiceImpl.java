@@ -4,29 +4,20 @@ import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.exception.DataValidationException;
-import faang.school.postservice.kafka.producer.PostProducer;
-import faang.school.postservice.mapper.RedisPostDtoMapper;
 import faang.school.postservice.mapper.PostMapper;
-import faang.school.postservice.mapper.UserWithFollowersMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.ProjectDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.model.dto.UserWithFollowersDto;
-import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.model.entity.UserShortInfo;
 import faang.school.postservice.model.enums.AuthorType;
 import faang.school.postservice.model.event.PostViewEvent;
-import faang.school.postservice.model.event.kafka.PostPublishedEvent;
+import faang.school.postservice.model.event.application.PostsPublishCommittedEvent;
 import faang.school.postservice.redis.publisher.NewPostPublisher;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.repository.UserShortInfoRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
-import faang.school.postservice.service.RedisPostService;
-import faang.school.postservice.service.RedisUserService;
 import faang.school.postservice.util.moderation.ModerationDictionary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,15 +29,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -56,13 +44,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostServiceImpl implements PostService {
 
-    private static final int REFRESH_TIME_IN_HOURS = 3;
 
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
-
-    @Value("${kafka.batch-size.follower:1000}")
-    private int followerBatchSize;
 
     @Value("${post.publisher.batch-size}")
     private int batchSize;
@@ -82,12 +66,6 @@ public class PostServiceImpl implements PostService {
     private final PostViewPublisher postViewPublisher;
     private final UserContext userContext;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final PostProducer postProducer;
-    private final UserShortInfoRepository userShortInfoRepository;
-    private final RedisUserService redisUserService;
-    private final UserWithFollowersMapper userWithFollowersMapper;
-    private final RedisPostDtoMapper redisPostDtoMapper;
-    private final RedisPostService redisPostService;
 
     @Override
     public PostDto createPost(PostDto postDto) {
@@ -124,39 +102,11 @@ public class PostServiceImpl implements PostService {
 
         post.setPublished(true);
         post.setPublishedAt(LocalDateTime.now());
-
-        log.debug("Saving author of post (user with id = {}) in DB and Redis", post.getAuthorId());
-        updateUserShortInfoIfStale(post, REFRESH_TIME_IN_HOURS);
-
-        log.debug("Saving post with id = {} in DB and Redis", post.getId());
+        log.debug("Saving post with id = {} in DB", post.getId());
         Post savedPost = postRepository.save(post);
         PostDto postDto = postMapper.toPostDto(savedPost);
-        RedisPostDto redisPostDto = redisPostDtoMapper.mapToRedisPostDto(postDto);
-        redisPostService.savePostIfNotExists(redisPostDto);
-
-        log.debug("Start sending PostPublishedEvent for post with id = {} to Kafka", post.getId());
-        List<Long> followerIds = redisUserService.getFollowerIds(post.getAuthorId());
-        PostPublishedEvent postPublishedEvent = new PostPublishedEvent(postDto.getId(), followerIds, postDto.getPublishedAt());
-        applicationEventPublisher.publishEvent(postPublishedEvent);
+        applicationEventPublisher.publishEvent(new PostsPublishCommittedEvent(List.of(savedPost)));
         return postDto;
-    }
-    //TODO в Redis тоже должно публиковаться после комита в БД
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onRequestCompleted(PostPublishedEvent postPublishedEvent) {
-        List<Long> followerIds = postPublishedEvent.getFollowerIds();
-
-        if (followerIds.isEmpty()) {
-            return;
-        }
-
-        for (int indexFrom = 0; indexFrom < followerIds.size(); indexFrom += followerBatchSize) {
-            int indexTo = Math.min(indexFrom + followerBatchSize, followerIds.size());
-            PostPublishedEvent subEvent = new PostPublishedEvent(
-                    postPublishedEvent.getPostId(),
-                    followerIds.subList(indexFrom, indexTo),
-                    postPublishedEvent.getPublishedAt());
-            postProducer.sendEvent(subEvent);
-        }
     }
 
     @Override
@@ -338,15 +288,5 @@ public class PostServiceImpl implements PostService {
 
     private PostViewEvent createPostViewEvent(PostDto post) {
         return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());
-    }
-
-    private void updateUserShortInfoIfStale(Post post, int refreshTimeInHours) {
-        Optional<LocalDateTime> lastSavedAt = userShortInfoRepository.findLastSavedAtByUserId(post.getAuthorId());
-        if (lastSavedAt.isEmpty() || lastSavedAt.get().isBefore(LocalDateTime.now().minusHours(refreshTimeInHours))) {
-            UserWithFollowersDto userWithFollowers = userServiceClient.getUserWithFollowers(post.getAuthorId());
-            UserShortInfo userShortInfo = userWithFollowersMapper.toUserShortInfo(userWithFollowers);
-            userShortInfoRepository.save(userShortInfo);
-            redisUserService.saveUser(userWithFollowersMapper.toRedisUserDto(userWithFollowers));
-        }
     }
 }

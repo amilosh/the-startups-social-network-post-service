@@ -144,3 +144,5 @@ kafka:
 scheduler:
   cron:
     ban-users: "0 0 0 * * ?"
+
+system-user-id: -1
