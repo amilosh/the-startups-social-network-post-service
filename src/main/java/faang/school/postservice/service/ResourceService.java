@@ -55,7 +55,6 @@ public class ResourceService {
     public ResourceDto updateFiles(Long resourceId, MultipartFile file) {
         Resource resource = findResourceById(resourceId);
         postValidator.validateAuthorUpdatesPost(resource.getPost());
-        fileValidator.getValidatedImage(file);
         s3Service.deleteResource(resource.getKey());
 
         BufferedImage image = fileValidator.getValidatedImage(file);
