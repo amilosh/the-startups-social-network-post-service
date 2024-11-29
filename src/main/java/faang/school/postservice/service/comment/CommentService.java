@@ -1,9 +1,11 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.cache.author.EventAuthorDto;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.comment.CreateCommentRequest;
 import faang.school.postservice.dto.comment.UpdateCommentRequest;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
@@ -11,6 +13,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.comment.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.cache.author.AuthorCacheRepository;
 import faang.school.postservice.validator.comment.CommentValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,7 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserServiceClient userServiceClient;
     private final CommentEventPublisher commentEventPublisher;
+    private final AuthorCacheRepository authorCacheRepository;
 
     public List<Comment> getUnverifiedComments() {
         return commentRepository.findByVerifiedAtIsNull();
@@ -48,9 +52,13 @@ public class CommentService {
     }
 
     public CommentDto createComment(long postId, CreateCommentRequest createCommentRequest) {
-        userServiceClient.getUser(createCommentRequest.getAuthorId());
+        UserDto userDto = userServiceClient.getUser(createCommentRequest.getAuthorId());
         log.info("[{}] Validation successful for postId: {}, createCommentRequest: {}", "createComment",
                 postId, createCommentRequest);
+        authorCacheRepository.save(EventAuthorDto.builder()
+                .authorId(userDto.getId())
+                .followers(userDto.getFollowers())
+                .build());
 
         Comment comment = commentMapper.toComment(createCommentRequest);
         log.info(" [{}] Mapping of CommentDto to Comment entity successful for postId: {}, "

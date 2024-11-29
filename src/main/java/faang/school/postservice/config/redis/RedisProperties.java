@@ -16,6 +16,8 @@ public class RedisProperties {
     private int port;
     private int postTtl;
     private int maxPostCountInFeed;
+    private int defaultTtl;
+    private int authorTtl;
 
     @Getter
     @Setter

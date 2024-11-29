@@ -24,6 +24,8 @@ spring:
       port: 6379
       host: localhost
       postTtl: 1 # in days
+      defaultTtl: 1 # in days
+      authorTtl: 1 # in days
       maxPostCountInFeed: 500
       channels:
         calculationsChannel:
