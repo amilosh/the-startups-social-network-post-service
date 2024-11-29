@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -44,6 +44,7 @@ class KafkaPostConsumerTest {
     private FeedCacheDto feedCacheDto;
     private List<Long> subscribersIds;
     private TreeSet<Long> postsIds;
+    private PostCreatedEvent event;
 
     @BeforeEach
     public void init() {
@@ -80,7 +81,7 @@ class KafkaPostConsumerTest {
     @Test
     @DisplayName("Success when listenPostEvent with FeedCacheDto does not exist")
     public void whenListenPostEventWithDoesNotExistFeedCacheDtoThenUpdateFeedCacheDto() {
-        PostCreatedEvent event = PostCreatedEvent.builder()
+        event = PostCreatedEvent.builder()
                 .postId(ID_THREE)
                 .subscribers(Arrays.asList(ID_ONE))
                 .build();
