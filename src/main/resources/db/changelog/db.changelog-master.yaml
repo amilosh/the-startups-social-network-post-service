@@ -7,3 +7,7 @@ databaseChangeLog:
       file: db/changelog/changeset/post_V003_resource.sql
   - include:
       file: db/changelog/changeset/post_V004_visibilityForAlbum.sql
+  - include:
+      file: db/changelog/changeset/post_V005_postVerified.sql
+  - include:
+      file: db/changelog/changeset/post_V006_create_posts.sql
