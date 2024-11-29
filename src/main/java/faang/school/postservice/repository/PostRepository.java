@@ -36,5 +36,9 @@ public interface PostRepository extends CrudRepository<Post, Long> {
             ":projectId ORDER BY p.publishedAt DESC")
     List<Post> findPublishedByProject(long projectId);
 
+    @Query("SELECT p FROM Post p JOIN p.hashtags h WHERE p.published = true AND p.deleted = false " +
+            "AND h.tag = :tag ORDER BY p.publishedAt DESC")
+    List<Post> findByHashtags(String tag);
+
     List<Post> findAllByVerifiedDateIsNull();
 }

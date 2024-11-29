@@ -123,4 +123,10 @@ public class GlobalExceptionHandler {
         }
         return "Unknown error";
     }
+
+    @ExceptionHandler(NotUniqueAlbumException.class)
+    public ResponseEntity<String> handleNotUniqueAlbumException(NotUniqueAlbumException ex) {
+        log.error("NotUniqueAlbumException access exception: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 }

@@ -1,4 +1,4 @@
-package faang.school.postservice.docs.post;
+package faang.school.postservice.docs.commet;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,20 +10,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Operation(summary = "Get published by project id", description = "Returns published post")
+@Operation(summary = "Create comment", description = "Returns created comment")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Successful"),
         @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
-                        value = "Project not found"
-                )
-        )),
+                        value = "Comment author id must be the same as user id"
+                ))
+        ),
         @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
                 mediaType = "application/json",
                 examples = @ExampleObject(
-                        value = "Project not found"
+                        value = "User or post not found"
                 )
         ))
 })
-public @interface GetPublishedPostByProjectDoc {}
+public @interface CreateCommentDoc {}

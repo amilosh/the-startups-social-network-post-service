@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,5 @@ public class ResponsePostDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime scheduledAt;
+    private Set<String> hashtags;
 }

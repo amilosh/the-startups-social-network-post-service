@@ -10,20 +10,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Operation(summary = "Get published by project id", description = "Returns published post")
+@Operation(summary = "Get post by hashtag", description = "Returns posts")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Successful"),
         @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
-                mediaType = "application/json",
+                mediaType = "text/plain",
                 examples = @ExampleObject(
-                        value = "Project not found"
+                        value = "Hashtag is not valid"
                 )
         )),
         @ApiResponse(responseCode = "404", description = "Not found", content = @Content(
-                mediaType = "application/json",
+                mediaType = "text/plain",
                 examples = @ExampleObject(
-                        value = "Project not found"
+                        value = "Post not found"
                 )
         ))
 })
-public @interface GetPublishedPostByProjectDoc {}
+public @interface GetPostByHashtagDoc { }

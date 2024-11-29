@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 class PostControllerTest {
@@ -233,5 +234,23 @@ class PostControllerTest {
                 .andExpect(jsonPath("$[1].content").value("Published content 2"));
 
         verify(postService, times(1)).getPublishedByProjectId(projectId, authorId);
+    }
+
+    @Test
+    void shouldReturnPostsForHashtag() throws Exception {
+        String tag = "example";
+        ResponsePostDto firstResponsePostDto = new ResponsePostDto();
+        firstResponsePostDto.setHashtags(Set.of(tag));
+        ResponsePostDto secondResponsePostDto = new ResponsePostDto();
+        secondResponsePostDto.setHashtags(Set.of(tag));
+
+        List<ResponsePostDto> mockPosts = List.of(firstResponsePostDto, secondResponsePostDto);
+
+        when(postService.findByHashtags(tag)).thenReturn(mockPosts);
+
+        mockMvc.perform(get("/posts/hashtag/{tag}", tag)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(mockPosts.size()));
     }
 }
