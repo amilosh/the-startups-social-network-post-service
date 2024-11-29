@@ -2,6 +2,7 @@ package faang.school.postservice.publisher.kafka;
 
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.redis.service.PostCacheService;
+import faang.school.postservice.util.SharedTestContainers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,13 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDateTime;
 
@@ -26,10 +21,6 @@ import static org.mockito.Mockito.verify;
 @AutoConfigureMockMvc
 @Testcontainers
 public class KafkaCommentProducerConsumerTest {
-    // TODO make tests
-
-//    @Autowired
-//    MockMvc mockMvc;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -37,34 +28,19 @@ public class KafkaCommentProducerConsumerTest {
     @MockBean
     private PostCacheService postCacheService;
 
-    @Container
-    private static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:13.3")
-            .withDatabaseName("testdb")
-            .withUsername("admin")
-            .withPassword("admin")
-            .withInitScript("schema_for_feed-controller.sql");
-
-    @Container
-    private static GenericContainer<?> redisContainer = new GenericContainer<>("redis:7.0-alpine")
-            .withExposedPorts(6379)
-            .waitingFor(Wait.forListeningPort());
-
     @DynamicPropertySource
     static void overrideSourceProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-        registry.add("spring.datasource.driver-class-name", postgresContainer::getDriverClassName);
+        registry.add("spring.datasource.url", SharedTestContainers.POSTGRES_CONTAINER::getJdbcUrl);
+        registry.add("spring.datasource.username", SharedTestContainers.POSTGRES_CONTAINER::getUsername);
+        registry.add("spring.datasource.password", SharedTestContainers.POSTGRES_CONTAINER::getPassword);
+        registry.add("spring.datasource.driver-class-name", SharedTestContainers.POSTGRES_CONTAINER::getDriverClassName);
         registry.add("spring.liquibase.enabled", () -> false);
-        registry.add("spring.data.redis.host", redisContainer::getHost);
-        registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
+        registry.add("spring.data.redis.host", SharedTestContainers.REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> SharedTestContainers.REDIS_CONTAINER.getMappedPort(6379));
         registry.add("feed-posts-per-request.size", () -> 2);
-        registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
+        registry.add("spring.kafka.bootstrap-servers", SharedTestContainers.KAFKA_CONTAINER::getBootstrapServers);
     }
 
-    @Container
-    private static KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka"))
-            .withExposedPorts(9093);
 
     @Test
     public void testProducerAndConsumer() throws InterruptedException {
