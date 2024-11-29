@@ -61,7 +61,6 @@ public interface PostMapper {
 
     List<PostCacheDto> mapToPostCacheDtos(List<Post> posts);
 
-    @Mapping(target = "likes", source = "likes", qualifiedByName = "mapPostLikesToNumber")
     @Mapping(target = "views", constant = "0")
     @Mapping(target = "comments", source = "comments", qualifiedByName = "mapPostCommentsToList")
     PostRedis mapToPostRedis(Post post);
@@ -98,14 +97,6 @@ public interface PostMapper {
                 .stream()
                 .map(Resource::getId)
                 .toList();
-    }
-
-    @Named("mapPostLikesToNumber")
-    default Integer mapPostLikesToNumber(List<Like> likes) {
-        if (likes == null) {
-            return 0;
-        }
-        return likes.size();
     }
 
     @Named("mapPostCommentsToList")

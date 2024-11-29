@@ -1,6 +1,5 @@
 package faang.school.postservice.service.post.redis;
 
-import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.exception.redis.RedisLockException;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.post.Post;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static faang.school.postservice.redis.RedisTransactionResult.LOCK_EXCEPTION;
 
@@ -23,10 +23,12 @@ import static faang.school.postservice.redis.RedisTransactionResult.LOCK_EXCEPTI
 @Service
 public class PostRedisService {
     private final static String POST_REDIS_KEY = "post:";
+    private final static String POST_LIKES_REDIS_KEY = "postLikes:";
 
     private final PostMapper postMapper;
     private final RedisTemplate<String, PostRedis> postRedisTemplate;
     private final RedisTransactionManager<String, PostRedis> redisTransactionManager;
+    private final RedisTemplate<String, Object> commonRedisTemplate;
 
     public void savePostsToRedis(List<Post> posts) {
         List<PostRedis> postsToRedis = postMapper.mapToPostRedisList(posts);
@@ -62,17 +64,10 @@ public class PostRedisService {
         }
     }
 
-    @Retryable(retryFor = RedisLockException.class, maxAttempts = 20, backoff = @Backoff(delay = 500))
-    public void addOrRemoveLike(Long postId, LikeAction likeAction) {
-        String key = buildKey(postId);
-        RedisTransactionResult redisTransactionResult = redisTransactionManager.updateRedisEntity(key, postRedisTemplate, (postRedis, operations) -> {
-            int delta = likeAction == LikeAction.ADD ? 1 : -1;
-            postRedis.setLikes(postRedis.getLikes() + delta);
-            postRedisTemplate.opsForValue().set(key, postRedis);
-        });
-
-        if (redisTransactionResult == LOCK_EXCEPTION) {
-            throw new RedisLockException("Post %s was updated in concurrent transaction", postId);
+    public void changeLikesAmountForPosts(Map<Long, Integer> postLikes) {
+        for (Map.Entry<Long, Integer> postLike : postLikes.entrySet()) {
+            String key = buildPostLikesKey(postLike.getKey());
+            commonRedisTemplate.opsForHash().increment(key, "likes", postLike.getValue());
         }
     }
 
@@ -98,5 +93,9 @@ public class PostRedisService {
         return postIds.stream()
                 .map(id -> "post:" + id)
                 .toList();
+    }
+
+    private String buildPostLikesKey(Long postId) {
+        return POST_LIKES_REDIS_KEY + postId;
     }
 }

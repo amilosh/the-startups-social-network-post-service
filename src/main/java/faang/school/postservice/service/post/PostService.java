@@ -16,7 +16,9 @@ import faang.school.postservice.kafka.post.PostKafkaProducer;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.post.Post;
+import faang.school.postservice.model.post.PostLikes;
 import faang.school.postservice.model.post.PostRedis;
+import faang.school.postservice.repository.PostLikesRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
@@ -41,6 +43,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,6 +75,7 @@ public class PostService {
     private final UserRedisService userRedisService;
     private final CommentRedisService commentRedisService;
     private final PostRedisService postRedisService;
+    private final PostLikesRepository postLikesRepository;
 
     @Transactional
     @SendPostCreatedEventToRedis
@@ -85,7 +89,10 @@ public class PostService {
         post.setVerificationStatus(UNVERIFIED);
         postHashTagParser.updateHashTags(post);
 
-        return postRepository.save(post);
+        Post cratedPost = postRepository.save(post);
+        postLikesRepository.save(new PostLikes(cratedPost, 0));
+
+        return cratedPost;
     }
 
     @Transactional
@@ -328,5 +335,17 @@ public class PostService {
 
         Long postId = event.getPostId();
         postRedisService.addComment(postId, commentId);
+    }
+
+    public void changeLikesAmountForPosts(Map<Long, Integer> postLikes) {
+        for (Map.Entry<Long, Integer> postLike : postLikes.entrySet()) {
+            postLikesRepository.findByPostId(postLike.getKey())
+                    .ifPresentOrElse(pl -> {
+                        pl.setAmount(pl.getAmount() + postLike.getValue());
+                        postLikesRepository.save(pl);
+                    }, () -> {
+                        log.error("PostLikes {} not found", postLike.getKey());
+                    });
+        }
     }
 }

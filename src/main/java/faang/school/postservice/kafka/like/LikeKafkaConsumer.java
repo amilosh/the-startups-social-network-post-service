@@ -4,6 +4,7 @@ import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.kafka.like.event.CommentLikedKafkaEvent;
 import faang.school.postservice.kafka.like.event.PostLikedKafkaEvent;
 import faang.school.postservice.service.comment.redis.CommentRedisService;
+import faang.school.postservice.service.post.PostService;
 import faang.school.postservice.service.post.redis.PostRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class LikeKafkaConsumer {
+    private final PostService postService;
     private final PostRedisService postRedisService;
     private final CommentRedisService commentRedisService;
 
@@ -24,10 +26,11 @@ public class LikeKafkaConsumer {
             containerFactory = "kafkaListenerContainerFactory")
     public void handle(PostLikedKafkaEvent postLikedKafkaEvent, Acknowledgment acknowledgment) {
         try {
-            postRedisService.addOrRemoveLike(postLikedKafkaEvent.getPostId(), postLikedKafkaEvent.getAction());
+            postService.changeLikesAmountForPosts(postLikedKafkaEvent.getPostLikes());
+            postRedisService.changeLikesAmountForPosts(postLikedKafkaEvent.getPostLikes());
             acknowledgment.acknowledge();
         } catch (Exception e) {
-            log.error("Like is not added to Post with id {}.", postLikedKafkaEvent.getPostId());
+            log.error("Likes is not added to Posts.");
             throw e;
         }
     }

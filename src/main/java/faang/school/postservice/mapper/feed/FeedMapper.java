@@ -7,23 +7,32 @@ import faang.school.postservice.dto.feed.UserFeedResponseDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.comment.Comment;
 import faang.school.postservice.model.comment.CommentRedis;
+import faang.school.postservice.model.post.PostLikes;
 import faang.school.postservice.model.post.PostRedis;
 import faang.school.postservice.repository.CommentRepository;
+import faang.school.postservice.repository.PostLikesRepository;
 import faang.school.postservice.repository.redis.CommentRedisRepository;
 import faang.school.postservice.repository.redis.UserRedisRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class FeedMapper {
+    private final static String POST_LIKES_REDIS_KEY = "postLikes:";
+
     private final UserRedisRepository userRedisRepository;
     private final UserServiceClient userServiceClient;
     private final CommentRedisRepository commentRedisRepository;
     private final CommentRepository commentRepository;
+    private final RedisTemplate<String, Object> commonRedisTemplate;
+    private final PostLikesRepository postLikesRepository;
 
     public List<PostFeedResponseDto> mapToCommentFeedResponseDto(List<PostRedis> posts) {
         if (posts == null || posts.isEmpty()) {
@@ -36,10 +45,26 @@ public class FeedMapper {
     }
 
     public PostFeedResponseDto mapToPostFeedResponseDto(PostRedis post) {
+        Integer likes = mapToLikes(post.getId());
         UserFeedResponseDto author = mapToUserFeedResponseDto(post.getAuthorId());
         List<CommentFeedResponseDto> feedComments = mapToCommentFeedResponseDtos(post.getComments());
 
-        return buildPostFeedResponseDto(post, author, feedComments);
+        return buildPostFeedResponseDto(post, likes, author, feedComments);
+    }
+
+    private Integer mapToLikes(Long postId) {
+        String key = buildPostLikesKey(postId);
+        Object value = commonRedisTemplate.opsForHash().get(key, "likes");
+        if (value != null) {
+            return Integer.parseInt(value.toString());
+        } else {
+            return postLikesRepository.findById(postId)
+                    .map(PostLikes::getAmount)
+                    .orElseGet(() -> {
+                        log.error("PostLikes {} not found", postId);
+                        return 0;
+                    });
+        }
     }
 
     private UserFeedResponseDto mapToUserFeedResponseDto(Long authorId) {
@@ -64,14 +89,10 @@ public class FeedMapper {
     private CommentFeedResponseDto mapToCommentFeedResponseDto(Long commentId) {
         return commentRedisRepository.findById(commentId)
                 .map(this::buildCommentFeedResponseDto)
-                .orElseGet(() -> {
-                    Comment comment = commentRepository.findById(commentId).orElse(null);
-                    if (comment == null) {
-                        return null;
-                    } else {
-                        return buildCommentFeedResponseDto(comment);
-                    }
-                });
+                .orElseGet(() -> commentRepository.findById(commentId)
+                        .map(this::buildCommentFeedResponseDto)
+                        .orElse(null)
+                );
     }
 
     private CommentFeedResponseDto buildCommentFeedResponseDto(CommentRedis commentRedis) {
@@ -92,14 +113,18 @@ public class FeedMapper {
                 .build();
     }
 
-    private PostFeedResponseDto buildPostFeedResponseDto(PostRedis post, UserFeedResponseDto author, List<CommentFeedResponseDto> feedComments) {
+    private PostFeedResponseDto buildPostFeedResponseDto(PostRedis post, Integer likes, UserFeedResponseDto author, List<CommentFeedResponseDto> feedComments) {
         return PostFeedResponseDto.builder()
                 .id(post.getId())
                 .content(post.getContent())
-                .likes(post.getLikes())
+                .likes(likes)
                 .views(post.getViews())
                 .author(author)
                 .comments(feedComments)
                 .build();
+    }
+
+    private String buildPostLikesKey(Long postId) {
+        return POST_LIKES_REDIS_KEY + postId;
     }
 }

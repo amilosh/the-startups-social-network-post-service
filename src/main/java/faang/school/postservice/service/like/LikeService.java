@@ -1,10 +1,9 @@
 package faang.school.postservice.service.like;
 
 import faang.school.postservice.annotations.PublishPostLikeEvent;
+import faang.school.postservice.annotations.SendPostLikeToLikesManager;
 import faang.school.postservice.annotations.kafka.SendCommentLikeEventToKafka;
 import faang.school.postservice.annotations.kafka.SendCommentUnlikeEventToKafka;
-import faang.school.postservice.annotations.kafka.SendPostLikeEventToKafka;
-import faang.school.postservice.annotations.kafka.SendPostUnlikeEventToKafka;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.like.LikeAction;
 import faang.school.postservice.exception.RecordAlreadyExistsException;
@@ -32,7 +31,7 @@ public class LikeService {
     private final UserContext userContext;
 
     @PublishPostLikeEvent
-    @SendPostLikeEventToKafka(action = LikeAction.ADD)
+    @SendPostLikeToLikesManager(type = Like.class, action = LikeAction.ADD)
     @Transactional
     public Like createPostLike(long postId) {
         Post post = postService.findPostById(postId);
@@ -53,7 +52,7 @@ public class LikeService {
         return likeRepository.save(like);
     }
 
-    @SendPostUnlikeEventToKafka(action = LikeAction.REMOVE)
+    @SendPostLikeToLikesManager(type = Post.class, action = LikeAction.REMOVE)
     @Transactional
     public Post deletePostLike(long postId) {
         Post post = postService.findPostById(postId);

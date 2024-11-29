@@ -5,11 +5,12 @@ import faang.school.postservice.kafka.like.event.CommentLikedKafkaEvent;
 import faang.school.postservice.kafka.like.event.PostLikedKafkaEvent;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.comment.Comment;
-import faang.school.postservice.model.post.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -22,13 +23,8 @@ public class LikeKafkaProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sendPostLikeToKafka(Like like, LikeAction action) {
-        PostLikedKafkaEvent postLikedKafkaEvent = build(like, action);
-        kafkaTemplate.send(postLikedTopic, postLikedKafkaEvent);
-    }
-
-    public void sendPostLikeToKafka(Post post, LikeAction action) {
-        PostLikedKafkaEvent postLikedKafkaEvent = build(post, action);
+    public void sendPostLikeToKafka(Map<Long, Integer> postLikes) {
+        PostLikedKafkaEvent postLikedKafkaEvent = new PostLikedKafkaEvent(postLikes);
         kafkaTemplate.send(postLikedTopic, postLikedKafkaEvent);
     }
 
@@ -40,20 +36,6 @@ public class LikeKafkaProducer {
     public void sendCommentLikeToKafka(Comment comment, LikeAction likeAction) {
         CommentLikedKafkaEvent commentLikedKafkaEvent = mapToCommentLikeKafkaDto(comment, likeAction);
         kafkaTemplate.send(commentLikedTopic, commentLikedKafkaEvent);
-    }
-
-    private PostLikedKafkaEvent build(Like like, LikeAction action) {
-        return PostLikedKafkaEvent.builder()
-                .postId(like.getPost().getId())
-                .action(action)
-                .build();
-    }
-
-    private PostLikedKafkaEvent build(Post post, LikeAction action) {
-        return PostLikedKafkaEvent.builder()
-                .postId(post.getId())
-                .action(action)
-                .build();
     }
 
     private CommentLikedKafkaEvent mapToCommentLikeKafkaDto(Like like, LikeAction likeAction) {

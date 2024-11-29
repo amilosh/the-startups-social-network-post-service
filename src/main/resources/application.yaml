@@ -67,6 +67,10 @@ post:
     bucket:
       name-prefix: posts/post_
 
+like:
+  scheduler:
+    cron: "20 * * * * *" # every minutes on 20th second
+
 client:
   s3:
     minio:
