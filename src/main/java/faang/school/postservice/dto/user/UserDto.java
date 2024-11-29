@@ -14,7 +14,7 @@ import lombok.Data;
 public class UserDto {
     @Min(value = 1, message = "ID must be a positive number")
     private Long id;
-    @NotBlank(message = "Title should not be blank")
+    @NotBlank(message = "Username should not be blank")
     @Size(max = 255, message = "Username should not exceed 255 characters")
     private String username;
     @NotBlank(message = "Email should not be blank")
