@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CommentCheckTest {
+public class CommenterBannerTest {
 
     @Mock
     private CommentService commentService;
@@ -27,7 +27,7 @@ public class CommentCheckTest {
     private RedisMessagePublisher redisMessagePublisher;
 
     @InjectMocks
-    private CommentCheck commentCheck;
+    private CommenterBanner commenterBanner;
 
     @Test
     public void banCommenterWhenLessFiveNoVerifiedCommentTest() {
@@ -40,7 +40,7 @@ public class CommentCheckTest {
         List<CommentDto> comments = List.of(commentFirst, commentSecond, commentThird);
         when(commentService.getAllCommentsNoVerified()).thenReturn(comments);
 
-        commentCheck.banCommenter();
+        commenterBanner.banCommenter();
 
         verify(redisMessagePublisher, times(0)).publish(any());
     }
@@ -63,14 +63,14 @@ public class CommentCheckTest {
                 commentFourth, commentFifth, commentFifth, commentSixth);
         when(commentService.getAllCommentsNoVerified()).thenReturn(comments);
 
-        commentCheck.banCommenter();
+        commenterBanner.banCommenter();
 
         verify(redisMessagePublisher, times(1)).publish(any());
     }
 
     @Test
     void scheduledAnnotationTest() throws NoSuchMethodException {
-        String cron = commentCheck.getClass()
+        String cron = commenterBanner.getClass()
                 .getMethod("banCommenter")
                 .getAnnotation(Scheduled.class)
                 .cron();

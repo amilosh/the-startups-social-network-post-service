@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommentCheck {
+public class CommenterBanner {
 
     private final CommentService commentService;
     private final RedisMessagePublisher redisMessagePublisher;
