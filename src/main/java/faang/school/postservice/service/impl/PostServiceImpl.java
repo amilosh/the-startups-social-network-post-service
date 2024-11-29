@@ -26,12 +26,16 @@ import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.util.moderation.ModerationDictionary;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -150,14 +154,25 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Retryable(
+            retryFor = OptimisticLockException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
+    )
+    @Transactional
     public PostDto getPost(Long id) {
-        Post post = getPostById(id);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + id));
+
+        post.incrementViews();
+        postRepository.save(post);
+
         PostDto postDto = postMapper.toPostDto(post);
 
         postViewPublisher.publish(createPostViewEvent(post));
 
-        PostViewEventKafka postViewEventKafka = new PostViewEventKafka();
-        postViewEventKafka.setPostDto(postDto);
+        PostViewEventKafka postViewEventKafka = new PostViewEventKafka(postDto);
+        //postViewEventKafka.setPostDto(postDto);
         kafkaPostViewProducer.sendEvent(postViewEventKafka);
 
         return postDto;
@@ -269,7 +284,7 @@ public class PostServiceImpl implements PostService {
         return partitions;
     }
 
-
+    @Override
     @Transactional
     public void correctSpellingInUnpublishedPosts() {
         List<Post> unpublishedPosts = postRepository.findReadyForSpellCheck();

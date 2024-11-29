@@ -25,6 +25,9 @@ public class KafkaTopicConfig {
     @Value(value = "${spring.kafka.topics.cache-heat}")
     private String cacheHeatTopic;
 
+    @Value(value = "${spring.kafka.topics.like}")
+    private String likeTopic;
+
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
@@ -56,5 +59,10 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic cacheHeatKafkaTopic() {
         return new NewTopic(cacheHeatTopic, partitionsNum, (short) 1);
+    }
+
+    @Bean
+    public NewTopic likeKafkaTopic() {
+        return new NewTopic(likeTopic, partitionsNum, (short) 1);
     }
 }

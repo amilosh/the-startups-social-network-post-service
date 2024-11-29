@@ -12,9 +12,7 @@ import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -83,17 +81,13 @@ public class CacheHeatServiceImpl implements CacheHeatService {
     public void populateCache(Long followerId, List<UserDto> bloggers, List<PostDto> posts) {
 
         CompletableFuture<Void> saveAuthorsFuture = authorCacheService.saveAllAuthorsToCache(bloggers);
-        saveAuthorsFuture.thenRun(() -> {
-            log.info("Authors have been successfully saved to cache.");
-        }).exceptionally(ex -> {
+        saveAuthorsFuture.thenRun(() -> log.info("Authors have been successfully saved to cache.")).exceptionally(ex -> {
             log.error("Error saving authors to cache", ex);
             return null;
         });
 
         CompletableFuture<Void> savePostsFuture = postCacheService.saveAllPostsToCache(posts);
-        savePostsFuture.thenRun(() -> {
-            log.info("Posts have been successfully saved to cache.");
-        }).exceptionally(ex -> {
+        savePostsFuture.thenRun(() -> log.info("Posts have been successfully saved to cache.")).exceptionally(ex -> {
             log.error("Error saving posts to cache", ex);
             return null;
         });

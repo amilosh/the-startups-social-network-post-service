@@ -28,6 +28,7 @@ spring:
       posts: post_topic
       post-view: post_view_topic
       cache-heat: cache_heat_topic
+      like: like_topic
       comment-partitions-num: 5
     followers-batch-size: 2
 
@@ -131,6 +132,7 @@ cache:
     prefix: "posts:"
     fields:
       views: numberOfViews
+      number-of-likes: numberOfLikes
   author:
     prefix: "author:"
   heat:
@@ -138,9 +140,6 @@ cache:
     process-batch-size: 100
     max-posts: 500
     max-days-back: 60
-  feed:
-    prefix: "feeds:"
-
 
 post-comments:
   size: 3

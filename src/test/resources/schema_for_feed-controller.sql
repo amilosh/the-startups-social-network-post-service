@@ -11,7 +11,10 @@ CREATE TABLE post (
                       updated_at timestamptz DEFAULT current_timestamp,
                       spell_check_completed BOOLEAN DEFAULT TRUE,
                       verified BOOLEAN DEFAULT TRUE,
-                      verified_date timestamptz DEFAULT current_timestamp
+                      verified_date timestamptz DEFAULT current_timestamp,
+                      number_of_views INT DEFAULT 0 NOT NULL,
+                      number_of_likes INT DEFAULT 0 NOT NULL,
+                      version BIGINT DEFAULT 0 NOT NULL
 );
 
 INSERT INTO post (id,content,author_id,published_at,deleted)
