@@ -9,6 +9,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.util.NoSuchElementException;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -21,10 +23,16 @@ public class KafkaPostViewConsumer {
     public void handlePostView(PostViewEventKafka event, Acknowledgment ack) {
         log.info("Starting processing of PostViewEventKafka with Post ID: {}", event.getPostDto().getId());
 
-        postCacheService.addPostView(event.getPostDto());
-
-        log.info("Successfully processed PostViewEventKafka with Post ID: {}", event.getPostDto().getId());
-
-        ack.acknowledge();
+        try {
+            postCacheService.addPostView(event.getPostDto());
+            log.info("Successfully processed PostViewEventKafka with Post ID: {}", event.getPostDto().getId());
+        } catch (NoSuchElementException e) {
+            log.warn("Post not found in Redis for ID: {}. Skipping...", event.getPostDto().getId());
+        } catch (Exception e) {
+            log.error("Failed to process PostViewEventKafka for Post ID: {} due to unexpected error: {}",
+                    event.getPostDto().getId(), e.getMessage(), e);
+        } finally {
+            ack.acknowledge();
+        }
     }
 }

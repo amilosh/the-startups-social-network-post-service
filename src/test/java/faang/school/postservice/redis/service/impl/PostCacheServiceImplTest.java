@@ -1,5 +1,6 @@
 package faang.school.postservice.redis.service.impl;
 
+import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
@@ -71,8 +72,13 @@ public class PostCacheServiceImplTest {
         comments.add(commentRedisDto1);
         comments.add(commentRedisDto2);
 
+        LikeDto likeDto = LikeDto.builder()
+                .userId(108L)
+                .postId(42L)
+                .build();
+
         PostCache postCache = new PostCache(1L, "some content", 5L,
-                0, 0, comments, LocalDateTime.now());
+                0, List.of(likeDto), 0, comments, LocalDateTime.now());
 
         when(postCacheRedisRepository.findById(commentEventKafka.getPostId())).thenReturn(Optional.of(postCache));
         when(redissonClient.getLock(anyString())).thenReturn(lock);

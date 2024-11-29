@@ -29,7 +29,8 @@ public class KafkaProducerConfig {
                 "comment_event:faang.school.postservice.model.event.kafka.CommentEventKafka, " +
                         "post_event:faang.school.postservice.model.event.kafka.PostEventKafka, " +
                         "post_view_event:faang.school.postservice.model.event.kafka.PostViewEventKafka, " +
-                        "heat_task_event:faang.school.postservice.model.event.kafka.HeatTaskEventKafka");
+                        "heat_task_event:faang.school.postservice.model.event.kafka.HeatTaskEventKafka, " +
+                        "like_event:faang.school.postservice.model.event.kafka.PostLikeEventKafka");
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
