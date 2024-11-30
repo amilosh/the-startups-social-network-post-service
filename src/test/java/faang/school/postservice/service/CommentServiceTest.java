@@ -94,13 +94,13 @@ class CommentServiceTest {
     @Test
     void testGetComments() {
         Comment comment1 = new Comment();
-        comment1.setId(1);
+        comment1.setId(1L);
         comment1.setCreatedAt(LocalDateTime.now().minusDays(2));
         Comment comment2 = new Comment();
-        comment2.setId(2);
+        comment2.setId(2L);
         comment2.setCreatedAt(LocalDateTime.now().minusDays(1));
         Comment comment3 = new Comment();
-        comment3.setId(3);
+        comment3.setId(3L);
         comment3.setCreatedAt(LocalDateTime.now().minusDays(3));
 
         List<Comment> comments = List.of(comment1, comment2, comment3);
