@@ -52,7 +52,7 @@ public class PostServiceTest {
 
     @Mock
     private SpellingConfig api;
-
+    @Mock
     private List<PostFilters> postFilters;
     @InjectMocks
     private PostService postService;
