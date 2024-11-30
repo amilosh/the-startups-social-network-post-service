@@ -9,6 +9,7 @@ import faang.school.postservice.mapper.UserWithFollowersMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.UserWithFollowersDto;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
+import faang.school.postservice.model.dto.redis.cache.RedisUserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.entity.UserShortInfo;
 import faang.school.postservice.model.event.application.PostsPublishCommittedEvent;
@@ -61,6 +62,7 @@ public class PostPublishCommitedEventListener {
             log.debug("Saving post with id = {} in Redis if needed", post.getId());
             PostDto postDto = postMapper.toPostDto(post);
             RedisPostDto redisPostDto = redisPostDtoMapper.mapToRedisPostDto(postDto);
+            //TODO может нужен просто save
             redisPostService.savePostIfNotExists(redisPostDto);
 
             log.debug("Start sending PostPublishedEvent for post with id = {} to Kafka", post.getId());
@@ -88,7 +90,9 @@ public class PostPublishCommitedEventListener {
             UserWithFollowersDto userWithFollowers = userServiceClient.getUserWithFollowers(userId);
             UserShortInfo userShortInfo = userWithFollowersMapper.toUserShortInfo(userWithFollowers);
             userShortInfoRepository.save(userShortInfo);
-            redisUserService.saveUser(userWithFollowersMapper.toRedisUserDto(userWithFollowers));
+            RedisUserDto redisUserDto = userWithFollowersMapper.toRedisUserDto(userWithFollowers);
+            redisUserDto.setUpdatedAt(LocalDateTime.now());
+            redisUserService.saveUser(redisUserDto);
         }
     }
 }

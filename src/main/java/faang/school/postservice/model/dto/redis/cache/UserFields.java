@@ -6,6 +6,7 @@ public class UserFields {
     public static final String FILE_ID = "fileId";
     public static final String SMALL_FILE_ID = "smallFileId";
     public static final String FOLLOWER_IDS = "followerIds";
+    public static final String UPDATED_AT = "updatedAt";
 
     private UserFields() {}
 }

@@ -19,11 +19,12 @@ public class RedisPostDto {
     private Long postId;
     private Long authorId;
     private String content;
-
+//TODO publishedAt
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     private int commentCount;
     private int likeCount;
     private List<String> recentComments = new ArrayList<>();
+    private int viewCount;
 }

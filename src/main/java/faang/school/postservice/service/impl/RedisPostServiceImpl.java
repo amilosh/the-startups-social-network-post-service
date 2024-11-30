@@ -3,15 +3,20 @@ package faang.school.postservice.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.mapper.RedisPostDtoMapper;
 import faang.school.postservice.model.dto.PostDto;
+import faang.school.postservice.model.dto.UserWithoutFollowersDto;
 import faang.school.postservice.model.dto.redis.cache.PostFields;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
+import faang.school.postservice.model.dto.redis.cache.RedisUserDto;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.kafka.CommentSentEvent;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.RedisPostService;
 import faang.school.postservice.service.RedisTransactional;
+import faang.school.postservice.service.RedisUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,7 +26,9 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +38,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class RedisPostServiceImpl implements RedisPostService, RedisTransactional {
-    private static final String KEY_PREFIX = "post:";
+    private static final String POST_KEY_PREFIX = "post:";
+    private static final String COMMENT_KEY_PREFIX = "comment:";
+    private static final int REFRESH_TIME_IN_HOURS = 3;
+    private static final DateTimeFormatter formatter =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+    @Value("${redis.feed.ttl.comment:86400}")
+    private long commentTtlInSeconds;
 
     @Value("${redis.feed.ttl.post:86400}")
     private long postTtlInSeconds;
@@ -44,18 +57,24 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
     private final PostRepository postRepository;
     private final RedisPostDtoMapper redisPostDtoMapper;
     private final PostMapper postMapper;
+    private final RedisUserService redisUserService;
+    private final UserServiceClient userServiceClient;
 
     public RedisPostServiceImpl(
             @Qualifier("cacheRedisTemplate") RedisTemplate<String, Object> redisTemplate,
             ObjectMapper objectMapper,
             PostRepository postRepository,
             RedisPostDtoMapper redisPostDtoMapper,
-            PostMapper postMapper) {
+            PostMapper postMapper,
+            RedisUserService redisUserService,
+            UserServiceClient userServiceClient) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.postRepository = postRepository;
         this.redisPostDtoMapper = redisPostDtoMapper;
         this.postMapper = postMapper;
+        this.redisUserService = redisUserService;
+        this.userServiceClient = userServiceClient;
     }
 
     @Override
@@ -65,7 +84,7 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
 
     @Override
     public void savePostIfNotExists(RedisPostDto postDto) {
-        String key = createKey(postDto.getPostId());
+        String key = createPostKey(postDto.getPostId());
         if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
             log.info("Post with ID {} already exists in Redis, skipping...", postDto.getPostId());
             return;
@@ -75,63 +94,89 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
 
     @Override
     public RedisPostDto getPost(Long postId) {
-        String key = createKey(postId);
+        String key = createPostKey(postId);
         Map<String, Object> postMap = fetchAndCachePostIfAbsent(postId, key);
         return convertMapToPostDto(postMap);
     }
 
     @Override
-    @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public void addComment(Long postId, String comment) {
-        String key = createKey(postId);
-        executeRedisTransaction(() -> {
-            Map<String, Object> postMap = fetchAndCachePostIfAbsent(postId, key);
-            List<String> recentComments = getComments(postMap);
-            recentComments.add(0, comment);
-            if (recentComments.size() > maxRecentComments) {
-                recentComments = recentComments.subList(0, maxRecentComments);
-            }
-            int commentCount = Integer.parseInt(postMap.getOrDefault(PostFields.COMMENT_COUNT, "0").toString()) + 1;
+    public void addComment(CommentSentEvent event) {
+        RedisUserDto user = redisUserService.getUser(event.getCommentAuthorId());
+        if (user == null || user.getUpdatedAt().isBefore(LocalDateTime.now().minusHours(REFRESH_TIME_IN_HOURS))) {
+            UserWithoutFollowersDto commentAuthor = userServiceClient.getUserWithoutFollowers(event.getCommentAuthorId());
+            user = new RedisUserDto(
+                    commentAuthor.getUserId(),
+                    commentAuthor.getUsername(),
+                    commentAuthor.getFileId(),
+                    commentAuthor.getSmallFileId(),
+                    null,
+                    LocalDateTime.now());
+            redisUserService.saveUser(user);
+        }
 
-            redisTemplate.opsForHash().put(key, PostFields.RECENT_COMMENTS, serializeComments(recentComments));
-            redisTemplate.opsForHash().put(key, PostFields.COMMENT_COUNT, commentCount);
-        });
+        addComment(event.getPostId(), event.getCommentId(), event.getCommentContent());
     }
 
     @Override
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public void incrementLikesWithTransaction(Long postId) {
-        String key = createKey(postId);
+        String key = createPostKey(postId);
         executeRedisTransaction(() -> {
             fetchAndCachePostIfAbsent(postId, key);
             redisTemplate.opsForHash().increment(key, PostFields.LIKE_COUNT, 1);
         });
     }
 
-    private Map<String, Object> fetchAndCachePostIfAbsent(Long postId, String key) {
-        Map<Object, Object> postMap = redisTemplate.opsForHash().entries(key);
-        if (postMap.isEmpty()) {
-            log.warn("Post with ID {} not found in Redis, fetching from database", postId);
-            RedisPostDto postFromDb = fetchPostFromDatabase(postId);
-            savePost(postFromDb);
-            return convertPostDtoToMap(postFromDb);
-        }
-        return postMap.entrySet().stream()
-                .collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue()), Map::putAll);
+    @Override
+    @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    public void savePost(RedisPostDto postDto) {
+        String key = createPostKey(postDto.getPostId());
+        executeRedisTransaction(() -> {
+            Map<String, Object> postMap = convertPostDtoToMap(postDto);
+            postMap.forEach((field, value) -> redisTemplate.opsForHash().put(key, field, value));
+            updatePostTtl(key);
+        });
     }
 
     @Override
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public void savePost(RedisPostDto postDto) {
-        String key = createKey(postDto.getPostId());
+    public void incrementPostViewsWithTransaction(Long postId) {
+        String key = createPostKey(postId);
         executeRedisTransaction(() -> {
-            Map<String, Object> postMap = convertPostDtoToMap(postDto);
-            postMap.forEach((field, value) -> redisTemplate.opsForHash().put(key, field, value));
-            updateTtl(key);
+            fetchAndCachePostIfAbsent(postId, key);
+            redisTemplate.opsForHash().increment(key, PostFields.VIEW_COUNT, 1);
         });
     }
 
-    private void updateTtl(String key) {
+    @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    protected void addComment(Long postId, Long commentId, String commentContent) {
+        String commentKey = createCommentKey(commentId);
+        String postKey = createPostKey(postId);
+        executeRedisTransaction(() -> {
+            boolean isAlreadyProcessed = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(
+                    commentKey,
+                    "processed",
+                    Duration.ofSeconds(commentTtlInSeconds)));
+
+            if (!isAlreadyProcessed) {
+                log.debug("Comment event {} for post {} is already processed", commentId, postId);
+                return;
+            }
+
+            Map<String, Object> postMap = fetchAndCachePostIfAbsent(postId, postKey);
+            List<String> recentComments = getComments(postMap);
+            recentComments.add(0, commentContent);
+            if (recentComments.size() > maxRecentComments) {
+                recentComments = recentComments.subList(0, maxRecentComments);
+            }
+            int commentCount = Integer.parseInt(postMap.getOrDefault(PostFields.COMMENT_COUNT, "0").toString()) + 1;
+
+            redisTemplate.opsForHash().put(postKey, PostFields.RECENT_COMMENTS, serializeComments(recentComments));
+            redisTemplate.opsForHash().put(postKey, PostFields.COMMENT_COUNT, String.valueOf(commentCount));
+        });
+    }
+
+    private void updatePostTtl(String key) {
         redisTemplate.expire(key, postTtlInSeconds, TimeUnit.SECONDS);
     }
 
@@ -147,10 +192,11 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
         postDto.setPostId(Long.valueOf(postMap.get(PostFields.POST_ID).toString()));
         postDto.setAuthorId(Long.valueOf(postMap.get(PostFields.AUTHOR_ID).toString()));
         postDto.setContent((String) postMap.get(PostFields.CONTENT));
-        postDto.setCreatedAt(LocalDateTime.parse((String) postMap.get(PostFields.CREATED_AT)));
+        postDto.setCreatedAt(LocalDateTime.parse((String) postMap.get(PostFields.CREATED_AT), formatter));
         postDto.setCommentCount(Integer.parseInt(postMap.get(PostFields.COMMENT_COUNT).toString()));
         postDto.setLikeCount(Integer.parseInt(postMap.get(PostFields.LIKE_COUNT).toString()));
         postDto.setRecentComments(getComments(postMap));
+        postDto.setViewCount(Integer.parseInt(postMap.get(PostFields.VIEW_COUNT).toString()));
         return postDto;
     }
 
@@ -159,10 +205,11 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
         postMap.put(PostFields.POST_ID, postDto.getPostId().toString());
         postMap.put(PostFields.AUTHOR_ID, postDto.getAuthorId().toString());
         postMap.put(PostFields.CONTENT, postDto.getContent());
-        postMap.put(PostFields.CREATED_AT, postDto.getCreatedAt().toString());
+        postMap.put(PostFields.CREATED_AT, postDto.getCreatedAt().format(formatter));
         postMap.put(PostFields.COMMENT_COUNT, String.valueOf(postDto.getCommentCount()));
         postMap.put(PostFields.LIKE_COUNT, String.valueOf(postDto.getLikeCount()));
         postMap.put(PostFields.RECENT_COMMENTS, serializeComments(postDto.getRecentComments()));
+        postMap.put(PostFields.VIEW_COUNT, String.valueOf(postDto.getViewCount()));
         return postMap;
     }
 
@@ -189,7 +236,27 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
         }
     }
 
-    private String createKey(Long postId) {
-        return KEY_PREFIX + postId;
+    private String createPostKey(Long postId) {
+        return POST_KEY_PREFIX + postId;
+    }
+
+    private String createCommentKey(Long commentId) {
+        return COMMENT_KEY_PREFIX + commentId;
+    }
+
+    private void updateCommentTtl(String key) {
+        redisTemplate.expire(key, commentTtlInSeconds, TimeUnit.SECONDS);
+    }
+
+    private Map<String, Object> fetchAndCachePostIfAbsent(Long postId, String key) {
+        Map<Object, Object> postMap = redisTemplate.opsForHash().entries(key);
+        if (postMap.isEmpty()) {
+            log.warn("Post with ID {} not found in Redis, fetching from database", postId);
+            RedisPostDto postFromDb = fetchPostFromDatabase(postId);
+            savePost(postFromDb);
+            return convertPostDtoToMap(postFromDb);
+        }
+        return postMap.entrySet().stream()
+                .collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue()), Map::putAll);
     }
 }

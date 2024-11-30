@@ -3,6 +3,7 @@ package faang.school.postservice.mapper;
 import faang.school.postservice.model.dto.CommentDto;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
+import faang.school.postservice.service.PostService;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -18,9 +19,10 @@ public abstract class RedisPostDtoMapper {
 
     @Autowired
     private CommentService commentService;
-
     @Autowired
     private LikeService likeService;
+    @Autowired
+    private PostService postService;
 
     private static final int RECENT_COMMENTS_LIMIT = 3;
 
@@ -40,6 +42,7 @@ public abstract class RedisPostDtoMapper {
 
         redisPostDto.setLikeCount(likeService.getLikeCount(postDto.getId()));
         redisPostDto.setCommentCount(commentService.getCommentCount(postDto.getId()));
+        redisPostDto.setViewCount(postService.getViewCount(postDto.getId()));
     }
 }
 

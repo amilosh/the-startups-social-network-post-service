@@ -19,6 +19,8 @@ import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
 import faang.school.postservice.util.moderation.ModerationDictionary;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -281,6 +283,25 @@ public class PostServiceImpl implements PostService {
             postRepository.saveAll(unverifiedPostsBatch);
         });
     }
+
+    @Override
+    @Transactional
+    public void incrementPostViewCount(long postId) {
+        try {
+            int updatedRows = postRepository.incrementViewCount(postId);
+            if (updatedRows == 0) {
+                throw new EntityNotFoundException("Post not found with id " + postId);
+            }
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("Failed to increment view count due to concurrent modification", e);
+        }
+    }
+
+    @Override
+    public int getViewCount(Long postId) {
+        return postRepository.getViewCountByPostId(postId);
+    }
+
 
     private PostViewEvent createPostViewEvent(Post post) {
         return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());

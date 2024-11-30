@@ -8,6 +8,7 @@ public class PostFields {
     public static final String COMMENT_COUNT = "commentCount";
     public static final String LIKE_COUNT = "likeCount";
     public static final String RECENT_COMMENTS = "recentComments";
+    public static final String VIEW_COUNT = "viewCount";
 
     private PostFields() {}
 }

@@ -9,5 +9,5 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class PostsPublishCommittedEvent {
-    private final List<Post> posts;
+    private List<Post> posts;
 }
