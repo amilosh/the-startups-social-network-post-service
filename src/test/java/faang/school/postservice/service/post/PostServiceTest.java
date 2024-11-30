@@ -15,10 +15,11 @@ import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
+import faang.school.postservice.service.event.KafkaEventService;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
-import faang.school.postservice.service.user.UserCacheService;
+import faang.school.postservice.service.user.CacheService;
 import faang.school.postservice.utils.ImageRestrictionRule;
 import faang.school.postservice.validator.PostValidator;
 import org.junit.jupiter.api.Assertions;
@@ -101,7 +102,9 @@ public class PostServiceTest {
     @Mock
     private PostCacheService postCacheService;
     @Mock
-    private UserCacheService userCacheService;
+    private CacheService cacheService;
+    @Mock
+    private KafkaEventService kafkaEventService;
     @Captor
     private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks
@@ -229,7 +232,7 @@ public class PostServiceTest {
         ArgumentCaptor<PostCacheDto> captor = ArgumentCaptor.forClass(PostCacheDto.class);
         verify(postHashTagParser).updateHashTags(any(Post.class));
         verify(postCacheProcessExecutor).executeNewPostProcess(captor.capture());
-        verify(userCacheService).saveUserToRedisRepository(foundPost.getAuthorId());
+        verify(cacheService).saveAuthor(foundPost.getAuthorId());
     }
 
     @Test
@@ -601,7 +604,8 @@ public class PostServiceTest {
         when(postRepository.findPostsByIds(postIds)).thenReturn(postSublist);
         postService.processReadyToPublishPosts(postIds);
         verify(postRepository).saveAll(postListCaptor.capture());
-        verify(userCacheService).saveAllToRedisRepository(List.of(1L, 2L));
+        verify(cacheService).saveAllAuthors(postSublist);
+        verify(kafkaEventService).sendEventsToKafkaPostPublished(postSublist);
 
         postListCaptor.getValue().forEach(post -> assertTrue(post.isPublished()));
     }

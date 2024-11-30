@@ -5,6 +5,8 @@ import faang.school.postservice.config.TestContainersConfig;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.VerificationPostStatus;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.event.KafkaEventService;
+import faang.school.postservice.service.user.CacheService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 @MockBean(UserServiceClient.class)
+@MockBean(CacheService.class)
+@MockBean(KafkaEventService.class)
 @SpringBootTest
 @ActiveProfiles("test")
 public class ScheduledPostPublisherTest extends TestContainersConfig {

@@ -7,7 +7,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
-import faang.school.postservice.service.user.UserCacheService;
+import faang.school.postservice.service.user.CacheService;
 import faang.school.postservice.validator.CommentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostService postService;
     private final CommentValidator commentValidator;
-    private final UserCacheService userCacheService;
+    private final CacheService cacheService;
 
     @PublishCommentEvent
     @PublishCommentNotificationEvent
@@ -31,7 +31,7 @@ public class CommentService {
         Post post = postService.findPostById(postId);
         comment.setPost(post);
         Comment savedComment = commentRepository.save(comment);
-        userCacheService.saveUserToRedisRepository(comment.getAuthorId());
+        cacheService.saveAuthor(comment.getAuthorId());
         return savedComment;
     }
 

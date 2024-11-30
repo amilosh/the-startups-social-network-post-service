@@ -6,7 +6,7 @@ import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
-import faang.school.postservice.service.user.UserCacheService;
+import faang.school.postservice.service.user.CacheService;
 import faang.school.postservice.validator.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ class CommentServiceTest {
     @Mock
     private PostService postService;
     @Mock
-    private UserCacheService userCacheService;
+    private CacheService cacheService;
     @Captor
     private ArgumentCaptor<Comment> commentCaptor;
     @InjectMocks
@@ -73,7 +73,7 @@ class CommentServiceTest {
 
         verify(commentValidator).validateCreate(postId, comment);
         verify(postService).findPostById(postId);
-        verify(userCacheService).saveUserToRedisRepository(authorId);
+        verify(cacheService).saveAuthor(authorId);
         verify(commentRepository).save(comment);
 
         assertEquals(savedComment, result);

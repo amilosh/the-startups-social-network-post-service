@@ -68,7 +68,7 @@ public class PostLikeEventPublishingAspectTest extends TestContainersConfig {
         Long userId = 1L;
         Long postId = 1L;
         when(userContext.getUserId()).thenReturn(userId);
-        when(userServiceClient.getUser(userId)).thenReturn(new UserDto(userId, "username", "email"));
+        when(userServiceClient.getUser(userId)).thenReturn(new UserDto(userId, "username", "email", null));
         Like like = likeService.createPostLike(postId);
 
         try {

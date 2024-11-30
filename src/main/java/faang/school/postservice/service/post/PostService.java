@@ -15,11 +15,13 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
+import faang.school.postservice.repository.redis.PostRedisRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
+import faang.school.postservice.service.event.KafkaEventService;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
-import faang.school.postservice.service.user.UserCacheService;
+import faang.school.postservice.service.user.CacheService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +62,9 @@ public class PostService {
     private final PostCacheProcessExecutor postCacheProcessExecutor;
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
-    private final UserCacheService userCacheService;
+    private final CacheService cacheService;
+    private final PostRedisRepository postRedisRepository;
+    private final KafkaEventService kafkaEventService;
 
     @Transactional
     @SendPostCreatedEvent
@@ -90,7 +94,9 @@ public class PostService {
         post.setPublishedAt(LocalDateTime.now());
         postHashTagParser.updateHashTags(post);
         postRepository.save(post);
-        userCacheService.saveUserToRedisRepository(post.getAuthorId());
+        cacheService.saveAuthor(post.getAuthorId());
+        cacheService.savePost(post);
+        kafkaEventService.sendEventToKafkaWhenPostPublished(post);
 
         postCacheProcessExecutor.executeNewPostProcess(postMapper.toPostCacheDto(post));
 
@@ -276,9 +282,11 @@ public class PostService {
             post.setPublishedAt(currentDateTime);
             post.setPublished(true);
         });
-        List<Long> authorIds = postList.stream().map(Post::getAuthorId).toList();
-        userCacheService.saveAllToRedisRepository(authorIds);
         postRepository.saveAll(postList);
         log.info("Posts was published by scheduling: {}", postIds);
+
+        cacheService.saveAllAuthors(postList);
+        cacheService.saveAllPosts(postList);
+        kafkaEventService.sendEventsToKafkaPostPublished(postList);
     }
 }
