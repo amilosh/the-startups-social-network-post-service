@@ -1,11 +1,13 @@
 package faang.school.postservice.service.sightengine;
 
 import faang.school.postservice.dto.sightengine.textAnalysis.TextAnalysisResponse;
+import faang.school.postservice.exception.SightengineBadRequestException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -29,16 +31,18 @@ public class TextAnalysisService {
     @Retry(name = "sightengine-api-retry")
     public Mono<TextAnalysisResponse> analyzeText(String text) {
         MultiValueMap<String, String> requestBody = buildRequestBody(text);
+        log.info("Creating a request for text analysis in the sightengine service: {}", requestBody);
+
         return webClient.post()
                 .uri("/1.0/text/check.json")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .bodyValue(requestBody)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, response ->
+                    response.bodyToMono(String.class)
+                            .doOnError(e -> log.error("Bad Request error: {}",e.getMessage(), e))
+                            .flatMap(body -> Mono.error(new SightengineBadRequestException(body))))
                 .bodyToMono(TextAnalysisResponse.class);
-/*        return Mono.defer(() -> {
-            log.error("Simulating exception");
-            return Mono.error(new RuntimeException("Simulating exception"));
-        });*/
     }
 
     private MultiValueMap<String, String> buildRequestBody(String text) {

@@ -2,9 +2,7 @@ package faang.school.postservice.controller;
 
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
-import faang.school.postservice.dto.sightengine.textAnalysis.TextAnalysisResponse;
 import faang.school.postservice.service.PostService;
-import faang.school.postservice.service.sightengine.TextAnalysisService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,10 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -29,12 +25,6 @@ import java.util.List;
 @Validated
 public class PostControllerV1 {
     private final PostService postService;
-    private final TextAnalysisService textAnalysisService;
-
-    @PostMapping("/check")
-    public Mono<TextAnalysisResponse> test(@RequestParam String text) {
-        return textAnalysisService.analyzeText(text);
-    }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
