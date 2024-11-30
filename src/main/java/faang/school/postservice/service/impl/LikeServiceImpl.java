@@ -5,7 +5,7 @@ import faang.school.postservice.kafka.producer.KafkaLikeProducer;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.model.dto.kafka.KafkaLikeDto;
+import faang.school.postservice.model.dto.KafkaLikeDto;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.kafka.KafkaLikeEvent;

@@ -124,4 +124,18 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
     private double toScore(LocalDateTime publishedAt) {
         return publishedAt.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
+
+    public void incrementLikeCount(Long postId) {
+        String postKey = POST_KEY_PREFIX + postId;
+        Map<Object, Object> postData = redisTemplate.opsForHash().entries(postKey);
+        if (postData != null && !postData.isEmpty()) {
+            int likeCount = Integer.parseInt(postData.get(PostFields.LIKE_COUNT).toString());
+            likeCount++;
+            postData.put(PostFields.LIKE_COUNT, likeCount);
+            redisTemplate.opsForHash().putAll(postKey, postData);
+            log.info("Incremented like count for post ID: {}", postId);
+        } else {
+            log.warn("Post with ID {} not found in Redis, cannot increment like count.", postId);
+        }
+    }
 }

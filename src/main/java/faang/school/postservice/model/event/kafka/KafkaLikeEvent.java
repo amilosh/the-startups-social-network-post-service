@@ -1,6 +1,6 @@
 package faang.school.postservice.model.event.kafka;
 
-import faang.school.postservice.model.dto.kafka.KafkaLikeDto;
+import faang.school.postservice.model.dto.KafkaLikeDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

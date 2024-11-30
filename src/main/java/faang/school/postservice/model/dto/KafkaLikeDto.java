@@ -1,4 +1,4 @@
-package faang.school.postservice.model.dto.kafka;
+package faang.school.postservice.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
