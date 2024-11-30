@@ -14,5 +14,5 @@ public interface RedisPostService {
 
     void savePost(RedisPostDto postDto);
 
-    void incrementPostViewsWithTransaction(Long postId);
+    void incrementPostViewsWithTransaction(Long postId, Long viewerId);
 }

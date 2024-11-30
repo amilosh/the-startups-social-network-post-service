@@ -16,9 +16,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CommentCommitedEventListener {
     private final CommentEventPublisher commentEventPublisher;
     private final PostRepository postRepository;
