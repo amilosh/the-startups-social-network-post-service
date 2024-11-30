@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.json.dto.DtoBanSchema;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.redis.MessageSender;
@@ -171,14 +172,11 @@ public class PostService {
 
     public void allAuthorIdWithNotVerifyComments() {
         List<Long> idsForBan = commentRepository.findAllWereVerifiedFalse();
-
         try {
-            String json = objectMapper.writeValueAsString(idsForBan);
-            messageSender.send(json);
+            messageSender.send(objectMapper.writeValueAsString(getDtoBanSchema(idsForBan)));
             log.info("Ids was sending");
         } catch (JsonProcessingException e) {
-            log.error("Can`t parse for json ", e);
-            throw new RuntimeException(e);
+            log.error("Failed to serialize DtoBanSchema to JSON", e);
         }
     }
 
@@ -227,4 +225,11 @@ public class PostService {
                         .type(file.getContentType())
                         .build());
     }
+
+    private static DtoBanSchema getDtoBanSchema(List<Long> idsForBan) {
+        DtoBanSchema dto = new DtoBanSchema();
+        dto.setIds(idsForBan);
+        return dto;
+    }
+
 }

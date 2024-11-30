@@ -2,6 +2,7 @@ package faang.school.postservice.service.post;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.json.dto.DtoBanSchema;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.redis.MessageSender;
@@ -57,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -837,29 +839,37 @@ class PostServiceTest {
     @DisplayName("Positive allAuthorIdWithNotVerifyComments")
     void PositiveAllAuthorIdWithNotVerifyComments() throws JsonProcessingException {
         List<Long> list = List.of(1L, 2L, 3L, 4L, 5L);
-        String json = "[1L,2L,3L,4L,5L]";
+        DtoBanSchema dto = new DtoBanSchema();
+        dto.setIds(list);
+
+        String json = "[1,2,3,4,5]";
 
         when(commentRepository.findAllWereVerifiedFalse()).thenReturn(list);
-        when(objectMapper.writeValueAsString(list)).thenReturn(json);
+        when(objectMapper.writeValueAsString(dto)).thenReturn(json);
         doNothing().when(messageSender).send(json);
 
         postService.allAuthorIdWithNotVerifyComments();
 
         verify(commentRepository, times(1)).findAllWereVerifiedFalse();
-        verify(objectMapper, times(1)).writeValueAsString(list);
+        verify(objectMapper, times(1)).writeValueAsString(dto);
         verify(messageSender, times(1)).send(json);
     }
 
     @Test
     void NegativeAllAuthorIdWithNotVerifyComments() throws JsonProcessingException {
         List<Long> list = List.of(1L, 2L, 3L, 4L, 5L);
+        DtoBanSchema dto = new DtoBanSchema();
+        dto.setIds(list);
 
         when(commentRepository.findAllWereVerifiedFalse()).thenReturn(list);
         doThrow(new JsonProcessingException("Test Exception") {
-        }).when(objectMapper).writeValueAsString(any());
+        })
+                .when(objectMapper).writeValueAsString(any(DtoBanSchema.class));
 
-        assertThrows(RuntimeException.class, () -> postService.allAuthorIdWithNotVerifyComments());
+        postService.allAuthorIdWithNotVerifyComments();
+
         verify(commentRepository, times(1)).findAllWereVerifiedFalse();
+        verify(messageSender, times(0)).send(anyString());
     }
 
     private MockMultipartFile createMultipartFile(String fileName) {
