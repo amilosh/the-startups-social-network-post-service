@@ -10,7 +10,6 @@ import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.impl.PostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,9 +41,6 @@ public class PublishPostTest {
 
     @Mock
     private KafkaPostProducer kafkaPostProducer;
-
-    @Mock
-    private SubscriptionRepository postSubscriptionRepository;
 
     @Mock
     private AuthorCacheService authorCacheService;
