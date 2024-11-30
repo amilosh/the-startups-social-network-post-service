@@ -1,52 +1,42 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.client.ProjectServiceClient;
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.api.SpellingConfig;
 import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.filter.PostFilters;
 import faang.school.postservice.validator.post.PostValidator;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.http.HttpEntity;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-@ExtendWith(SpringExtension.class)
-class PostServiceTest {
-
-    @Captor
-    private ArgumentCaptor<HttpEntity<String>> httpCaptor;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -56,14 +46,9 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostValidator postValidator;
-    @Mock
-    private ProjectServiceClient projectServiceClient;
 
     @Mock
     private RestTemplate restTemplate;
-
-    @Spy
-    private PostMapperImpl postMapper;
 
     @Mock
     private SpellingConfig api;
@@ -80,7 +65,6 @@ public class PostServiceTest {
     @BeforeEach
     void setUp() {
         postDto = new PostRequestDto();
-        postDto.setId(1L);
 
         // 1 опубликован 3 (1 из них удалён) не опубликовано
         // 1 удалён 3 не удалено

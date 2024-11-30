@@ -1,8 +1,6 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.dto.post.PostFilterDto;
-import faang.school.postservice.client.ProjectServiceClient;
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.api.SpellingConfig;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
@@ -20,14 +18,11 @@ import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,14 +34,10 @@ import java.util.stream.StreamSupport;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@AllArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
-
     private final PostMapper postMapper;
-    private final UserServiceClient userServiceClient;
-    private final ProjectServiceClient projectServiceClient;
     private final SpellingConfig api;
     private final RestTemplate restTemplate;
     private final PostValidator postValidator;
@@ -96,30 +87,6 @@ public class PostService {
         return postRepository.findById(id)
                 .map(postMapper::toDto)
                 .orElseThrow(EntityNotFoundException::new);
-    }
-
-    public List<PostResponseDto> getAllNonPublishedByAuthorId(Long id) {
-        validateUserExist(id);
-
-        return filterNonPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
-    }
-
-    public List<PostResponseDto> getAllNonPublishedByProjectId(Long id) {
-        validateProjectExist(id);
-
-        return filterNonPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
-    }
-
-    public List<PostResponseDto> getAllPublishedByAuthorId(Long id) {
-        validateUserExist(id);
-
-        return filterPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
-    }
-
-    public List<PostResponseDto> getAllPublishedByProjectId(Long id) {
-        validateProjectExist(id);
-
-        return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
     }
 
     public void checkSpelling() {
@@ -230,13 +197,6 @@ public class PostService {
                 .replace("\"", "\\\"");
     }
 
-    private void validateUserExist(Long id) {
-        userServiceClient.getUser(id);
-    }
-
-    private void validateProjectExist(Long id) {
-        projectServiceClient.getProject(id);
-    }
     public List<PostResponseDto> getPosts(PostFilterDto filterDto) {
         Stream<Post> posts = StreamSupport.stream(postRepository.findAll().spliterator(), false);
 
