@@ -19,6 +19,7 @@ public class PostRedis implements Serializable {
     private Long id;
     private String content;
     private Long authorId;
+    private Integer likes;
     private Integer views;
     private List<Long> comments;
     private LocalDateTime publishedAt;

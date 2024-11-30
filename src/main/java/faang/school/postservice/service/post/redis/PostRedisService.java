@@ -67,15 +67,39 @@ public class PostRedisService {
 
     public void changeLikesAmountForPosts(Map<Long, Integer> postLikes) {
         for (Map.Entry<Long, Integer> postLike : postLikes.entrySet()) {
-            String key = buildPostLikesKey(postLike.getKey());
-            commonRedisTemplate.opsForHash().increment(key, "likes", postLike.getValue());
+            changeLikesAmountForPost(postLike.getKey(), postLike.getValue());
+        }
+    }
+
+    @Retryable(retryFor = RedisLockException.class, maxAttempts = 20, backoff = @Backoff(delay = 500))
+    public void changeLikesAmountForPost(Long postId, Integer likesAmount) {
+        String key = buildKey(postId);
+        RedisTransactionResult redisTransactionResult = redisTransactionManager.updateRedisEntity(key, postRedisTemplate, (postRedis, operations) -> {
+            postRedis.setLikes(postRedis.getLikes() + likesAmount);
+            postRedisTemplate.opsForValue().set(key, postRedis);
+        });
+
+        if (redisTransactionResult == LOCK_EXCEPTION) {
+            throw new RedisLockException("Post %s was updated in concurrent transaction", postId);
         }
     }
 
     public void changeViewsAmountForPosts(Map<Long, Integer> postViews) {
         for (Map.Entry<Long, Integer> postView : postViews.entrySet()) {
-            String key = buildPostViewsKey(postView.getKey());
-            commonRedisTemplate.opsForHash().increment(key, "views", postView.getValue());
+            changeViewsAmountForPost(postView.getKey(), postView.getValue());
+        }
+    }
+
+    @Retryable(retryFor = RedisLockException.class, maxAttempts = 20, backoff = @Backoff(delay = 500))
+    public void changeViewsAmountForPost(Long postId, Integer viewsAmount) {
+        String key = buildKey(postId);
+        RedisTransactionResult redisTransactionResult = redisTransactionManager.updateRedisEntity(key, postRedisTemplate, (postRedis, operations) -> {
+            postRedis.setViews(postRedis.getViews() + viewsAmount);
+            postRedisTemplate.opsForValue().set(key, postRedis);
+        });
+
+        if (redisTransactionResult == LOCK_EXCEPTION) {
+            throw new RedisLockException("Post %s was updated in concurrent transaction", postId);
         }
     }
 
@@ -87,13 +111,5 @@ public class PostRedisService {
         return postIds.stream()
                 .map(id -> "post:" + id)
                 .toList();
-    }
-
-    private String buildPostLikesKey(Long postId) {
-        return POST_LIKES_REDIS_KEY + postId;
-    }
-
-    private String buildPostViewsKey(Long postId) {
-        return POST_VIEWS_REDIS_KEY + postId;
     }
 }

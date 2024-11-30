@@ -11,7 +11,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Service
 public class CommentRedisService {
-    private final static String COMMENT_LIKES_REDIS_KEY = "commentLikes:";
+    private final static String COMMENT_REDIS_KEY = "comment:";
 
     private final CommentRedisRepository commentRedisRepository;
     private final RedisTemplate<String, Object> commonRedisTemplate;
@@ -21,14 +21,14 @@ public class CommentRedisService {
         commentRedisRepository.save(commentRedis);
     }
 
-    public void changeLikesAmountForPosts(Map<Long, Integer> postLikes) {
+    public void changeLikesAmountForComments(Map<Long, Integer> postLikes) {
         for (Map.Entry<Long, Integer> postLike : postLikes.entrySet()) {
-            String key = buildCommentLikesKey(postLike.getKey());
+            String key = buildKey(postLike.getKey());
             commonRedisTemplate.opsForHash().increment(key, "likes", postLike.getValue());
         }
     }
 
-    private String buildCommentLikesKey(Long postId) {
-        return COMMENT_LIKES_REDIS_KEY + postId;
+    private String buildKey(Long postId) {
+        return COMMENT_REDIS_KEY + postId;
     }
 }

@@ -61,6 +61,7 @@ public interface PostMapper {
 
     List<PostCacheDto> mapToPostCacheDtos(List<Post> posts);
 
+    @Mapping(target = "likes", constant = "0")
     @Mapping(target = "views", constant = "0")
     @Mapping(target = "comments", source = "comments", qualifiedByName = "mapPostCommentsToList")
     PostRedis mapToPostRedis(Post post);

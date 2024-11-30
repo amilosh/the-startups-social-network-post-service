@@ -48,7 +48,7 @@ public class UserActionKafkaConsumer {
         try {
             Map<Long, Integer> commentLikes = commentLikedKafkaEvent.getCommentLikes();
             commentService.changeLikesAmountForComments(commentLikes);
-            commentRedisService.changeLikesAmountForPosts(commentLikes);
+            commentRedisService.changeLikesAmountForComments(commentLikes);
             acknowledgment.acknowledge();
         } catch (Exception e) {
             log.error("Likes is not added to Comments.");
