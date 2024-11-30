@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class FeedServiceImpl implements FeedService, RedisTransactional {
     private static final String KEY_PREFIX = "newsfeed:user:";
     private static final String POST_KEY_PREFIX = "post:";
+    private static final DateTimeFormatter formatter =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Value("${redis.feed.size}")
     private int newsFeedSize;
@@ -96,10 +98,11 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
         postDto.setPostId(Long.valueOf(postData.get(PostFields.POST_ID).toString()));
         postDto.setAuthorId(Long.valueOf(postData.get(PostFields.AUTHOR_ID).toString()));
         postDto.setContent((String) postData.get(PostFields.CONTENT));
-        postDto.setCreatedAt(LocalDateTime.parse((String) postData.get(PostFields.CREATED_AT)));
+        postDto.setCreatedAt(LocalDateTime.parse((String) postData.get(PostFields.CREATED_AT), formatter));
         postDto.setCommentCount(Integer.parseInt(postData.get(PostFields.COMMENT_COUNT).toString()));
         postDto.setLikeCount(Integer.parseInt(postData.get(PostFields.LIKE_COUNT).toString()));
         postDto.setRecentComments(getComments(postData));
+        postDto.setLikeCount(Integer.parseInt(postData.get(PostFields.VIEW_COUNT).toString()));
         return postDto;
     }
 

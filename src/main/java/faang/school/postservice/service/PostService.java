@@ -26,4 +26,6 @@ public interface PostService {
     void correctSpellingInUnpublishedPosts();
     List<List<Post>> findAndSplitUnverifiedPosts();
     CompletableFuture<Void> verifyPostsForSwearWords(List<Post> unverifiedPostsBatch);
+    void incrementPostViewCount(long postId);
+    int getViewCount(Long postId);
 }

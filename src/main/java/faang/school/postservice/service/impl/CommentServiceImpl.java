@@ -4,14 +4,12 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.dto.CommentDto;
 import faang.school.postservice.model.entity.Comment;
-import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.model.event.CommentEvent;
-import faang.school.postservice.redis.publisher.CommentEventPublisher;
+import faang.school.postservice.model.event.application.CommentCommittedEvent;
 import faang.school.postservice.repository.CommentRepository;
-import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.validator.comment.CommentServiceValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,17 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
     private final CommentServiceValidator validator;
     private final CommentMapper mapper;
     private final UserServiceClient userServiceClient;
-    private final CommentEventPublisher commentEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -39,7 +35,7 @@ public class CommentServiceImpl implements CommentService {
         validator.validateCommentContent(commentDto.getContent());
         Comment comment = mapper.mapToComment(commentDto);
         CommentDto savedCommentDto = mapper.mapToCommentDto(commentRepository.save(comment));
-        commentEventPublisher.publish(createCommentEvent(savedCommentDto));
+        applicationEventPublisher.publishEvent(new CommentCommittedEvent(savedCommentDto));
         return savedCommentDto;
     }
 
@@ -78,19 +74,5 @@ public class CommentServiceImpl implements CommentService {
         Pageable pageable = PageRequest.of(0, numberOfComments);
         List<Comment> comments = commentRepository.findRecentByPostId(postId, pageable);
         return mapper.mapToCommentDto(comments);
-    }
-
-    private CommentEvent createCommentEvent(CommentDto savedComment) {
-        Long postId = savedComment.getPostId();
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        if (optionalPost.isEmpty()) {
-            throw new IllegalArgumentException("Post not found");
-        }
-        Post post = optionalPost.get();
-        Long postAuthorId = post.getAuthorId();
-        Long authorId = savedComment.getAuthorId();
-        String postText = savedComment.getContent();
-        Long commentId = savedComment.getId();
-        return new CommentEvent(authorId, postAuthorId, postId, postText, commentId);
     }
 }

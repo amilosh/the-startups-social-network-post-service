@@ -132,6 +132,7 @@ redis:
     ttl:
       post: 86400
       user: 86400
+      comment: 86400
     size: 500
 
 kafka:
@@ -139,6 +140,7 @@ kafka:
     follower: 1000
   topics:
     post: post_topic
+    comment: comment_topic
 
 scheduler:
   cron:
