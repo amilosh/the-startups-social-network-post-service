@@ -11,6 +11,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.comment.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.cache.author.AuthorCacheRepository;
 import faang.school.postservice.service.comment.CommentService;
 import faang.school.postservice.validator.comment.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,6 +84,8 @@ class CommentServiceTest {
     private CommentValidator commentValidator;
     @Mock
     private CommentEventPublisher commentEventPublisher;
+    @Mock
+    private AuthorCacheRepository authorCacheRepository;
 
 
     @BeforeEach
