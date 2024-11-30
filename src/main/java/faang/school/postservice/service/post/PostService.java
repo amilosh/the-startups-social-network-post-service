@@ -30,6 +30,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -226,10 +229,36 @@ public class PostService {
                         .build());
     }
 
-    private static DtoBanSchema getDtoBanSchema(List<Long> idsForBan) {
+    private DtoBanSchema getDtoBanSchema(List<Long> idsForBan) {
         DtoBanSchema dto = new DtoBanSchema();
         dto.setIds(idsForBan);
         return dto;
     }
 
+
+    @Transactional
+    public void publishScheduledPosts(@Positive int subListSize) {
+        List<Post> posts = postRepository.findReadyToPublish();
+        if (posts.isEmpty()) {
+            log.info("No posts to publish");
+            return;
+        }
+        List<List<Post>> partitionsPosts = ListUtils.partition(posts, subListSize);
+        for (List<Post> partitionPosts : partitionsPosts) {
+            asyncPublishPosts(partitionPosts);
+        }
+        log.info("Published all {} posts", posts.size());
+    }
+
+    @Async("executorPostPublisher")
+    protected void asyncPublishPosts(List<Post> posts) {
+        CompletableFuture.runAsync(() -> {
+            posts.forEach(post -> {
+                post.setPublished(true);
+                post.setPublishedAt(LocalDateTime.now());
+            });
+            postRepository.saveAll(posts);
+            log.info("Published {} posts", posts.size());
+        });
+    }
 }
