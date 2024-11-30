@@ -1,7 +1,6 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.ViewBuffer;
-import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
@@ -13,12 +12,12 @@ import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.mapper.PostCacheMapper;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.producer.KafkaMessageProducer;
+import faang.school.postservice.model.ViewEntity;
+import faang.school.postservice.producer.KafkaPostProducer;
 import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
 import faang.school.postservice.repository.PostRedisRepository;
 import faang.school.postservice.repository.PostRepository;
-
-import faang.school.postservice.scheduler.SendViewsToKafka;
+import faang.school.postservice.repository.UserRedisRepository;
 import faang.school.postservice.service.tools.YandexSpeller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +48,11 @@ public class PostService {
     public Post createDraftPost(Post post) {
         validateAuthorOrProject(post);
         markAsDraft(post);
+        ViewEntity view = ViewEntity.builder()
+                .post(post)
+                .viewCount(0L)
+                .build();
+        post.setView(view);
         return postRepository.save(post);
     }
 
@@ -66,7 +70,7 @@ public class PostService {
         PostCache postCache = postCacheMapper.toPostCache(savedPost);
         postRedisRepository.save(postCache);
 
-        authorCacheManager.cacheAuthor(savedPost);
+        userRedisRepository.getAndSave(postCache.getAuthorId());
         kafkaPostProducer.publish(savedPost);
         return savedPost;
     }

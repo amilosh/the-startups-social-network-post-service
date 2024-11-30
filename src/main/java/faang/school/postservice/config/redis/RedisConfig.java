@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import faang.school.postservice.cache.PostCache;
+import faang.school.postservice.cache.UserCache;
 import faang.school.postservice.repository.RedisTransactionRetryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -60,6 +61,15 @@ public class RedisConfig {
                 new Jackson2JsonRedisSerializer<>(objectMapper, PostCache.class);
 
         redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
+
+        return redisTemplate;
+    }
+
+    @Bean RedisTemplate<String, UserCache> userCacheRedisTemplate() {
+        RedisTemplate<String, UserCache> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(UserCache.class));
 
         return redisTemplate;
     }

@@ -1,6 +1,5 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
@@ -15,7 +14,6 @@ import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.test_data.TestDataComment;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

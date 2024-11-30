@@ -50,7 +50,7 @@ public class Post {
     @OneToMany(mappedBy = "post", orphanRemoval = true)
     private List<Comment> comments;
 
-    @OneToOne(mappedBy = "post", orphanRemoval = true)
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL)
     private ViewEntity view;
 
     @ManyToMany(mappedBy = "posts")

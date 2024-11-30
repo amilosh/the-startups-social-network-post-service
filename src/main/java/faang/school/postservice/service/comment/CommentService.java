@@ -1,6 +1,5 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
@@ -13,6 +12,7 @@ import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class CommentService {
     private final CommentEventMapper commentEventMapper;
     private final UserContext userContext;
     private final KafkaCommentProducer kafkaCommentProducer;
-    private final AuthorCacheManager authorCacheManager;
+    private final UserRedisRepository userRedisRepository;
 
     @Transactional
     public Comment createComment(Comment comment) {
@@ -46,7 +46,7 @@ public class CommentService {
         Comment savedComment = commentRepository.save(comment);
         publishCommentEventToNotificationService(savedComment, post);
 
-        authorCacheManager.cacheAuthor(savedComment);
+        userRedisRepository.getAndSave(user.getId());
         kafkaCommentProducer.publish(savedComment);
         return savedComment;
     }
