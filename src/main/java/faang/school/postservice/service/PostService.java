@@ -1,8 +1,11 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.client.PostCorrecterClient;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.PostDto;
+import faang.school.postservice.dto.textGears.TextGearsRequest;
+import faang.school.postservice.dto.textGears.TextGearsResponse;
 import faang.school.postservice.exception.ExternalServiceException;
 import faang.school.postservice.exception.PostValidationException;
 import faang.school.postservice.mapper.PostMapper;
@@ -12,7 +15,11 @@ import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -28,6 +35,9 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostMapper postMapper;
+    private final PostCorrecterClient postCorrecterClient;
+    @Value("${side-api.text-gears.key}")
+    private String apiKey;
 
     public PostDto createPostDraft(PostDto postDto) {
         validateAuthor(postDto);
@@ -188,5 +198,30 @@ public class PostService {
 
     private int countLikesForPost(Long postId) {
         return postRepository.countLikesByPostId(postId);
+    }
+
+    @Transactional
+    public void sendPostToSpellingCheck() {
+        List<Post> readyToPublishPosts = postRepository.findReadyToPublish();
+        readyToPublishPosts.forEach(post -> {
+            TextGearsRequest request = TextGearsRequest.builder()
+                    .text(post.getContent())
+                    .key(apiKey)
+                    .build();
+
+            correctAndSavePost(post, request);
+        });
+    }
+
+    @Retryable(
+            retryFor = {FeignException.class},
+            backoff = @Backoff(delay = 500, multiplier = 2)
+    )
+    private void correctAndSavePost(Post post, TextGearsRequest request) {
+        TextGearsResponse textGearsResponse = postCorrecterClient.checkPost(request);
+        if (textGearsResponse.isStatus()) {
+            post.setContent(textGearsResponse.getResponse().corrected());
+            postRepository.save(post);
+        }
     }
 }
