@@ -19,7 +19,6 @@ public class CommentValidator {
     public final static String POST_NOT_FOUND = "Post with id = %s not found";
 
     public void validateComment(CommentDto commentDto) {
-
         validateAuthorId(commentDto.getAuthorId());
         validatePostId(commentDto.getPostId());
     }

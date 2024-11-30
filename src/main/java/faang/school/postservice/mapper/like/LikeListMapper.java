@@ -13,7 +13,7 @@ import java.util.List;
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         uses = LikeMapper.class)
 public interface LikeListMapper {
-    List<Like> toListList(List<LikeDto> likeDtos);
+    List<Like> toLikeList(List<LikeDto> likeDtos);
 
     List<LikeDto> toLikeDtoList(List<Like> likeOffers);
 }

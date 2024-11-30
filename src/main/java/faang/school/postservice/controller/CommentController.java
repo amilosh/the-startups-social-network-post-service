@@ -46,7 +46,6 @@ public class CommentController {
 
     @GetMapping(UrlUtils.ID)
     public List<CommentDto> getAllComments(@PathVariable("id") @Min(1) Long id) {
-
         return commentService.getAllComments(id);
     }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.utilities.UrlUtils;
+import faang.school.postservice.validator.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,15 +14,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,6 +40,9 @@ public class CommentControllerTest {
     @Mock
     private CommentService commentService;
 
+    @Mock
+    private CommentValidator commentValidator;
+
     @InjectMocks
     private CommentController commentController;
 
@@ -44,34 +53,73 @@ public class CommentControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final long authorIdFirst = 5;
+    private final long authorIdSecond = 5;
+    private final long commentIdFirst = 1;
+    private final long commentIdSecond = 2;
+    private final long postId = 3;
+    private final String content = "Content";
 
-    private final long commentIdFirst = 1L;
-    private final long commentIdSecond = 2L;
-
-/*    @Test
-    public void createComment() throws Exception {
+    @Test
+    public void createCommentSuccessTest() throws Exception {
         CommentDto commentDto = new CommentDto();
         commentDto.setId(commentIdFirst);
+        commentDto.setContent(content);
+        commentDto.setAuthorId(authorIdFirst);
+        commentDto.setPostId(postId);
+
         CommentDto commentDtoExpected = new CommentDto();
         commentDtoExpected.setId(commentIdSecond);
+        commentDtoExpected.setContent(content);
+        commentDtoExpected.setAuthorId(authorIdSecond);
+        commentDtoExpected.setPostId(postId);
 
-
-        when(commentService.createComment(any(CommentDto.class))).thenReturn(commentDtoExpected);
+        when(commentService.createComment(commentDto)).thenReturn(commentDtoExpected);
 
         mockMvc.perform(post(mainUrl)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(commentDto)))
-//                .andDo(print())
-//                .content(cc))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON));
-    }*/
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(commentIdSecond))
+                .andExpect(jsonPath("$.content").value(content))
+                .andExpect(jsonPath("$.authorId").value(authorIdSecond))
+                .andExpect(jsonPath("$.postId").value(postId));
 
+        verify(commentService, times(1)).createComment(commentDto);
+    }
+
+    @Test
+    public void updateCommentSuccessTest() throws Exception {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setId(commentIdFirst);
+        commentDto.setContent(content);
+        commentDto.setAuthorId(authorIdFirst);
+        commentDto.setPostId(postId);
+
+        CommentDto commentDtoExpected = new CommentDto();
+        commentDtoExpected.setId(commentIdSecond);
+        commentDtoExpected.setContent(content);
+        commentDtoExpected.setAuthorId(authorIdSecond);
+        commentDtoExpected.setPostId(postId);
+
+        when(commentService.updateComment(commentDto)).thenReturn(commentDtoExpected);
+
+        mockMvc.perform(put(mainUrl)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commentDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(commentIdSecond))
+                .andExpect(jsonPath("$.content").value(content))
+                .andExpect(jsonPath("$.authorId").value(authorIdSecond))
+                .andExpect(jsonPath("$.postId").value(postId));
+
+        verify(commentService, times(1)).updateComment(commentDto);
+    }
 
     @Test
     public void getAllCommentsSuccessTest() throws Exception {
-        long postId = 3L;
-
         CommentDto commentDtoFirst = new CommentDto();
         commentDtoFirst.setId(commentIdFirst);
         CommentDto commentDtoSecond = new CommentDto();
@@ -93,14 +141,22 @@ public class CommentControllerTest {
     }
 
     @Test
-    public void deleteCommentSuccessTest() throws Exception {
-//        long commentId = 1L;
-//        doNothing().when(recommendationValidatorMock).validateContent(stringArgumentCaptor.capture());
-//        when(commentService.deleteComment(commentId));
+    public void getAllCommentsWithEmptyResultSuccessTest() throws Exception {
+        when(commentService.getAllComments(postId)).thenReturn(new ArrayList<>());
 
-        mockMvc.perform(get(mainUrl + "/" + commentIdFirst))
+        mockMvc.perform(get(mainUrl + "/" + postId))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON));
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
+    @Test
+    public void deleteCommentSuccessTest() throws Exception {
+        doNothing().when(commentService).deleteComment(commentIdFirst);
+
+        mockMvc.perform(delete(mainUrl + "/" + commentIdFirst))
+                .andExpect(status().isOk());
+
+        verify(commentService, times(1)).deleteComment(commentIdFirst);
+    }
 }

@@ -25,6 +25,7 @@ public interface CommentMapper {
     CommentDto toDto(Comment comment);
 
     @Mapping(target = "post", expression = "java(mapPostId(commentDto.getPostId()))")
+    @Mapping(target = "likes", expression = "java(mapLikeIds(commentDto.getLikeIds()))")
     Comment toEntity(CommentDto commentDto);
 
     @Mapping(target = "id", ignore = true)
@@ -32,7 +33,7 @@ public interface CommentMapper {
     @Mapping(target = "likes", ignore = true)
     @Mapping(target = "post", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true) //????
+    @Mapping(target = "updatedAt", ignore = true)
     void update(CommentDto commentDto, @MappingTarget Comment comment);
 
     @Named("mapToLikeId")
@@ -49,6 +50,15 @@ public interface CommentMapper {
         return Post.builder()
                 .id(postId)
                 .build();
+    }
+
+    default List<Like> mapLikeIds(List<Long> likeIds) {
+        if (likeIds == null) {
+            return new ArrayList<>();
+        }
+        return likeIds.stream()
+                .map( likeId -> Like.builder().id(likeId).build())
+                .toList();
     }
 }
 

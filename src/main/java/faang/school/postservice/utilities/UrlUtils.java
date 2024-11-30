@@ -12,5 +12,10 @@ public class UrlUtils {
     public static final String PROJECT = "/project";
     public static final String DRAFT = "/draft";
     public static final String PUBLISHED = "/published";
+
+
+
+
+
     public static final String COMMENT = "/comment";
 }
