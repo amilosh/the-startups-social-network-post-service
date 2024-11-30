@@ -1,4 +1,4 @@
-package faang.school.postservice.service;
+package faang.school.postservice.service.impl;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.model.entity.Post;
@@ -14,6 +14,7 @@ import faang.school.postservice.redis.repository.AuthorCacheRedisRepository;
 import faang.school.postservice.redis.repository.FeedsCacheRepository;
 import faang.school.postservice.redis.repository.PostCacheRedisRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,9 +36,6 @@ public class FeedServiceImpl implements FeedService {
     private final AuthorCacheMapper authorCacheMapper;
     private final UserServiceClient userServiceClient;
 
-    @Value(value = "${feed-posts.size}")
-    private int postsSize;
-
     @Value(value = "${feed-posts-per-request.size}")
     private int postsPerRequest;
 
@@ -52,7 +50,7 @@ public class FeedServiceImpl implements FeedService {
             });
         } catch (NoSuchElementException e) {
             log.info("Try to make feed with id {} from Postgres", feedId);
-            return getFeedFromPostgres(feedId);
+            return getFeedFromPostgres(feedId, startPostId);
         }
         List<Long> sublist = getSubList(requestedFeed.getPostIds(), startPostId, postsPerRequest);
         List<PostCache> feedPosts = getPostsFromCache(sublist);
@@ -99,10 +97,10 @@ public class FeedServiceImpl implements FeedService {
         return createFeedDto(posts, authorRedisDtos);
     }
 
-    private FeedDto getFeedFromPostgres(Long feedId) {
+    private FeedDto getFeedFromPostgres(Long feedId, Integer startPostId) {
         List<AuthorRedisDto> allAuthors = userServiceClient.getAllFollowing(feedId.toString());
         List<Long> allAuthorIds = allAuthors.stream().map(AuthorRedisDto::getId).toList();
-        List<Post> allPosts = postRepository.findAllByAuthorIdIn(allAuthorIds, postsSize);
+        List<Post> allPosts = postRepository.findAllByAuthorIdIn(allAuthorIds, startPostId, postsPerRequest);
         return FeedDto.builder().id(feedId).postRedisDtos(createFeedDto(allPosts, allAuthors))
                 .build();
     }
