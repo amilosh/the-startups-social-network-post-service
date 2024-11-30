@@ -79,29 +79,22 @@ public class RedisConfiguration {
     }
 
     @Bean
-    public RedisCacheConfiguration cacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .disableCachingNullValues()
-                .entryTtl(Duration.ofHours(redisProperties.getPostTtl()))
-                .serializeValuesWith(RedisSerializationContext
-                        .SerializationPair
-                        .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
-    }
-
-    @Bean
     public RedisCacheManager cacheManager() {
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
-                .entryTtl(Duration.ofHours(redisProperties.getDefaultTtl()))
+                .entryTtl(Duration.ofDays(redisProperties.getDefaultTtl()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
         RedisCacheConfiguration postsCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(redisProperties.getPostTtl()));
+                .entryTtl(Duration.ofDays(redisProperties.getPostTtl()));
         RedisCacheConfiguration commentsCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(redisProperties.getCommentTtl()));
+        RedisCacheConfiguration authorCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofDays(redisProperties.getAuthorTtl()));
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
         cacheConfigurations.put("Post", postsCacheConfig);
         cacheConfigurations.put("Comment", commentsCacheConfig);
+        cacheConfigurations.put("Author", authorCacheConfig);
         return RedisCacheManager.builder(jedisConnectionFactory())
                 .cacheDefaults(defaultCacheConfig)
                 .withInitialCacheConfigurations(cacheConfigurations)

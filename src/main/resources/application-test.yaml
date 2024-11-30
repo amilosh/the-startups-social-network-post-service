@@ -3,10 +3,11 @@ spring:
     redis:
       port:
       host:
-      postTtl: 1 # in days
       maxPostCountInFeed: 500
-      defaultTtl: 12 # hours
-      commentTtl: 24 # hours
+      postTtl: 1 # in days
+      defaultTtl: 1 # in days
+      authorTtl: 1 # in days
+      commentTtl: 1 # in days
 
     kafka:
       consumerConfig:

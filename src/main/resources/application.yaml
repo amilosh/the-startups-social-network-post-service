@@ -24,9 +24,10 @@ spring:
       port: 6379
       host: localhost
       postTtl: 1 # in days
+      defaultTtl: 1 # in days
+      authorTtl: 1 # in days
       maxPostCountInFeed: 500
-      defaultTtl: 12 # hours
-      commentTtl: 24 # hours
+      commentTtl: 1 # in days
       redissonAddress: redis://localhost:6379
       channels:
         calculationsChannel:
