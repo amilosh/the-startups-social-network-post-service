@@ -119,7 +119,7 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
 
     @Override
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public void incrementLikesWithTransaction(Long postId) {
+    public void incrementLikesWithTransaction(Long postId, Long likeId) {
         String key = createPostKey(postId);
         executeRedisTransaction(() -> {
             fetchAndCachePostIfAbsent(postId, key);

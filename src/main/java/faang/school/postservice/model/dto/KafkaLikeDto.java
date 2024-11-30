@@ -10,9 +10,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class KafkaLikeDto {
+    private Long id;
     private Long authorId;
     private Long postId;
-    private Long commentId;
 }
