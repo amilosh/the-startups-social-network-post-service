@@ -82,11 +82,11 @@ public class RedisConfiguration {
     public RedisCacheManager cacheManager() {
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
-                .entryTtl(Duration.ofHours(redisProperties.getDefaultTtl()))
+                .entryTtl(Duration.ofDays(redisProperties.getDefaultTtl()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)));
         RedisCacheConfiguration postsCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(redisProperties.getPostTtl()));
+                .entryTtl(Duration.ofDays(redisProperties.getPostTtl()));
         RedisCacheConfiguration commentsCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(redisProperties.getCommentTtl()));
         RedisCacheConfiguration authorCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
