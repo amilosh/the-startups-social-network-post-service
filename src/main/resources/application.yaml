@@ -4,6 +4,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres
     username: user
     password: password
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -41,3 +45,15 @@ project-service:
 payment-service:
   host: localhost
   port: 9080
+
+services:
+  s3:
+    endpoint: http://127.0.0.1:9000
+    accessKey: user
+    secretKey: password
+    bucketName: corpbucket
+    max-image-size-mb: 5
+    max-images-count-for-post: 10
+    max-width-horizontal-image: 1080
+    max-height-horizontal-image: 566
+    max-side-square-image: 1080

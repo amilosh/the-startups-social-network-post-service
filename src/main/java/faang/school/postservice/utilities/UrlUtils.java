@@ -12,10 +12,8 @@ public class UrlUtils {
     public static final String PROJECT = "/project";
     public static final String DRAFT = "/draft";
     public static final String PUBLISHED = "/published";
-
-
-
-
-
+    public static final String RESOURCE = "/resource";
+    public static final String IMAGE = "/image";
+    public static final String ALL = "/all";
     public static final String COMMENT = "/comment";
 }
