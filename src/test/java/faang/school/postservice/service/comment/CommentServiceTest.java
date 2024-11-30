@@ -12,6 +12,7 @@ import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRedisRepository;
 import faang.school.postservice.test_data.TestDataComment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,7 +52,7 @@ class CommentServiceTest {
     @Mock
     private UserContext userContext;
     @Mock
-    private AuthorCacheManager authorCacheManager;
+    private UserRedisRepository userRedisRepository;
     @Mock
     private KafkaCommentProducer kafkaCommentProducer;
     @InjectMocks
@@ -91,7 +93,7 @@ class CommentServiceTest {
             verify(commentServiceHandler, atLeastOnce()).userExistValidation(userDto.getId());
             verify(commentRepository, atLeastOnce()).save(comment);
             verify(commentEventPublisher, atLeastOnce()).publish(commentEventDto);
-            verify(authorCacheManager, times(1)).cacheAuthor(createdComment);
+            verify(userRedisRepository, times(1)).getAndSave(anyLong());
             verify(kafkaCommentProducer, times(1)).publish(createdComment);
         }
 

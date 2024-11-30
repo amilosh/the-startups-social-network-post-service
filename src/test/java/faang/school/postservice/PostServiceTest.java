@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -28,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,8 +51,11 @@ public class PostServiceTest {
     @Mock
     private YandexSpeller yandexSpeller;
 
+    @Mock
+    private ViewBuffer viewBuffer;
+
     @InjectMocks
-    PostService postService;
+    private PostService postService;
 
     private Post post;
 
@@ -127,6 +130,7 @@ public class PostServiceTest {
         assertEquals(post.getId(), result.getId());
 
         verify(postRepository, times(1)).findById(post.getId());
+        verify(viewBuffer, times(1)).addView(anyLong());
     }
 
 
