@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -26,8 +27,9 @@ public class NewsFeedRedisRepository {
     @Value("${spring.data.redis.cache.news-feed.post-batch-size}")
     private int batchSize;
 
-    public void addPostId(Long postId, Long userId, long publishedAt) {
+    public void addPostId(Long postId, Long userId, LocalDateTime publishedAt) {
         String key = "news-feed-" + userId;
+        long millis = convertToMillis(publishedAt);
         longRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(key);
             long feedSize = requireNonNullElse(operations.opsForZSet().size(key), 0L);
@@ -35,7 +37,7 @@ public class NewsFeedRedisRepository {
             if (feedSize == feedCapacity) {
                 operations.opsForZSet().popMin(key);
             }
-            operations.opsForZSet().add(key, postId, publishedAt);
+            operations.opsForZSet().add(key, postId, millis);
             return operations.exec();
         });
     }
@@ -47,7 +49,7 @@ public class NewsFeedRedisRepository {
             operations.multi();
             posts.forEach(post -> {
                 Long postId = post.getId();
-                long publishedAt = convertToMillis(post);
+                long publishedAt = convertToMillis(post.getPublishedAt());
                 operations.opsForZSet().add(key, postId, publishedAt);
             });
             return operations.exec();
@@ -81,9 +83,9 @@ public class NewsFeedRedisRepository {
         return new ArrayList<>(postIdsSet);
     }
 
-    private long convertToMillis(PostCache post) {
+    private long convertToMillis(LocalDateTime time) {
         ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime zonedDateTime = post.getPublishedAt().atZone(zoneId);
+        ZonedDateTime zonedDateTime = time.atZone(zoneId);
         return zonedDateTime.toInstant().toEpochMilli();
     }
 }

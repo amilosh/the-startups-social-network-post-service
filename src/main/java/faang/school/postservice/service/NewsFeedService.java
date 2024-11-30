@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -49,8 +50,8 @@ public class NewsFeedService {
     @Value("${spring.data.redis.cache.news-feed.capacity}")
     private int feedCapacity;
 
-    public void allocateToFeeds(Long postId, Long createdAt, List<Long> userIds) {
-        userIds.forEach(userId -> newsFeedRedisRepository.addPostId(postId, userId, createdAt));
+    public void allocateToFeeds(Long postId, LocalDateTime publishedAt, List<Long> userIds) {
+        userIds.forEach(userId -> newsFeedRedisRepository.addPostId(postId, userId, publishedAt));
         log.info("Post allocated to feeds. PostId: {}", postId);
     }
 

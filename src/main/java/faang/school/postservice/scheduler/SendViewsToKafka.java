@@ -1,6 +1,6 @@
 package faang.school.postservice.scheduler;
 
-import faang.school.postservice.ViewBuffer;
+import faang.school.postservice.service.tools.ViewBuffer;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.ViewEntity;
 import faang.school.postservice.producer.KafkaViewProducer;

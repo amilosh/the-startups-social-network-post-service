@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/feed")
+@RequestMapping("/feeds")
 @RequiredArgsConstructor
 public class NewsFeedController {
     private final NewsFeedService newsFeedService;
-    private final FeedPostMapper feedPostMapper;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)

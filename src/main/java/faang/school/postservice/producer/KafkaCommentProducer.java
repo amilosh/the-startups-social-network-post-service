@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class KafkaCommentProducer extends AbstractKafkaProducer<Comment> {
 
@@ -28,7 +30,7 @@ public class KafkaCommentProducer extends AbstractKafkaProducer<Comment> {
     }
 
     @Override
-    protected Object createMessage(Comment comment) {
-        return commentCacheMapper.toCommentPublishMessage(comment);
+    protected List<Object> createMessages(Comment comment) {
+        return List.of(commentCacheMapper.toCommentPublishMessage(comment));
     }
 }

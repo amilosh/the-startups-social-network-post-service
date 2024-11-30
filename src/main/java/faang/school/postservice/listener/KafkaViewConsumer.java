@@ -23,7 +23,7 @@ public class KafkaViewConsumer {
     @KafkaListener(topics = "${spring.kafka.topic.view-publisher}")
     public void consume(String message, Acknowledgment ack) {
         try {
-            log.info("Received like publish message: {}", message);
+            log.info("Received view publish message: {}", message);
 
             ViewPublishMessage viewPublishMessage = mapper.readValue(message, ViewPublishMessage.class);
             Long postId = viewPublishMessage.getPostId();

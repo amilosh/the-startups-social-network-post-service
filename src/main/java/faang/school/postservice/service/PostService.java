@@ -1,6 +1,6 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.ViewBuffer;
+import faang.school.postservice.service.tools.ViewBuffer;
 import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;

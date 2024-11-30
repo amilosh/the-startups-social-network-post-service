@@ -1,4 +1,4 @@
-package faang.school.postservice;
+package faang.school.postservice.service.tools;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

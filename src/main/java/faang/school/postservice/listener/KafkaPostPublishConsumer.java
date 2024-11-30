@@ -10,6 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -28,8 +29,8 @@ public class KafkaPostPublishConsumer {
             List<Long> followerIds = postPublishMessage.getFollowerIds();
             if (!followerIds.isEmpty()) {
                 Long postId = postPublishMessage.getPostId();
-                Long createdAt = postPublishMessage.getTimestamp();
-                newsFeedService.allocateToFeeds(postId, createdAt, followerIds);
+                LocalDateTime publishedAt = postPublishMessage.getPublishedAt();
+                newsFeedService.allocateToFeeds(postId, publishedAt, followerIds);
             }
             ack.acknowledge();
 

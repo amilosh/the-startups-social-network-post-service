@@ -2,13 +2,13 @@ package faang.school.postservice.producer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.user.UserDto;
-import faang.school.postservice.message.HeatFeedBatchMessage;
 import faang.school.postservice.message.HeatFeedUserMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class KafkaHeatFeedProducer extends AbstractKafkaProducer<List<UserDto>> {
@@ -26,13 +26,12 @@ public class KafkaHeatFeedProducer extends AbstractKafkaProducer<List<UserDto>> 
     }
 
     @Override
-    protected Object createMessage(List<UserDto> users) {
-        List<HeatFeedUserMessage> batch = users.stream()
+    protected List<Object> createMessages(List<UserDto> users) {
+        return users.stream()
                 .map(user -> HeatFeedUserMessage.builder()
                         .userId(user.getId())
                         .followingIds(user.getFollowingsIds())
                         .build())
-                .toList();
-        return new HeatFeedBatchMessage(batch);
+                .collect(Collectors.toUnmodifiableList());
     }
 }

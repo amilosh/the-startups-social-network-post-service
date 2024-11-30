@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class KafkaLikeProducer extends AbstractKafkaProducer<Like> {
 
@@ -23,10 +25,10 @@ public class KafkaLikeProducer extends AbstractKafkaProducer<Like> {
     }
 
     @Override
-    protected Object createMessage(Like like) {
-        return LikePublishMessage.builder()
+    protected List<Object> createMessages(Like like) {
+        return List.of(LikePublishMessage.builder()
                 .postId(like.getPost().getId())
-                .build();
+                .build());
     }
 }
 

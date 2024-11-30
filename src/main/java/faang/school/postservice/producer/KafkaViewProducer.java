@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @Slf4j
 public class KafkaViewProducer extends AbstractKafkaProducer<ViewEntity> {
@@ -25,11 +27,11 @@ public class KafkaViewProducer extends AbstractKafkaProducer<ViewEntity> {
     }
 
     @Override
-    protected Object createMessage(ViewEntity viewEntity) {
-        return ViewPublishMessage.builder()
+    protected List<Object> createMessages(ViewEntity viewEntity) {
+        return List.of(ViewPublishMessage.builder()
                 .postId(viewEntity.getPost().getId())
                 .viewCount(viewEntity.getViewCount())
-                .build();
+                .build());
     }
 }
 

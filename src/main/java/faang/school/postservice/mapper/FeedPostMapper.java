@@ -6,7 +6,6 @@ import faang.school.postservice.cache.UserCache;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.comment.FeedComment;
 import faang.school.postservice.dto.post.FeedPost;
-import faang.school.postservice.dto.user.FeedUser;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.repository.UserRedisRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +31,7 @@ public class FeedPostMapper {
         return FeedPost.builder()
                 .postId(postCache.getId())
                 .author(findUserCache(postCache.getAuthorId()))
+                .content(postCache.getContent())
                 .publishedAt(postCache.getPublishedAt())
                 .resourceKeys(postCache.getResourceKeys())
                 .viewCount(postCache.getViewCount())
@@ -56,21 +56,14 @@ public class FeedPostMapper {
                 .build();
     }
 
-    private FeedUser findUserCache(Long userId) {
+    private UserCache findUserCache(Long userId) {
         Optional<UserCache> userCache = userRedisRepository.findById(userId);
         if (userCache.isPresent()) {
-            return toFeedUser(userCache.get());
+            return userCache.get();
         } else {
             UserDto userDto = userServiceClient.getUser(userId);
-            return toFeedUser(userCacheMapper.toUserCache(userDto));
-        }
-    }
+            return userCacheMapper.toUserCache(userDto);
 
-    private FeedUser toFeedUser(UserCache userCache) {
-        return FeedUser.builder()
-                .userId(userCache.getId())
-                .username(userCache.getUsername())
-                .smallAvatar(userCache.getAvatarSmall())
-                .build();
+        }
     }
 }

@@ -1,6 +1,6 @@
 package faang.school.postservice.dto.comment;
 
-import faang.school.postservice.dto.user.FeedUser;
+import faang.school.postservice.cache.UserCache;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @ToString
 public class FeedComment {
     private Long commentId;
-    private FeedUser author;
+    private UserCache author;
     private String content;
     private LocalDateTime createdAt;
 }

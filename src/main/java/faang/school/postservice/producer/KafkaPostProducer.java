@@ -7,9 +7,13 @@ import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.message.PostPublishMessage;
 import faang.school.postservice.model.Post;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -20,6 +24,10 @@ public class KafkaPostProducer extends AbstractKafkaProducer<Post> {
 
     @Value("${spring.kafka.topic.post-publisher}")
     private String topic;
+
+    @Value("${spring.kafka.batch-size.post-publisher}")
+    private int batchSize;
+
 
     public KafkaPostProducer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper,
                              UserServiceClient userServiceClient, UserContext userContext) {
@@ -34,13 +42,19 @@ public class KafkaPostProducer extends AbstractKafkaProducer<Post> {
     }
 
     @Override
-    protected Object createMessage(Post post) {
+    protected List<Object> createMessages(Post post) {
         Long authorId = post.getAuthorId();
         userContext.setUserId(authorId);
         UserDto author = userServiceClient.getUser(authorId);
-        return PostPublishMessage.builder()
-                .postId(post.getId())
-                .followerIds(author.getFollowerIds())
-                .build();
+        List<Long> followers = author.getFollowerIds();
+        List<List<Long>> batches = ListUtils.partition(followers, batchSize);
+
+        return batches.stream()
+                .map(batch -> PostPublishMessage.builder()
+                        .postId(post.getId())
+                        .followerIds(batch)
+                        .publishedAt(post.getPublishedAt())
+                        .build())
+                .collect(Collectors.toUnmodifiableList());
     }
 }

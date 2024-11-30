@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,12 +75,12 @@ public class NewsFeedServiceTest {
     @Test
     public void testAllocateToFeeds() {
         Long postId = 1L;
-        Long createdAt = System.currentTimeMillis();
+        LocalDateTime publishedAt = LocalDateTime.now();
         List<Long> userIds = Arrays.asList(1L, 2L, 3L);
 
-        newsFeedService.allocateToFeeds(postId, createdAt, userIds);
+        newsFeedService.allocateToFeeds(postId, publishedAt, userIds);
 
-        verify(newsFeedRedisRepository, times(userIds.size())).addPostId(eq(postId), anyLong(), eq(createdAt));
+        verify(newsFeedRedisRepository, times(userIds.size())).addPostId(eq(postId), anyLong(), eq(publishedAt));
     }
 
     @Test

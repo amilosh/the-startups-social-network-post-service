@@ -74,6 +74,8 @@ spring:
       comment-publisher: comment_publisher
       view-publisher: view_publisher
       heat-feed-publisher: heat_feed_publisher
+    batch-size:
+      post-publisher: 100
 
 
   servlet:

@@ -2,7 +2,6 @@ package faang.school.postservice.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import faang.school.postservice.message.HeatFeedBatchMessage;
 import faang.school.postservice.message.HeatFeedUserMessage;
 import faang.school.postservice.service.NewsFeedService;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +25,10 @@ public class KafkaHeatFeedConsumer {
         try {
             log.info("Received comment publish message: {}", message);
 
-            HeatFeedBatchMessage heatFeedBatchMessage = mapper.readValue(message, HeatFeedBatchMessage.class);
-            List<HeatFeedUserMessage> heatFeedUsers = heatFeedBatchMessage.getMessages();
-            heatFeedUsers.forEach(heatFeedUser -> {
-                Long userId = heatFeedUser.getUserId();
-                List<Long> followingIds = heatFeedUser.getFollowingIds();
-                newsFeedService.heatUserFeed(userId, followingIds);
-            });
+            HeatFeedUserMessage heatFeedUser = mapper.readValue(message, HeatFeedUserMessage.class);
+            Long userId = heatFeedUser.getUserId();
+            List<Long> followingIds = heatFeedUser.getFollowingIds();
+            newsFeedService.heatUserFeed(userId, followingIds);
 
             ack.acknowledge();
 

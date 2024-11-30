@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -18,7 +19,5 @@ import java.util.List;
 public class PostPublishMessage {
     private Long postId;
     private List<Long> followerIds;
-
-    @Builder.Default
-    private Long timestamp = System.currentTimeMillis();
+    private LocalDateTime publishedAt;
 }
