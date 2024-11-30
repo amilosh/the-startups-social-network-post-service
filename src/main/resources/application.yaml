@@ -133,6 +133,7 @@ redis:
       post: 86400
       user: 86400
       comment: 86400
+      post-view: 86400
     size: 500
 
 kafka:
@@ -141,6 +142,7 @@ kafka:
   topics:
     post: post_topic
     comment: comment_topic
+    post-view: post_view_topic
 
 scheduler:
   cron:

@@ -10,9 +10,9 @@ public interface RedisPostService {
 
     void addComment(CommentSentEvent event);
 
-    void incrementLikesWithTransaction(Long postId);
+    void incrementLikesWithTransaction(Long postId, Long likeId);
 
     void savePost(RedisPostDto postDto);
 
-    void incrementPostViewsWithTransaction(Long postId);
+    void incrementPostViewsWithTransaction(Long postId, Long viewerId);
 }
