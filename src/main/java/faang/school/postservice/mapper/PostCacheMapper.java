@@ -27,6 +27,7 @@ public class PostCacheMapper {
                 .comments(commentCacheMapper.toLimitedCommentCache(post.getComments(), commentLimit))
                 .commentsCount((long) post.getComments().size())
                 .likeCount((long) post.getLikes().size())
+                .viewCount(post.getView().getViewCount())
                 .publishedAt(post.getPublishedAt())
                 .build();
     }

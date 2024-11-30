@@ -66,7 +66,6 @@ public class PostRedisRepository {
     }
 
     public void addLikeToPost(Long postId) {
-
         String postIdKey = "post-" + postId;
         postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(postIdKey);
