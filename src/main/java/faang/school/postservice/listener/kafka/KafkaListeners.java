@@ -2,9 +2,9 @@ package faang.school.postservice.listener.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import faang.school.postservice.dto.post.message.CommentPostMessage;
-import faang.school.postservice.dto.post.message.LikeCommentMessage;
-import faang.school.postservice.dto.post.message.LikePostMessage;
+import faang.school.postservice.dto.post.message.NewCommentMessage;
+import faang.school.postservice.dto.post.message.LikeForCommentMessage;
+import faang.school.postservice.dto.post.message.LikeForPostMessage;
 import faang.school.postservice.dto.post.message.NewPostMessage;
 import faang.school.postservice.dto.post.message.UsersFeedUpdateMessage;
 import faang.school.postservice.dto.post.message.ViewPostMessage;
@@ -54,7 +54,7 @@ public class KafkaListeners {
 
     @KafkaListener(topics = "${spring.kafka.topic.post.like}", groupId = "${spring.kafka.consumer.group-id}")
     public void likePost(String message) {
-        LikePostMessage likePostMessage = readMessage(message, LikePostMessage.class);
+        LikeForPostMessage likePostMessage = readMessage(message, LikeForPostMessage.class);
         cacheUpdateService.postLikesIncrById(likePostMessage.getPostId());
     }
 
@@ -66,7 +66,7 @@ public class KafkaListeners {
 
     @KafkaListener(topics = "${spring.kafka.topic.post.comment}", groupId = "${spring.kafka.consumer.group-id}")
     public void commentPost(String message) {
-        CommentPostMessage commentPostMessage = readMessage(message, CommentPostMessage.class);
+        NewCommentMessage commentPostMessage = readMessage(message, NewCommentMessage.class);
         cacheUpdateService.commentsCounterIncrById(commentPostMessage.getPostId());
     }
 
@@ -78,7 +78,7 @@ public class KafkaListeners {
 
     @KafkaListener(topics = "${spring.kafka.topic.post.like_post_comment}", groupId = "${spring.kafka.consumer.group-id}")
     public void likeComment(String message) {
-        LikeCommentMessage likeCommentMessage = readMessage(message, LikeCommentMessage.class);
+        LikeForCommentMessage likeCommentMessage = readMessage(message, LikeForCommentMessage.class);
         cacheUpdateService.commentLikesIncrById(likeCommentMessage.getCommentId());
     }
 

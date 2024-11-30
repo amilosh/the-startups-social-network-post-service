@@ -32,7 +32,7 @@ public interface UserServiceClient {
     List<Long> getFollowersId(@PathVariable Long userId);
 
     @GetMapping("/users/subscribes-id/{userId}")
-    List<Long> getSubscribesId(@PathVariable Long userId);
+    List<Long> getSubscribesIds(@PathVariable Long userId);
 
     @GetMapping("/users/all-ids")
     List<Long> getAllIds();

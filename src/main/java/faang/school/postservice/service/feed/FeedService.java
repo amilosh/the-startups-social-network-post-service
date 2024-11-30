@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
-import static faang.school.postservice.enums.publisher.PublisherType.VIEW_POST;
+import static faang.school.postservice.enums.publisher.PublisherType.POST_VIEW;
 
 @RequiredArgsConstructor
 @Service
@@ -31,7 +31,7 @@ public class FeedService {
     private final PostService postService;
     private final PostKey postKey;
 
-    @PublishEvent(type = VIEW_POST)
+    @PublishEvent(type = POST_VIEW)
     public List<PostCacheDto> getSetOfPosts(long userId, long offset, long limit) {
         Set<String> postIds = userCacheRepository.findPostIdsInUserFeed(userId, offset, limit);
 

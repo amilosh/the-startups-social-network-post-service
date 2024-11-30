@@ -85,8 +85,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             OFFSET :offset
             LIMIT :limit
             """)
-    List<Post> findSetOfPostsByAuthorsId(@Param("offset") long offset, @Param("limit") long limit,
-                                         @Param("authorsId") List<Long> authorsId);
+    List<Post> findSetOfPostsByAuthorsIds(@Param("offset") long offset, @Param("limit") long limit,
+                                          @Param("authorsId") List<Long> authorsId);
 
     @Query(nativeQuery = true, value = """
             SELECT *

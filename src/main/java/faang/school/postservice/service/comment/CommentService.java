@@ -1,7 +1,5 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.annotations.PublishCommentEvent;
-import faang.school.postservice.annotations.PublishCommentNotificationEvent;
 import faang.school.postservice.annotations.publisher.PublishEvent;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
@@ -22,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 
-import static faang.school.postservice.enums.publisher.PublisherType.COMMENT_POST;
+import static faang.school.postservice.enums.publisher.PublisherType.POST_COMMENT;
 
 
 @RequiredArgsConstructor
@@ -37,7 +35,7 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final UserContext userContext;
 
-    @PublishEvent(type = COMMENT_POST)
+    @PublishEvent(type = POST_COMMENT)
 //    @PublishCommentEvent
 //    @PublishCommentNotificationEvent
     @Transactional

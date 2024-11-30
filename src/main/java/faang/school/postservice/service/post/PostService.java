@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static faang.school.postservice.enums.publisher.PublisherType.NEW_POST;
-import static faang.school.postservice.enums.publisher.PublisherType.VIEW_POST;
+import static faang.school.postservice.enums.publisher.PublisherType.POST_VIEW;
 import static faang.school.postservice.model.VerificationPostStatus.REJECTED;
 import static faang.school.postservice.model.VerificationPostStatus.UNVERIFIED;
 import static faang.school.postservice.utils.ImageRestrictionRule.POST_IMAGES;
@@ -106,11 +106,11 @@ public class PostService {
         postCacheProcessExecutor.executeNewPostProcess(postCacheDto);
 
         if (post.getAuthorId() != null) {
-            UserDto userDto = userServiceClient.getUser(post.getAuthorId());
-            postCacheDto.setAuthorDto(userDto);
+            UserDto postAuthorDto = userServiceClient.getUser(post.getAuthorId());
+            postCacheDto.setAuthorDto(postAuthorDto);
 
             postCacheRepository.save(postCacheDto);
-            userCacheRepository.save(userDto);
+            userCacheRepository.save(postAuthorDto);
         }
 
         return post;
@@ -174,14 +174,14 @@ public class PostService {
         return postRepository.findByIdAndNotDeleted(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    @PublishEvent(type = VIEW_POST)
+    @PublishEvent(type = POST_VIEW)
     @SendPostViewEventToAnalytics(Post.class)
     @Transactional(readOnly = true)
     public Post get(Long postId) {
         return findPostById(postId);
     }
 
-    @PublishEvent(type = VIEW_POST)
+    @PublishEvent(type = POST_VIEW)
     @SendPostViewEventToAnalytics(List.class)
     @Transactional(readOnly = true)
     public List<Post> searchByAuthor(Post filterPost) {
@@ -192,7 +192,7 @@ public class PostService {
         return posts;
     }
 
-    @PublishEvent(type = VIEW_POST)
+    @PublishEvent(type = POST_VIEW)
     @SendPostViewEventToAnalytics(List.class)
     @Transactional(readOnly = true)
     public List<Post> searchByProject(Post filterPost) {
@@ -310,8 +310,8 @@ public class PostService {
     public List<PostCacheDto> getSetOfPosts(long userId, long offset, long limit) {
         userContext.setUserId(userId);
 
-        List<Long> subscribesIds = userServiceClient.getSubscribesId(userId);
-        List<Post> posts = postRepository.findSetOfPostsByAuthorsId(offset, limit, subscribesIds);
+        List<Long> subscribesIds = userServiceClient.getSubscribesIds(userId);
+        List<Post> posts = postRepository.findSetOfPostsByAuthorsIds(offset, limit, subscribesIds);
 
         return posts.stream()
                 .map(postMapper::toPostCacheDto)

@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static faang.school.postservice.enums.publisher.PublisherType.LIKE_POST_COMMENT;
-import static faang.school.postservice.enums.publisher.PublisherType.LIKE_POST;
+import static faang.school.postservice.enums.publisher.PublisherType.COMMENT_LIKE;
+import static faang.school.postservice.enums.publisher.PublisherType.POST_LIKE;
 
 @Slf4j
 @Service
@@ -30,7 +30,7 @@ public class LikeService {
     private final CommentService commentService;
     private final UserContext userContext;
 
-    @PublishEvent(type = LIKE_POST)
+    @PublishEvent(type = POST_LIKE)
     @PublishPostLikeEvent
     @Transactional
     public Like createPostLike(long postId) {
@@ -67,7 +67,7 @@ public class LikeService {
         likeRepository.deleteByPostIdAndUserId(postId, userId);
     }
 
-    @PublishEvent(type = LIKE_POST_COMMENT)
+    @PublishEvent(type = COMMENT_LIKE)
     @Transactional
     public Like createCommentLike(long commentId) {
         Comment comment = commentService.getById(commentId);

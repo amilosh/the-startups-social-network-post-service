@@ -2,14 +2,15 @@ package faang.school.postservice.dto.post.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LikeCommentMessage {
+public class NewCommentMessage {
     private Long postId;
-    private Long commentId;
 }

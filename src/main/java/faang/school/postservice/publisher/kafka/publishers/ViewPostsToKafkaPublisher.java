@@ -4,6 +4,7 @@ import faang.school.postservice.aop.aspects.publisher.Publisher;
 import faang.school.postservice.dto.post.message.ViewPostMessage;
 import faang.school.postservice.dto.post.serializable.PostViewEventParticipant;
 import faang.school.postservice.enums.publisher.PublisherType;
+import faang.school.postservice.publisher.kafka.publishers.util.builder.ViewPostMessageBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
@@ -12,16 +13,16 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
 
-import static faang.school.postservice.enums.publisher.PublisherType.VIEW_POST;
+import static faang.school.postservice.enums.publisher.PublisherType.POST_VIEW;
 
 @Getter
 @RequiredArgsConstructor
 @Component
 public class ViewPostsToKafkaPublisher implements Publisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final PublisherType type = VIEW_POST;
+    private final ViewPostMessageBuilder builder;
+    private final PublisherType type = POST_VIEW;
 
     @Value("${spring.kafka.topic.post.view}")
     private String topicName;
@@ -31,27 +32,15 @@ public class ViewPostsToKafkaPublisher implements Publisher {
         if (returnedValue == null) {
             return;
         }
-        ViewPostMessage message = buildMessage(returnedValue);
 
-        kafkaTemplate.send(topicName, message);
-    }
-
-    private ViewPostMessage buildMessage(Object returnedValue) {
-        List<PostViewEventParticipant> posts;
+        ViewPostMessage message;
 
         if (returnedValue instanceof List) {
-            posts = (List<PostViewEventParticipant>) returnedValue;
+            message = builder.build((List<PostViewEventParticipant>) returnedValue);
         } else {
-            posts = List.of((PostViewEventParticipant) returnedValue);
+            message = builder.build(List.of((PostViewEventParticipant) returnedValue));
         }
 
-        List<Long> postIds = posts.stream()
-                .filter(Objects::nonNull)
-                .map(PostViewEventParticipant::getId)
-                .toList();
-
-        return ViewPostMessage.builder()
-                .postsIds(postIds)
-                .build();
+        kafkaTemplate.send(topicName, message);
     }
 }

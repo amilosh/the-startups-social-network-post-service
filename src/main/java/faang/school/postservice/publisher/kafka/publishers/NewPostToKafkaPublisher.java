@@ -5,15 +5,14 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.message.NewPostMessage;
 import faang.school.postservice.enums.publisher.PublisherType;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.publisher.kafka.publishers.util.builder.NewPostMessageBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneOffset;
 import java.util.List;
 
 import static faang.school.postservice.enums.publisher.PublisherType.NEW_POST;
@@ -24,6 +23,7 @@ import static faang.school.postservice.enums.publisher.PublisherType.NEW_POST;
 public class NewPostToKafkaPublisher implements Publisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final UserServiceClient userServiceClient;
+    private final NewPostMessageBuilder builder;
     private final PublisherType type = NEW_POST;
 
     @Value("${spring.kafka.topic.post.new}")
@@ -34,18 +34,10 @@ public class NewPostToKafkaPublisher implements Publisher {
         if (returnedValue == null) {
             return;
         }
-        NewPostMessage message = buildMessage((Post) returnedValue);
+        Post post = (Post) returnedValue;
+        NewPostMessage message = builder.build(post, getFollowersId(post.getAuthorId()));
 
         kafkaTemplate.send(topicName, message);
-    }
-
-    private NewPostMessage buildMessage(Post post) {
-        return NewPostMessage.builder()
-                .postId(post.getId())
-                .authorId(post.getAuthorId())
-                .createdAtTimestamp(post.getCreatedAt().toInstant(ZoneOffset.UTC).toEpochMilli())
-                .followersIds(getFollowersId(post.getAuthorId()))
-                .build();
     }
 
     private List<Long> getFollowersId(Long authorId) {

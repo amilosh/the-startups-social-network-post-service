@@ -1,9 +1,10 @@
 package faang.school.postservice.publisher.kafka.publishers;
 
 import faang.school.postservice.aop.aspects.publisher.Publisher;
-import faang.school.postservice.dto.post.message.LikeCommentMessage;
+import faang.school.postservice.dto.post.message.LikeForCommentMessage;
 import faang.school.postservice.enums.publisher.PublisherType;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.publisher.kafka.publishers.util.builder.LikeForCommentMessageBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
@@ -11,14 +12,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import static faang.school.postservice.enums.publisher.PublisherType.LIKE_POST_COMMENT;
+import static faang.school.postservice.enums.publisher.PublisherType.COMMENT_LIKE;
 
 @Getter
 @RequiredArgsConstructor
 @Component
 public class LikeCommentToKafkaPublisher implements Publisher {
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final PublisherType type = LIKE_POST_COMMENT;
+    private final LikeForCommentMessageBuilder builder;
+    private final PublisherType type = COMMENT_LIKE;
 
     @Value("${spring.kafka.topic.post.like_post_comment}")
     private String topicName;
@@ -28,15 +30,8 @@ public class LikeCommentToKafkaPublisher implements Publisher {
         if (returnedValue == null) {
             return;
         }
-        LikeCommentMessage message = buildMessage((Like) returnedValue);
+        LikeForCommentMessage message = builder.build((Like) returnedValue);
 
         kafkaTemplate.send(topicName, message);
-    }
-
-    private LikeCommentMessage buildMessage(Like like) {
-        return LikeCommentMessage.builder()
-                .postId(like.getComment().getPost().getId())
-                .commentId(like.getComment().getId())
-                .build();
     }
 }
