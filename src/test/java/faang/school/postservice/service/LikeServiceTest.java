@@ -70,11 +70,11 @@ public class LikeServiceTest {
         verify(client, times(2)).getUsersByIds(anyList());
 
         int anyIndexOfElementOfList = 130;
-        UserDto firstUserInTheList = userDtos.get(anyIndexOfElementOfList);
-        Like firstLikeInTheList = likeList.get(anyIndexOfElementOfList);
+        UserDto userByThatIndexInTheList = userDtos.get(anyIndexOfElementOfList);
+        Like likeByThatIndexInTheList = likeList.get(anyIndexOfElementOfList);
 
-        assertEquals(firstUserInTheList.getId(),
-                     firstLikeInTheList.getUserId());
+        assertEquals(userByThatIndexInTheList.getId(),
+                     likeByThatIndexInTheList.getUserId());
     }
 
 }
