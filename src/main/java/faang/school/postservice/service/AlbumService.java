@@ -1,8 +1,8 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.dto.AlbumDto;
-import faang.school.postservice.dto.AlbumFilterDto;
-import faang.school.postservice.dto.AlbumUpdateDto;
+import faang.school.postservice.dto.album.AlbumDto;
+import faang.school.postservice.dto.album.AlbumFilterDto;
+import faang.school.postservice.dto.album.AlbumUpdateDto;
 import faang.school.postservice.filter.Filter;
 import faang.school.postservice.mapper.AlbumMapper;
 import faang.school.postservice.mapper.PostMapper;
@@ -15,13 +15,9 @@ import faang.school.postservice.validator.PostValidator;
 import faang.school.postservice.validator.UserValidator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
-
 
 import java.time.Month;
 import java.util.List;
@@ -41,7 +37,6 @@ public class AlbumService {
     private final PostMapper postMapper;
     private final PostRepository postRepository;
     private final List<Filter<Album, AlbumFilterDto>> filters;
-
 
     public AlbumDto createAlbum(AlbumDto albumDto) {
         userValidator.checkUserExistence(albumDto);
@@ -117,10 +112,10 @@ public class AlbumService {
         return result;
     }
 
-    public List<AlbumDto> getFavoritAlbumsForUserByFilter(long authorId, String title, String description, String month) {
+    public List<AlbumDto> getFavoriteAlbumsForUserByFilter(long authorId, String title, String description, String month) {
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
-                .title(title)
-                .description(description)
+                .titlePattern(title)
+                .descriptionPattern(description)
                 .month(Month.valueOf(month.toUpperCase()))
                 .build();
         Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(authorId);
@@ -147,7 +142,6 @@ public class AlbumService {
         Album albumForUser = findAlbumForUser(userId, albumId);
         albumRepository.deleteById(albumForUser.getId());
     }
-
 
     private Album findAlbumForUser(long userId, long albumId) {
         return albumRepository.findByAuthorId(userId)

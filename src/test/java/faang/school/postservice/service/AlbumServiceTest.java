@@ -1,8 +1,8 @@
 package faang.school.postservice.service;
 
-import faang.school.postservice.dto.AlbumDto;
-import faang.school.postservice.dto.AlbumFilterDto;
-import faang.school.postservice.dto.AlbumUpdateDto;
+import faang.school.postservice.dto.album.AlbumDto;
+import faang.school.postservice.dto.album.AlbumFilterDto;
+import faang.school.postservice.dto.album.AlbumUpdateDto;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.NotUniqueAlbumException;
@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -138,8 +137,8 @@ public class AlbumServiceTest {
                 .createdAt(LocalDateTime.of(2023, Month.MARCH, 10, 12, 0))
                 .build();
         albumFilterDto = AlbumFilterDto.builder()
-                .title("Filter")
-                .description("Java the best")
+                .titlePattern("Filter")
+                .descriptionPattern("Java the best")
                 .month(Month.MARCH)
                 .build();
         filters = List.of(albumDateFilter);
@@ -389,10 +388,10 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testGetFavoritAlbumsForUserByFilterSuccessfully() {
+    void testGetFavoriteAlbumsForUserByFilterSuccessfully() {
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
-                .title(title)
-                .description(description)
+                .titlePattern(title)
+                .descriptionPattern(description)
                 .month(Month.valueOf(month.toUpperCase()))
                 .build();
         when(albumRepository.findFavoriteAlbumsByUserId(userId)).thenReturn(Stream.of(album, album1));
@@ -400,7 +399,7 @@ public class AlbumServiceTest {
         when(albumDateFilter.apply(any(), eq(filterDto))).thenAnswer(invocation -> Stream.of(album));
         when(albumMapper.toDto(album)).thenReturn(albumDto);
 
-        List<AlbumDto> result = albumService.getFavoritAlbumsForUserByFilter(userId, title, description, month);
+        List<AlbumDto> result = albumService.getFavoriteAlbumsForUserByFilter(userId, title, description, month);
 
         Assertions.assertEquals(albumDto, result.get(0));
         verify(albumDateFilter, times(1)).isApplicable(any(AlbumFilterDto.class));
@@ -408,10 +407,10 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testGetFavoritAlbumsForUserByFilterWithNoApplicableFilters() {
+    void testGetFavoriteAlbumsForUserByFilterWithNoApplicableFilters() {
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
-                .title(title)
-                .description(description)
+                .titlePattern(title)
+                .descriptionPattern(description)
                 .month(Month.valueOf(month.toUpperCase()))
                 .build();
         when(albumRepository.findFavoriteAlbumsByUserId(userId)).thenReturn(Stream.of(album, album1));
@@ -419,7 +418,7 @@ public class AlbumServiceTest {
         when(albumMapper.toDto(album1)).thenReturn(albumDto1);
         when(albumMapper.toDto(album)).thenReturn(albumDto);
 
-        List<AlbumDto> result = albumService.getFavoritAlbumsForUserByFilter(userId, title, description, month);
+        List<AlbumDto> result = albumService.getFavoriteAlbumsForUserByFilter(userId, title, description, month);
 
         assertEquals(List.of(albumDto, albumDto1), result);
         verify(albumRepository, times(1)).findFavoriteAlbumsByUserId(userId);
