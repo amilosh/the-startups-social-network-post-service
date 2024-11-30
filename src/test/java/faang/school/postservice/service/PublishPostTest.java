@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
@@ -50,6 +51,9 @@ public class PublishPostTest {
 
     @Mock
     private PostCacheService postCacheService;
+
+    @Mock
+    private UserServiceClient userServiceClient;
 
     @InjectMocks
     private PostServiceImpl postService;
