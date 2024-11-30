@@ -105,13 +105,10 @@ public class PostCacheServiceImplTest {
         PostEventKafka event = PostEventKafka.builder()
                 .postId(postId)
                 .followerIds(List.of(2L, 3L, 4L)).build();
-        when(feedCacheService.getAndSaveFeed(anyLong(),eq(postId))).thenReturn(CompletableFuture.completedFuture(null));
+        when(feedCacheService.getAndSaveFeed(anyLong(), eq(postId))).thenReturn(CompletableFuture.completedFuture(null));
 
         postCacheService.updateFeedsInCache(event);
 
         verify(feedCacheService, times(3)).getAndSaveFeed(anyLong(), eq(postId));
-
     }
-
-    // TODO maybe add some tests
 }

@@ -51,5 +51,4 @@ class KafkaCommentProducerTest {
         verify(multiTypeKafkaTemplate, times(1)).send("comment_topic", event);
         assertEquals("An unexpected error occurred while publishing event to kafka: "+event, thrown.getMessage());
     }
-
 }

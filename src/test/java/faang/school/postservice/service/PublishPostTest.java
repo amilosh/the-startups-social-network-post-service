@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
@@ -9,7 +10,6 @@ import faang.school.postservice.publisher.kafka.KafkaPostProducer;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.impl.PostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,13 +43,13 @@ public class PublishPostTest {
     private KafkaPostProducer kafkaPostProducer;
 
     @Mock
-    private SubscriptionRepository postSubscriptionRepository;
-
-    @Mock
     private AuthorCacheService authorCacheService;
 
     @Mock
     private PostCacheService postCacheService;
+
+    @Mock
+    private UserServiceClient userServiceClient;
 
     @InjectMocks
     private PostServiceImpl postService;
