@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+
 @Component
 @Slf4j
 public class ModerationDictionary {
@@ -28,7 +30,7 @@ public class ModerationDictionary {
             }
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                forbiddenWords = reader.lines().collect(Collectors.toSet());
+                forbiddenWords = reader.lines().collect(toSet());
                 log.info("Loaded forbidden words: {}", forbiddenWords);
             }
 
