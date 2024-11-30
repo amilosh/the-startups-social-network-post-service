@@ -317,4 +317,10 @@ public class PostService {
                 .map(postMapper::toPostCacheDto)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public PostCacheDto findPostDtoById(long id) {
+        Post post = postRepository.findById(id).orElseThrow();
+        return postMapper.toPostCacheDto(post);
+    }
 }

@@ -12,7 +12,7 @@ import faang.school.postservice.dto.post.message.counter.CommentCountersKeysMess
 import faang.school.postservice.dto.post.message.counter.CommentLikeCounterKeysMessage;
 import faang.school.postservice.dto.post.message.counter.PostLikeCountersKeysMessage;
 import faang.school.postservice.dto.post.message.counter.PostViewCountersKeysMessage;
-import faang.school.postservice.service.feed.CacheUpdateService;
+import faang.school.postservice.service.cache.CacheUpdateService;
 import faang.school.postservice.service.feed.FeedHeaterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

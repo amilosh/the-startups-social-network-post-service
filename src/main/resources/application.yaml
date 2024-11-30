@@ -152,7 +152,7 @@ app:
           post_id: "post_id:"
           user_id: "user_id:"
           comment_id: "comment_id:"
-          feed_user_id: "feed/user_id:"
+          feed_prefix: "feed/"
           post_comments_ids_set: "comment/"
         postfix:
           views: "/views"
@@ -160,6 +160,8 @@ app:
           comments: "/comments"
         user_feed_size: 10
         number_of_comments_limit: 3
+        max_index_for_get_comments_in_post_comments_set: 2
+        number_of_comment_ids_in_post_comments_set: -11  # limit is 10 = (10 + 1) * -1
   async-config:
     post-cache-service:
       core_pool_size: 10

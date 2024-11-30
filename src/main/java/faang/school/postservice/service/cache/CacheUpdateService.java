@@ -1,4 +1,4 @@
-package faang.school.postservice.service.feed;
+package faang.school.postservice.service.cache;
 
 import faang.school.postservice.dto.post.message.NewPostMessage;
 import faang.school.postservice.publisher.kafka.publishers.simple.PartitionSubscribersToKafkaPublisher;
@@ -24,7 +24,7 @@ public class CacheUpdateService {
     @Value("${app.post.cache.news_feed.prefix.post_id}")
     private String postIdPrefix;
 
-    @Value("${app.post.cache.news_feed.prefix.feed_user_id}")
+    @Value("${app.post.cache.news_feed.prefix.feed_prefix}")
     private String feedUserIdPrefix;
 
     @Value("${app.post.cache.news_feed.user_feed_size}")

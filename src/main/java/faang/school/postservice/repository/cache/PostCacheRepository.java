@@ -1,6 +1,8 @@
 package faang.school.postservice.repository.cache;
 
+import faang.school.postservice.dto.post.serializable.CommentCacheDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
+import faang.school.postservice.repository.cache.util.key.PostKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,8 +12,13 @@ import org.springframework.stereotype.Repository;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.lang.Boolean.FALSE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,19 +29,9 @@ public class PostCacheRepository {
     private final RedisTemplate<String, PostCacheDto> postCacheDtoRedisTemplate;
     private final RedisTemplate<String, Long> longValueRedisTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTransaction redisTransaction;
     private final RedisOperations redisOperations;
-
-    @Value("${app.post.cache.news_feed.prefix.post_id}")
-    private String postIdPrefix;
-
-    @Value("${app.post.cache.news_feed.postfix.views}")
-    private String viewsPostfix;
-
-    @Value("${app.post.cache.news_feed.postfix.likes}")
-    private String likesPostfix;
-
-    @Value("${app.post.cache.news_feed.postfix.comments}")
-    private String commentsPostfix;
+    private final PostKey postKey;
 
     @Value("${spring.data.redis.ttl.feed.post_hour}")
     private int postTTL;
@@ -49,9 +46,12 @@ public class PostCacheRepository {
     private int commentsCounterTTL;
 
     public void save(PostCacheDto post) {
-        String key = buildId(post.getId());
-        redisOperations.executeInMulti(postCacheDtoRedisTemplate, key, () ->
-                postCacheDtoRedisTemplate.opsForValue().set(key, post, Duration.ofHours(postTTL)));
+        String key = postKey.build(post.getId());
+        redisTransaction.execute(postCacheDtoRedisTemplate, key, operations -> {
+            operations.multi();
+            postCacheDtoRedisTemplate.opsForValue().set(key, post, Duration.ofHours(postTTL));
+            return operations.exec();
+        });
     }
 
     public void saveAll(List<PostCacheDto> postDtoList) {
@@ -59,40 +59,57 @@ public class PostCacheRepository {
     }
 
     public void deleteById(long id) {
-        postCacheDtoRedisTemplate.delete(buildId(id));
+        String key = postKey.build(id);
+        postCacheDtoRedisTemplate.delete(key);
+    }
+
+    public Optional<PostCacheDto> findById(long id) {
+        String key = postKey.build(id);
+        PostCacheDto postCacheDto = postCacheDtoRedisTemplate.opsForValue().getAndExpire(key, Duration.ofHours(postTTL));
+
+        return Optional.ofNullable(postCacheDto);
+    }
+
+    public Optional<PostCacheDto> findByKey(String key) {
+        PostCacheDto postCacheDto = postCacheDtoRedisTemplate.opsForValue().getAndExpire(key, Duration.ofHours(postTTL));
+
+        return Optional.ofNullable(postCacheDto);
     }
 
     public List<PostCacheDto> findAll(Collection<String> keys) {
+        Duration duration = Duration.ofHours(postTTL);
+        keys.forEach(key -> postCacheDtoRedisTemplate.expire(key, duration));
+
         return postCacheDtoRedisTemplate.opsForValue().multiGet(keys);
     }
 
     public Set<String> getViewCounterKeys() {
-        String viewCounterKeyPattern = postIdPrefix + "*" + viewsPostfix;
+        String viewCounterKeyPattern = postKey.getViewCounterKeyPattern();
         return redisTemplate.keys(viewCounterKeyPattern);
     }
 
     public Set<String> getLikeCounterKeys() {
-        String likeCounterKeyPattern = postIdPrefix + "*" + likesPostfix;
+        String likeCounterKeyPattern = postKey.getLikeCounterKeyPattern();
         return redisTemplate.keys(likeCounterKeyPattern);
     }
 
     public Set<String> getCommentCounterKeys() {
-        String commentCounterKeyPattern = postIdPrefix + "*" + commentsPostfix;
+        String commentCounterKeyPattern = postKey.getCommentCounterKeyPattern();
         return redisTemplate.keys(commentCounterKeyPattern);
     }
 
     public void incrementPostViews(long id) {
-        String key = postViewIdBuild(id);
+        String key = postKey.buildViewsKey(id);
         incrementCounterByKey(key, Duration.ofSeconds(postViewsCounterTTL));
     }
 
     public void incrementPostLikes(long id) {
-        String key = postLikeIdBuild(id);
+        String key = postKey.buildLikesKey(id);
         incrementCounterByKey(key, Duration.ofSeconds(postLikesCounterTTL));
     }
 
     public void incrementComments(long id) {
-        String key = commentsCounterKeyBuild(id);
+        String key = postKey.buildCommentsCounterKey(id);
         incrementCounterByKey(key, Duration.ofSeconds(commentsCounterTTL));
     }
 
@@ -108,35 +125,38 @@ public class PostCacheRepository {
         assignFieldByCounter(counterKey, (post, comments) -> post.setCommentsCount(post.getCommentsCount() + comments));
     }
 
+    public List<PostCacheDto> filterPostsOnWithoutCache(List<PostCacheDto> postDtoList) {
+        return postDtoList.stream()
+                .filter(post -> FALSE.equals(redisTemplate.hasKey(postKey.build(post.getId()))))
+                .toList();
+    }
+
+    public Set<String> mapPostDtoListToPostKeys(List<PostCacheDto> postDtoList) {
+        return  postDtoList.stream()
+                .map(post -> postKey.build(post.getId()))
+                .collect(Collectors.toSet());
+    }
+
+    public Set<Long> mapPostDtoListToAuthorsIds(List<PostCacheDto> postDtoList) {
+        return postDtoList.stream()
+                .flatMap(post -> {
+                    Stream<Long> postAuthorId = Stream.of(post.getAuthorId());
+                    Stream<Long> commentAuthorIds = post.getComments().stream()
+                            .map(CommentCacheDto::getAuthorId);
+                    return Stream.concat(postAuthorId, commentAuthorIds);
+                })
+                .collect(Collectors.toSet());
+    }
+
     private void incrementCounterByKey(String key, Duration duration) {
         longValueRedisTemplate.opsForValue().increment(key, INCR_DELTA);
         longValueRedisTemplate.expire(key, duration);
     }
 
     private void assignFieldByCounter(String counterKey, BiConsumer<PostCacheDto, Long> consumer) {
-        String postIdKey = getPostId(counterKey);
+        String postIdKey = postKey.getPostKeyFrom(counterKey);
 
         redisOperations.assignFieldByCounter(counterKey, postIdKey, postCacheDtoRedisTemplate,
                 Duration.ofHours(postTTL), consumer);
-    }
-
-    private String postViewIdBuild(long id) {
-        return buildId(id) + viewsPostfix;
-    }
-
-    private String postLikeIdBuild(long id) {
-        return buildId(id) + likesPostfix;
-    }
-
-    private String commentsCounterKeyBuild(long id) {
-        return buildId(id) + commentsPostfix;
-    }
-
-    private String buildId(long id) {
-        return postIdPrefix + id;
-    }
-
-    private String getPostId(String viewKey) {
-        return viewKey.split("/")[0];
     }
 }

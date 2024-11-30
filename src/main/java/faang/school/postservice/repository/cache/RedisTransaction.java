@@ -19,7 +19,6 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 @Service
 public class RedisTransaction {
-    @SuppressWarnings("unchecked")
     @Retryable(retryFor = OptimisticLockingFailureException.class,
             maxAttemptsExpression = "#{@environment.getProperty('spring.data.redis.retry.opt_lock_max_attempt')}")
     public void execute(RedisTemplate<?, ?> template, String key,

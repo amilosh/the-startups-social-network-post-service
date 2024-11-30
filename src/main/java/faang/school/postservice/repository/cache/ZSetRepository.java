@@ -14,16 +14,18 @@ import java.util.Set;
 public class ZSetRepository {
     private final ZSetOperations<String, String> stringZSetOperations;
     private final StringRedisTemplate stringRedisTemplate;
-    private final RedisOperations redisOperations;
+    private final RedisTransaction redisTransaction;
 
     @Value("${spring.data.redis.ttl.feed.user_feed_hour}")
     private int userFeedTTL;
 
     public void setAndRemoveRange(String key, String value, long timestamp, long limit) {
-        redisOperations.executeInMulti(stringRedisTemplate, key, () -> {
+        redisTransaction.execute(stringRedisTemplate, key, operations -> {
+            operations.multi();
             stringZSetOperations.add(key, value, timestamp);
             stringZSetOperations.removeRange(key, 0, limit);
             stringRedisTemplate.expire(key, Duration.ofHours(userFeedTTL));
+            return operations.exec();
         });
     }
 
@@ -38,7 +40,15 @@ public class ZSetRepository {
 
     public void saveTuplesByKey(String key, Set<ZSetOperations.TypedTuple<String>> tuples) {
         if (!tuples.isEmpty()) {
-            redisOperations.executeInMulti(stringRedisTemplate, key, () -> stringZSetOperations.add(key, tuples));
+            redisTransaction.execute(stringRedisTemplate, key, operations -> {
+                operations.multi();
+                stringZSetOperations.add(key, tuples);
+                return operations.exec();
+            });
         }
+    }
+
+    public void delete(String key, String value) {
+        stringZSetOperations.remove(key, value);
     }
 }

@@ -61,7 +61,7 @@ public class CommentService {
         commentValidator.validateCommentAuthorId(comment.getAuthorId(), foundComment);
         foundComment.setContent(comment.getContent());
 
-        CommentCacheDto commentCacheDto = commentMapper.toCommentCacheDto(comment);
+        CommentCacheDto commentCacheDto = commentMapper.toCommentCacheDto(foundComment);
         commentCacheRepository.save(commentCacheDto);
 
         return commentRepository.save(foundComment);
