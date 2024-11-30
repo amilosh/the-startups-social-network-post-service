@@ -50,6 +50,9 @@ public class Post {
     @OneToMany(mappedBy = "post", orphanRemoval = true)
     private List<Comment> comments;
 
+    @OneToOne(mappedBy = "post", orphanRemoval = true)
+    private ViewEntity view;
+
     @ManyToMany(mappedBy = "posts")
     private List<Album> albums;
 

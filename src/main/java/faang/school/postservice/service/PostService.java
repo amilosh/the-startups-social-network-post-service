@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.ViewBuffer;
 import faang.school.postservice.aspect.AuthorCacheManager;
 import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.client.ProjectServiceClient;
@@ -16,6 +17,8 @@ import faang.school.postservice.producer.KafkaMessageProducer;
 import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
 import faang.school.postservice.repository.PostRedisRepository;
 import faang.school.postservice.repository.PostRepository;
+
+import faang.school.postservice.scheduler.SendViewsToKafka;
 import faang.school.postservice.service.tools.YandexSpeller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +43,7 @@ public class PostService {
     private final PostCacheMapper postCacheMapper;
     private final PostRedisRepository postRedisRepository;
     private final AuthorCacheManager authorCacheManager;
+    private final ViewBuffer viewBuffer;
 
     @Transactional
     public Post createDraftPost(Post post) {
@@ -97,6 +101,9 @@ public class PostService {
     public Post getPostById(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostRequirementsException("Post not found"));
+
+        viewBuffer.addView(post.getId());
+
         return post;
     }
 

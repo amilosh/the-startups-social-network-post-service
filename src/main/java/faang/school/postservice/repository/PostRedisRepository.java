@@ -56,7 +56,7 @@ public class PostRedisRepository {
 
     public Optional<PostCache> findById(Long postId) {
         String postIdKey = "post-" + postId;
-        PostCache postCache =  postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
+        PostCache postCache = postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
             operations.watch(postIdKey);
             operations.multi();
             operations.opsForValue().get(postIdKey);
@@ -79,5 +79,20 @@ public class PostRedisRepository {
             return operations.exec();
         });
         log.info("Added like to post: {}", postId);
+    }
+
+    public void addViewToPost(Long postId, Long viewCount) {
+        String postIdKey = "post-" + postId;
+        postCacheRedisTemplateWrapper.executeWithRetry(operations -> {
+            operations.watch(postIdKey);
+            PostCache postCache = operations.opsForValue().get(postIdKey);
+            postCache.setViewCount(postCache.getViewCount() + viewCount);
+
+            operations.multi();
+
+            operations.opsForValue().set(postIdKey, postCache, ttl, SECONDS);
+            return operations.exec();
+        });
+        log.info("Added view to post: {}", postId);
     }
 }
