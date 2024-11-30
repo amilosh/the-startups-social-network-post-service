@@ -1,17 +1,15 @@
-package faang.school.postservice.service.like;
+package faang.school.postservice.service.counter;
 
-import faang.school.postservice.annotations.SendPostLikeToLikesManager;
-import faang.school.postservice.dto.like.LikeAction;
-import faang.school.postservice.kafka.like.LikeKafkaProducer;
+import faang.school.postservice.annotations.SendUserActionToCounter;
+import faang.school.postservice.kafka.like.UserActionKafkaProducer;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.post.Post;
+import faang.school.postservice.service.counter.enumeration.ChangeType;
+import faang.school.postservice.service.counter.enumeration.UserAction;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.Aspect;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,39 +17,39 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static faang.school.postservice.dto.like.LikeAction.ADD;
-import static faang.school.postservice.dto.like.LikeAction.REMOVE;
+import static faang.school.postservice.service.counter.enumeration.ChangeType.DECREMENT;
+import static faang.school.postservice.service.counter.enumeration.ChangeType.INCREMENT;
 
 @Slf4j
 @RequiredArgsConstructor
-@Aspect
-@Service
-public class LikesManager {
-    private final LikeKafkaProducer likeKafkaProducer;
-
+@Component
+public class PostLikesCounter implements UserActionCounter {
+    private final UserAction userAction = UserAction.POST_LIKE;
     private final ConcurrentHashMap<Long, AtomicInteger> postsLikes = new ConcurrentHashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
+
+    private final UserActionKafkaProducer userActionKafkaProducer;
 
     @PreDestroy
     public void destroy() {
         publishPostLikesMapToKafka();
     }
 
-    @Async("kafkaPublisherExecutor")
-    @AfterReturning(
-            pointcut = "@annotation(sendPostLikeToLikesManager)",
-            returning = "returnValue"
-    )
-    public void publishPostEvent(Object returnValue, SendPostLikeToLikesManager sendPostLikeToLikesManager) {
-        Long postId = definePostId(returnValue, sendPostLikeToLikesManager.type());
-        LikeAction action = sendPostLikeToLikesManager.action();
+    @Override
+    public UserAction getUserAction() {
+        return userAction;
+    }
 
-        if (action == ADD) {
+    public void executeCounting(Object returnValue, SendUserActionToCounter sendUserActionToCounter) {
+        Long postId = definePostId(returnValue, sendUserActionToCounter.type());
+        ChangeType changeType = sendUserActionToCounter.changeType();
+
+        if (changeType == INCREMENT) {
             postsLikes.computeIfAbsent(postId, id -> new AtomicInteger(0)).incrementAndGet();
-        } else if (action == REMOVE) {
+        } else if (changeType == DECREMENT) {
             postsLikes.computeIfAbsent(postId, id -> new AtomicInteger(0)).decrementAndGet();
         } else {
-            throw new IllegalArgumentException("Incorrect LikeAction value");
+            throw new IllegalArgumentException("Incorrect ChangeType value");
         }
     }
 
@@ -62,7 +60,7 @@ public class LikesManager {
                 Map<Long, Integer> postsLikesToKafka = new HashMap<>();
                 postsLikes.forEach((postId, count) -> postsLikesToKafka.put(postId, count.get()));
 
-                likeKafkaProducer.sendPostLikeToKafka(postsLikesToKafka);
+                userActionKafkaProducer.sendPostLikesMapToKafka(postsLikesToKafka);
 
                 postsLikes.clear();
             }

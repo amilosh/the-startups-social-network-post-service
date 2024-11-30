@@ -115,4 +115,7 @@ public class Post {
 
     @OneToOne(mappedBy = "post")
     private PostLikes postLikes;
+
+    @OneToOne(mappedBy = "post")
+    private PostLikes PostViews;
 }

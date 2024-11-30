@@ -2,7 +2,7 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.annotations.SendPostCreatedEventToRedis;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
-import faang.school.postservice.annotations.kafka.SendPostViewEventToKafka;
+import faang.school.postservice.annotations.SendUserActionToCounter;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
@@ -18,8 +18,10 @@ import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.model.post.PostLikes;
 import faang.school.postservice.model.post.PostRedis;
+import faang.school.postservice.model.post.PostViews;
 import faang.school.postservice.repository.PostLikesRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.PostViewsRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.comment.redis.CommentRedisService;
@@ -50,6 +52,8 @@ import java.util.stream.Stream;
 
 import static faang.school.postservice.model.VerificationPostStatus.REJECTED;
 import static faang.school.postservice.model.VerificationPostStatus.UNVERIFIED;
+import static faang.school.postservice.service.counter.enumeration.ChangeType.INCREMENT;
+import static faang.school.postservice.service.counter.enumeration.UserAction.POST_VIEW;
 import static faang.school.postservice.utils.ImageRestrictionRule.POST_IMAGES;
 
 @Slf4j
@@ -76,6 +80,7 @@ public class PostService {
     private final CommentRedisService commentRedisService;
     private final PostRedisService postRedisService;
     private final PostLikesRepository postLikesRepository;
+    private final PostViewsRepository postViewsRepository;
 
     @Transactional
     @SendPostCreatedEventToRedis
@@ -91,6 +96,7 @@ public class PostService {
 
         Post cratedPost = postRepository.save(post);
         postLikesRepository.save(new PostLikes(cratedPost, 0));
+        postViewsRepository.save(new PostViews(cratedPost, 0));
 
         return cratedPost;
     }
@@ -171,14 +177,14 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(Post.class)
-    @SendPostViewEventToKafka(Post.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = Post.class)
     public Post get(Long postId) {
         return findPostById(postId);
     }
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(List.class)
-    @SendPostViewEventToKafka(value = List.class, elementType = Post.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = List.class, collectionElementType = Post.class)
     public List<Post> searchByAuthor(Post filterPost) {
         List<Post> posts = postRepository.findByAuthorId(filterPost.getAuthorId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -189,7 +195,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(List.class)
-    @SendPostViewEventToKafka(value = List.class, elementType = Post.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = List.class, collectionElementType = Post.class)
     public List<Post> searchByProject(Post filterPost) {
         List<Post> posts = postRepository.findByProjectId(filterPost.getProjectId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -345,6 +351,18 @@ public class PostService {
                         postLikesRepository.save(pl);
                     }, () -> {
                         log.error("PostLikes {} not found", postLike.getKey());
+                    });
+        }
+    }
+
+    public void changeViewsAmountForPosts(Map<Long, Integer> postViews) {
+        for (Map.Entry<Long, Integer> postView : postViews.entrySet()) {
+            postViewsRepository.findByPostId(postView.getKey())
+                    .ifPresentOrElse(pv -> {
+                        pv.setAmount(pv.getAmount() + postView.getValue());
+                        postViewsRepository.save(pv);
+                    }, () -> {
+                        log.error("PostLikes {} not found", postView.getKey());
                     });
         }
     }

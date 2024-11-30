@@ -24,6 +24,7 @@ import static faang.school.postservice.redis.RedisTransactionResult.LOCK_EXCEPTI
 public class PostRedisService {
     private final static String POST_REDIS_KEY = "post:";
     private final static String POST_LIKES_REDIS_KEY = "postLikes:";
+    private final static String POST_VIEWS_REDIS_KEY = "postViews:";
 
     private final PostMapper postMapper;
     private final RedisTemplate<String, PostRedis> postRedisTemplate;
@@ -71,17 +72,10 @@ public class PostRedisService {
         }
     }
 
-    @Retryable(retryFor = RedisLockException.class, maxAttempts = 20, backoff = @Backoff(delay = 500))
-    public void incrementView(Long postId) {
-        String key = buildKey(postId);
-
-        RedisTransactionResult redisTransactionResult = redisTransactionManager.updateRedisEntity(key, postRedisTemplate, (postRedis, operations) -> {
-            postRedis.setViews(postRedis.getViews() + 1);
-            postRedisTemplate.opsForValue().set(key, postRedis);
-        });
-
-        if (redisTransactionResult == LOCK_EXCEPTION) {
-            throw new RedisLockException("Post %s was updated in concurrent transaction", postId);
+    public void changeViewsAmountForPosts(Map<Long, Integer> postViews) {
+        for (Map.Entry<Long, Integer> postView : postViews.entrySet()) {
+            String key = buildPostViewsKey(postView.getKey());
+            commonRedisTemplate.opsForHash().increment(key, "views", postView.getValue());
         }
     }
 
@@ -97,5 +91,9 @@ public class PostRedisService {
 
     private String buildPostLikesKey(Long postId) {
         return POST_LIKES_REDIS_KEY + postId;
+    }
+
+    private String buildPostViewsKey(Long postId) {
+        return POST_VIEWS_REDIS_KEY + postId;
     }
 }

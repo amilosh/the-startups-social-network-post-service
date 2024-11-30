@@ -1,6 +1,6 @@
 package faang.school.postservice.service.feed;
 
-import faang.school.postservice.annotations.kafka.SendPostViewEventToKafka;
+import faang.school.postservice.annotations.SendUserActionToCounter;
 import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
 import faang.school.postservice.mapper.feed.FeedMapper;
@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
+
+import static faang.school.postservice.service.counter.enumeration.ChangeType.INCREMENT;
+import static faang.school.postservice.service.counter.enumeration.UserAction.POST_VIEW;
 
 @RequiredArgsConstructor
 @Service
@@ -31,7 +34,7 @@ public class FeedService {
     private final PostService postService;
     private final FeedMapper feedMapper;
 
-    @SendPostViewEventToKafka(value = List.class, elementType = PostFeedResponseDto.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = List.class, collectionElementType = PostFeedResponseDto.class)
     public List<PostFeedResponseDto> getFeed(long userId, Long postId) {
         String key = buildKey(userId);
 

@@ -1,11 +1,9 @@
 package faang.school.postservice.kafka.post;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.dto.feed.PostFeedResponseDto;
 import faang.school.postservice.dto.user.UserExtendedFilterDto;
 import faang.school.postservice.dto.user.UserResponseShortDto;
 import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
-import faang.school.postservice.kafka.post.event.PostViewedKafkaEvent;
 import faang.school.postservice.model.post.Post;
 import faang.school.postservice.utils.AppCollectionUtils;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +24,6 @@ public class PostKafkaProducer {
     @Value("${kafka.topic.post-published-topic.batch-size}")
     private int postPublishedTopicBatchSize;
 
-    @Value("${kafka.topic.post-viewed-topic}")
-    private String postViewedTopic;
-
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final UserServiceClient userServiceClient;
@@ -40,24 +35,6 @@ public class PostKafkaProducer {
                 kafkaTemplate.send(postPublishedTopic, event);
             });
         }
-    }
-
-    public void sendPostViewToKafka(Post post) {
-        PostViewedKafkaEvent postViewedKafkaEvent = mapToPostViewKafkaDto(post);
-        kafkaTemplate.send(postViewedTopic, postViewedKafkaEvent);
-    }
-
-    public void sendPostViewsToKafka(List<Post> posts) {
-        posts.forEach(this::sendPostViewToKafka);
-    }
-
-    public void sendPostViewToKafka(PostFeedResponseDto post) {
-        PostViewedKafkaEvent postViewedKafkaEvent = build(post);
-        kafkaTemplate.send(postViewedTopic, postViewedKafkaEvent);
-    }
-
-    public void sendPostViewsDtoToKafka(List<PostFeedResponseDto> posts) {
-        posts.forEach(this::sendPostViewToKafka);
     }
 
     private List<PostPublishedKafkaEvent> mapToPostPublishedKafkaEvent(Post post) {
@@ -73,13 +50,5 @@ public class PostKafkaProducer {
                     .map(batch -> new PostPublishedKafkaEvent(post.getId(), batch, post.getPublishedAt()))
                     .toList();
         }
-    }
-
-    private PostViewedKafkaEvent mapToPostViewKafkaDto(Post post) {
-        return PostViewedKafkaEvent.builder().postId(post.getId()).build();
-    }
-
-    private PostViewedKafkaEvent build(PostFeedResponseDto post) {
-        return PostViewedKafkaEvent.builder().postId(post.getId()).build();
     }
 }

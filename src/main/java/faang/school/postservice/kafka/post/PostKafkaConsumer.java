@@ -1,7 +1,6 @@
 package faang.school.postservice.kafka.post;
 
 import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
-import faang.school.postservice.kafka.post.event.PostViewedKafkaEvent;
 import faang.school.postservice.service.feed.FeedService;
 import faang.school.postservice.service.post.redis.PostRedisService;
 import lombok.RequiredArgsConstructor;
@@ -27,20 +26,6 @@ public class PostKafkaConsumer {
             acknowledgment.acknowledge();
         } catch (Exception e) {
             log.error("Post with id {} is not added to feed.", postPublishedKafkaEvent.getPostId());
-            throw e;
-        }
-    }
-
-    @KafkaListener(
-            topics = "${kafka.topic.post-viewed-topic}",
-            groupId = "${kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory")
-    public void handlePostViewedEvent(PostViewedKafkaEvent postViewedKafkaEvent, Acknowledgment acknowledgment) {
-        try {
-            postRedisService.incrementView(postViewedKafkaEvent.getPostId());
-            acknowledgment.acknowledge();
-        } catch (Exception e) {
-            log.error("Post View with id {} is not added ???", postViewedKafkaEvent.getPostId());
             throw e;
         }
     }

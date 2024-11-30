@@ -67,9 +67,11 @@ post:
     bucket:
       name-prefix: posts/post_
 
-like:
-  scheduler:
-    cron: "20 * * * * *" # every minutes on 20th second
+scheduler:
+  user-action:
+    comment-like: "10 * * * * *" # every minutes on 10th second
+    post-like: "30 * * * * *" # every minutes on 30th second
+    post-view: "50 * * * * *" # every minutes on 50th second
 
 client:
   s3:
