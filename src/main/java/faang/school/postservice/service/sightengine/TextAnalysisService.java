@@ -1,23 +1,20 @@
 package faang.school.postservice.service.sightengine;
 
 import faang.school.postservice.dto.sightengine.textAnalysis.TextAnalysisResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.CircuitBreaker;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
-import java.net.ConnectException;
-import java.util.concurrent.TimeoutException;
-
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TextAnalysisService {
     private final WebClient webClient;
@@ -28,12 +25,8 @@ public class TextAnalysisService {
     @Value("${api.content-analysis-service.secret}")
     private String apiSecret;
 
-    @Retryable(
-            retryFor = {ConnectException.class, TimeoutException.class, WebClientRequestException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000, multiplier = 1.5)
-    )
-    @CircuitBreaker(maxAttempts = 5, openTimeout = 10000, resetTimeout = 20000)
+    @CircuitBreaker(name = "sightengine-api-circuit-breaker")
+    @Retry(name = "sightengine-api-retry")
     public Mono<TextAnalysisResponse> analyzeText(String text) {
         MultiValueMap<String, String> requestBody = buildRequestBody(text);
         return webClient.post()
@@ -42,6 +35,10 @@ public class TextAnalysisService {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(TextAnalysisResponse.class);
+/*        return Mono.defer(() -> {
+            log.error("Simulating exception");
+            return Mono.error(new RuntimeException("Simulating exception"));
+        });*/
     }
 
     private MultiValueMap<String, String> buildRequestBody(String text) {
