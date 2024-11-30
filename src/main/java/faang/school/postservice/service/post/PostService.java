@@ -157,6 +157,7 @@ public class PostService {
             JSONObject jsonObject = new JSONObject(response);
             int errorCount = jsonObject.getInt("spellingErrorCount");
             if (errorCount == 0) {
+                log.info("No errors found in post content");
                 return;
             }
             for (int i = 0; i < posts.size(); i++) {
