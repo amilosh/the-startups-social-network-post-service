@@ -112,6 +112,4 @@ public class PostCacheServiceImplTest {
         verify(feedCacheService, times(3)).getAndSaveFeed(anyLong(), eq(postId));
 
     }
-
-    // TODO maybe add some tests
 }
