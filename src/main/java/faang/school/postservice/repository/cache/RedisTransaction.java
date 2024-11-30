@@ -1,8 +1,6 @@
 package faang.school.postservice.repository.cache;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.redis.core.RedisOperations;
@@ -15,8 +13,6 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import java.util.List;
 import java.util.function.Function;
 
-@Slf4j
-@RequiredArgsConstructor
 @Service
 public class RedisTransaction {
     @Retryable(retryFor = OptimisticLockingFailureException.class,

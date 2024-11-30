@@ -1,14 +1,12 @@
 package faang.school.postservice.repository.cache;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.function.BiConsumer;
 
-@Slf4j
 @RequiredArgsConstructor
 @Service
 public class RedisOperations {

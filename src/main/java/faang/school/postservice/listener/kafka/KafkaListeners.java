@@ -86,7 +86,7 @@ public class KafkaListeners {
     public void commentLikesUpdate(String message) {
         CommentLikeCounterKeysMessage commentLikesMessage = readMessage(message,
                 CommentLikeCounterKeysMessage.class);
-        cacheUpdateService.commentsLikesUpdate(commentLikesMessage.getCommentLikeCounterKeys());
+        cacheUpdateService.commentLikesUpdate(commentLikesMessage.getCommentLikeCounterKeys());
     }
 
     @KafkaListener(topics = "${spring.kafka.topic.user.feed_update}", groupId = "${spring.kafka.consumer.group-id}")

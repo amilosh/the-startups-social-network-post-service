@@ -38,9 +38,6 @@ class EventsPartitionerTest {
         ReflectionTestUtils.setField(eventsPartitioner, "usersFeedUpdatePartitionLimit", LIMIT);
     }
 
-    @Mock
-    private ListPartitioner partitioner;
-
     @InjectMocks
     private EventsPartitioner eventsPartitioner;
 
@@ -53,8 +50,6 @@ class EventsPartitionerTest {
                 .followersIds(USER_IDS)
                 .build();
 
-        when(partitioner.exec(USER_IDS, LIMIT)).thenReturn(List.of(USER_IDS));
-
         assertThat(eventsPartitioner.partitionSubscribersAndMapToMessage(POST_ID, AUTHOR_ID, TIMESTAMP, USER_IDS))
                 .isEqualTo(List.of(newPostMessage));
     }
@@ -62,8 +57,6 @@ class EventsPartitionerTest {
     @Test
     void test_partitionViewCounterKeysAndMapToMessage_successful() {
         PostViewCountersKeysMessage postViewCountersKeysMessage = new PostViewCountersKeysMessage(KEYS);
-
-        when(partitioner.exec(KEYS, LIMIT)).thenReturn(List.of(KEYS));
 
         assertThat(eventsPartitioner.partitionViewCounterKeysAndMapToMessage(KEYS))
                 .isEqualTo(List.of(postViewCountersKeysMessage));
@@ -73,8 +66,6 @@ class EventsPartitionerTest {
     void test_partitionLikeCounterKeysAndMapToMessage_successful() {
         PostLikeCountersKeysMessage message = new PostLikeCountersKeysMessage(KEYS);
 
-        when(partitioner.exec(KEYS, LIMIT)).thenReturn(List.of(KEYS));
-
         assertThat(eventsPartitioner.partitionLikeCounterKeysAndMapToMessage(KEYS))
                 .isEqualTo(List.of(message));
     }
@@ -82,8 +73,6 @@ class EventsPartitionerTest {
     @Test
     void test_partitionCommentCounterKeysAndMapToMessage_successful() {
         CommentCountersKeysMessage message = new CommentCountersKeysMessage(KEYS);
-
-        when(partitioner.exec(KEYS, LIMIT)).thenReturn(List.of(KEYS));
 
         assertThat(eventsPartitioner.partitionCommentCounterKeysAndMapToMessage(KEYS))
                 .isEqualTo(List.of(message));
@@ -93,8 +82,6 @@ class EventsPartitionerTest {
     void test_partitionCommentLikeCounterKeysAndMapToMessage_successful() {
         CommentLikeCounterKeysMessage message = new CommentLikeCounterKeysMessage(KEYS);
 
-        when(partitioner.exec(KEYS, LIMIT)).thenReturn(List.of(KEYS));
-
         assertThat(eventsPartitioner.partitionCommentLikeCounterKeysAndMapToMessage(KEYS))
                 .isEqualTo(List.of(message));
     }
@@ -102,8 +89,6 @@ class EventsPartitionerTest {
     @Test
     void test_partitionUserIdsAndMapToMessage_successful() {
         UsersFeedUpdateMessage message = new UsersFeedUpdateMessage(USER_IDS);
-
-        when(partitioner.exec(USER_IDS, LIMIT)).thenReturn(List.of(USER_IDS));
 
         assertThat(eventsPartitioner.partitionUserIdsAndMapToMessage(USER_IDS))
                 .isEqualTo(List.of(message));

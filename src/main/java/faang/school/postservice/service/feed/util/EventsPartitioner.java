@@ -7,16 +7,16 @@ import faang.school.postservice.dto.post.message.counter.CommentLikeCounterKeysM
 import faang.school.postservice.dto.post.message.counter.PostLikeCountersKeysMessage;
 import faang.school.postservice.dto.post.message.counter.PostViewCountersKeysMessage;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Component
 public class EventsPartitioner {
-    private final ListPartitioner partitioner;
-
     @Value("${app.post.feed.update.followers_partitions_limit}")
     private int followerPartitionsLimit;
 
@@ -37,55 +37,39 @@ public class EventsPartitioner {
 
     public List<NewPostMessage> partitionSubscribersAndMapToMessage(Long postId, Long authorId, Long timestamp,
                                                                     List<Long> usersId) {
-        List<List<Long>> usersIdByGroup = partitioner.exec(usersId, followerPartitionsLimit);
-
-        return usersIdByGroup.stream()
-                .map(group -> NewPostMessage.builder()
-                        .postId(postId)
-                        .authorId(authorId)
-                        .createdAtTimestamp(timestamp)
-                        .followersIds(group)
-                        .build())
-                .toList();
+        return partitionAndMap(usersId, followerPartitionsLimit, group ->
+            NewPostMessage.builder()
+                    .postId(postId)
+                    .authorId(authorId)
+                    .createdAtTimestamp(timestamp)
+                    .followersIds(group)
+                    .build());
     }
 
     public List<PostViewCountersKeysMessage> partitionViewCounterKeysAndMapToMessage(List<String> keys) {
-        List<List<String>> countersGroups = partitioner.exec(keys, viewCountersPartitionLimit);
-
-        return countersGroups.stream()
-                .map(PostViewCountersKeysMessage::new)
-                .toList();
+        return partitionAndMap(keys, viewCountersPartitionLimit, PostViewCountersKeysMessage::new);
     }
 
     public List<PostLikeCountersKeysMessage> partitionLikeCounterKeysAndMapToMessage(List<String> keys) {
-        List<List<String>> countersGroups = partitioner.exec(keys, likeCountersPartitionLimit);
-
-        return countersGroups.stream()
-                .map(PostLikeCountersKeysMessage::new)
-                .toList();
+        return partitionAndMap(keys, likeCountersPartitionLimit, PostLikeCountersKeysMessage::new);
     }
 
     public List<CommentCountersKeysMessage> partitionCommentCounterKeysAndMapToMessage(List<String> keys) {
-        List<List<String>> counterGroups = partitioner.exec(keys, commentCountersPartitionLimit);
-
-        return counterGroups.stream()
-                .map(CommentCountersKeysMessage::new)
-                .toList();
+        return partitionAndMap(keys, commentCountersPartitionLimit, CommentCountersKeysMessage::new);
     }
 
     public List<CommentLikeCounterKeysMessage> partitionCommentLikeCounterKeysAndMapToMessage(List<String> keys) {
-        List<List<String>> countersGroups = partitioner.exec(keys, commentLikesPartitionLimit);
-
-        return countersGroups.stream()
-                .map(CommentLikeCounterKeysMessage::new)
-                .toList();
+        return partitionAndMap(keys, commentLikesPartitionLimit, CommentLikeCounterKeysMessage::new);
     }
 
     public List<UsersFeedUpdateMessage> partitionUserIdsAndMapToMessage(List<Long> ids) {
-        List<List<Long>> idsGroups = partitioner.exec(ids, usersFeedUpdatePartitionLimit);
+        return partitionAndMap(ids, usersFeedUpdatePartitionLimit, UsersFeedUpdateMessage::new);
+    }
 
-        return idsGroups.stream()
-                .map(UsersFeedUpdateMessage::new)
+    private <T, K> List<T> partitionAndMap(List<K> list, int size, Function<List<K>, T> function) {
+        List<List<K>> lists = ListUtils.partition(list, size);
+        return lists.stream()
+                .map(function)
                 .toList();
     }
 }

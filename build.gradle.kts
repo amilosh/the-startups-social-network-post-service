@@ -22,7 +22,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation ("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
     implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.retry:spring-retry:2.0.3")
@@ -49,7 +49,7 @@ dependencies {
     /**
      * AOP
      */
-    implementation ("org.aspectj:aspectjweaver:1.9.19")
+    implementation("org.aspectj:aspectjweaver:1.9.19")
 
     /**
      * Utils & Logging
@@ -63,6 +63,7 @@ dependencies {
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     implementation("org.springframework.retry:spring-retry:2.0.3")
+    implementation("org.apache.commons:commons-collections4:4.4")
 
     /**
      * Test containers

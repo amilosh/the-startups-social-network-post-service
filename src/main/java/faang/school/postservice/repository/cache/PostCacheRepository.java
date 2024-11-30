@@ -4,7 +4,6 @@ import faang.school.postservice.dto.post.serializable.CommentCacheDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.repository.cache.util.key.PostKey;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -20,7 +19,6 @@ import java.util.stream.Stream;
 
 import static java.lang.Boolean.FALSE;
 
-@Slf4j
 @RequiredArgsConstructor
 @Repository
 public class PostCacheRepository {
@@ -132,7 +130,7 @@ public class PostCacheRepository {
     }
 
     public Set<String> mapPostDtoListToPostKeys(List<PostCacheDto> postDtoList) {
-        return  postDtoList.stream()
+        return postDtoList.stream()
                 .map(post -> postKey.build(post.getId()))
                 .collect(Collectors.toSet());
     }

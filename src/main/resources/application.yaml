@@ -159,6 +159,7 @@ app:
           likes: "/likes"
           comments: "/comments"
         user_feed_size: 10
+        user_feed_size_zset_index: -11  # limit is 10 = (10 + 1) * -1
         number_of_comments_limit: 3
         max_index_for_get_comments_in_post_comments_set: 2
         number_of_comment_ids_in_post_comments_set: -11  # limit is 10 = (10 + 1) * -1

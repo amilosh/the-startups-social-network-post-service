@@ -5,7 +5,6 @@ import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.repository.cache.util.key.PostKey;
 import faang.school.postservice.repository.cache.util.key.UserKey;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.Boolean.FALSE;
 
-@Slf4j
 @RequiredArgsConstructor
 @Repository
 public class UserCacheRepository {
@@ -37,6 +35,9 @@ public class UserCacheRepository {
     @Value("${spring.data.redis.ttl.feed.user_hour}")
     private int userTTL;
 
+    @Value("${app.post.cache.news_feed.user_feed_size_zset_index}")
+    private long userFeedSizeZSetIndex;
+
     public void save(UserDto user) {
         String key = userKey.build(user.getId());
 
@@ -49,6 +50,12 @@ public class UserCacheRepository {
 
     public void saveAll(Collection<UserDto> userDtoList) {
         userDtoList.forEach(this::save);
+    }
+
+    public void userFeedUpdate(long userId, long postId, long timestamp) {
+        String userFeedKey = userKey.buildFeedKey(userId);
+        String postKey = this.postKey.build(postId);
+        zSetRepository.setAndRemoveRange(userFeedKey, postKey, timestamp, userFeedSizeZSetIndex);
     }
 
     public void mapAndSavePostIdsToFeed(long userId, List<PostCacheDto> postDtoList) {

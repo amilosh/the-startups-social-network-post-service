@@ -4,10 +4,9 @@ import faang.school.postservice.dto.post.message.NewPostMessage;
 import faang.school.postservice.publisher.kafka.publishers.simple.PartitionSubscribersToKafkaPublisher;
 import faang.school.postservice.repository.cache.CommentCacheRepository;
 import faang.school.postservice.repository.cache.PostCacheRepository;
-import faang.school.postservice.repository.cache.ZSetRepository;
+import faang.school.postservice.repository.cache.UserCacheRepository;
 import faang.school.postservice.service.feed.util.EventsPartitioner;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,16 +18,7 @@ public class CacheUpdateService {
     private final CommentCacheRepository commentCacheRepository;
     private final PostCacheRepository postCacheRepository;
     private final EventsPartitioner partitioner;
-    private final ZSetRepository zSetRepository;
-
-    @Value("${app.post.cache.news_feed.prefix.post_id}")
-    private String postIdPrefix;
-
-    @Value("${app.post.cache.news_feed.prefix.feed_prefix}")
-    private String feedUserIdPrefix;
-
-    @Value("${app.post.cache.news_feed.user_feed_size}")
-    private long numberOfTopInCache;
+    private final UserCacheRepository userCacheRepository;
 
     public void partitionSubscribersAndPublish(NewPostMessage newPostMessage) {
         List<NewPostMessage> messages = partitioner.partitionSubscribersAndMapToMessage(newPostMessage.getPostId(),
@@ -37,12 +27,7 @@ public class CacheUpdateService {
     }
 
     public void usersFeedUpdate(Long postId, Long timestamp, List<Long> usersId) {
-        long limit = (numberOfTopInCache + 1) * -1;
-        String postIdValue = postIdBuild(postId);
-        usersId.forEach(id -> {
-            String userIdKey = feedUserIdBuild(id);
-            zSetRepository.setAndRemoveRange(userIdKey, postIdValue, timestamp, limit);
-        });
+        usersId.forEach(id -> userCacheRepository.userFeedUpdate(id, postId, timestamp));
     }
 
     public void postsViewsIncrByIds(List<Long> postsId) {
@@ -73,15 +58,7 @@ public class CacheUpdateService {
         commentCacheRepository.incrementCommentLikes(commentId);
     }
 
-    public void commentsLikesUpdate(List<String> commentsLikesCountersKeys) {
+    public void commentLikesUpdate(List<String> commentsLikesCountersKeys) {
         commentsLikesCountersKeys.forEach(commentCacheRepository::assignLikesByCounter);
-    }
-
-    private String postIdBuild(long id) {
-        return postIdPrefix + id;
-    }
-
-    private String feedUserIdBuild(long id) {
-        return feedUserIdPrefix + id;
     }
 }
