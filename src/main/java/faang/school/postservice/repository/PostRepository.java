@@ -1,9 +1,7 @@
 package faang.school.postservice.repository;
 
-import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
 import feign.Param;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,7 +34,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.published = false" +
             " AND p.deleted = false" +
             " AND p.scheduledAt < CURRENT_TIMESTAMP" +
-            " AND p.spellCheckCompleted = false" )
+            " AND p.spellCheckCompleted = false")
     List<Post> findReadyForSpellCheck();
 
     @Query(value = "SELECT p FROM post p JOIN p.hashtags h WHERE h.id = :hashtagId", nativeQuery = true)
@@ -62,6 +60,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                                 @Param("startDate") LocalDateTime startDate,
                                                 @Param("endDate") LocalDateTime endDate);
 
-    @Query(nativeQuery = true, value = "SELECT p.* FROM post p WHERE p.author_id IN (:authorIds) order by published_at desc limit :limit")
-    List<Post> findAllByAuthorIdIn(List<Long> authorIds, int limit);
+    @Query(nativeQuery = true, value = "SELECT p.* FROM post p WHERE p.author_id IN (:authorIds) order by published_at desc offset :offset limit :limit")
+    List<Post> findAllByAuthorIdIn(List<Long> authorIds, int offset, int limit);
 }
