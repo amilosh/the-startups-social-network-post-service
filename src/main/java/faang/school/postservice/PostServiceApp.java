@@ -34,6 +34,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 )
 @EnableKafka
 public class PostServiceApp {
+
     public static void main(String[] args) {
         new SpringApplicationBuilder(PostServiceApp.class)
                 .bannerMode(Banner.Mode.OFF)
