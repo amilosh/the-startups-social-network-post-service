@@ -39,10 +39,10 @@ public class PostService {
     private final ProjectServiceClient projectServiceClient;
     private final UserContext userContext;
     private final YandexSpeller yandexSpeller;
-    private final KafkaMessageProducer<Post> kafkaPostProducer;
+    private final KafkaPostProducer kafkaPostProducer;
     private final PostCacheMapper postCacheMapper;
     private final PostRedisRepository postRedisRepository;
-    private final AuthorCacheManager authorCacheManager;
+    private final UserRedisRepository userRedisRepository;
     private final ViewBuffer viewBuffer;
 
     @Transactional
