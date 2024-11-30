@@ -26,6 +26,7 @@ public class KafkaProperties {
         private int interval;
         private int maxPollRecords;
         private int sessionTimeout;
+        private String trustedPackages;
     }
 
     @Getter

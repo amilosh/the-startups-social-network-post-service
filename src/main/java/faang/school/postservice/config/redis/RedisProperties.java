@@ -16,6 +16,11 @@ public class RedisProperties {
     private int port;
     private int postTtl;
     private int maxPostCountInFeed;
+    private int defaultTtl;
+    private int commentTtl;
+    private String postPrefix;
+    private String commentPrefix;
+    private String redissonAddress;
 
     @Getter
     @Setter
