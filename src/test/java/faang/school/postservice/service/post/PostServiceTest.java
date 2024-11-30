@@ -131,7 +131,7 @@ class PostServiceTest {
         verify(postRepository, times(1)).findByPublishedFalse();
         verify(api, times(1)).getKey();
         verify(api, times(1)).getEndpoint();
-        verify(postRepository, times(1)).saveAll(posts);
+        verify(postRepository, times(1)).save(post);
         Thread.sleep(200);
         assertEquals("This is error", posts.get(0).getContent());
     }

@@ -1,6 +1,5 @@
 package faang.school.postservice.scheduled;
 
-import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.retry.annotation.Backoff;
@@ -14,7 +13,6 @@ import org.springframework.web.client.ResourceAccessException;
 public class PostCorrecter {
 
     private final PostService postService;
-    private final PostRepository postRepository;
 
     @Scheduled(cron = "#{schedulingProperties.cron}")
     @Retryable(retryFor = ResourceAccessException.class, maxAttempts = 4,

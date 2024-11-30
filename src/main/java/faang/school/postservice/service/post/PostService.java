@@ -13,11 +13,13 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -128,8 +131,20 @@ public class PostService {
 
     public void checkSpelling() {
         List<Post> posts = postRepository.findByPublishedFalse();
+        int sizeOfRequests = getSizeOfRequest(posts.size());
+        for (int i = 0; i < posts.size(); i += sizeOfRequests) {
+            List<Post> sublist;
+            if (i + sizeOfRequests < posts.size()) {
+                sublist = posts.subList(i, sizeOfRequests);
+            } else {
+                sublist = posts.subList(i, posts.size());
+            }
+            checkingPostsForSpelling(sublist);
+        }
+    }
+
+    private void checkingPostsForSpelling(List<Post> posts) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        CountDownLatch countDownLatch = new CountDownLatch(posts.size());
         String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -137,25 +152,29 @@ public class PostService {
         headers.set("x-rapidapi-host", api.getHost());
         headers.set("x-rapidapi-key", api.getKey());
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonPayload, headers);
-        String response = restTemplate.postForObject(api.getEndpoint(), requestEntity, String.class);
-        JSONObject jsonObject = new JSONObject(response);
-        int errorCount = jsonObject.getInt("spellingErrorCount");
-        if (errorCount == 0) {
-            return;
-        }
-        int i = 0;
-        for (Post post : posts) {
-            int finalI = i;
-            executorService.execute(() -> setCorrectContent(jsonObject, post, finalI, countDownLatch));
-            i++;
-        }
-        executorService.shutdown();
         try {
-            countDownLatch.await();
-            postRepository.saveAll(posts);
+            String response = restTemplate.postForObject(api.getEndpoint(), requestEntity, String.class);
+            JSONObject jsonObject = new JSONObject(response);
+            int errorCount = jsonObject.getInt("spellingErrorCount");
+            if (errorCount == 0) {
+                return;
+            }
+            for (int i = 0; i < posts.size(); i++) {
+                Post post = posts.get(i);
+                int finalI = i;
+                executorService.execute(() -> setCorrectContent(jsonObject, post, finalI));
+            }
+            executorService.shutdown();
+            if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
+                executorService.shutdownNow();
+            }
         } catch (InterruptedException e) {
-            log.error("An interrupt error occurred in the methon of checking the spelling ", e);
+            log.error("An interrupt error occurred in the method of checking the spelling ", e);
+            executorService.shutdownNow();
             throw new RuntimeException(e);
+        } catch (HttpClientErrorException e) {
+            log.error("An error occurred while executing a request to an external server ", e);
+            throw new HttpClientErrorException(e.getStatusCode(), e.getResponseBodyAsString());
         }
     }
 
@@ -179,25 +198,37 @@ public class PostService {
         return json.toString();
     }
 
-    private void setCorrectContent(JSONObject jsonObject, Post post, int id, CountDownLatch countDownLatch) {
-        String content = post.getContent();
-        JSONArray elementsArray = jsonObject.getJSONArray("elements");
-        JSONObject firstElement = elementsArray.getJSONObject(id);
-        JSONArray errorsArray = firstElement.getJSONArray("errors");
-        int size = errorsArray.length();
-        if (size == 0) {
-            return;
+    private void setCorrectContent(JSONObject jsonObject, Post post, int id) {
+        try {
+            String content = post.getContent();
+            JSONArray elementsArray = jsonObject.getJSONArray("elements");
+            JSONObject firstElement = elementsArray.getJSONObject(id);
+            JSONArray errorsArray = firstElement.getJSONArray("errors");
+            int size = errorsArray.length();
+            if (size == 0) {
+                return;
+            }
+            for (int i = 0; i < size; i++) {
+                JSONObject error = errorsArray.getJSONObject(i);
+                String word = error.getString("word");
+                JSONArray suggestionsArray = error.getJSONArray("suggestions");
+                String correctWord = suggestionsArray.getString(0);
+                content = content.replace(word, correctWord);
+            }
+            post.setContent(content);
+            postRepository.save(post);
+            log.info("Added corrected content {} to the post {}", post.getContent(), post.getId());
+        } catch (Exception e) {
+            log.error("An error occurred while processing the post {}", post.getId(), e);
         }
-        for (int i = 0; i < size; i++) {
-            JSONObject error = errorsArray.getJSONObject(i);
-            String word = error.getString("word");
-            JSONArray suggestionsArray = error.getJSONArray("suggestions");
-            String correctWord = suggestionsArray.getString(0);
-            content = content.replace(word, correctWord);
-        }
-        post.setContent(content);
-        log.info("Added corrected content {} to the post {}", post.getContent(), post.getId());
-        countDownLatch.countDown();
+    }
+
+    private int getSizeOfRequest(int sizeOfPosts) {
+        if (sizeOfPosts <= 100) {
+            return 10;
+        } else if (sizeOfPosts <= 500) {
+            return 50;
+        } else return 100;
     }
 
     private static String escapeJson(String data) {

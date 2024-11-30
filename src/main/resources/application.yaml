@@ -31,7 +31,7 @@ server:
   port: 8081
 
 scheduling:
-  cron: "0 12 * * *"
+  cron: "0 0 12 * * *"
 
 spelling:
   key: c2b61bcbe1msh7baed25073c44a3p111bcfjsn7841c9808baa
