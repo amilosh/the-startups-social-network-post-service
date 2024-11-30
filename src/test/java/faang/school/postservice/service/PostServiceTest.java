@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.dictionary.ModerationDictionary;
 import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.dto.post.ResponsePostDto;
@@ -19,12 +20,15 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,6 +56,9 @@ class PostServiceTest {
     @Mock
     private HashtagService hashtagService;
 
+    @Mock
+    private ModerationDictionary moderationDictionary;
+
     @InjectMocks
     private PostService postService;
 
@@ -64,6 +71,7 @@ class PostServiceTest {
 
     ResponsePostDto firstResponsePostDto = new ResponsePostDto();
     ResponsePostDto secondResponsePostDto = new ResponsePostDto();
+
 
     @Test
     void createShouldCreatePostSuccessfully() {
@@ -367,6 +375,32 @@ class PostServiceTest {
         verify(postRepository, times(1)).findByHashtags(existingTag);
         verify(postMapper, never()).toDto(any(Post.class));
     }
+
+    @Test
+    public void testCheckAndVerifyPostsInBatch() {
+        Post post1 = new Post();
+        post1.setContent("Clean post");
+        post1.setVerifiedDate(null);
+
+        Post post2 = new Post();
+        post2.setContent("Bad post with forbidden word");
+        post2.setVerifiedDate(null);
+
+        List<Post> postsToVerify = Arrays.asList(post1, post2);
+
+        when(moderationDictionary.containsForbiddenWord("Clean post")).thenReturn(false);
+        when(moderationDictionary.containsForbiddenWord("Bad post with forbidden word")).thenReturn(true);
+
+        CompletableFuture<Void> future = postService.checkAndVerifyPostsInBatch(postsToVerify);
+
+        future.join();
+
+        verify(postRepository, times(2)).save(any(Post.class));
+
+        assertTrue(post1.getVerified());
+        assertFalse(post2.getVerified());
+    }
+
 
     @DisplayName("Get post with valid id")
     void testGetPostByIdValidId() {

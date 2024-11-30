@@ -21,7 +21,7 @@ public class ModerationDictionary {
     public void init() {
         forbiddenWords = new HashSet<>();
 
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("moderation-words/moderation-words.txt")) {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("moderation-words/bad-words.txt")) {
             if (inputStream == null) {
                 log.error("Resource 'moderation-words/moderation-words.txt' not found in the classpath");
                 return;
@@ -29,6 +29,7 @@ public class ModerationDictionary {
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
                 forbiddenWords = reader.lines().collect(Collectors.toSet());
+                log.info("Loaded forbidden words: {}", forbiddenWords);
             }
 
         } catch (IOException e) {
