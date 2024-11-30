@@ -19,6 +19,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class RedisUserServiceImpl implements RedisUserService, RedisTransactional {
     private static final String KEY_PREFIX = "user:";
+    private static final DateTimeFormatter formatter =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Value("${redis.feed.ttl.user:86400}")
     private long userTtlInSeconds;
@@ -76,6 +79,7 @@ public class RedisUserServiceImpl implements RedisUserService, RedisTransactiona
         if (Boolean.FALSE.equals(redisTemplate.hasKey(key))) {
             log.warn("User with ID {} not found in Redis, fetching from database", userId);
             RedisUserDto userFromDb = fetchUserFromDatabase(userId);
+            //TODO можно сделать чтобы saveUser возвращал Map<String, Object>
             saveUser(userFromDb);
             return convertUserDtoToMap(userFromDb);
         }
@@ -93,7 +97,8 @@ public class RedisUserServiceImpl implements RedisUserService, RedisTransactiona
                 userShortInfo.getUsername(),
                 userShortInfo.getFileId(),
                 userShortInfo.getSmallFileId(),
-                deserializeFollowerIds(userShortInfo.getFollowerIds()));
+                deserializeFollowerIds(userShortInfo.getFollowerIds()),
+                LocalDateTime.now());
     }
 
     @Override
@@ -124,6 +129,7 @@ public class RedisUserServiceImpl implements RedisUserService, RedisTransactiona
         userMap.put(UserFields.FILE_ID, userDto.getFileId());
         userMap.put(UserFields.SMALL_FILE_ID, userDto.getSmallFileId());
         userMap.put(UserFields.FOLLOWER_IDS, serializeFollowerIds(userDto.getFollowerIds()));
+        userMap.put(UserFields.UPDATED_AT, userDto.getUpdatedAt().format(formatter));
         return userMap;
     }
 
@@ -134,6 +140,7 @@ public class RedisUserServiceImpl implements RedisUserService, RedisTransactiona
         userDto.setFileId((String) userMap.get(UserFields.FILE_ID));
         userDto.setSmallFileId((String) userMap.get(UserFields.SMALL_FILE_ID));
         userDto.setFollowerIds(deserializeFollowerIds((String) userMap.get(UserFields.FOLLOWER_IDS)));
+        userDto.setUpdatedAt(LocalDateTime.parse((String) userMap.get(UserFields.UPDATED_AT), formatter));
         return userDto;
     }
 

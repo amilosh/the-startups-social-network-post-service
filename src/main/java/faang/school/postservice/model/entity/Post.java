@@ -15,6 +15,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -108,4 +109,12 @@ public class Post {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "verified_date")
     private LocalDateTime verifiedDate;
+
+    @Column(name = "view_count", nullable = false)
+    @Builder.Default
+    private int viewCount = 0;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
 }
