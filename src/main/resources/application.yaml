@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:secrets.yaml
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres
@@ -41,3 +43,12 @@ project-service:
 payment-service:
   host: localhost
   port: 9080
+
+cron:
+  spelling-check: 0 0 3 * * *
+
+side-api:
+  text-gears:
+    key: ${secrets.text-gears-api-key}
+    base-url: https://api.textgears.com
+    auto-correct: /correct
