@@ -26,13 +26,13 @@ public class ModerationScheduler {
 
     @Scheduled(cron = "${moderation-scheduler.cron}")
     public void moderateContent() {
-        List<Post> allPosts = postRepository.findByVerifiedIsNull();
-        int totalSize = allPosts.size();
+        List<Post> allPostsWithVerifiedIsNull = postRepository.findByVerifiedIsNull();
+        int totalSizePosts = allPostsWithVerifiedIsNull.size();
 
-        if (totalSize > 0) {
-            for (int i = 0; i < totalSize; i += postBatchSize) {
-                int end = Math.min(i + postBatchSize, totalSize);
-                List<Post> batch = allPosts.subList(i, end);
+        if (totalSizePosts > 0) {
+            for (int i = 0; i < totalSizePosts; i += postBatchSize) {
+                int end = Math.min(i + postBatchSize, totalSizePosts);
+                List<Post> batch = allPostsWithVerifiedIsNull.subList(i, end);
 
                 log.info("Batch has been received {}", batch);
                 processBatchAsync(batch);
