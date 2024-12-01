@@ -1,6 +1,7 @@
 package faang.school.postservice.spliterator;
 
 import faang.school.postservice.model.ad.Ad;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class AdListSpliterator implements Spliterator<Ad> {
+public class AdListPartitioner implements Partitioner<Ad> {
 
     @Value("${ad.batch.size}")
     private int batchSize;
@@ -27,5 +28,12 @@ public class AdListSpliterator implements Spliterator<Ad> {
             subLists.add(list.subList(i, Math.min(i + batchSize, list.size())));
         }
         return subLists;
+    }
+
+    @PostConstruct
+    public void validateBatchSize() {
+        if (batchSize <= 0) {
+            throw new IllegalArgumentException("Batch size must be greater than 0");
+        }
     }
 }

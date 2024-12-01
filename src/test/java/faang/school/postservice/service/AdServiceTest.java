@@ -2,7 +2,7 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
-import faang.school.postservice.spliterator.Spliterator;
+import faang.school.postservice.spliterator.Partitioner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -27,14 +26,14 @@ class AdServiceTest {
     private TransactionService transactionService;
 
     @Mock
-    private Spliterator<Ad> spliterator;
+    private Partitioner<Ad> spliterator;
 
     @InjectMocks
     private AdService adService;
 
     @Test
     void shouldDeleteAllExpiredAdsInBatchesWhenThereAreExpiredAds() {
-        when(adRepository.findAllExpiredAds(any(LocalDate.class))).thenReturn(Optional.of(setUpExpiredAds()));
+        when(adRepository.findAllExpiredAds(any(LocalDate.class))).thenReturn(setUpExpiredAds());
         when(spliterator.splitList(setUpExpiredAds())).thenReturn(setUpBatches());
 
         adService.deleteAllExpiredAdsInBatches();
@@ -44,7 +43,7 @@ class AdServiceTest {
 
     @Test
     void shouldDoNothingWhenThereAreNoExpiredAds() {
-        when(adRepository.findAllExpiredAds(any(LocalDate.class))).thenReturn(Optional.of(Collections.emptyList()));
+        when(adRepository.findAllExpiredAds(any(LocalDate.class))).thenReturn(Collections.emptyList());
 
         adService.deleteAllExpiredAdsInBatches();
 

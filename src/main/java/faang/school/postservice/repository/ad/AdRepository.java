@@ -3,6 +3,7 @@ package faang.school.postservice.repository.ad;
 import faang.school.postservice.model.ad.Ad;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ public interface AdRepository extends JpaRepository<Ad, Long> {
 
     List<Ad> findAllByBuyerId(long buyerId);
 
-    @Query("SELECT a FROM Ad a WHERE a.endDate < ?1 OR a.appearancesLeft = 0")
-    Optional<List<Ad>> findAllExpiredAds(LocalDate localDate);
+    @Query("SELECT a FROM Ad a WHERE a.endDate < :currentDate OR a.appearancesLeft = 0")
+    List<Ad> findAllExpiredAds(@Param("currentData") LocalDate localDate);
 
 }

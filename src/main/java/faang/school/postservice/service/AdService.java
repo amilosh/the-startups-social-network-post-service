@@ -2,13 +2,12 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
-import faang.school.postservice.spliterator.Spliterator;
+import faang.school.postservice.spliterator.Partitioner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -18,7 +17,7 @@ public class AdService {
 
     private final AdRepository adRepository;
     private final TransactionService transactionService;
-    private final Spliterator<Ad> spliterator;
+    private final Partitioner<Ad> partitioner;
 
     @Async(ASYNC_CFG_EXECUTOR_BEAN_NAME)
     public void deleteAllExpiredAdsInBatches() {
@@ -26,11 +25,11 @@ public class AdService {
     }
 
     private List<Ad> getExpiredAds() {
-        return adRepository.findAllExpiredAds(LocalDate.now()).orElse(Collections.emptyList());
+        return adRepository.findAllExpiredAds(LocalDate.now());
     }
 
     private List<List<Ad>> getExpiredAdsInBatches() {
-        return spliterator.splitList(getExpiredAds());
+        return partitioner.splitList(getExpiredAds());
     }
 
     private void processBatch(List<Ad> batch) {
