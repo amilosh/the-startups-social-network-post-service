@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,29 +22,29 @@ import java.util.List;
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
-@ControllerAdvice
+
 public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("post/{postId}/comments")
+    @PostMapping("/post/{postId}")
     public CommentDto createComment(@PathVariable Long postId ,@Valid @RequestBody CommentDto commentDto){
         log.info("Received request to create comment from authorId ID: {} to postId ID: {} .",commentDto.getAuthorId(),postId);
         return commentService.createComment(postId,commentDto);
     }
-    @PutMapping("/comments/{commentId}")
+    @PutMapping("/{commentId}")
     public CommentDto updateComment(@PathVariable Long commentId,@Valid @RequestBody CommentDto commentDto){
-        log.info("Received request to update comment ID: {} .", commentId);
+        log.info("Received request to update comment ID: {} with new data: {}.", commentId,commentDto);
         return commentService.updateComment(commentId,commentDto);
     }
-    @GetMapping("/posts/{postId}/comments")
+    @GetMapping("/posts/{postId}")
     public List<CommentDto> getAllComments(@PathVariable Long postId){
-        log.info("Received request to retrieve all comments",postId);
+        log.info("Received request to retrieve all comments for post ID: {}",postId);
         return commentService.getAllComments(postId);
     }
-    @DeleteMapping("/comments/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCommentById(@PathVariable Long id){
-        log.info("Received request to delete comment from user ID: {} comment ID: {}",id);
+        log.info("Received request to delete comment  ID: {}",id);
         commentService.deleteCommentById(id);
         return ResponseEntity.ok( "Comment is deleted successfully");
     }
