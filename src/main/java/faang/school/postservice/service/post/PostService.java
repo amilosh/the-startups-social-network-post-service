@@ -192,7 +192,6 @@ public class PostService {
             List<Post> batch = readyToPublishPosts.subList(start, end);
             CompletableFuture<Void> futureBatch = publishBatch(batch).exceptionally(ex -> {
                 log.error("Error while publishing batch starting from index {}", start, ex);
-//                throw new DataValidationException("")
                 return null;
             });
             futures.add(futureBatch);
