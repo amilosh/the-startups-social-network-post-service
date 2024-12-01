@@ -1,4 +1,4 @@
-package faang.school.postservice.service;
+package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
@@ -13,12 +13,15 @@ import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
@@ -29,6 +32,9 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostValidator validator;
+
+    @Value("${scheduler.batch-size}")
+    private int batchSize;
 
     @Transactional
     public PostDto createPost(PostDto postDto) {
@@ -145,5 +151,34 @@ public class PostService {
         if (post.isDeleted()) {
             throw new DataValidationException("It is not possible to update a deleted post");
         }
+    }
+
+    public void publishScheduledPosts() {
+        log.info("Started publish posts from scheduler");
+        List<Post> readyToPublishPosts = postRepository.findReadyToPublish();
+        int countBatch = (int) Math.ceil((double) readyToPublishPosts.size() / batchSize);
+
+        if(readyToPublishPosts.isEmpty()){
+            log.info("Unpublished posts not found");
+            return;
+        }
+
+        for (int i = 0; i < countBatch; i++) {
+            int start = i * batchSize;
+            int end = (i + 1) * batchSize;
+
+            List<Post> batch = readyToPublishPosts.subList(start, end);
+            publishBatch(batch);
+        }
+    }
+
+    @Async("executor")
+    public void publishBatch(List<Post> batch) {
+        for (Post post : batch) {
+            post.setPublished(true);
+            post.setPublishedAt(LocalDateTime.now());
+        }
+        postRepository.saveAll(batch);
+        log.info("Batch of {} posts has been successfully published and saved.", batch.size());
     }
 }
