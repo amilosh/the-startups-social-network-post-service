@@ -71,6 +71,7 @@ public class PostCacheServiceImplIT {
         registry.add("spring.liquibase.enabled", () -> false);
         registry.add("spring.data.redis.host", SharedTestContainers.REDIS_CONTAINER::getHost);
         registry.add("spring.data.redis.port", () -> SharedTestContainers.REDIS_CONTAINER.getMappedPort(6379));
+        registry.add("spring.kafka.bootstrap-servers", SharedTestContainers.KAFKA_CONTAINER::getBootstrapServers);
     }
 
     private final String redisHost = SharedTestContainers.REDIS_CONTAINER.getHost();
