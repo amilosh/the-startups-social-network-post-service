@@ -1,7 +1,6 @@
 package faang.school.postservice.controller.post;
 
 import faang.school.postservice.dto.post.PostFilterDto;
-
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
@@ -10,22 +9,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Validated
 @Slf4j
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/posts")
@@ -47,12 +48,15 @@ public class PostController {
                 postDto.getImages() != null ? postDto.getImages().size() : 0,
                 postDto.getAudio() != null ? postDto.getAudio().size() : 0);
 
-        PostResponseDto responseDto = postService.createPost(postDto);
+        PostResponseDto responseDto = postService.create(postDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
     @PutMapping("{id}/publish")
     public PostResponseDto publishPost(@PathVariable Long id) {
         return postService.publishPost(id);
     }
+
 
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostResponseDto> updatePost(
@@ -80,8 +84,10 @@ public class PostController {
         postService.deletePost(postId);
         log.info("Deleted post with ID {}", postId);
         return ResponseEntity.noContent().build();
-    @GetMapping
-    public List<PostResponseDto> getPost(@Valid @ModelAttribute PostFilterDto postFilterDto){
+    }
+
+    @GetMapping()
+    public List<PostResponseDto> getPost(@Valid @ModelAttribute PostFilterDto postFilterDto) {
         return postService.getPosts(postFilterDto);
     }
 }

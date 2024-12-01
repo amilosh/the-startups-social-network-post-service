@@ -20,8 +20,6 @@ public class PostResponseDto {
     private Long authorId;
     private boolean published;
     private Long projectId;
-    private LocalDateTime publishedAt;
-    private LocalDateTime scheduledAt;
     private LocalDateTime createdAt;
     private List<Long> likeIds;
     private Long countLikes;
