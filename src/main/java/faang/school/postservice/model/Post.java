@@ -4,6 +4,7 @@ import faang.school.postservice.model.ad.Ad;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -55,7 +56,10 @@ public class Post {
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL)
     private Ad ad;
 
-    @OneToMany(mappedBy = "post", orphanRemoval = true)
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL)
+    private ViewEntity view;
+
+    @OneToMany(mappedBy = "post", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ResourceEntity> resourceEntities;
 
     @Column(name = "published", nullable = false)

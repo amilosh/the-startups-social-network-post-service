@@ -14,10 +14,7 @@ import org.springframework.stereotype.Component;
 public class PostEventPublishAspect {
     private final PostEventPublisher publisher;
 
-    @Pointcut("@annotation(PostEventPublish)")
-    public void postEventPublishMethods() {}
-
-    @AfterReturning(pointcut = "postEventPublishMethods()", returning = "post")
+    @AfterReturning(pointcut = "@annotation(faang.school.postservice.publis.aspect.post.PostEventPublishRedis)", returning = "post")
     public void afterReturningAdvice(Post post) {
         publisher.publish(post);
     }
