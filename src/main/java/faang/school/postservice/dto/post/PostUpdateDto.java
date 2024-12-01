@@ -3,13 +3,19 @@ package faang.school.postservice.dto.post;
 import faang.school.postservice.validator.resource.ValidResourceFileSize;
 import faang.school.postservice.validator.resource.ValidResourceFileType;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PostUpdateDto {
     private String content;
     @Size(max = 10, message = "You can only have 10 images in your post")

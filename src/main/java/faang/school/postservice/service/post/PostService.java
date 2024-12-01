@@ -1,7 +1,5 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.client.ProjectServiceClient;
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
@@ -39,7 +37,6 @@ public class PostService {
 
     public PostResponseDto create(PostRequestDto requestDto) {
         postValidator.validateCreate(requestDto);
-
         Post post = postMapper.toEntity(requestDto);
 
         post.setPublished(false);

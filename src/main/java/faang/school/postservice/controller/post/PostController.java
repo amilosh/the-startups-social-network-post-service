@@ -41,7 +41,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PostResponseDto> createPost(@ModelAttribute @Valid PostRequestDto postDto) {
+    public ResponseEntity<PostResponseDto> create(@ModelAttribute @Valid PostRequestDto postDto) {
         log.info("Received request to create post. AuthorId is {}, ProjectId is {}, Images: {}, Audio: {}",
                 postDto.getAuthorId(),
                 postDto.getProjectId(),
@@ -74,7 +74,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long postId) {
+    public ResponseEntity<PostResponseDto> getPostById(@PathVariable Long postId) {
         PostResponseDto responseDto = postService.getPost(postId);
         return ResponseEntity.ok(responseDto);
     }

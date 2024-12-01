@@ -8,14 +8,18 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.filter.PostFilters;
+import faang.school.postservice.service.resource.ResourceService;
 import faang.school.postservice.validator.post.PostValidator;
 
+import faang.school.postservice.validator.resource.ResourceValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +28,10 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,29 +44,53 @@ public class PostServiceTest {
     @Mock
     private PostValidator postValidator;
     @Mock
+    private ResourceValidator resourceValidator;
+    @Mock
+    private ResourceService resourceService;
+    @Mock
     private List<PostFilters> postFilters;
     @InjectMocks
     private PostService postService;
 
     @Test
     public void shouldCreatePosts() {
-        PostRequestDto postDto = new PostRequestDto();
-        postDto.setContent("Test content");
+        PostRequestDto requestDto = PostRequestDto.builder()
+                .authorId(1L)
+                .projectId(2L)
+                .content("Sample Content")
+                .images(List.of(mock(MultipartFile.class)))
+                .audio(List.of(mock(MultipartFile.class)))
+                .build();
 
         Post post = new Post();
-        post.setContent("Test content");
+        post.setId(1L);
+        post.setResources(new ArrayList<>());
 
-        when(postMapper.toEntity(postDto)).thenReturn(post);
-        when(postRepository.save(post)).thenReturn(post);
+        Post mappedPost = new Post();
+        mappedPost.setPublished(false);
+        mappedPost.setDeleted(false);
+        mappedPost.setLikes(new ArrayList<>());
+        mappedPost.setComments(new ArrayList<>());
+        mappedPost.setResources(new ArrayList<>());
 
-        postService.create(postDto);
+        PostResponseDto responseDto = PostResponseDto.builder()
+                .id(1L)
+                .content("Sample Content")
+                .authorId(1L)
+                .projectId(2L)
+                .build();
 
-        verify(postValidator).validateCreate(postDto);
-        verify(postMapper).toEntity(postDto);
-        verify(postRepository).save(post);
+        when(postMapper.toEntity(requestDto)).thenReturn(mappedPost);
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+        when(postMapper.toDto(any(Post.class))).thenReturn(responseDto);
 
-        assertFalse(post.isPublished());
-        assertFalse(post.isDeleted());
+        PostResponseDto actualResponse = postService.create(requestDto);
+
+        assertEquals(1L, actualResponse.getId());
+        assertEquals("Sample Content", actualResponse.getContent());
+        verify(postValidator, times(1)).validateCreate(requestDto);
+        verify(resourceService, times(2)).uploadResources(anyList(), anyString(), eq(post));
+        verify(postRepository, times(2)).save(any(Post.class));
     }
 
     @Test
@@ -92,29 +122,38 @@ public class PostServiceTest {
     }
 
     @Test
-    public void shouldUpdatePost() {
+    void shouldUpdatePostSuccessfully() {
+        Long postId = 1L;
+        PostUpdateDto updateDto = PostUpdateDto.builder()
+                .content("Updated Content")
+                .images(List.of(mock(MultipartFile.class)))
+                .audio(List.of(mock(MultipartFile.class)))
+                .imageFilesIdsToDelete(List.of(1L))
+                .audioFilesIdsToDelete(List.of(2L))
+                .build();
 
-        PostUpdateDto postDto = new PostUpdateDto();
-        postDto.setId(1L);
-        postDto.setContent("Updated content");
+        Post post = new Post();
+        post.setId(postId);
+        post.setResources(new ArrayList<>());
 
-        Post existingPost = new Post();
-        existingPost.setId(1L);
-        existingPost.setContent("Old content");
+        PostResponseDto responseDto = PostResponseDto.builder()
+                .id(postId)
+                .content("Updated Content")
+                .build();
 
-        Post updatedPost = new Post();
-        updatedPost.setId(1L);
-        updatedPost.setContent("Updated content");
+        when(postRepository.getPostById(postId)).thenReturn(post);
+        when(postRepository.save(post)).thenReturn(post);
+        when(postMapper.toDto(post)).thenReturn(responseDto);
 
-        when(postValidator.validateAndGetPostById(1L)).thenReturn(existingPost);
-        when(postRepository.save(existingPost)).thenReturn(updatedPost);
+        PostResponseDto actualResponse = postService.updatePost(postId, updateDto);
 
-        PostResponseDto result = postService.updatePost(postDto);
-
-        verify(postValidator).validateAndGetPostById(1L);
-        verify(postRepository).save(existingPost);
-        verify(postMapper).toDto(updatedPost);
-
+        assertEquals(postId, actualResponse.getId());
+        assertEquals("Updated Content", actualResponse.getContent());
+        verify(postRepository, times(1)).getPostById(postId);
+        verify(resourceService, times(2)).deleteResources(anyList());
+        verify(resourceService, times(2)).uploadResources(anyList(), anyString(), eq(post));
+        verify(resourceValidator, times(1)).validateResourceCounts(post);
+        verify(postRepository, times(1)).save(post);
     }
 
     @Test
@@ -180,14 +219,14 @@ public class PostServiceTest {
         when(postFilters.stream()).thenReturn(Stream.of(filter));
         when(filter.isApplicable(filterDto)).thenReturn(true);
         when(filter.apply(any(), eq(filterDto))).thenReturn(Stream.of(post1, post2));
-        when(postMapper.toDtoList(anyList())).thenReturn(Arrays.asList(postDto1, postDto2));
+        when(postMapper.toListPostDto(anyList())).thenReturn(Arrays.asList(postDto1, postDto2));
 
         List<PostResponseDto> result = postService.getPosts(filterDto);
 
         verify(postRepository).findAll();
         verify(filter).isApplicable(filterDto);
         verify(filter).apply(any(), eq(filterDto));
-        verify(postMapper).toDtoList(anyList());
+        verify(postMapper).toListPostDto(anyList());
         assertEquals(2, result.size());
     }
 }
