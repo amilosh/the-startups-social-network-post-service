@@ -54,8 +54,6 @@ public class FeedCacheServiceImpl implements FeedCacheService {
             restoredPostIds.add(0, postId);
         }
         if (restoredPostIds.size() > feedSize) {
-            System.out.println("restorred "+restoredPostIds.size());
-            System.out.println("feedsize "+feedSize);
             restoredPostIds.removeLast();
         }
         feedCache.setPostIds(restoredPostIds);

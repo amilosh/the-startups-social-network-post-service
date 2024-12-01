@@ -16,12 +16,10 @@ import faang.school.postservice.model.event.kafka.PostViewEventKafka;
 import faang.school.postservice.publisher.NewPostPublisher;
 import faang.school.postservice.publisher.PostViewPublisher;
 import faang.school.postservice.publisher.kafka.KafkaPostProducer;
-import faang.school.postservice.publisher.kafka.KafkaCommentProducer;
 import faang.school.postservice.publisher.kafka.KafkaPostViewProducer;
 import faang.school.postservice.redis.service.AuthorCacheService;
 import faang.school.postservice.redis.service.PostCacheService;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.repository.SubscriptionRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
 import faang.school.postservice.service.PostService;
@@ -61,7 +59,6 @@ public class PostServiceImpl implements PostService {
     private int correcterBatchSize;
 
     private final PostRepository postRepository;
-    private final SubscriptionRepository subscriptionRepository;
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final PostMapper postMapper;
@@ -73,7 +70,6 @@ public class PostServiceImpl implements PostService {
     private final PostViewPublisher postViewPublisher;
     private final KafkaPostProducer kafkaPostProducer;
     private final UserContext userContext;
-    private final KafkaCommentProducer kafkaCommentProducer;
     private final AuthorCacheService authorCacheService;
     private final PostCacheService postCacheService;
     private final KafkaPostViewProducer kafkaPostViewProducer;
@@ -120,7 +116,7 @@ public class PostServiceImpl implements PostService {
         post.setPublishedAt(LocalDateTime.now());
         post = postRepository.save(post);
 
-        List<Long> followersIds = subscriptionRepository.findFollowersIdByFolloweeId(post.getAuthorId());
+        List<Long> followersIds = userServiceClient.getAllFollowingIds(post.getAuthorId());
         List<List<Long>> followersLists = divideFollowerIds(followersIds);
         publishKafkaEvents(followersLists, post);
 
