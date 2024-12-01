@@ -1,13 +1,12 @@
 package faang.school.postservice.service.comment;
 
-import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.exception.ValidationException;
 import faang.school.postservice.exception.comment.CommentNotFoundException;
-import faang.school.postservice.model.Comment;
-import faang.school.postservice.model.Post;
-import faang.school.postservice.publisher.comment.RedisCommentEventPublisher;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.service.user.redis.UserRedisService;
 import faang.school.postservice.validator.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -39,6 +37,8 @@ class CommentServiceTest {
     private CommentValidator commentValidator;
     @Mock
     private PostService postService;
+    @Mock
+    private UserRedisService userRedisService;
     @Captor
     private ArgumentCaptor<Comment> commentCaptor;
     @InjectMocks
@@ -73,6 +73,7 @@ class CommentServiceTest {
 
         verify(commentValidator).validateCreate(postId, comment);
         verify(postService).findPostById(postId);
+        verify(userRedisService).saveUserToRedisRepository(authorId);
         verify(commentRepository).save(comment);
 
         assertEquals(savedComment, result);
@@ -117,15 +118,15 @@ class CommentServiceTest {
     void testGetAllCommentsByPostId() {
         var comment1 = Comment.builder()
                 .id(1L)
-                .createdAt(LocalDateTime.of(2024, 1, 1, 1, 1,1))
+                .createdAt(LocalDateTime.of(2024, 1, 1, 1, 1, 1))
                 .build();
         var comment2 = Comment.builder()
                 .id(2L)
-                .createdAt(LocalDateTime.of(2024, 2, 1, 1, 1,1))
+                .createdAt(LocalDateTime.of(2024, 2, 1, 1, 1, 1))
                 .build();
         var comment3 = Comment.builder()
                 .id(3L)
-                .createdAt(LocalDateTime.of(2024, 3, 1, 1, 1,1))
+                .createdAt(LocalDateTime.of(2024, 3, 1, 1, 1, 1))
                 .build();
         List<Comment> comments = List.of(comment1, comment2, comment3);
         List<Comment> sortedComments = comments.stream()

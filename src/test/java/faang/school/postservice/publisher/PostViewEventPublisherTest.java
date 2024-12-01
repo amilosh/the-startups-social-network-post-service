@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.event.PostViewEvent;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

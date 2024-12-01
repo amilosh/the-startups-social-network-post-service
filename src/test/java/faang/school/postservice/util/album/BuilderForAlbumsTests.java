@@ -1,7 +1,7 @@
 package faang.school.postservice.util.album;
 
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.album.Album;
+import faang.school.postservice.model.post.Post;
 
 import java.time.LocalDateTime;
 import java.util.List;

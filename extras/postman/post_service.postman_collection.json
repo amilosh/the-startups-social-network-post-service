@@ -7,203 +7,364 @@
 	},
 	"item": [
 		{
-			"name": "Update Album visibility",
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "x-user-id",
-						"value": "1",
-						"type": "text"
+			"name": "feed",
+			"item": [
+				{
+					"name": "Get feed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/feed?postId=1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"feed"
+							],
+							"query": [
+								{
+									"key": "postId",
+									"value": "1"
+								}
+							]
+						}
 					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"id\": 5,\r\n  \"visibility\": \"CHOSEN_USERS\",\r\n  \"chosenUserIds\": [3]\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{host}}/albums/update-visibility",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"albums",
-						"update-visibility"
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
-					]
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Get all Albums",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "x-user-id",
-						"value": "1",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"title\": null,\r\n  \"description\": null,\r\n  \"authorId\": null,\r\n  \"createdFrom\": null,\r\n  \"createdTo\": null,\r\n  \"updatedFrom\": null,\r\n  \"updatedTo\": null,\r\n  \"visibility\": null\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "album",
+			"item": [
+				{
+					"name": "Update Album visibility",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": 5,\r\n  \"visibility\": \"CHOSEN_USERS\",\r\n  \"chosenUserIds\": [3]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/albums/update-visibility",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"albums",
+								"update-visibility"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{host}}/albums/get-all-albums",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"albums",
-						"get-all-albums"
-					]
+				{
+					"name": "Get all Albums",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": null,\r\n  \"description\": null,\r\n  \"authorId\": null,\r\n  \"createdFrom\": null,\r\n  \"createdTo\": null,\r\n  \"updatedFrom\": null,\r\n  \"updatedTo\": null,\r\n  \"visibility\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/albums/get-all-albums",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"albums",
+								"get-all-albums"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Album by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/albums/5",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"albums",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Album CHOSEN_USERS",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Sample Title 1\",\r\n  \"description\": \"Sample description\",\r\n  \"visibility\": \"CHOSEN_USERS\",\r\n  \"chosenUserIds\": [1, 2, 3]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/albums",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"albums"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Album ALL USERS",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Sample Title\",\r\n  \"description\": \"Sample description\",\r\n  \"visibility\": \"ALL_USERS\",\r\n  \"chosenUserIds\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/albums",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"albums"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Get Album by id",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "x-user-id",
-						"value": "1",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{host}}/albums/5",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"albums",
-						"5"
-					]
+			"name": "post",
+			"item": [
+				{
+					"name": "Create Post as author",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"content\",\r\n    \"authorId\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/posts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Post by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/posts/13",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"posts",
+								"13"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Create Album CHOSEN_USERS",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "x-user-id",
-						"value": "1",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Sample Title 1\",\r\n  \"description\": \"Sample description\",\r\n  \"visibility\": \"CHOSEN_USERS\",\r\n  \"chosenUserIds\": [1, 2, 3]\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "comment",
+			"item": [
+				{
+					"name": "Add Comment to Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\" : \"comment 1 for post 1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/comments/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"comments",
+								"1"
+							]
 						}
-					}
-				},
-				"url": {
-					"raw": "{{host}}/albums",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"albums"
-					]
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Create Album ALL USERS",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "x-user-id",
-						"value": "1",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Sample Title\",\r\n  \"description\": \"Sample description\",\r\n  \"visibility\": \"ALL_USERS\",\r\n  \"chosenUserIds\": null\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "like",
+			"item": [
+				{
+					"name": "Add Like to Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/likes/posts/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"likes",
+								"posts",
+								"1"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{host}}/albums",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"albums"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Create Post as author",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "x-user-id",
-						"value": "1",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"content\": \"content\",\r\n    \"authorId\": 1\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+				{
+					"name": "Add Like to Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/likes/comments/9",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"likes",
+								"comments",
+								"9"
+							]
 						}
-					}
-				},
-				"url": {
-					"raw": "{{host}}/posts",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"posts"
-					]
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		}
 	]
 }

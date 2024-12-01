@@ -1,6 +1,6 @@
 package faang.school.postservice.model.album;
 
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;

@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changeset/post_V005_alter_post.sql
   - include:
       file: db/changelog/changeset/post_V005__post_add_hash_tags_column.sql
+  - include:
+      file: db/changelog/changeset/post_V006__create_user_actions_counter_tables.sql

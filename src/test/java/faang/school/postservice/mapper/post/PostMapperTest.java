@@ -1,7 +1,7 @@
 package faang.school.postservice.mapper.post;
 
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;

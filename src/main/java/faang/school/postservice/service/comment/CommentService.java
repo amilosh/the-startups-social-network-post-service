@@ -2,34 +2,45 @@ package faang.school.postservice.service.comment;
 
 import faang.school.postservice.annotations.PublishCommentEvent;
 import faang.school.postservice.annotations.PublishCommentNotificationEvent;
+import faang.school.postservice.annotations.kafka.SendCommentCreatedEventToKafka;
 import faang.school.postservice.exception.comment.CommentNotFoundException;
-import faang.school.postservice.model.Comment;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.comment.CommentLikes;
+import faang.school.postservice.model.post.Post;
+import faang.school.postservice.repository.CommentLikesRepository;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.service.user.redis.UserRedisService;
 import faang.school.postservice.validator.CommentValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.Map;
 
-
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostService postService;
     private final CommentValidator commentValidator;
+    private final UserRedisService userRedisService;
+    private final CommentLikesRepository commentLikesRepository;
 
     @PublishCommentEvent
     @PublishCommentNotificationEvent
+    @SendCommentCreatedEventToKafka
     @Transactional
     public Comment createComment(Long postId, Comment comment) {
         commentValidator.validateCreate(postId, comment);
         Post post = postService.findPostById(postId);
         comment.setPost(post);
         Comment savedComment = commentRepository.save(comment);
+        commentLikesRepository.save(new CommentLikes(savedComment, 0));
+        userRedisService.saveUserToRedisRepository(comment.getAuthorId());
         return savedComment;
     }
 
@@ -58,5 +69,17 @@ public class CommentService {
                 .orElseThrow(
                         () -> new CommentNotFoundException("Comment not found")
                 );
+    }
+
+    public void changeLikesAmountForComments(Map<Long, Integer> commentLikes) {
+        for (Map.Entry<Long, Integer> commentLike : commentLikes.entrySet()) {
+            commentLikesRepository.findByCommentId(commentLike.getKey())
+                    .ifPresentOrElse(cl -> {
+                        cl.setAmount(cl.getAmount() + commentLike.getValue());
+                        commentLikesRepository.save(cl);
+                    }, () -> {
+                        log.error("PostLikes {} not found", commentLike.getKey());
+                    });
+        }
     }
 }

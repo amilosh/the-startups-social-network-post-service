@@ -2,10 +2,10 @@ package faang.school.postservice.mapper.comment;
 
 import faang.school.postservice.dto.comment.CommentEvent;
 import faang.school.postservice.dto.comment.CommentNotificationEvent;
-import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CommentRequestDto;
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.model.Like;
+import faang.school.postservice.model.comment.Comment;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,6 +15,7 @@ import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Mapper(
         componentModel = "spring",
@@ -50,5 +51,13 @@ public interface CommentMapper {
             return likes.stream().map(Like::getId).toList();
         }
         return new ArrayList<>();
+    }
+
+    @Named("mapCommentLikesToNumber")
+    default Integer mapCommentLikesToNumber(List<Like> likes) {
+        if (likes == null) {
+            return 0;
+        }
+        return likes.size();
     }
 }

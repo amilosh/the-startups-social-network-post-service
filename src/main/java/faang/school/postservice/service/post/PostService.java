@@ -1,7 +1,8 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.annotations.SendPostCreatedEvent;
+import faang.school.postservice.annotations.SendPostCreatedEventToRedis;
 import faang.school.postservice.annotations.SendPostViewEventToAnalytics;
+import faang.school.postservice.annotations.SendUserActionToCounter;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.exception.ResourceNotFoundException;
 import faang.school.postservice.exception.post.PostNotFoundException;
@@ -10,15 +11,25 @@ import faang.school.postservice.exception.post.image.DownloadImageFromPostExcept
 import faang.school.postservice.exception.post.image.UploadImageToPostException;
 import faang.school.postservice.exception.spelling_corrector.DontRepeatableServiceException;
 import faang.school.postservice.exception.spelling_corrector.RepeatableServiceException;
+import faang.school.postservice.kafka.comment.event.CommentCreatedKafkaEvent;
+import faang.school.postservice.kafka.post.PostKafkaProducer;
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.post.Post;
+import faang.school.postservice.model.post.PostLikes;
+import faang.school.postservice.model.post.PostRedis;
+import faang.school.postservice.model.post.PostViews;
+import faang.school.postservice.repository.PostLikesRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.PostViewsRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
+import faang.school.postservice.service.comment.redis.CommentRedisService;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
+import faang.school.postservice.service.post.redis.PostRedisService;
+import faang.school.postservice.service.user.redis.UserRedisService;
 import faang.school.postservice.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,10 +45,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static faang.school.postservice.model.VerificationPostStatus.REJECTED;
 import static faang.school.postservice.model.VerificationPostStatus.UNVERIFIED;
+import static faang.school.postservice.service.counter.enumeration.ChangeType.INCREMENT;
+import static faang.school.postservice.service.counter.enumeration.UserAction.POST_VIEW;
 import static faang.school.postservice.utils.ImageRestrictionRule.POST_IMAGES;
 
 @Slf4j
@@ -59,9 +75,15 @@ public class PostService {
     private final PostCacheProcessExecutor postCacheProcessExecutor;
     private final PostMapper postMapper;
     private final PostCacheService postCacheService;
+    private final PostKafkaProducer postKafkaProducer;
+    private final UserRedisService userRedisService;
+    private final CommentRedisService commentRedisService;
+    private final PostRedisService postRedisService;
+    private final PostLikesRepository postLikesRepository;
+    private final PostViewsRepository postViewsRepository;
 
     @Transactional
-    @SendPostCreatedEvent
+    @SendPostCreatedEventToRedis
     public Post create(Post post) {
         log.info("Create post with id: {}", post.getId());
         postValidator.validateCreatePost(post);
@@ -72,7 +94,11 @@ public class PostService {
         post.setVerificationStatus(UNVERIFIED);
         postHashTagParser.updateHashTags(post);
 
-        return postRepository.save(post);
+        Post cratedPost = postRepository.save(post);
+        postLikesRepository.save(new PostLikes(cratedPost, 0));
+        postViewsRepository.save(new PostViews(cratedPost, 0));
+
+        return cratedPost;
     }
 
     @Transactional
@@ -88,6 +114,7 @@ public class PostService {
         post.setPublishedAt(LocalDateTime.now());
         postHashTagParser.updateHashTags(post);
         postRepository.save(post);
+        userRedisService.saveUserToRedisRepository(post.getAuthorId());
 
         postCacheProcessExecutor.executeNewPostProcess(postMapper.toPostCacheDto(post));
 
@@ -150,12 +177,14 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(Post.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = Post.class)
     public Post get(Long postId) {
         return findPostById(postId);
     }
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(List.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = List.class, collectionElementType = Post.class)
     public List<Post> searchByAuthor(Post filterPost) {
         List<Post> posts = postRepository.findByAuthorId(filterPost.getAuthorId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -166,6 +195,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @SendPostViewEventToAnalytics(List.class)
+    @SendUserActionToCounter(userAction = POST_VIEW, changeType = INCREMENT, type = List.class, collectionElementType = Post.class)
     public List<Post> searchByProject(Post filterPost) {
         List<Post> posts = postRepository.findByProjectId(filterPost.getProjectId());
         posts = applyFiltersAndSorted(posts, filterPost)
@@ -267,13 +297,73 @@ public class PostService {
     @Async("postExecutorPool")
     @Transactional
     public void processReadyToPublishPosts(List<Long> postIds) {
-        List<Post> postList = postRepository.findPostsByIds(postIds);
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        postList.forEach(post -> {
-            post.setPublishedAt(currentDateTime);
+        List<Post> posts = postRepository.findPostsByIds(postIds);
+        posts.forEach(post -> {
+            post.setPublishedAt(LocalDateTime.now());
             post.setPublished(true);
         });
-        postRepository.saveAll(postList);
+        postRepository.saveAll(posts);
+
+        postRedisService.savePostsToRedis(posts);
+        userRedisService.savePostsAuthorsToRedis(posts);
+
+        postKafkaProducer.sendPostsToKafka(posts);
         log.info("Posts was published by scheduling: {}", postIds);
+    }
+
+    public List<PostRedis> getRedisPostsById(Set<Long> postIds) {
+        List<PostRedis> posts = postRedisService.findAllByIds(postIds);
+        if (postIds.size() == posts.size()) {
+            return posts.stream()
+                    .sorted(Comparator.comparing(PostRedis::getPublishedAt).reversed())
+                    .toList();
+        } else {
+            Set<Long> existingPostIds = posts.stream()
+                    .map(PostRedis::getId)
+                    .collect(Collectors.toSet());
+            Set<Long> missingIds = postIds.stream()
+                    .filter(id -> !existingPostIds.contains(id))
+                    .collect(Collectors.toSet());
+            List<Post> postsFromDb = postRepository.findPostsByIds(missingIds);
+            posts = new ArrayList<>(posts);
+            posts.addAll(postMapper.mapToPostRedisList(postsFromDb));
+            return posts.stream()
+                    .sorted(Comparator.comparing(PostRedis::getPublishedAt).reversed())
+                    .toList();
+        }
+    }
+
+    public void addCommentToPost(CommentCreatedKafkaEvent event) {
+        Long commentId = event.getCommentId();
+        String content = event.getContent();
+        long authorId = event.getAuthorId();
+        commentRedisService.saveCommentToRedis(commentId, content, authorId);
+
+        Long postId = event.getPostId();
+        postRedisService.addComment(postId, commentId);
+    }
+
+    public void changeLikesAmountForPosts(Map<Long, Integer> postLikes) {
+        for (Map.Entry<Long, Integer> postLike : postLikes.entrySet()) {
+            postLikesRepository.findByPostId(postLike.getKey())
+                    .ifPresentOrElse(pl -> {
+                        pl.setAmount(pl.getAmount() + postLike.getValue());
+                        postLikesRepository.save(pl);
+                    }, () -> {
+                        log.error("PostLikes {} not found", postLike.getKey());
+                    });
+        }
+    }
+
+    public void changeViewsAmountForPosts(Map<Long, Integer> postViews) {
+        for (Map.Entry<Long, Integer> postView : postViews.entrySet()) {
+            postViewsRepository.findByPostId(postView.getKey())
+                    .ifPresentOrElse(pv -> {
+                        pv.setAmount(pv.getAmount() + postView.getValue());
+                        postViewsRepository.save(pv);
+                    }, () -> {
+                        log.error("PostLikes {} not found", postView.getKey());
+                    });
+        }
     }
 }

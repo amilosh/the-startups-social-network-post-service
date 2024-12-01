@@ -9,15 +9,17 @@ import faang.school.postservice.exception.post.image.DownloadImageFromPostExcept
 import faang.school.postservice.exception.post.image.UploadImageToPostException;
 import faang.school.postservice.exception.spelling_corrector.DontRepeatableServiceException;
 import faang.school.postservice.exception.spelling_corrector.RepeatableServiceException;
+import faang.school.postservice.kafka.post.PostKafkaProducer;
 import faang.school.postservice.mapper.post.PostMapper;
-import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.post.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.aws.s3.S3Service;
 import faang.school.postservice.service.post.cache.PostCacheProcessExecutor;
 import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.hash.tag.PostHashTagParser;
+import faang.school.postservice.service.user.redis.UserRedisService;
 import faang.school.postservice.utils.ImageRestrictionRule;
 import faang.school.postservice.validator.PostValidator;
 import org.junit.jupiter.api.Assertions;
@@ -99,6 +101,12 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostCacheService postCacheService;
+    @Mock
+    private PostRedisRepository postRedisRepository;
+    @Mock
+    private PostKafkaProducer postKafkaProducer;
+    @Mock
+    private UserRedisService userRedisService;
     @Captor
     private ArgumentCaptor<List<Post>> postListCaptor;
     @InjectMocks
@@ -226,6 +234,7 @@ public class PostServiceTest {
         ArgumentCaptor<PostCacheDto> captor = ArgumentCaptor.forClass(PostCacheDto.class);
         verify(postHashTagParser).updateHashTags(any(Post.class));
         verify(postCacheProcessExecutor).executeNewPostProcess(captor.capture());
+        verify(userRedisService).saveUserToRedisRepository(foundPost.getAuthorId());
     }
 
     @Test
@@ -590,13 +599,15 @@ public class PostServiceTest {
     @Test
     public void testProcessReadyToPublishPosts() {
         List<Long> postIds = List.of(1L, 2L);
-        Post post1 = Post.builder().id(1L).content("1").published(false).build();
-        Post post2 = Post.builder().id(2L).content("2").published(false).build();
+        Post post1 = Post.builder().id(1L).content("1").authorId(1L).published(false).build();
+        Post post2 = Post.builder().id(2L).content("2").authorId(2L).published(false).build();
         List<Post> postSublist = List.of(post1, post2);
 
         when(postRepository.findPostsByIds(postIds)).thenReturn(postSublist);
+        when(postRedisRepository.saveAll(anyList())).thenReturn(List.of());
         postService.processReadyToPublishPosts(postIds);
         verify(postRepository).saveAll(postListCaptor.capture());
+        verify(userRedisService).saveAllToRedisRepository(List.of(1L, 2L));
 
         postListCaptor.getValue().forEach(post -> assertTrue(post.isPublished()));
     }

@@ -1,6 +1,6 @@
 package faang.school.postservice.aop.aspects;
 
-import faang.school.postservice.model.Comment;
+import faang.school.postservice.model.comment.Comment;
 import faang.school.postservice.service.comment.CommentEventService;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;

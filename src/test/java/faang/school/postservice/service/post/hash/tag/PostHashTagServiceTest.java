@@ -1,6 +1,6 @@
 package faang.school.postservice.service.post.hash.tag;
 
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

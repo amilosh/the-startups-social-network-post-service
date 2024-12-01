@@ -1,6 +1,6 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

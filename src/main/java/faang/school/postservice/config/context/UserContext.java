@@ -1,9 +1,12 @@
 package faang.school.postservice.config.context;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserContext {
+    @Value("${app.service-user.id}")
+    private long serviceUserId;
 
     private final ThreadLocal<Long> userIdHolder = new ThreadLocal<>();
 
@@ -17,6 +20,15 @@ public class UserContext {
             throw new IllegalArgumentException("User ID is missing. Please make sure 'x-user-id' header is included in the request.");
         }
         return userId;
+    }
+
+    public long getUserIdForFeignRequest() {
+        Long userId = userIdHolder.get();
+        if (userId == null) {
+            return serviceUserId;
+        } else {
+            return userId;
+        }
     }
 
     public void clear() {

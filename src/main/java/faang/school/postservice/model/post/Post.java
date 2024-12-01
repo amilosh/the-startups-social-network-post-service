@@ -1,8 +1,12 @@
-package faang.school.postservice.model;
+package faang.school.postservice.model.post;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import faang.school.postservice.model.Like;
+import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.VerificationPostStatus;
 import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.model.album.Album;
+import faang.school.postservice.model.comment.Comment;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -108,4 +112,10 @@ public class Post {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "hash_tags")
     private List<String> hashTags;
+
+    @OneToOne(mappedBy = "post")
+    private PostLikes postLikes;
+
+    @OneToOne(mappedBy = "post")
+    private PostLikes PostViews;
 }

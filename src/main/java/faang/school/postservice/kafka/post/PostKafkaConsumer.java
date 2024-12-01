@@ -1,0 +1,32 @@
+package faang.school.postservice.kafka.post;
+
+import faang.school.postservice.kafka.post.event.PostPublishedKafkaEvent;
+import faang.school.postservice.service.feed.FeedService;
+import faang.school.postservice.service.post.redis.PostRedisService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class PostKafkaConsumer {
+    private final FeedService feedService;
+    private final PostRedisService postRedisService;
+
+    @KafkaListener(
+            topics = "${kafka.topic.post-published-topic.name}",
+            groupId = "${kafka.consumer.group-id}",
+            containerFactory = "kafkaListenerContainerFactory")
+    public void handlePostPublishedEvent(PostPublishedKafkaEvent postPublishedKafkaEvent, Acknowledgment acknowledgment) {
+        try {
+            feedService.addFeed(postPublishedKafkaEvent);
+            acknowledgment.acknowledge();
+        } catch (Exception e) {
+            log.error("Post with id {} is not added to feed.", postPublishedKafkaEvent.getPostId());
+            throw e;
+        }
+    }
+}

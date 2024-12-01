@@ -2,7 +2,7 @@ package faang.school.postservice.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.event.PostCreatedEvent;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.post.Post;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ public class PostCreatedEventPublisher extends AbstractEventPublisher<PostCreate
 
     @Async("redisPublisherAsyncThreadPool")
     @AfterReturning(
-            pointcut = "@annotation(faang.school.postservice.annotations.SendPostCreatedEvent)",
+            pointcut = "@annotation(faang.school.postservice.annotations.SendPostCreatedEventToRedis)",
             returning = "returnedValue")
     public void publishPostEvent(Object returnedValue) {
         Post post = (Post) returnedValue;

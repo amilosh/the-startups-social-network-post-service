@@ -1,12 +1,10 @@
 package faang.school.postservice.util.like;
 
-import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
-import faang.school.postservice.model.Post;
+import faang.school.postservice.model.comment.Comment;
+import faang.school.postservice.model.post.Post;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.LongStream;
 
 public class LikeTestUtil {
     public static Like getPostLike(long id, long userId, Post post) {
