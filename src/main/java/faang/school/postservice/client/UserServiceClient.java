@@ -1,5 +1,6 @@
 package faang.school.postservice.client;
 
+import faang.school.postservice.dto.user.UserAmountDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.dto.user.UserExtendedFilterDto;
 import faang.school.postservice.dto.user.UserResponseShortDto;
@@ -25,7 +26,12 @@ public interface UserServiceClient {
     @PostMapping("/subscriptions/{followeeId}/followers")
     List<UserResponseShortDto> getFollowers(@PathVariable long followeeId, @RequestBody UserExtendedFilterDto filter);
 
+    @GetMapping("/subscriptions/{followeeId}/followers/count")
+    UserAmountDto getFollowersCount(@PathVariable long followeeId);
+
+    @GetMapping("/subscriptions/{followeeId}/followerIds")
+    List<Long> getFollowerIds(@PathVariable long followeeId);
+
     @PostMapping("/users/active")
     List<Long> getOnlyActiveUsersFromList(@RequestBody List<Long> ids);
-
 }

@@ -30,6 +30,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-quartz")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.retry:spring-retry:2.0.9")
+    implementation("org.springframework.kafka:spring-kafka:3.0.11")
 
     /**
      * Database
