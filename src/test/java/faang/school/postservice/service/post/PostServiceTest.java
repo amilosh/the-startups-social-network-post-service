@@ -46,7 +46,6 @@ public class PostServiceTest {
     private PostMapper postMapper;
     @Mock
     private PostValidator postValidator;
-
     @Mock
     private RestTemplate restTemplate;
 

@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +36,8 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 @Slf4j
 public class PostService {
+
+    ExecutorService execute = Executors.newFixedThreadPool(10);
 
     private final PostRepository postRepository;
     private final PostMapper postMapper;
@@ -93,18 +96,12 @@ public class PostService {
         List<Post> posts = postRepository.findByPublishedFalse();
         int sizeOfRequests = getSizeOfRequest(posts.size());
         for (int i = 0; i < posts.size(); i += sizeOfRequests) {
-            List<Post> sublist;
-            if (i + sizeOfRequests < posts.size()) {
-                sublist = posts.subList(i, sizeOfRequests);
-            } else {
-                sublist = posts.subList(i, posts.size());
-            }
+            List<Post> sublist = posts.subList(i, Math.min(i + sizeOfRequests, posts.size()));
             checkingPostsForSpelling(sublist);
         }
     }
 
     private void checkingPostsForSpelling(List<Post> posts) {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
         String jsonPayload = getJsonFromPosts(posts);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -123,19 +120,22 @@ public class PostService {
             for (int i = 0; i < posts.size(); i++) {
                 Post post = posts.get(i);
                 int finalI = i;
-                executorService.execute(() -> setCorrectContent(jsonObject, post, finalI));
+                execute.execute(() -> setCorrectContent(jsonObject, post, finalI));
             }
-            executorService.shutdown();
-            if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
-                executorService.shutdownNow();
+            execute.shutdown();
+            if (!execute.awaitTermination(2, TimeUnit.MINUTES)) {
+                execute.shutdownNow();
             }
         } catch (InterruptedException e) {
             log.error("An interrupt error occurred in the method of checking the spelling ", e);
-            executorService.shutdownNow();
+            execute.shutdownNow();
             throw new RuntimeException(e);
         } catch (HttpClientErrorException e) {
             log.error("An error occurred while executing a request to an external server ", e);
             throw new HttpClientErrorException(e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (JSONException e) {
+            log.error("An error occurred while processing JSON content. ", e);
+            throw new JSONException(e);
         }
     }
 
