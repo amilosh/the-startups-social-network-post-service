@@ -16,13 +16,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -341,6 +345,33 @@ public class PostServiceTest {
         assertEquals(postsPublishedResult, result);
     }
 
+    @Test
+    public void testPublishScheduledPosts() {
+        List<Post> postsToPublish = createMockPosts();
+        when(postRepository.findReadyToPublish()).thenReturn(postsToPublish);
+
+        postService.publishScheduledPosts();
+
+        verify(postRepository, times(1)).saveAll(anyList());
+
+        postsToPublish.forEach(post -> {
+            assertTrue(post.isPublished());
+            assertNotNull(post.getPublishedAt());
+            assertTrue(post.getPublishedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
+        });
+    }
+
+    private List<Post> createMockPosts() {
+        List<PostDto> postDtos = new ArrayList<>();
+        postDtos.add(createPostDto(1L, "Post 1 content", 101L, 201L, false));
+        postDtos.add(createPostDto(2L, "Post 2 content", 102L, 202L, false));
+        postDtos.add(createPostDto(3L, "Post 3 content", 103L, 203L, false));
+
+        return postDtos.stream()
+                .map(this::convertToPost)
+                .collect(Collectors.toList());
+    }
+
     private PostDto createPostDto(Long id, String content, Long authorId, Long projectId, boolean published) {
         PostDto postDto = new PostDto();
         postDto.setId(id);
@@ -386,6 +417,17 @@ public class PostServiceTest {
         post.setDeleted(deleted);
         post.setCreatedAt(createdAt);
         post.setPublishedAt(publishedAt);
+        return post;
+    }
+
+    private Post convertToPost(PostDto postDto) {
+        Post post = new Post();
+        post.setId(postDto.getId());
+        post.setContent(postDto.getContent());
+        post.setAuthorId(postDto.getAuthorId());
+        post.setProjectId(postDto.getProjectId());
+        post.setPublished(postDto.isPublished());
+        post.setScheduledAt(postDto.getScheduledAt());
         return post;
     }
 
