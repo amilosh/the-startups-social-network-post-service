@@ -32,6 +32,11 @@ logging:
   level:
     root: info
 
+moderation-scheduler:
+  cron: 0 * * * * ?
+  post-batch-size: 2
+  dictionary-path: C:\Users\serya\IdeaProjects\CorporationX\post_service\src\main\resources\dictionary\moderator.json
+
 user-service:
   host: localhost
   port: 8080
