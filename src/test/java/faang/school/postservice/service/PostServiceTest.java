@@ -2,6 +2,7 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.threadpool.ThreadPoolConfig;
 import faang.school.postservice.dto.PostDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.ExternalServiceException;
@@ -11,14 +12,20 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +53,9 @@ public class PostServiceTest {
 
     @Mock
     private PostMapper postMapper;
+
+    @Mock
+    private ThreadPoolExecutor threadPoolExecutor;
 
     @InjectMocks
     private PostService postService;
@@ -81,7 +92,7 @@ public class PostServiceTest {
     void testCreatePostDraftWithInvalidPostData() {
         PostDto postDtoInitial = createPostDto(null, "Post content", 1L, 1L, false);
 
-        PostValidationException postValidationException = assertThrows(PostValidationException.class,() ->
+        PostValidationException postValidationException = assertThrows(PostValidationException.class, () ->
                 postService.createPostDraft(postDtoInitial));
 
         assertEquals(POST_VALIDATION_SIMULTANEOUS_USER_AND_PROJECT_IDS_MESSAGE, postValidationException.getMessage());
@@ -94,7 +105,7 @@ public class PostServiceTest {
 
         when(userServiceClient.getUser(userId)).thenThrow(new ExternalServiceException("Failed to communicate with User Service. Please try again later."));
 
-        ExternalServiceException externalServiceException = assertThrows(ExternalServiceException.class,() ->
+        ExternalServiceException externalServiceException = assertThrows(ExternalServiceException.class, () ->
                 postService.createPostDraft(postDtoInitial));
 
         verify(userServiceClient, times(1)).getUser(userId);
@@ -129,7 +140,7 @@ public class PostServiceTest {
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(postInitial));
 
-        PostValidationException postValidationException = assertThrows(PostValidationException.class,() ->
+        PostValidationException postValidationException = assertThrows(PostValidationException.class, () ->
                 postService.publishPost(postId));
 
         verify(postRepository, times(1)).findById(postId);
@@ -166,7 +177,7 @@ public class PostServiceTest {
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(postInitial));
 
-        PostValidationException postValidationException = assertThrows(PostValidationException.class,() ->
+        PostValidationException postValidationException = assertThrows(PostValidationException.class, () ->
                 postService.updatePost(postId, postUpdateDto));
 
         verify(postRepository, times(1)).findById(postId);
@@ -346,30 +357,36 @@ public class PostServiceTest {
     }
 
     @Test
-    public void testPublishScheduledPosts() {
-        List<Post> postsToPublish = createMockPosts();
+    void testPublishScheduledPosts_noPostsToPublish() {
+        when(postRepository.findReadyToPublish()).thenReturn(List.of());
+
+        postService.publishScheduledPosts();
+
+        verify(postRepository, times(1)).findReadyToPublish();
+        verifyNoInteractions(threadPoolExecutor);
+    }
+
+    @Test
+    void testPublishScheduledPosts_withPostsToPublish() {
+        List<Post> postsToPublish = new ArrayList<>();
+        Post post1 = createPost(1L, "Post content", 1L, null, false, false);
+        Post post2 = createPost(2L, "Another post content", 1L, null, false, false);
+        postsToPublish.add(post1);
+        postsToPublish.add(post2);
+
         when(postRepository.findReadyToPublish()).thenReturn(postsToPublish);
 
         postService.publishScheduledPosts();
 
-        verify(postRepository, times(1)).saveAll(anyList());
+        verify(postRepository, times(1)).findReadyToPublish();
 
-        postsToPublish.forEach(post -> {
-            assertTrue(post.isPublished());
-            assertNotNull(post.getPublishedAt());
-            assertTrue(post.getPublishedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
-        });
-    }
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+        verify(threadPoolExecutor, times(1)).submit(runnableCaptor.capture());
 
-    private List<Post> createMockPosts() {
-        List<PostDto> postDtos = new ArrayList<>();
-        postDtos.add(createPostDto(1L, "Post 1 content", 101L, 201L, false));
-        postDtos.add(createPostDto(2L, "Post 2 content", 102L, 202L, false));
-        postDtos.add(createPostDto(3L, "Post 3 content", 103L, 203L, false));
+        Runnable runnable = runnableCaptor.getValue();
+        runnable.run();
 
-        return postDtos.stream()
-                .map(this::convertToPost)
-                .collect(Collectors.toList());
+        verify(postRepository, times(1)).saveAll(postsToPublish);
     }
 
     private PostDto createPostDto(Long id, String content, Long authorId, Long projectId, boolean published) {
