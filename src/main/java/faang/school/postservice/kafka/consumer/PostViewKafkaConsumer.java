@@ -1,6 +1,6 @@
 package faang.school.postservice.kafka.consumer;
 
-import faang.school.postservice.model.event.kafka.CommentSentKafkaEvent;
+import faang.school.postservice.model.event.kafka.PostViewKafkaEvent;
 import faang.school.postservice.service.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -10,18 +10,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CommentKafkaConsumer extends AbstractKafkaConsumer<CommentSentKafkaEvent> {
+public class PostViewKafkaConsumer extends AbstractKafkaConsumer<PostViewKafkaEvent> {
     private final RedisPostService redisPostService;
 
     @Override
-    @KafkaListener(topics = "${kafka.topics.comment}", groupId = "${spring.kafka.consumer.group-id}")
-    public void consume(ConsumerRecord<String, CommentSentKafkaEvent> record, Acknowledgment acknowledgment) {
+    @KafkaListener(topics = "${kafka.topics.post-view}", groupId = "${spring.kafka.consumer.group-id}")
+    public void consume(ConsumerRecord<String, PostViewKafkaEvent> record, Acknowledgment acknowledgment) {
         super.consume(record, acknowledgment);
         acknowledgment.acknowledge();
     }
 
     @Override
-    protected void processEvent(CommentSentKafkaEvent event) {
-        redisPostService.addComment(event);
+    protected void processEvent(PostViewKafkaEvent event) {
+        redisPostService.incrementPostViewsWithTransaction(event.getPostId(), event.getViewerId(), event.getViewDateTime());
     }
 }

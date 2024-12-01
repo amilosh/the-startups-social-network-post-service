@@ -1,23 +1,23 @@
 package faang.school.postservice.kafka.producer;
 
-import faang.school.postservice.model.event.kafka.PostPublishedEvent;
+import faang.school.postservice.model.event.kafka.PostPublishedKafkaEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PostProducer extends AbstractKafkaProducer<PostPublishedEvent> {
+public class PostKafkaProducer extends AbstractKafkaProducer<PostPublishedKafkaEvent> {
 
     @Value("${kafka.topics.post}")
-    private String postTopic;
+    private String postKafkaTopic;
 
-    public PostProducer(KafkaTemplate<String, PostPublishedEvent> kafkaTemplate) {
+    public PostKafkaProducer(KafkaTemplate<String, PostPublishedKafkaEvent> kafkaTemplate) {
         super(kafkaTemplate);
     }
 
     @Override
     protected String getTopic() {
-        return postTopic;
+        return postKafkaTopic;
     }
 }
 

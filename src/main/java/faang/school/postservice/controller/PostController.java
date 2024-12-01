@@ -73,13 +73,13 @@ public class PostController {
     }
 
     @GetMapping("/published/user/{authorId}")
-    public ResponseEntity<List<PostDto>> getUserPublishedPosts(@PathVariable @NotNull Long authorId) {
-        return ResponseEntity.ok(postService.getUserPublishedPosts(authorId));
+    public ResponseEntity<List<PostDto>> getAllPostPublishedByUser(@PathVariable @NotNull Long authorId) {
+        return ResponseEntity.ok(postService.getAllPostPublishedByUser(authorId));
     }
 
     @GetMapping("/published/project/{projectId}")
-    public ResponseEntity<List<PostDto>> getProjectPublishedPosts(@PathVariable @NotNull Long projectId) {
-        return ResponseEntity.ok(postService.getProjectPublishedPosts(projectId));
+    public ResponseEntity<List<PostDto>> getAllPostPublishedByProject(@PathVariable @NotNull Long projectId) {
+        return ResponseEntity.ok(postService.getAllPostPublishedByProject(projectId));
     }
 
     @GetMapping("/all/hashtag/")

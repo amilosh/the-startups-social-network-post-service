@@ -2,7 +2,7 @@ package faang.school.postservice.app.listener;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.kafka.producer.PostProducer;
+import faang.school.postservice.kafka.producer.PostKafkaProducer;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.mapper.RedisPostDtoMapper;
 import faang.school.postservice.mapper.UserWithFollowersMapper;
@@ -13,7 +13,7 @@ import faang.school.postservice.model.dto.redis.cache.RedisUserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.entity.UserShortInfo;
 import faang.school.postservice.model.event.application.PostsPublishCommittedEvent;
-import faang.school.postservice.model.event.kafka.PostPublishedEvent;
+import faang.school.postservice.model.event.kafka.PostPublishedKafkaEvent;
 import faang.school.postservice.repository.UserShortInfoRepository;
 import faang.school.postservice.service.RedisPostService;
 import faang.school.postservice.service.RedisUserService;
@@ -42,7 +42,7 @@ public class PostPublishCommitedEventListener {
 
     private final RedisPostService redisPostService;
     private final RedisPostDtoMapper redisPostDtoMapper;
-    private final PostProducer postProducer;
+    private final PostKafkaProducer postKafkaProducer;
     private final UserShortInfoRepository userShortInfoRepository;
     private final RedisUserService redisUserService;
     private final UserWithFollowersMapper userWithFollowersMapper;
@@ -74,11 +74,11 @@ public class PostPublishCommitedEventListener {
 
             for (int indexFrom = 0; indexFrom < followerIds.size(); indexFrom += followerBatchSize) {
                 int indexTo = Math.min(indexFrom + followerBatchSize, followerIds.size());
-                PostPublishedEvent subEvent = new PostPublishedEvent(
+                PostPublishedKafkaEvent subEvent = new PostPublishedKafkaEvent(
                         postDto.getId(),
                         followerIds.subList(indexFrom, indexTo),
                         postDto.getPublishedAt());
-                postProducer.sendEvent(subEvent);
+                postKafkaProducer.sendEvent(subEvent);
             }
         });
     }

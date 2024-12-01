@@ -1,9 +1,9 @@
 package faang.school.postservice.service.impl;
 
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.PostMapper;
+import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
@@ -15,14 +15,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Collections;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -61,6 +62,9 @@ class PostServiceImplTest {
     @Mock
     private BatchProcessService batchProcessService;
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @InjectMocks
     private PostServiceImpl postService;
 
@@ -98,7 +102,6 @@ class PostServiceImplTest {
         assertEquals(1, result.getTotalElements());
         verify(postRepository, times(1)).findByHashtagsContent(anyString(), any(Pageable.class));
         verify(postMapper, times(1)).toPostDto(any(Post.class));
-        verify(postViewPublisher,times(1)).publish(any());
     }
 
     @Test
@@ -110,7 +113,6 @@ class PostServiceImplTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         verify(postRepository, times(1)).findById(1L);
-        verify(postViewPublisher,times(1)).publish(any());
     }
 
     @Test
@@ -138,43 +140,41 @@ class PostServiceImplTest {
     }
 
     @Test
-    void testGetUserPublishedPosts() {
+    void testGetAllPostPublishedByUser() {
         Long authorId = 1L;
 
         post.setPublished(true);
         post.setDeleted(false);
 
-        when(postRepository.findByAuthorIdWithLikes(authorId)).thenReturn(List.of(post));
+        when(postRepository.findByAuthorId(authorId)).thenReturn(List.of(post));
         when(postMapper.toPostDto(any(Post.class))).thenReturn(postDto);
 
-        List<PostDto> result = postService.getUserPublishedPosts(authorId);
+        List<PostDto> result = postService.getAllPostPublishedByUser(authorId);
 
         assertEquals(1, result.size());
         assertEquals(postDto.getId(), result.get(0).getId());
         assertEquals(postDto.getPublishedAt(), result.get(0).getPublishedAt());
-        verify(postRepository, times(1)).findByAuthorIdWithLikes(authorId);
+        verify(postRepository, times(1)).findByAuthorId(authorId);
         verify(postMapper, times(1)).toPostDto(any(Post.class));
-        verify(postViewPublisher,times(1)).publish(any());
     }
 
     @Test
-    void testGetProjectPublishedPosts() {
+    void testGetAllPostPublishedByProject() {
         Long projectId = 2L;
 
         post.setPublished(true);
         post.setDeleted(false);
 
-        when(postRepository.findByProjectIdWithLikes(projectId)).thenReturn(List.of(post));
+        when(postRepository.findByProjectId(projectId)).thenReturn(List.of(post));
         when(postMapper.toPostDto(any(Post.class))).thenReturn(postDto);
 
-        List<PostDto> result = postService.getProjectPublishedPosts(projectId);
+        List<PostDto> result = postService.getAllPostPublishedByProject(projectId);
 
         assertEquals(1, result.size());
         assertEquals(postDto.getId(), result.get(0).getId());
         assertEquals(postDto.getPublishedAt(), result.get(0).getPublishedAt());
-        verify(postRepository, times(1)).findByProjectIdWithLikes(projectId);
+        verify(postRepository, times(1)).findByProjectId(projectId);
         verify(postMapper, times(1)).toPostDto(any(Post.class));
-        verify(postViewPublisher,times(1)).publish(any());
     }
 
     @Test

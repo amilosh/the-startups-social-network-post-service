@@ -4,14 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.kafka.common.protocol.types.Field;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class CommentSentEvent {
+public class PostViewKafkaEvent {
     private Long postId;
-    private Long commentAuthorId;
-    private Long commentId;
-    private String commentContent;
+    private Long viewerId;
+    private String viewDateTime;
 }
