@@ -28,7 +28,7 @@ public class PostService {
     private final List<PostFilters> postFilters;
 
     public PostResponseDto create(PostRequestDto postRequestDto) {
-        //  postValidator.validateCreate(postRequestDto);
+        postValidator.validateCreate(postRequestDto);
 
         Post post = postMapper.toEntity(postRequestDto);
 
