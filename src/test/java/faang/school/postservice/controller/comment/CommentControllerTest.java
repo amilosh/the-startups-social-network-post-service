@@ -6,6 +6,7 @@ import faang.school.postservice.dto.comment.CommentResponseDto;
 import faang.school.postservice.dto.comment.CommentUpdateRequestDto;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.service.comment.CommentService;
+import faang.school.postservice.validator.comment.CommentValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CommentControllerTest {
 
     private MockMvc mockMvc;
+
+    @Mock
+    private CommentValidator commentValidator;
 
     @Mock
     private CommentService commentService;
