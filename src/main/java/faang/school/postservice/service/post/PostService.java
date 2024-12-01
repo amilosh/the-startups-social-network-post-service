@@ -19,6 +19,7 @@ import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.album.AlbumService;
 import faang.school.postservice.service.amazons3.Amazons3ServiceImpl;
 import faang.school.postservice.service.amazons3.processing.KeyKeeper;
+import faang.school.postservice.sheduler.postcorrector.ginger.GingerCorrector;
 import faang.school.postservice.service.resource.ResourceServiceImpl;
 import faang.school.postservice.validator.dto.project.ProjectDtoValidator;
 import faang.school.postservice.validator.dto.user.UserDtoValidator;
@@ -43,10 +44,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Validated
-@Slf4j
 public class PostService {
     private final PostMapper postMapper;
     private final PostRepository postRepository;
@@ -63,6 +64,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final MessageSender messageSender;
     private final ObjectMapper objectMapper;
+    private final GingerCorrector gingerCorrector;
 
     @Transactional
     public PostDraftResponseDto createDraftPost(@NotNull @Valid PostDraftCreateDto dto) {
@@ -181,6 +183,26 @@ public class PostService {
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize DtoBanSchema to JSON", e);
         }
+    }
+
+    @Async("workerPool")
+    public void checkingPostForErrors() throws IOException, InterruptedException {
+        List<Post> posts = postRepository.findByNotPublished();
+
+        int batchSize = 5;
+        int totalPosts = posts.size();
+        for (int i = 0; i < totalPosts; i += batchSize) {
+            int end = Math.min(i + batchSize, totalPosts);
+            List<Post> batchPosts = posts.subList(i, end);
+
+            checkingGroupPost(batchPosts);
+        }
+    }
+
+    @Async("workerPool")
+    protected void checkingGroupPost(List<Post> batchPosts) throws IOException, InterruptedException {
+        List<Post> checkPosts = gingerCorrector.correct(batchPosts);
+        postRepository.saveAll(checkPosts);
     }
 
     private Post getPostById(@Positive long postId) {
