@@ -11,6 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PostRequestDto {
     @NotNull
     private Long authorId;

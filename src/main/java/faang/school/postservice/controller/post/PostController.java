@@ -1,5 +1,6 @@
 package faang.school.postservice.controller.post;
 
+import faang.school.postservice.dto.post.PostFilterDto;
 
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
@@ -9,22 +10,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @Slf4j
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/posts")
@@ -36,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiResponse(responseCode = "404", description = "Post not found")
 @ApiResponse(responseCode = "500", description = "Server Error")
 public class PostController {
-
     private final PostService postService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -49,6 +49,9 @@ public class PostController {
 
         PostResponseDto responseDto = postService.createPost(postDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    @PutMapping("{id}/publish")
+    public PostResponseDto publishPost(@PathVariable Long id) {
+        return postService.publishPost(id);
     }
 
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -77,5 +80,8 @@ public class PostController {
         postService.deletePost(postId);
         log.info("Deleted post with ID {}", postId);
         return ResponseEntity.noContent().build();
+    @GetMapping
+    public List<PostResponseDto> getPost(@Valid @ModelAttribute PostFilterDto postFilterDto){
+        return postService.getPosts(postFilterDto);
     }
 }

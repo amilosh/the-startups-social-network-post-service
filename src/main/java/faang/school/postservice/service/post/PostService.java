@@ -1,20 +1,23 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.client.ProjectServiceClient;
-import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.exception.DataValidationException;
+import faang.school.postservice.dto.post.PostUpdateDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.resource.ResourceService;
 import faang.school.postservice.validator.resource.ResourceValidator;
+import faang.school.postservice.service.post.filter.PostFilters;
+import faang.school.postservice.validator.post.PostValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +25,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +39,14 @@ public class PostService {
     private final UserServiceClient userServiceClient;
     private final ProjectServiceClient projectServiceClient;
     private final ResourceValidator resourceValidator;
+    private final PostValidator postValidator;
+    private final List<PostFilters> postFilters;
 
-    public PostResponseDto createPost(PostRequestDto requestDto) {
-        isPostAuthorExist(requestDto);
-        Post post = postMapper.toEntity(requestDto);
+    public PostResponseDto create(PostRequestDto postRequestDto) {
+        postValidator.validateCreate(postRequestDto);
+
+        Post post = postMapper.toEntity(postRequestDto);
+
         post.setPublished(false);
         post.setDeleted(false);
         post.setLikes(new ArrayList<>());
@@ -95,93 +105,48 @@ public class PostService {
     }
 
     public PostResponseDto publishPost(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-
-        if (post.isPublished()) {
-            throw new DataValidationException("Post is already published");
-        }
-
+        Post post = postValidator.validateAndGetPostById(id);
+        postValidator.validatePublish(post);
         post.setPublished(true);
-        post.setPublishedAt(LocalDateTime.now());
+        post.setDeleted(false);
 
-        postRepository.save(post);
-        return postMapper.toDto(post);
+        return postMapper.toDto(postRepository.save(post));
     }
 
     public PostResponseDto deletePost(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+    public PostResponseDto updatePost(PostUpdateDto postDto) {
+        Objects.requireNonNull(postDto, "PostUpdateDto cannot be null");
 
-        if (post.isDeleted()) {
-            throw new DataValidationException("post already deleted");
-        }
+        Post post = postValidator.validateAndGetPostById(postDto.getId());
+        post.setContent(postDto.getContent());
+        return postMapper.toDto(postRepository.save(post));
+    }
+
+    public void deletePost(Long id) {
+        Post post = postRepository
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+        postValidator.validateDelete(post);
 
         post.setPublished(false);
         post.setDeleted(true);
         postRepository.save(post);
-
-        PostResponseDto postDto = postMapper.toDto(post);
-        postDto.setDeletedAt(LocalDateTime.now());
-
-        return postDto;
     }
 
-
-    public List<PostResponseDto> getAllNonPublishedByAuthorId(Long id) {
-        validateUserExist(id);
-
-        return filterNonPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
-    }
-
-    public List<PostResponseDto> getAllNonPublishedByProjectId(Long id) {
-        validateProjectExist(id);
-
-        return filterNonPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
-    }
-
-    public List<PostResponseDto> getAllPublishedByAuthorId(Long id) {
-        validateUserExist(id);
-
-        return filterPublishedPostsByTimeToDto(postRepository.findByAuthorIdWithLikes(id));
-    }
-
-    public List<PostResponseDto> getAllPublishedByProjectId(Long id) {
-        validateProjectExist(id);
-
-        return filterPublishedPostsByTimeToDto(postRepository.findByProjectIdWithLikes(id));
-    }
-
-    private void validateUserExist(Long id) {
-        userServiceClient.getUser(id);
-    }
-
-    private void validateProjectExist(Long id) {
-        projectServiceClient.getProject(id);
-    }
-
-    private List<PostResponseDto> filterPublishedPostsByTimeToDto(List<Post> posts) {
-        return posts.stream()
-                .filter(post -> !post.isDeleted() && post.isPublished())
-                .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
+    public PostResponseDto getPostById(Long id) {
+        return postRepository.findById(id)
                 .map(postMapper::toDto)
-                .toList();
+                .orElseThrow(EntityNotFoundException::new);
     }
 
-    private List<PostResponseDto> filterNonPublishedPostsByTimeToDto(List<Post> posts) {
-        return posts.stream()
-                .filter(post -> !post.isDeleted() && !post.isPublished())
-                .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
-                .map(postMapper::toDto)
-                .toList();
-    }
+    public List<PostResponseDto> getPosts(PostFilterDto filterDto) {
+        Stream<Post> posts = StreamSupport.stream(postRepository.findAll().spliterator(), false);
 
-    private void isPostAuthorExist(PostRequestDto postDto) {
-        if (postDto.getAuthorId() != null) {
-            userServiceClient.getUser(postDto.getAuthorId());
-        } else {
-            projectServiceClient.getProject(postDto.getProjectId());
-        }
-    }
+        postFilters.stream()
+                .filter(filter -> filter.isApplicable(filterDto))
+                .forEach(filter -> filter.apply(posts, filterDto));
 
+        return postMapper.toDtoList(posts.toList());
+    }
 }
