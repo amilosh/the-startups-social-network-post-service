@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -156,29 +158,39 @@ public class PostService {
     public void publishScheduledPosts() {
         log.info("Started publish posts from scheduler");
         List<Post> readyToPublishPosts = postRepository.findReadyToPublish();
-        int countBatch = (int) Math.ceil((double) readyToPublishPosts.size() / batchSize);
 
-        if(readyToPublishPosts.isEmpty()){
+        if (readyToPublishPosts.isEmpty()) {
             log.info("Unpublished posts not found");
             return;
         }
+
+        int countBatch = (int) Math.ceil((double) readyToPublishPosts.size() / batchSize);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         for (int i = 0; i < countBatch; i++) {
             int start = i * batchSize;
             int end = (i + 1) * batchSize;
 
             List<Post> batch = readyToPublishPosts.subList(start, end);
-            publishBatch(batch);
+            CompletableFuture<Void> futureBatch = publishBatch(batch).exceptionally(ex -> {
+                log.error("Error while publishing batch starting from index {}", start, ex);
+//                throw new DataValidationException("")
+                return null;
+            });
+            futures.add(futureBatch);
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        log.info("posts={} has been successfully published and saved.", readyToPublishPosts.size());
     }
 
     @Async("executor")
-    public void publishBatch(List<Post> batch) {
+    public CompletableFuture<Void> publishBatch(List<Post> batch) {
         for (Post post : batch) {
             post.setPublished(true);
             post.setPublishedAt(LocalDateTime.now());
         }
         postRepository.saveAll(batch);
-        log.info("Batch of {} posts has been successfully published and saved.", batch.size());
+        return CompletableFuture.completedFuture(null);
     }
 }
