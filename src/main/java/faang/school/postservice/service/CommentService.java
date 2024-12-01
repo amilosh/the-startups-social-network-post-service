@@ -79,4 +79,12 @@ public class CommentService {
             throw new EntityNotFoundException("User does not exist");
         }
     }
+
+    public void moderationOfComments() {
+        List<Comment> allNotVerifiedComments = commentRepository.findByVerifiedIsNull();
+
+
+
+
+    }
 }
