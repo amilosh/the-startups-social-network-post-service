@@ -10,7 +10,7 @@ public class AuthorBanner {
 
     private PostService postService;
 
-    @Scheduled(cron = "${cron.expression}")
+    @Scheduled(cron = "${cron.unverified-posts}")
     public void checkUnverifiedPosts() {
         postService.getPostsWhereVerifiedFalse();
     }

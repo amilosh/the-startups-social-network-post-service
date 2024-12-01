@@ -35,6 +35,7 @@ server:
 
 cron:
   check-comments: "0 0 0 * * ?"
+  unverified-posts: 0 0 1 * * ?
 
 logging:
   level:
@@ -52,8 +53,6 @@ payment-service:
   host: localhost
   port: 9080
 
-cron:
-  expression: 0 25 18 * * ?
 
 
 

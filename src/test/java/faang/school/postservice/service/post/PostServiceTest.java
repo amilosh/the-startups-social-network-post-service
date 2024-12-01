@@ -11,7 +11,7 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.service.redis.RedisMessagePublisher;
+import faang.school.postservice.redis.RedisMessagePublisher;
 import faang.school.postservice.validator.post.PostValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -452,11 +452,15 @@ public class PostServiceTest {
         post5.setVerified(false);
         post5.setAuthorId(1L);
 
+        Post post6 = new Post();
+        post6.setVerified(false);
+        post6.setAuthorId(1L);
+
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setBanned(false);
 
-        List<Post> posts = List.of(post1, post2, post3, post4, post5);
+        List<Post> posts = List.of(post1, post2, post3, post4, post5, post6);
         when(postRepository.findAllByVerifiedFalse()).thenReturn(posts);
         when(userServiceClient.getUser(1L)).thenReturn(userDto);
 
@@ -464,7 +468,7 @@ public class PostServiceTest {
 
         verify(postRepository, times(1)).findAllByVerifiedFalse();
         verify(userServiceClient, times(1)).getUser(1L);
-        verify(redisMessagePublisher).sendMessage("1");
+        verify(redisMessagePublisher).publish("1");
         verify(userContext, times(1)).clear();
     }
 
