@@ -1,8 +1,11 @@
 package faang.school.postservice.redis.service.impl;
 
 import faang.school.postservice.model.dto.LikeDto;
+import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.event.kafka.CommentEventKafka;
 import faang.school.postservice.model.event.kafka.PostEventKafka;
+import faang.school.postservice.redis.mapper.PostCacheMapper;
+import faang.school.postservice.redis.mapper.PostCacheMapperImpl;
 import faang.school.postservice.redis.model.dto.CommentRedisDto;
 import faang.school.postservice.redis.model.entity.PostCache;
 import faang.school.postservice.redis.repository.PostCacheRedisRepository;
@@ -15,10 +18,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -26,6 +35,7 @@ import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +53,16 @@ public class PostCacheServiceImplTest {
     @Mock
     FeedCacheService feedCacheService;
 
+    @Spy
+    PostCacheMapper postCacheMapper = new PostCacheMapperImpl();
+
+    @Mock
+    @Qualifier("redisCacheTemplate")
+    RedisTemplate<String, Object> redisTemplate;
+
+    @Mock
+    private HashOperations<String, String, Long> hashOperations;
+
     @InjectMocks
     private PostCacheServiceImpl postCacheService;
 
@@ -50,6 +70,7 @@ public class PostCacheServiceImplTest {
     ArgumentCaptor<PostCache> captor = ArgumentCaptor.forClass(PostCache.class);
 
     private CommentEventKafka commentEventKafka;
+    private PostDto testPostDto;
 
     @BeforeEach
     public void setUp() {
@@ -57,6 +78,16 @@ public class PostCacheServiceImplTest {
         commentEventKafka.setPostId(1L);
         commentEventKafka.setCreatedAt(LocalDateTime.now());
         commentEventKafka.setCommentId(11L);
+
+        testPostDto = PostDto.builder()
+                .id(1L)
+                .content("Sample content")
+                .authorId(2L)
+                .build();
+
+        ReflectionTestUtils.setField(postCacheService, "postTtl", 3600L);
+        ReflectionTestUtils.setField(postCacheService, "cachePrefix", "posts:");
+        ReflectionTestUtils.setField(postCacheService, "postCacheViewsField", "numberOfViews");
     }
 
     @Test
@@ -110,8 +141,30 @@ public class PostCacheServiceImplTest {
         postCacheService.updateFeedsInCache(event);
 
         verify(feedCacheService, times(3)).getAndSaveFeed(anyLong(), eq(postId));
-
     }
 
-    // TODO maybe add some tests
+    @Test
+    void savePostToCache_Success() {
+
+        postCacheService.savePostToCache(testPostDto);
+
+        verify(postCacheMapper).toPostCache(testPostDto);
+        verify(postCacheRedisRepository).save(any(PostCache.class));
+        verify(redisTemplate).expire(eq("posts:1"), eq(Duration.ofSeconds(3600)));
+        verify(postCacheMapper).toPostCache(any(PostDto.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPostNotFoundInCache() {
+        when(postCacheRedisRepository.existsById(testPostDto.getId())).thenReturn(false);
+
+        NoSuchElementException exception = assertThrows(
+                NoSuchElementException.class,
+                () -> postCacheService.addPostView(testPostDto)
+        );
+        Assertions.assertEquals("Can't find post in redis with id: 1", exception.getMessage());
+
+        verify(postCacheRedisRepository).existsById(testPostDto.getId());
+        verifyNoInteractions(redissonClient);
+    }
 }

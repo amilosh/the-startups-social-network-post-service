@@ -172,7 +172,6 @@ public class PostServiceImpl implements PostService {
         postViewPublisher.publish(createPostViewEvent(post));
 
         PostViewEventKafka postViewEventKafka = new PostViewEventKafka(postDto);
-        //postViewEventKafka.setPostDto(postDto);
         kafkaPostViewProducer.sendEvent(postViewEventKafka);
 
         return postDto;

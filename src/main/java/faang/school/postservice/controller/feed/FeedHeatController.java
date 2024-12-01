@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Cache Heat", description = "Operations for cache heating process")
 public class FeedHeatController {
 
@@ -35,6 +37,7 @@ public class FeedHeatController {
             heatTaskProducer.publishHeatTasks();
             return ResponseEntity.ok("Cache heating process started successfully");
         } catch (Exception e) {
+            log.error("Error during cache heating process", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to start cache heating process: " + e.getMessage());
         }

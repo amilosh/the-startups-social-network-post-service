@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -72,7 +73,15 @@ public class CacheHeatServiceImpl implements CacheHeatService {
 
             List<PostDto> allFeedPosts = getAllFeedPosts(bloggers);
 
-            populateCache(follower.getId(), bloggers, allFeedPosts);
+            Set<Long> authorIds = allFeedPosts.stream()
+                    .map(PostDto::getAuthorId)
+                    .collect(Collectors.toSet());
+
+            List<UserDto> filteredBloggers = bloggers.stream()
+                    .filter(blogger -> authorIds.contains(blogger.getId()))
+                    .toList();
+
+            populateCache(follower.getId(), filteredBloggers, allFeedPosts);
         }
 
         log.info("Batch processing completed.");
