@@ -19,6 +19,7 @@ import faang.school.postservice.publisher.MessagePublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.PostContentVerifier;
 import faang.school.postservice.service.post.PostService;
+import faang.school.postservice.service.post.cache.PostCacheService;
 import faang.school.postservice.service.post.impl.filter.PostFilter;
 import faang.school.postservice.service.post.impl.filter.PublishedPostFilter;
 import faang.school.postservice.service.post.impl.filter.UnPublishedPostFilter;
@@ -51,6 +52,7 @@ public class PostServiceImpl implements PostService {
     private final MessagePublisher<Long> banUserPublisher;
     private final MessagePublisher<PostViewEvent> postViewEventPublisher;
     private final UserContext userContext;
+    private final PostCacheService postCacheService;
 
     @Setter
     @Value("${post.moderator.post-batch-size}")
@@ -90,6 +92,7 @@ public class PostServiceImpl implements PostService {
             post.setResources(resources);
         }
         log.info("Created post: {}", post.getId());
+        postCacheService.savePost(postMapper.toPostCacheDto(post));
         return postMapper.toPostDto(post);
     }
 

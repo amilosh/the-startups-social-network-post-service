@@ -16,6 +16,7 @@ import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.post.PostCreator;
 import faang.school.postservice.publisher.PostViewEventPublisher;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.post.cache.PostCacheServiceImpl;
 import faang.school.postservice.service.post.impl.PostServiceImpl;
 import faang.school.postservice.service.resource.ResourceService;
 import jakarta.persistence.EntityNotFoundException;
@@ -75,6 +76,9 @@ class PostServiceTest {
     private PostViewEventPublisher postViewEventPublisher;
 
     @Mock
+    private PostCacheServiceImpl postCacheService;
+
+    @Mock
     private UserContext userContext;
 
     @InjectMocks
@@ -104,7 +108,7 @@ class PostServiceTest {
                 .build();
         updatingRequest = PostUpdatingRequest.builder().content("Test2").build();
         postService.setMaxFilesCount(MAX_SIZE_COUNT);
-        ReflectionTestUtils.setField(postService,"postBatchSize", 3);
+        ReflectionTestUtils.setField(postService, "postBatchSize", 3);
     }
 
     @Test

@@ -34,6 +34,8 @@ spring:
           name: comment_channel
         post-view-channel:
           name: post_view_channel
+      post:
+        time-to-live: 1440
 
   config:
     import: text-gears-api.yaml
