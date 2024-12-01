@@ -23,7 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -59,9 +58,6 @@ public class PostCacheServiceImplTest {
     @Mock
     @Qualifier("redisCacheTemplate")
     RedisTemplate<String, Object> redisTemplate;
-
-    @Mock
-    private HashOperations<String, String, Long> hashOperations;
 
     @InjectMocks
     private PostCacheServiceImpl postCacheService;

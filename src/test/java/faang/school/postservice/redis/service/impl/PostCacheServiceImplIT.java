@@ -194,7 +194,7 @@ public class PostCacheServiceImplIT {
             Awaitility.await()
                     .atMost(Duration.ofSeconds(5))
                     .until(() -> {
-                        String postData = jedis.hget("posts:45", "id");
+                        String postData = jedis.hget("posts:45", "numberOfViews");
                         return postData != null;
                     });
         }
@@ -243,7 +243,7 @@ public class PostCacheServiceImplIT {
                 Awaitility.await()
                         .atMost(Duration.ofSeconds(5))
                         .until(() -> {
-                            String postData = jedis.hget("posts:45", "id");
+                            String postData = jedis.hget("posts:45", "authorId");
                             return postData != null;
                         });
             }
