@@ -9,7 +9,6 @@ import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Album;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.AlbumRepository;
-import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.validator.AlbumValidator;
 import faang.school.postservice.validator.PostValidator;
 import faang.school.postservice.validator.UserValidator;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -28,14 +26,13 @@ import java.util.stream.StreamSupport;
 @Service
 @RequiredArgsConstructor
 public class AlbumService {
-
     private final AlbumRepository albumRepository;
     private final PostValidator postValidator;
     private final UserValidator userValidator;
     private final AlbumValidator albumValidator;
     private final AlbumMapper albumMapper;
     private final PostMapper postMapper;
-    private final PostRepository postRepository;
+    private final PostService postService;
     private final List<Filter<Album, AlbumFilterDto>> filters;
 
     public AlbumDto createAlbum(AlbumDto albumDto) {
@@ -49,8 +46,7 @@ public class AlbumService {
 
     @Transactional
     public AlbumDto addPostToAlbum(long userId, long albumId, long postId) {
-        postValidator.validatePostExistsById(postId);
-        Post post = postRepository.findById(postId).get();
+        Post post = postService.getPostById(postId);
         Album album = findAlbumForUser(userId, albumId);
         album.addPost(post);
         albumRepository.save(album);
@@ -59,7 +55,7 @@ public class AlbumService {
     }
 
     @Transactional
-    public AlbumDto removePost(long userId, long albumId, long postId) {
+    public AlbumDto removePostFromAlbum(long userId, long albumId, long postId) {
         postValidator.validatePostExistsById(postId);
         Album album = findAlbumForUser(userId, albumId);
         album.removePost(postId);
@@ -112,13 +108,8 @@ public class AlbumService {
         return result;
     }
 
-    public List<AlbumDto> getFavoriteAlbumsForUserByFilter(long authorId, String title, String description, String month) {
-        AlbumFilterDto filterDto = AlbumFilterDto.builder()
-                .titlePattern(title)
-                .descriptionPattern(description)
-                .month(Month.valueOf(month.toUpperCase()))
-                .build();
-        Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(authorId);
+    public List<AlbumDto> getFavoriteAlbumsForUserByFilter(long userId, AlbumFilterDto filterDto) {
+        Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(userId);
         List<AlbumDto> result = filters.stream()
                 .filter(filter -> filter.isApplicable(filterDto))
                 .reduce(albums,

@@ -68,7 +68,7 @@ public class AlbumController {
             long postId) {
         log.info("Post removed from album. UserId: {}, AlbumId: {}", userId, albumId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(albumService.removePost(userId, albumId, postId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(albumService.removePostFromAlbum(userId, albumId, postId));
     }
 
     @PostMapping("/{albumId}/favorites")
@@ -113,14 +113,14 @@ public class AlbumController {
             long userId,
             @RequestParam(required = false) String titlePattern,
             @RequestParam(required = false) String descriptionPattern,
-            @RequestParam(required = false) Month month) {
+            @RequestParam(required = false) String month) {
 
-        log.info("Fetching albums for user: {} with filters", userId);
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
                 .descriptionPattern(descriptionPattern)
-                .month(month)
+                .month(Month.valueOf(month))
                 .build();
+        log.info("Fetching albums for user: {} with filters {}", userId, filterDto);
 
         return ResponseEntity.ok(albumService.getAlbumsForUserByFilter(userId, filterDto));
     }
@@ -130,14 +130,14 @@ public class AlbumController {
     public ResponseEntity<List<AlbumDto>> getAllAlbumsWithFilters(
             @RequestParam(required = false) String titlePattern,
             @RequestParam(required = false) String descriptionPattern,
-            @RequestParam(required = false) Month month) {
+            @RequestParam(required = false) String month) {
 
-        log.info("Fetching all albums with filters");
         AlbumFilterDto filterDto = AlbumFilterDto.builder()
                 .titlePattern(titlePattern)
                 .descriptionPattern(descriptionPattern)
-                .month(month)
+                .month(Month.valueOf(month))
                 .build();
+        log.info("Fetching all albums with filters {}", filterDto);
 
         return ResponseEntity.ok(albumService.getAllAlbumsByFilter(filterDto));
     }
@@ -147,11 +147,18 @@ public class AlbumController {
     public ResponseEntity<List<AlbumDto>> getUserFavoriteAlbumsWithFilters(
             @PathVariable @Positive(message = "CurrentUserId must be greater than 0.")
             long userId,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) String month
-    ) {
-        return ResponseEntity.ok(albumService.getFavoriteAlbumsForUserByFilter(userId, title, description, month));
+            @RequestParam(required = false) String titlePattern,
+            @RequestParam(required = false) String descriptionPattern,
+            @RequestParam(required = false) String month) {
+
+        AlbumFilterDto filterDto = AlbumFilterDto.builder()
+                .titlePattern(titlePattern)
+                .descriptionPattern(descriptionPattern)
+                .month(Month.valueOf(month))
+                .build();
+        log.info("Fetching all user's {} favorite albums with filters {}.", userId, filterDto);
+
+        return ResponseEntity.ok(albumService.getFavoriteAlbumsForUserByFilter(userId, filterDto));
     }
 
     @PutMapping

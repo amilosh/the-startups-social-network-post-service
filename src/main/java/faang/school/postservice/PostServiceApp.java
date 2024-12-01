@@ -14,5 +14,7 @@ public class PostServiceApp {
         new SpringApplicationBuilder(PostServiceApp.class)
                 .bannerMode(Banner.Mode.OFF)
                 .run(args);
+
+        Runnable runnable = null;
     }
 }
