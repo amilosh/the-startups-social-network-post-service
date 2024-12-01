@@ -1,6 +1,7 @@
 package faang.school.postservice.model;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import faang.school.postservice.dto.post.serializable.PostViewEventParticipant;
 import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.model.album.Album;
 import jakarta.persistence.CascadeType;
@@ -43,10 +44,10 @@ import java.util.List;
 @Entity
 @Table(name = "post")
 @Convert(attributeName = "jsonb", converter = JsonBinaryType.class)
-public class Post {
+public class Post implements PostViewEventParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "content", nullable = false, length = 4096)
     private String content;
@@ -108,4 +109,8 @@ public class Post {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "hash_tags")
     private List<String> hashTags;
+
+    @Builder.Default
+    @Column(name = "view")
+    private Long views = 0L;
 }

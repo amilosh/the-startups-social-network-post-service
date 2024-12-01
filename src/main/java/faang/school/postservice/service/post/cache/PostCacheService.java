@@ -23,10 +23,10 @@ import java.util.Set;
 public class PostCacheService {
     private static final String PONG = "PONG";
 
-    @Value("${app.post.cache.number_of_top_in_cache}")
+    @Value("${app.post.cache.hash_tag.number_of_top_in_cache}")
     private int numberOfTopInCache;
 
-    @Value("${app.post.cache.post_id_prefix}")
+    @Value("${app.post.cache.hash_tag.prefix.post_id}")
     private String postIdPrefix;
 
     private final RedisTemplate<String, PostCacheDto> postCacheDtoRedisTemplate;

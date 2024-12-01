@@ -76,4 +76,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(value = "select * from post where id in (:ids)", nativeQuery = true)
     List<Post> findPostsByIds(@Param("ids") List<Long> ids);
+
+    @Query(nativeQuery = true, value = """
+            SELECT *
+            FROM post
+            WHERE author_id IN (:authorsId)
+            ORDER BY created_at DESC
+            OFFSET :offset
+            LIMIT :limit
+            """)
+    List<Post> findSetOfPostsByAuthorsIds(@Param("offset") long offset, @Param("limit") long limit,
+                                          @Param("authorsId") List<Long> authorsId);
+
+    @Query(nativeQuery = true, value = """
+            SELECT *
+            FROM post
+            WHERE id IN (:postsIds)
+            FOR UPDATE
+            """)
+    List<Post> findAllByIds(@Param("postsIds") List<Long> postsIds);
 }

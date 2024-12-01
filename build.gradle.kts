@@ -22,7 +22,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation ("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
     implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.retry:spring-retry:2.0.3")
@@ -38,6 +38,7 @@ dependencies {
     implementation("redis.clients:jedis:4.3.2")
     runtimeOnly("org.postgresql:postgresql")
     implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
+    implementation("org.springframework.kafka:spring-kafka")
 
     /**
      * AWS S3
@@ -48,7 +49,7 @@ dependencies {
     /**
      * AOP
      */
-    implementation ("org.aspectj:aspectjweaver:1.9.19")
+    implementation("org.aspectj:aspectjweaver:1.9.19")
 
     /**
      * Utils & Logging
@@ -62,6 +63,7 @@ dependencies {
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     implementation("org.springframework.retry:spring-retry:2.0.3")
+    implementation("org.apache.commons:commons-collections4:4.4")
 
     /**
      * Test containers
@@ -97,9 +99,15 @@ jacoco {
     reportsDirectory.set(layout.buildDirectory.dir("$buildDir/reports/jacoco"))
 }
 
-tasks.test {
+tasks.test { //      java/faang/school/postservice/integration
+    exclude("**/faang/school/postservice/integration/**")
     useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.register<Test>("integrationTest") {
+    group = "verification"
+    include("**/faang/school/postservice/integration/**")
 }
 
 tasks.jacocoTestReport {
@@ -108,6 +116,7 @@ tasks.jacocoTestReport {
         csv.required.set(false)
         html.required.set(true)
     }
+
     classDirectories.setFrom(
         fileTree(project.buildDir) {
             include(jacocoInclude)

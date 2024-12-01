@@ -1,18 +1,25 @@
 package faang.school.postservice.util.post;
 
+import faang.school.postservice.dto.post.serializable.CommentCacheDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
-import faang.school.postservice.model.album.Album;
+import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
+import faang.school.postservice.model.album.Album;
 import lombok.experimental.UtilityClass;
+import org.apache.catalina.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+
+import static org.mockito.Mockito.mock;
 
 @UtilityClass
 public class PostCacheFabric {
@@ -130,15 +137,23 @@ public class PostCacheFabric {
     public static PostCacheDto buildPostCacheDtoForTestMapToPostCacheDto() {
         return PostCacheDto
                 .builder()
-                .likesIds(getListOfIds(DEFAULT_NUMBER_OF_OBJECT))
-                .commentIds(getListOfIds(DEFAULT_NUMBER_OF_OBJECT))
-                .albumIds(getListOfIds(DEFAULT_NUMBER_OF_OBJECT))
-                .resourceIds(getListOfIds(DEFAULT_NUMBER_OF_OBJECT))
+                .likesCount((long) getListOfIds(DEFAULT_NUMBER_OF_OBJECT).size())
+                .commentsCount((long) getListOfIds(DEFAULT_NUMBER_OF_OBJECT).size())
+                .albumIds(getSetOfIds(DEFAULT_NUMBER_OF_OBJECT))
+                .resourceIds(getSetOfIds(DEFAULT_NUMBER_OF_OBJECT))
+                .comments(List.of())
                 .build();
     }
 
     public static List<Long> getListOfIds(int numberOfIds) {
         List<Long> ids = new ArrayList<>();
+        LongStream.rangeClosed(1, numberOfIds)
+                .forEach(ids::add);
+        return ids;
+    }
+
+    public static Set<Long> getSetOfIds(int numberOfIds) {
+        Set<Long> ids = new HashSet<>();
         LongStream.rangeClosed(1, numberOfIds)
                 .forEach(ids::add);
         return ids;
@@ -214,6 +229,33 @@ public class PostCacheFabric {
         return Resource
                 .builder()
                 .id(id)
+                .build();
+    }
+
+    public static PostCacheDto buildDefaultPostDto(Long id) {
+        return PostCacheDto.builder()
+                .id(id)
+                .content("content")
+                .authorId(1L)
+                .authorDto(mock(UserDto.class))
+                .likesCount(0L)
+                .publishedAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .comments(List.of(buildDefaultCommentDto(id)))
+                .build();
+    }
+
+    public static CommentCacheDto buildDefaultCommentDto(Long postId) {
+        return CommentCacheDto.builder()
+                .id(1L)
+                .postId(postId)
+                .authorId(1L)
+                .build();
+    }
+
+    public static UserDto buildDefaultUserDto() {
+        return UserDto.builder()
+                .id(1L)
                 .build();
     }
 }

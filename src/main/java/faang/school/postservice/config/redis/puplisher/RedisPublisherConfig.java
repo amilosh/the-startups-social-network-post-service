@@ -35,11 +35,6 @@ public class RedisPublisherConfig {
     }
 
     @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        return new StringRedisTemplate(redisConnectionFactory);
-    }
-
-    @Bean
     public StringRedisSerializer stringRedisSerializer() {
         return new StringRedisSerializer();
     }

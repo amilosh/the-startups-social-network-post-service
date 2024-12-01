@@ -1,8 +1,8 @@
-package faang.school.postservice.controller.post;
+package faang.school.postservice.integration.controller.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.config.TestContainersConfig;
+import faang.school.postservice.integration.config.TestContainersConfig;
 import faang.school.postservice.dto.post.CreatePostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.user.UserDto;
@@ -42,7 +42,11 @@ public class PostControllerTest extends TestContainersConfig {
     public void testCreatePost() throws Exception {
         String userHeader = "x-user-id";
         Long userId = 1L;
-        UserDto userDto = new UserDto(userId, "name", "email");
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .username("username")
+                .email("email")
+                .build();
         CreatePostRequestDto request = new CreatePostRequestDto();
         request.setContent("content");
         request.setAuthorId(userId);
