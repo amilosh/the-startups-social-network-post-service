@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class CommenterBanner {
     private final PostService postService;
 
-    @Scheduled(cron = "${CommentBanner.cron.expression.ban-comments}")
+    @Scheduled(cron = "${spring.scheduler.commentBanner.cron.expression.ban-comments}")
     public void banForComments() {
         log.info("Starting CommenterBanner");
         postService.allAuthorIdWithNotVerifyComments();
