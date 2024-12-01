@@ -24,8 +24,12 @@ public class FeedController {
     @GetMapping("/{userId}")
     public ResponseEntity<List<RedisPostDto>> getNewsFeed(
             @PathVariable Long userId,
+            @RequestHeader("x-user-id") String headerUserId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
+        if (!headerUserId.equals(String.valueOf(userId))) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         List<RedisPostDto> posts = feedService.getNewsFeed(userId, page, pageSize);
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
