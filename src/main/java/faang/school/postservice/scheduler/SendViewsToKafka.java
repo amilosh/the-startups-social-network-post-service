@@ -17,7 +17,7 @@ public class SendViewsToKafka {
     private final ViewBuffer viewBuffer;
     private final KafkaViewProducer kafkaViewProducer;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "${spring.kafka.scheduler.view-send-message-cron}")
     public void sendEventToKafka() {
         Map<Long, Long> views = viewBuffer.getViewsAndClear();
 

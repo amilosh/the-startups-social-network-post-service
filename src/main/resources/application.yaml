@@ -76,6 +76,8 @@ spring:
       heat-feed-publisher: heat_feed_publisher
     batch-size:
       post-publisher: 100
+    scheduler:
+      view-send-message-cron: "0 * * * * *"
 
 
   servlet:
