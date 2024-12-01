@@ -10,10 +10,9 @@ import faang.school.postservice.model.dto.ProjectDto;
 import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.enums.AuthorType;
-import faang.school.postservice.model.event.PostViewEvent;
+import faang.school.postservice.model.event.application.PostViewCommittedEvent;
 import faang.school.postservice.model.event.application.PostsPublishCommittedEvent;
 import faang.school.postservice.redis.publisher.NewPostPublisher;
-import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.service.PostBatchService;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostServiceImpl implements PostService {
 
-
     @Value("${spell-checker.batch-size}")
     private int correcterBatchSize;
 
@@ -65,7 +63,6 @@ public class PostServiceImpl implements PostService {
     private final BatchProcessService batchProcessService;
     private final ExecutorService schedulingThreadPoolExecutor;
     private final PostBatchService postBatchService;
-    private final PostViewPublisher postViewPublisher;
     private final UserContext userContext;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -132,10 +129,11 @@ public class PostServiceImpl implements PostService {
         postRepository.save(post);
     }
 
+    @Transactional
     @Override
     public PostDto getPost(Long id) {
         Post post = getPostById(id);
-        postViewPublisher.publish(createPostViewEvent(post));
+        applicationEventPublisher.publishEvent(new PostViewCommittedEvent(id, post.getAuthorId(), userContext.getUserId()));
         return postMapper.toPostDto(post);
     }
 
@@ -157,32 +155,35 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
-    public List<PostDto> getUserPublishedPosts(Long authorId) {
-        List<PostDto> dtos = postRepository.findByAuthorIdWithLikes(authorId).stream()
+    public List<PostDto> getAllPostPublishedByUser(Long authorId) {
+        List<PostDto> dtos = postRepository.findByAuthorId(authorId).stream()
                 .filter(post -> !post.isDeleted() && post.isPublished())
                 .map(postMapper::toPostDto)
                 .sorted(Comparator.comparing(PostDto::getPublishedAt).reversed())
                 .collect(Collectors.toList());
 
         if (!dtos.isEmpty()) {
-            dtos.forEach(postDto -> postViewPublisher.publish(createPostViewEvent(postDto)));
-
+            dtos.forEach(postDto -> applicationEventPublisher.publishEvent(
+                    new PostViewCommittedEvent(postDto.getId(), authorId, userContext.getUserId())));
         }
 
         return dtos;
     }
 
+    @Transactional
     @Override
-    public List<PostDto> getProjectPublishedPosts(Long projectId) {
-        List<PostDto> dtos = postRepository.findByProjectIdWithLikes(projectId).stream()
+    public List<PostDto> getAllPostPublishedByProject(Long projectId) {
+        List<PostDto> dtos = postRepository.findByProjectId(projectId).stream()
                 .filter(post -> !post.isDeleted() && post.isPublished())
                 .map(postMapper::toPostDto)
                 .sorted(Comparator.comparing(PostDto::getPublishedAt).reversed())
                 .collect(Collectors.toList());
 
         if (!dtos.isEmpty()) {
-            dtos.forEach(postDto -> postViewPublisher.publish(createPostViewEvent(postDto)));
+            dtos.forEach(postDto -> applicationEventPublisher.publishEvent(
+                    new PostViewCommittedEvent(postDto.getId(), postDto.getAuthorId(), userContext.getUserId())));
         }
 
         return dtos;
@@ -198,7 +199,8 @@ public class PostServiceImpl implements PostService {
     public Page<PostDto> getAllPostsByHashtagId(String content, Pageable pageable) {
         Page<PostDto> pagesDtos = postRepository.findByHashtagsContent(content, pageable).map(postMapper::toPostDto);
         if (pagesDtos.getSize() > 0) {
-            pagesDtos.getContent().forEach(postDto -> postViewPublisher.publish(createPostViewEvent(postDto)));
+            pagesDtos.getContent().forEach(postDto -> applicationEventPublisher.publishEvent(
+                    new PostViewCommittedEvent(postDto.getId(), postDto.getAuthorId(), userContext.getUserId())));
         }
         return pagesDtos;
     }
@@ -208,8 +210,8 @@ public class PostServiceImpl implements PostService {
     public Post getPostByIdInternal(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new DataValidationException("'Post not in database' error occurred while fetching post"));
-        postViewPublisher.publish(createPostViewEvent(post));
-
+        applicationEventPublisher.publishEvent(
+                new PostViewCommittedEvent(id, post.getAuthorId(), userContext.getUserId()));
         return post;
     }
 
@@ -300,14 +302,5 @@ public class PostServiceImpl implements PostService {
     @Override
     public int getViewCount(Long postId) {
         return postRepository.getViewCountByPostId(postId);
-    }
-
-
-    private PostViewEvent createPostViewEvent(Post post) {
-        return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());
-    }
-
-    private PostViewEvent createPostViewEvent(PostDto post) {
-        return new PostViewEvent(post.getId(), post.getAuthorId(), userContext.getUserId(), LocalDateTime.now());
     }
 }

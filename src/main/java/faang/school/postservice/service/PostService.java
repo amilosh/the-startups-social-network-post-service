@@ -17,8 +17,8 @@ public interface PostService {
     PostDto getPost(Long id);
     List<PostDto> getUserDrafts(Long authorId);
     List<PostDto> getProjectDrafts(Long projectId);
-    List<PostDto> getUserPublishedPosts(Long authorId);
-    List<PostDto> getProjectPublishedPosts(Long projectId);
+    List<PostDto> getAllPostPublishedByUser(Long authorId);
+    List<PostDto> getAllPostPublishedByProject(Long projectId);
     Page<PostDto> getAllPostsByHashtagId(String content, Pageable pageable);
     Post getPostByIdInternal(Long id);
     Post updatePostInternal(Post post);

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.model.dto.redis.cache.PostFields;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
-import faang.school.postservice.model.event.kafka.PostPublishedEvent;
+import faang.school.postservice.model.event.kafka.PostPublishedKafkaEvent;
 import faang.school.postservice.service.FeedService;
 import faang.school.postservice.service.RedisTransactional;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
     }
 
     @Override
-    public void addPost(PostPublishedEvent event) {
+    public void addPost(PostPublishedKafkaEvent event) {
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             String member = String.valueOf(event.getPostId());
             double score = toScore(event.getPublishedAt());

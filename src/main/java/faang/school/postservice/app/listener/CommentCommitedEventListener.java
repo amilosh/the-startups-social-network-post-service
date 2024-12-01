@@ -5,7 +5,7 @@ import faang.school.postservice.model.dto.CommentDto;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.CommentEvent;
 import faang.school.postservice.model.event.application.CommentCommittedEvent;
-import faang.school.postservice.model.event.kafka.CommentSentEvent;
+import faang.school.postservice.model.event.kafka.CommentSentKafkaEvent;
 import faang.school.postservice.redis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +28,12 @@ public class CommentCommitedEventListener {
     public void handleCommentCommittedEvent(CommentCommittedEvent event) {
         CommentDto savedCommentDto = event.getCommentDto();
         commentEventPublisher.publish(createCommentEvent(savedCommentDto));
-        CommentSentEvent commentSentEvent = new CommentSentEvent(
+        CommentSentKafkaEvent commentSentKafkaEvent = new CommentSentKafkaEvent(
                 savedCommentDto.getPostId(),
                 savedCommentDto.getAuthorId(),
                 savedCommentDto.getId(),
                 savedCommentDto.getContent());
-        commentKafkaProducer.sendEvent(commentSentEvent);
+        commentKafkaProducer.sendEvent(commentSentKafkaEvent);
     }
 
     private CommentEvent createCommentEvent(CommentDto savedComment) {

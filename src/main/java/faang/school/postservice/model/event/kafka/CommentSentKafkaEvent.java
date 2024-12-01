@@ -5,15 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class PostPublishedEvent {
-    private long postId;
-    private List<Long> followerIds;
-    private LocalDateTime publishedAt;
+public class CommentSentKafkaEvent {
+    private Long postId;
+    private Long commentAuthorId;
+    private Long commentId;
+    private String commentContent;
 }

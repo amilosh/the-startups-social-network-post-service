@@ -12,7 +12,7 @@ import faang.school.postservice.model.dto.redis.cache.PostFields;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
 import faang.school.postservice.model.dto.redis.cache.RedisUserDto;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.model.event.kafka.CommentSentEvent;
+import faang.school.postservice.model.event.kafka.CommentSentKafkaEvent;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.RedisPostService;
 import faang.school.postservice.service.RedisTransactional;
@@ -43,6 +43,7 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
     private static final String LIKE_KEY_PREFIX = "like:";
     private static final String POST_VIEW_KEY_PREFIX = "postView:";
     private static final String COMMENT_KEY_PREFIX = "comment:";
+    private static final String VIEW_DATE_TIME = "viewDateTime:";
     private static final int REFRESH_TIME_IN_HOURS = 3;
     private static final DateTimeFormatter formatter =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
@@ -106,7 +107,7 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
     }
 
     @Override
-    public void addComment(CommentSentEvent event) {
+    public void addComment(CommentSentKafkaEvent event) {
         RedisUserDto user = redisUserService.getUser(event.getCommentAuthorId());
         if (user == null || user.getUpdatedAt().isBefore(LocalDateTime.now().minusHours(REFRESH_TIME_IN_HOURS))) {
             UserWithoutFollowersDto commentAuthor = userServiceClient.getUserWithoutFollowers(event.getCommentAuthorId());
@@ -156,8 +157,8 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
 
     @Override
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public void incrementPostViewsWithTransaction(Long postId, Long viewerId) {
-        String postViewKey = createPostViewKey(postId, viewerId);
+    public void incrementPostViewsWithTransaction(Long postId, Long viewerId, String viewDateTime) {
+        String postViewKey = createPostViewKey(postId, viewerId, viewDateTime);
         String postKey = createPostKey(postId);
         executeRedisTransaction(() -> {
             boolean isAlreadyProcessed = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(
@@ -270,8 +271,11 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
         return LIKE_KEY_PREFIX + likeId;
     }
 
-    private String createPostViewKey(Long postId, Long viewerId) {
-        return POST_VIEW_KEY_PREFIX +":" + POST_KEY_PREFIX + postId + ":" + USER_KEY_PREFIX + viewerId;
+    private String createPostViewKey(Long postId, Long viewerId, String viewDateTime) {
+        return String.format("%s%s%d:%s%d:%s%s",
+                POST_VIEW_KEY_PREFIX, POST_KEY_PREFIX, postId,
+                USER_KEY_PREFIX, viewerId,
+                VIEW_DATE_TIME, viewDateTime);
     }
 
     private String createCommentKey(Long commentId) {
