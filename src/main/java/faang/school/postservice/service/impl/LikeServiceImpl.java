@@ -8,6 +8,8 @@ import faang.school.postservice.model.dto.UserDto;
 import faang.school.postservice.model.dto.KafkaLikeDto;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
+import faang.school.postservice.model.event.application.LikeCommitedEvent;
+import faang.school.postservice.model.event.application.PostsPublishCommittedEvent;
 import faang.school.postservice.model.event.kafka.KafkaLikeEvent;
 import faang.school.postservice.model.enums.LikePostEvent;
 import faang.school.postservice.redis.publisher.LikeEventPublisher;
@@ -19,6 +21,7 @@ import faang.school.postservice.validator.LikeValidator;
 import feign.FeignException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +46,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeMapper likeMapper;
     private final LikeEventPublisher likeEventPublisher;
     private final KafkaLikeProducer kafkaLikeProducer;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public List<UserDto> getAllUsersLikedPost(long postId) {
@@ -114,8 +118,9 @@ public class LikeServiceImpl implements LikeService {
         like.setComment(null); // иначе TransientPropertyValueException
         likeRepository.save(like);
         Long postAuthorId = getPostById(postId).getAuthorId(); // иначе like.getPost().getAuthorId() == null
-        likeEventPublisher.publish(new LikePostEvent(like.getUserId(), like.getPost().getId(), postAuthorId));
-        sendLikeEventToKafka(like);
+        //likeEventPublisher.publish(new LikePostEvent(like.getUserId(), like.getPost().getId(), postAuthorId));
+        //sendLikeEventToKafka(like); ----этот метод не нужен? =/
+        applicationEventPublisher.publishEvent(new LikeCommitedEvent(likeMapper.toDto(like)));
         return likeMapper.toDto(like);
     }
 
@@ -193,20 +198,13 @@ public class LikeServiceImpl implements LikeService {
     }
 
     private void sendLikeEventToKafka(Like like) {
-        KafkaLikeDto.KafkaLikeDtoBuilder kafkaLikeDtoBuilder = KafkaLikeDto.builder()
-                .authorId(like.getUserId());
+        KafkaLikeDto kafkaLikeDto = new KafkaLikeDto();
+        kafkaLikeDto.setAuthorId(like.getUserId());
         if (like.getPost() != null) {
-            kafkaLikeDtoBuilder.postId(like.getPost().getId());
+            kafkaLikeDto.setPostId(like.getPost().getId());
         } else {
-            kafkaLikeDtoBuilder.postId(null);
-        }
-        if (like.getComment() != null) {
-            kafkaLikeDtoBuilder.commentId(like.getComment().getId());
-        } else {
-            kafkaLikeDtoBuilder.commentId(null);
-        }
-
-        KafkaLikeDto kafkaLikeDto = kafkaLikeDtoBuilder.build();
+        kafkaLikeDto.setPostId(null);
+    }
         KafkaLikeEvent kafkaLikeEvent = new KafkaLikeEvent(kafkaLikeDto);
         kafkaLikeProducer.sendEvent(kafkaLikeEvent);
     }
