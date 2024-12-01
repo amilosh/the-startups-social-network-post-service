@@ -5,8 +5,10 @@ import lombok.Getter;
 
 @Getter
 public class TextAnalysisResponse {
+    @JsonProperty("status")
     private String status;
+    @JsonProperty("request")
     private Request request;
     @JsonProperty("moderation_classes")
-    private ModerationClasses moderation_classes;
+    private ModerationClasses moderationClasses;
 }
