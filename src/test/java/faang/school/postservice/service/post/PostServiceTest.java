@@ -17,6 +17,7 @@ import faang.school.postservice.sort.SortByCreatedAt;
 import faang.school.postservice.sort.SortByPublishedAt;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
