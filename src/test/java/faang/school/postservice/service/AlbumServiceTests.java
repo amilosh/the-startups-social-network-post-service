@@ -529,11 +529,11 @@ class AlbumServiceTests {
 
         Album album = new Album();
         album.setVisibility(AlbumVisibility.SELECTED_USERS);
-        album.setUserIds(List.of(1L, 2L));
+        album.setFavouriteUserIds(List.of(1L, 2L));
 
         AlbumDto albumDto = new AlbumDto();
         albumDto.setVisibility(AlbumVisibility.SELECTED_USERS);
-        albumDto.setUserIds(List.of(1L, 2L));
+        albumDto.setFavouriteUserIds(List.of(1L, 2L));
 
         when(albumRepository.save(any(Album.class))).thenReturn(album);
         when(albumMapper.toDto(any(Album.class))).thenReturn(albumDto);
@@ -542,7 +542,7 @@ class AlbumServiceTests {
 
         verify(albumRepository, times(1)).save(any(Album.class));
         assertEquals(AlbumVisibility.SELECTED_USERS, result.getVisibility());
-        assertEquals(List.of(1L, 2L), result.getUserIds());
+        assertEquals(List.of(1L, 2L), result.getFavouriteUserIds());
     }
 
     @Test

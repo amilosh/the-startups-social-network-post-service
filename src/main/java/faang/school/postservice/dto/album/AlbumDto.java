@@ -27,7 +27,7 @@ public class AlbumDto {
     private Long authorId;
     private AlbumVisibility visibility;
     private List<Long> postIds;
-    private List<Long> userIds;
+    private List<Long> favouriteUserIds;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

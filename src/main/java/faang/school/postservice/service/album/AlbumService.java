@@ -68,7 +68,7 @@ public class AlbumService {
             return albumMapper.toDto(album);
         }
 
-        return null;
+        throw new IllegalArgumentException("User with id %s dont have permission to album id %s".formatted(userContext.getUserId(), albumId));
     }
 
     public List<AlbumDto> getAlbums(long authorId) {
@@ -86,7 +86,9 @@ public class AlbumService {
                     .filter(this::userAlbumPermission)
                     .map(albumMapper::toDto).toList();
         }
-        Stream<Album> albums = albumRepository.findByAuthorId(authorId);
+
+        Stream<Album> albums = albumRepository.findByAuthorId(authorId)
+                .filter(this::userAlbumPermission);
         Stream<Album> filteredAlbums = filteredStream(albums, albumFilterDto);
 
         return filteredAlbums.map(albumMapper::toDto).toList();
@@ -98,7 +100,10 @@ public class AlbumService {
                     .filter(this::userAlbumPermission)
                     .map(albumMapper::toDto).toList();
         }
-        List<Album> albums = albumRepository.findAll();
+
+        List<Album> albums = albumRepository.findAll().stream()
+                .filter(this::userAlbumPermission)
+                .toList();
         Stream<Album> filteredAlbums = filteredStream(albums.stream(), albumFilterDto);
 
         return filteredAlbums.map(albumMapper::toDto).toList();
@@ -117,7 +122,9 @@ public class AlbumService {
                     .filter(this::userAlbumPermission)
                     .map(albumMapper::toDto).toList();
         }
-        Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(authorId);
+
+        Stream<Album> albums = albumRepository.findFavoriteAlbumsByUserId(authorId)
+                .filter(this::userAlbumPermission);
         Stream<Album> filteredAlbums = filteredStream(albums, albumFilterDto);
 
         return filteredAlbums.map(albumMapper::toDto).toList();
@@ -134,10 +141,8 @@ public class AlbumService {
     public AlbumDto updateVisibility(Long albumId, AlbumVisibility visibility, @Nullable List<Long> userIds) {
         Album album = getAlbumById(albumId);
         album.setVisibility(visibility);
-        if (!visibility.equals(AlbumVisibility.SELECTED_USERS)) {
-            album.setUserIds(new ArrayList<>());
-        } else {
-            album.setUserIds(userIds == null ? new ArrayList<>() : userIds);
+        if (visibility.equals(AlbumVisibility.SELECTED_USERS) && userIds != null) {
+            album.setFavouriteUserIds(userIds);
         }
         return albumMapper.toDto(albumRepository.save(album));
     }
@@ -168,7 +173,7 @@ public class AlbumService {
             return true;
         }
         if (album.getVisibility().equals(AlbumVisibility.SELECTED_USERS) && userContext.getUserId() != null) {
-            return album.getUserIds().contains(userContext.getUserId());
+            return album.getFavouriteUserIds().contains(userContext.getUserId());
         }
         if (album.getVisibility().equals(AlbumVisibility.SUBSCRIBERS) && userContext.getUserId() != null) {
             return userServiceClient.getFollowers(album.getAuthorId()).stream()

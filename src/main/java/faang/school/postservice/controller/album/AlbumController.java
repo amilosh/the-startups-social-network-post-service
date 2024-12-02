@@ -83,7 +83,7 @@ public class AlbumController {
         return albumService.update(albumDto);
     }
 
-    @PutMapping("{albumId}/update/visibility")
+    @PutMapping("{albumId}/visibility")
     public AlbumDto updateVisibility(
             @PathVariable("albumId") Long albumId,
             @RequestParam("visibility") AlbumVisibility visibility,
@@ -91,7 +91,7 @@ public class AlbumController {
         return albumService.updateVisibility(albumId, visibility, userIds);
     }
 
-    @DeleteMapping("/remove/{albumId}")
+    @DeleteMapping("/{albumId}")
     public void remove(@PathVariable Long albumId) {
         albumService.remove(albumId);
     }
