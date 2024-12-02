@@ -24,6 +24,8 @@ spring:
       channels:
         calculations_channel:
           name: calculations_channel
+        ban_user_topic:
+          name: user_ban
 
 server:
   port: 8081
