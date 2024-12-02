@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -33,9 +34,8 @@ class FeedServiceTest {
 
     private RedisTemplate<String, Object> redisTemplate;
     private ZSetOperations<String, Object> zSetOperations;
-    private FeedService feedService;
     private FeedProperties feedProperties;
-    private int maxFeedSize = 10;
+    private FeedService feedService;
     private PostEvent postEvent;
 
     @BeforeEach
@@ -71,8 +71,8 @@ class FeedServiceTest {
         verify(zSetOperations).add(feedKey1, postEvent.getPostId(), postEvent.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli());
         verify(zSetOperations).add(feedKey2, postEvent.getPostId(), postEvent.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli());
 
-        verify(zSetOperations, never()).removeRange(feedKey1, 0, maxFeedSize - 6);
-        verify(zSetOperations, never()).removeRange(feedKey2, 0, maxFeedSize - 5);
+        verify(zSetOperations, never()).removeRange((anyString()), anyInt(), anyInt());
+        verify(zSetOperations, never()).removeRange((anyString()), anyInt(), anyInt());
     }
 
     @Test
@@ -84,6 +84,6 @@ class FeedServiceTest {
         feedService.addPostToFeed(postEvent);
 
         verify(zSetOperations).add(feedKey, postEvent.getPostId(), postEvent.getPublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli());
-        verify(zSetOperations).removeRange(feedKey, 0, 15 - maxFeedSize - 1);
+        verify(zSetOperations).removeRange(feedKey, 0, 15 - 10 - 1);
     }
 }
