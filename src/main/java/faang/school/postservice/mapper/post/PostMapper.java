@@ -10,6 +10,7 @@ import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.model.album.Album;
+import faang.school.postservice.model.redis.PostRedis;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -55,6 +56,8 @@ public interface PostMapper {
     PostCacheDto toPostCacheDto(Post post);
 
     List<PostCacheDto> mapToPostCacheDtos(List<Post> posts);
+
+    PostRedis toPostRedis(Post post);
 
     @Named("mapLikes")
     default List<Long> mapLikes(List<Like> likes) {

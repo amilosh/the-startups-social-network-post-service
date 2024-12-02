@@ -27,5 +27,4 @@ public interface UserServiceClient {
 
     @PostMapping("/users/active")
     List<Long> getOnlyActiveUsersFromList(@RequestBody List<Long> ids);
-
 }

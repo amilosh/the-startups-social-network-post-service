@@ -34,6 +34,13 @@ spring:
         post_like_event_channel:
           name: post_like_event
         post-crated: post_created_topic
+      ttl:
+        posts: 86400
+        users: 86400
+    kafka:
+      bootstrap-servers: localhost:9092
+      topics:
+        posts: posts
 
 server:
   port: 8081

@@ -42,7 +42,7 @@ public class PostControllerTest extends TestContainersConfig {
     public void testCreatePost() throws Exception {
         String userHeader = "x-user-id";
         Long userId = 1L;
-        UserDto userDto = new UserDto(userId, "name", "email");
+        UserDto userDto = new UserDto(userId, "name", "email", null);
         CreatePostRequestDto request = new CreatePostRequestDto();
         request.setContent("content");
         request.setAuthorId(userId);
