@@ -37,6 +37,7 @@ class FeedServiceTest {
     private FeedProperties feedProperties;
     private FeedService feedService;
     private PostEvent postEvent;
+    private int maxFeedSize = 10;
 
     @BeforeEach
     void setup() {
