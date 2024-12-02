@@ -1,15 +1,12 @@
 package faang.school.postservice.service.post;
 
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.event.PostViewEvent;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
-import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
-import faang.school.postservice.publisher.kafkaProducer.PostEventProducer;
 import faang.school.postservice.publisher.redisPublisher.post.PostViewEventPublisher;
 import faang.school.postservice.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,14 +36,15 @@ public class PostService {
     private final ExecutorService executor;
     private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
-    private final Sender sender;
+    private final SenderBatchesPostEvent senderBatchesPostEvent;
+
 
     public PostResponseDto createPost(PostRequestDto postRequestDto) {
         log.info("start createPost with {}", postRequestDto);
         Post post = postMapper.toPost(postRequestDto);
         post = postRepository.save(post);
         log.debug("save post in DB: {}", post);
-        sender.batchSending(post);
+        senderBatchesPostEvent.batchSending(post);
         return postMapper.toResponseDto(post, post.getLikes().size());
     }
 

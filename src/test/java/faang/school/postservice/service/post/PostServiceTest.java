@@ -87,7 +87,7 @@ public class PostServiceTest {
     private List<Post> posts;
 
     @Mock
-    private Sender sender;
+    private SenderBatchesPostEvent senderBatchesPostEvent;
 
     @Mock
     private ModerationDictionary moderationDictionary;
@@ -242,7 +242,7 @@ public class PostServiceTest {
             assertNotNull(result);
             verify(postMapper).toPost(postRequestDto);
             verify(postRepository).save(post);
-            verify(sender).batchSending(post);
+            verify(senderBatchesPostEvent).batchSending(post);
             verify(postMapper).toResponseDto(any(Post.class), anyInt());
         }
 

@@ -14,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SenderTest {
+class SenderBatchesPostEventTest {
 
     private Post post;
     private List<Long> subscribers;
@@ -42,7 +41,7 @@ class SenderTest {
     private BatchProperties batchProperties;
 
     @InjectMocks
-    private Sender sender;
+    private SenderBatchesPostEvent senderBatchesPostEvent;
 
     @BeforeEach
     void setUp() {
@@ -62,7 +61,7 @@ class SenderTest {
         when(userServiceClient.getUserSubscribers(post.getAuthorId())).thenReturn(subscribers);
         when(batchProperties.getBatchSizeSubscribers()).thenReturn(10);
 
-        sender.batchSending(post);
+        senderBatchesPostEvent.batchSending(post);
 
         verify(userServiceClient).getUserSubscribers(post.getAuthorId());
 
@@ -80,9 +79,9 @@ class SenderTest {
     void testCreatePost_WhenUserSubscribersIsEmpty_ReturnIllegalArgumentException() {
         when(userServiceClient.getUserSubscribers(post.getAuthorId())).thenReturn(Collections.emptyList());
 
-        LogCaptor logCaptor = LogCaptor.forClass(Sender.class);
+        LogCaptor logCaptor = LogCaptor.forClass(SenderBatchesPostEvent.class);
 
-        sender.batchSending(post);
+        senderBatchesPostEvent.batchSending(post);
 
         assertTrue(logCaptor.getWarnLogs().contains("No subscribers found for post's author: 2"),
                 "It was expected that logging at the WARN level would contain a message about the absence of subscribers");

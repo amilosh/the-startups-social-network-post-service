@@ -5,10 +5,8 @@ import faang.school.postservice.config.properties.BatchProperties;
 import faang.school.postservice.dto.post.message.PostEvent;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.publisher.kafkaProducer.PostEventProducer;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +15,7 @@ import java.util.List;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class Sender {
+public class SenderBatchesPostEvent {
 
     private final UserServiceClient userServiceClient;
     private final PostEventProducer postEventProducer;
