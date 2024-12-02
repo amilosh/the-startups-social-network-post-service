@@ -1,5 +1,6 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.dto.AuthorPostCount;
 import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.ResponsePostDto;
 import faang.school.postservice.dto.post.UpdatePostDto;
@@ -12,6 +13,7 @@ import faang.school.postservice.validator.PostValidator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,6 +33,7 @@ public class PostService {
     private final PostValidator postValidator;
     private final HashtagService hashtagService;
     private final HashtagValidator hashtagValidator;
+    private final RedisTemplate<String, Long> redisTemplate;
 
     @Transactional
     public ResponsePostDto create(CreatePostDto createPostDto) {
@@ -177,5 +180,24 @@ public class PostService {
             result.add(hashtag);
         }
         return result;
+    }
+
+    public void banOffensiveAuthors() {
+        List<AuthorPostCount> unverifiedPostsByAuthor = getUnverifiedPostsGroupedByAuthor();
+
+        unverifiedPostsByAuthor.stream()
+                .filter(entry -> entry.getPostCount() > 5)
+                .forEach(entry -> {
+                    Long authorId = entry.getAuthorId();
+                    redisTemplate.convertAndSend("user_ban", authorId);
+                });
+    }
+
+    private List<AuthorPostCount> getUnverifiedPostsGroupedByAuthor() {
+        List<Object[]> rawResults = postRepository.findUnverifiedPostsGroupedByAuthor();
+
+        return rawResults.stream()
+                .map(result -> new AuthorPostCount((Long) result[0], (Long) result[1]))
+                .collect(Collectors.toList());
     }
 }
