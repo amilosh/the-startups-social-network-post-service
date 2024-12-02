@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommenterBanner {
     private final PostService postService;
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "${schedule.banUser.cron}")
     void banUser(){
         log.info("calling postService.findUserToBan");
         postService.findUserToBan();
