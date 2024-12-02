@@ -1,15 +1,18 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +27,13 @@ public class CommentService {
     private final CommentServiceHandler commentServiceHandler;
     private final CommentEventPublisher commentEventPublisher;
     private final CommentEventMapper commentEventMapper;
+    private final UserContext userContext;
+    private final KafkaCommentProducer kafkaCommentProducer;
+    private final UserRedisRepository userRedisRepository;
 
     @Transactional
     public Comment createComment(Comment comment) {
+        userContext.setUserId(comment.getAuthorId());
         UserDto user = userServiceClient.getUser(comment.getAuthorId());
         commentServiceHandler.userExistValidation(user.getId());
 
@@ -38,6 +45,9 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(comment);
         publishCommentEventToNotificationService(savedComment, post);
+
+        userRedisRepository.getAndSave(user.getId());
+        kafkaCommentProducer.publish(savedComment);
         return savedComment;
     }
 

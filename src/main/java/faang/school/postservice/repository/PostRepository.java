@@ -48,4 +48,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             HAVING COUNT(*) >= 5;
             """)
     List<Long> findAuthorsWithExcessVerifiedFalsePosts();
+
+    @Query("""
+       SELECT p FROM Post p
+       WHERE p.published = true
+       AND p.deleted = false
+       AND p.authorId in (:authorIds)
+       AND p.id < :lastPostId
+       ORDER BY p.publishedAt DESC
+       LIMIT :limit
+       """)
+    List<Post> findFeedPost(List<Long> authorIds, Long lastPostId, int limit);
 }

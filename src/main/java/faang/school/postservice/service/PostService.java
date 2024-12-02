@@ -1,5 +1,7 @@
 package faang.school.postservice.service;
 
+import faang.school.postservice.service.tools.ViewBuffer;
+import faang.school.postservice.cache.PostCache;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
@@ -8,9 +10,14 @@ import faang.school.postservice.event.AnalyticsEvent;
 import faang.school.postservice.event.EventType;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.exception.PostRequirementsException;
+import faang.school.postservice.mapper.PostCacheMapper;
 import faang.school.postservice.model.Post;
-import faang.school.postservice.publis.aspect.post.PostEventPublish;
+import faang.school.postservice.model.ViewEntity;
+import faang.school.postservice.producer.KafkaPostProducer;
+import faang.school.postservice.publis.aspect.post.PostEventPublishRedis;
+import faang.school.postservice.repository.PostRedisRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRedisRepository;
 import faang.school.postservice.service.tools.YandexSpeller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,23 +38,41 @@ public class PostService {
     private final ProjectServiceClient projectServiceClient;
     private final UserContext userContext;
     private final YandexSpeller yandexSpeller;
+    private final KafkaPostProducer kafkaPostProducer;
+    private final PostCacheMapper postCacheMapper;
+    private final PostRedisRepository postRedisRepository;
+    private final UserRedisRepository userRedisRepository;
+    private final ViewBuffer viewBuffer;
 
     @Transactional
     public Post createDraftPost(Post post) {
         validateAuthorOrProject(post);
         markAsDraft(post);
+        ViewEntity view = ViewEntity.builder()
+                .post(post)
+                .viewCount(0L)
+                .build();
+        post.setView(view);
         return postRepository.save(post);
     }
 
     @Transactional
-    @PostEventPublish
+    @PostEventPublishRedis
     public Post publishPost(Long id) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostRequirementsException("Post not found"));
         if (existingPost.isPublished()) {
             throw new PostRequirementsException("This post is already published");
         }
+
         publish(existingPost);
-        return postRepository.save(existingPost);
+        Post savedPost = postRepository.save(existingPost);
+
+        PostCache postCache = postCacheMapper.toPostCache(savedPost);
+        postRedisRepository.save(postCache);
+
+        userRedisRepository.getAndSave(postCache.getAuthorId());
+        kafkaPostProducer.publish(savedPost);
+        return savedPost;
     }
 
     @Async("treadPool")
@@ -80,6 +105,9 @@ public class PostService {
     public Post getPostById(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostRequirementsException("Post not found"));
+
+        viewBuffer.addView(post.getId());
+
         return post;
     }
 

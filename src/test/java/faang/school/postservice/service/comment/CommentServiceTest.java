@@ -1,18 +1,20 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRedisRepository;
 import faang.school.postservice.test_data.TestDataComment;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,6 +49,12 @@ class CommentServiceTest {
     private CommentEventPublisher commentEventPublisher;
     @Mock
     private CommentEventMapper commentEventMapper;
+    @Mock
+    private UserContext userContext;
+    @Mock
+    private UserRedisRepository userRedisRepository;
+    @Mock
+    private KafkaCommentProducer kafkaCommentProducer;
     @InjectMocks
     private CommentService commentService;
 
@@ -84,6 +93,8 @@ class CommentServiceTest {
             verify(commentServiceHandler, atLeastOnce()).userExistValidation(userDto.getId());
             verify(commentRepository, atLeastOnce()).save(comment);
             verify(commentEventPublisher, atLeastOnce()).publish(commentEventDto);
+            verify(userRedisRepository, times(1)).getAndSave(anyLong());
+            verify(kafkaCommentProducer, times(1)).publish(createdComment);
         }
 
         @Test

@@ -12,7 +12,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -37,6 +37,48 @@ spring:
           name: post_like_event_channel
         post_channel:
           name: post_event_channel
+      cache:
+        user:
+          ttl: 86400 #seconds
+        post:
+          ttl: 86400 #seconds
+        comment:
+          limit: 3
+        news-feed:
+          capacity: 500
+          post-batch-size: 20
+          user-heat-batch-size: 100
+        optimistic-lock-retry:
+          max-attempt: 5
+          delay: 300 #milliseconds
+
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 3
+      acks: all
+    consumer:
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: "news-feed"
+    listener:
+      ack-mode: manual
+    topic:
+      post-publisher: post_publisher
+      like-publisher: like_publisher
+      comment-publisher: comment_publisher
+      view-publisher: view_publisher
+      heat-feed-publisher: heat_feed_publisher
+    batch-size:
+      post-publisher: 100
+    scheduler:
+      view-send-message-cron: "0 * * * * *"
+
 
   servlet:
     multipart:
@@ -49,6 +91,7 @@ server:
 logging:
   level:
     root: info
+    org.apache.kafka: error
 
 comment:
   banner:
