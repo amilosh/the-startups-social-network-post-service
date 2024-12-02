@@ -21,7 +21,9 @@ public class ModerationDictionary {
     public boolean isVerified(String postContent) {
         List<String> dictionaryWords = getWords();
         for (String word : dictionaryWords) {
-            return !postContent.toLowerCase().contains(word.toLowerCase());
+            if(postContent.toLowerCase().contains(word.toLowerCase())) {
+                return false;
+            }
         }
         return true;
     }
@@ -37,7 +39,7 @@ public class ModerationDictionary {
                 words.add(wordNote.asText());
             }
         } catch (IOException e) {
-            log.warn("Dictionary {} could not be parsed", dictionaryPath);
+            log.error("Dictionary {} could not be parsed", dictionaryPath);
             throw new IllegalStateException("The file could not be parsed", e);
         }
         return words;
