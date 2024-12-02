@@ -2,12 +2,13 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.event.PostViewEvent;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
+import faang.school.postservice.publisher.redisPublisher.post.PostViewEventPublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.publisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +36,19 @@ public class PostService {
     private final ExecutorService executor;
     private final PostViewEventPublisher postViewEventPublisher;
     private final UserContext userContext;
+    private final SenderBatchesPostEvent senderBatchesPostEvent;
 
-    public PostResponseDto getPost(long postId){
+
+    public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        log.info("start createPost with {}", postRequestDto);
+        Post post = postMapper.toPost(postRequestDto);
+        post = postRepository.save(post);
+        log.debug("save post in DB: {}", post);
+        senderBatchesPostEvent.batchSending(post);
+        return postMapper.toResponseDto(post, post.getLikes().size());
+    }
+
+    public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
 
         publishEvent(postId, post.getAuthorId());
@@ -54,7 +66,7 @@ public class PostService {
 
     public Post findById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(()-> new EntityNotFoundException("Post service. Post not found. id: " + postId));
+                .orElseThrow(() -> new EntityNotFoundException("Post service. Post not found. id: " + postId));
     }
 
     public List<PostResponseDto> getPostsByAuthorWithLikes(long authorId) {

@@ -1,11 +1,14 @@
 package faang.school.postservice.service.post;
 
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.moderation.ModerationDictionary;
+import faang.school.postservice.moderation.Verifiable;
+import faang.school.postservice.publisher.redisPublisher.post.PostViewEventPublisher;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.publisher.post.PostViewEventPublisher;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,15 +18,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
@@ -42,6 +50,23 @@ public class PostServiceTest {
     private static final long ID = 1L;
     private Post post;
     private PostResponseDto postResponseDto;
+    private PostRequestDto postRequestDto;
+    private List<Long> subscribers;
+
+    private static final long ID_ONE = 1L;
+    private static final long ID_TWO = 2L;
+    private static final String CONTENT = "content";
+    private static final String SWEAR_CONTENT = "bug";
+    private static final int THREAD_COUNT = 5;
+    private static final long SUBLIST_LENGTH = 10L;
+
+    private Post firstPost;
+    private Post secondPost;
+    private Post verifiedFirstPost;
+    private Post verifiedSecondPost;
+    private List<Post> unverifiedPosts;
+    private List<Post> verifiedPosts;
+    private List<Verifiable> unverifiables;
 
     @InjectMocks
     private PostService postService;
@@ -61,6 +86,15 @@ public class PostServiceTest {
     @Mock
     private List<Post> posts;
 
+    @Mock
+    private SenderBatchesPostEvent senderBatchesPostEvent;
+
+    @Mock
+    private ModerationDictionary moderationDictionary;
+
+    @Mock
+    private Executor executor;
+
     @BeforeEach
     public void setup() {
         post = new Post();
@@ -77,6 +111,41 @@ public class PostServiceTest {
                 post.getProjectId(),
                 0,
                 post.getPublishedAt());
+
+        postRequestDto = PostRequestDto.builder()
+                .content("Test content")
+                .authorId(authorId)
+                .authorId(authorId)
+                .build();
+
+        ReflectionTestUtils.setField(postService, "sublistLength", SUBLIST_LENGTH);
+        ReflectionTestUtils.setField(postService, "executor", Executors.newFixedThreadPool(THREAD_COUNT));
+
+        firstPost = Post.builder()
+                .id(ID_ONE)
+                .content(CONTENT)
+                .build();
+
+        secondPost = Post.builder()
+                .id(ID_TWO)
+                .content(SWEAR_CONTENT)
+                .build();
+
+        verifiedFirstPost = Post.builder()
+                .id(ID_ONE)
+                .content(CONTENT)
+                .verified(true)
+                .build();
+
+        verifiedSecondPost = Post.builder()
+                .id(ID_TWO)
+                .content(SWEAR_CONTENT)
+                .verified(false)
+                .build();
+
+        unverifiedPosts = List.of(firstPost, secondPost);
+        verifiedPosts = List.of(verifiedFirstPost, verifiedSecondPost);
+        unverifiables = List.of(firstPost, secondPost);
     }
 
     @Nested
@@ -103,7 +172,7 @@ public class PostServiceTest {
 
         @Test
         @DisplayName("When get all posts not published then success")
-        public void whenGetAllPostsNotPublishedThenSuccess() {
+        void whenGetAllPostsNotPublishedThenSuccess() {
             when(postRepository.findReadyToPublish()).thenReturn(posts);
 
             List<Post> postList = postService.getAllPostsNotPublished();
@@ -160,6 +229,41 @@ public class PostServiceTest {
 
             verify(postRepository).findByProjectIdWithLikes(projectId);
             verify(postMapper).toResponseDto(post, 0);
+        }
+
+        @Test
+        void testCreatePost_WhenArgsValid_ReturnPostResponseDto() {
+            when(postMapper.toPost(postRequestDto)).thenReturn(post);
+            when(postRepository.save(post)).thenReturn(post);
+            when(postMapper.toResponseDto(post, 0)).thenReturn(postResponseDto);
+
+            PostResponseDto result = postService.createPost(postRequestDto);
+
+            assertNotNull(result);
+            verify(postMapper).toPost(postRequestDto);
+            verify(postRepository).save(post);
+            verify(senderBatchesPostEvent).batchSending(post);
+            verify(postMapper).toResponseDto(any(Post.class), anyInt());
+        }
+
+        @Test
+        @DisplayName("Успешный вызов метода moderationPostContent")
+        void whenModeratePostsContentThenSuccess() {
+            when(postRepository.findReadyToVerified()).thenReturn(unverifiedPosts);
+            when(postRepository.saveAll(verifiedPosts)).thenReturn(verifiedPosts);
+
+            postService.moderatePostsContent();
+
+            CompletableFuture<Void> allTasks = CompletableFuture.completedFuture(null);
+            unverifiedPosts.forEach(post ->
+                    allTasks.thenRunAsync(() -> moderationDictionary.searchSwearWords(unverifiedPosts), executor)
+            );
+
+            allTasks.join();
+
+            verify(postRepository).findReadyToVerified();
+            verify(moderationDictionary).searchSwearWords(anyList());
+            verify(postRepository).saveAll(anyList());
         }
     }
 

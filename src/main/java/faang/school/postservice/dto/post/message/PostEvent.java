@@ -1,4 +1,4 @@
-package faang.school.postservice.dto.post;
+package faang.school.postservice.dto.post.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,17 +7,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostResponseDto {
-  private long id;
-  private String content;
-  private long authorId;
-  private long projectId;
-  private int likeCount;
-  private LocalDateTime scheduledAt;
+public class PostEvent {
+    private long postId;
+    private long authorId;
+    private LocalDateTime publishedAt;
+    private List<Long> subscribers;
 }

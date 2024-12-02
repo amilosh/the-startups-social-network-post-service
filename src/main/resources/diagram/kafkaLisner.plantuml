@@ -1,0 +1,5 @@
+@startuml
+postTopic <- KafkaPostConsumer: request new event
+postTopic -> KafkaPostConsumer: listenEventPost()
+KafkaPostConsumer -> FeedService: addPostToFeed()
+@enduml

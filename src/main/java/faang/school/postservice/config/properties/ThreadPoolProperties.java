@@ -13,5 +13,4 @@ public class ThreadPoolProperties {
     private int corePoolSize;
     private int maximumPoolSize;
     private long keepAliveTime;
-
 }
