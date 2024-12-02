@@ -6,7 +6,6 @@ import faang.school.postservice.mapper.resource.ResourceMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.model.Post;
-import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -16,7 +15,6 @@ import java.util.List;
 
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = ResourceMapper.class)
-@DecoratedWith(PostMapperDecorator.class)
 public interface PostMapper {
 
     @Mapping(target = "images", ignore = true)

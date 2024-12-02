@@ -4,12 +4,15 @@ import faang.school.postservice.dto.post.PostFilterDto;
 import faang.school.postservice.dto.post.PostRequestDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
+import faang.school.postservice.dto.resource.ResourceResponseDto;
 import faang.school.postservice.mapper.post.PostMapper;
+import faang.school.postservice.mapper.resource.ResourceMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.filter.PostFilters;
 import faang.school.postservice.service.resource.ResourceService;
+import faang.school.postservice.service.s3.S3Service;
 import faang.school.postservice.validator.post.PostValidator;
 import faang.school.postservice.validator.resource.ResourceValidator;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,8 +32,10 @@ import java.util.stream.StreamSupport;
 @Slf4j
 public class PostService {
     private final ResourceService resourceService;
+    private final S3Service s3Service;
     private final PostRepository postRepository;
     private final PostMapper postMapper;
+    private final ResourceMapper resourceMapper;
     private final ResourceValidator resourceValidator;
     private final PostValidator postValidator;
     private final List<PostFilters> postFilters;
@@ -51,7 +56,11 @@ public class PostService {
         uploadResourcesToPost(requestDto.getAudio(), "audio", post);
 
         log.info("Post with id {} created", post.getId());
-        return postMapper.toDto(postRepository.save(post));
+        post = postRepository.save(post);
+
+        PostResponseDto responseDto = postMapper.toDto(post);
+        populateResourceUrls(responseDto, post);
+        return responseDto;
     }
 
     public PostResponseDto updatePost(Long postId, PostUpdateDto updateDto) {
@@ -70,13 +79,19 @@ public class PostService {
         resourceValidator.validateResourceCounts(post);
 
         post.setUpdatedAt(LocalDateTime.now());
+        post = postRepository.save(post);
         log.info("Post with id {} updated", postId);
-        return postMapper.toDto(postRepository.save(post));
+
+        PostResponseDto responseDto = postMapper.toDto(post);
+        populateResourceUrls(responseDto, post);
+        return responseDto;
     }
 
     public PostResponseDto getPost(Long postId) {
         Post post = postRepository.getPostById(postId);
-        return postMapper.toDto(post);
+        PostResponseDto responseDto = postMapper.toDto(post);
+        populateResourceUrls(responseDto, post);
+        return responseDto;
     }
 
     private void uploadResourcesToPost(List<MultipartFile> files, String resourceType, Post post) {
@@ -86,6 +101,27 @@ public class PostService {
             post.getResources().addAll(resources);
             log.info("{} {} resources uploaded successfully for post ID {}", resources.size(), resourceType, post.getId());
         }
+    }
+
+    private void populateResourceUrls(PostResponseDto responseDto, Post post) {
+        List<ResourceResponseDto> imageResources = post.getResources().stream()
+                .filter(resource -> "image".equals(resource.getType()))
+                .map(this::mapResourceToDto)
+                .toList();
+
+        List<ResourceResponseDto> audioResources = post.getResources().stream()
+                .filter(resource -> "audio".equals(resource.getType()))
+                .map(this::mapResourceToDto)
+                .toList();
+
+        responseDto.setImages(imageResources);
+        responseDto.setAudio(audioResources);
+    }
+
+    private ResourceResponseDto mapResourceToDto(Resource resource) {
+        ResourceResponseDto dto = resourceMapper.toDto(resource);
+        dto.setDownloadUrl(s3Service.generatePresignedUrl(resource.getKey()));
+        return dto;
     }
 
     private void deleteResourcesFromPost(List<Long> resourceIds) {
