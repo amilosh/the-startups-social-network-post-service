@@ -24,11 +24,4 @@ public interface LikeRepository extends CrudRepository<Like, Long> {
 
     Optional<Like> findByCommentIdAndUserId(long commentId, long userId);
 
-    // Запрос для получения userId по postId
-    @Query("SELECT l.userId FROM Like l WHERE l.post.id = :postId")
-    List<Long> findUserIdsByPostId(@Param("postId") long postId);
-
-    // Запрос для получения userId по commentId
-    @Query("SELECT l.userId FROM Like l WHERE l.comment.id = :commentId")
-    List<Long> findUserIdsByCommentId(@Param("commentId") long commentId);
 }

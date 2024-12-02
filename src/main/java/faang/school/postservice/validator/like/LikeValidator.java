@@ -6,6 +6,7 @@ import faang.school.postservice.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,16 +35,31 @@ public class LikeValidator {
     }
 
     public boolean validateCommentHasLikes(long commentId, List<Long> userIds) {
-        Set<Long> likedUserIds = likeRepository.findByCommentId(commentId).stream()
+        if (userIds == null || userIds.isEmpty()) {
+            return false;
+        }
+
+        Set<Long> likedUserIds = Optional.ofNullable(likeRepository.findByCommentId(commentId))
+                .orElse(Collections.emptyList())
+                .stream()
                 .map(Like::getUserId)
                 .collect(Collectors.toSet());
+
         return likedUserIds.containsAll(userIds);
     }
 
+
     public boolean validatePostHasLikes(long postId, List<Long> userIds) {
-        Set<Long> likedUserIds = likeRepository.findByPostId(postId).stream()
+        if (userIds == null || userIds.isEmpty()) {
+            return false;
+        }
+
+        Set<Long> likedUserIds = Optional.ofNullable(likeRepository.findByPostId(postId))
+                .orElse(Collections.emptyList())
+                .stream()
                 .map(Like::getUserId)
                 .collect(Collectors.toSet());
+
         return likedUserIds.containsAll(userIds);
     }
 
