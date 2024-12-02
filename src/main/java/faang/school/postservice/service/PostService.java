@@ -143,8 +143,7 @@ public class PostService {
         });
     }
 
-    private List<Post> getAllUnpublishedPostsOrThrow() {
-
+    List<Post> getAllUnpublishedPostsOrThrow() {
         List<Post> unpublishedPosts = StreamSupport
                 .stream(postRepository.findAll().spliterator(), false)
                 .filter(post -> !post.isPublished() && !post.isDeleted())
@@ -152,7 +151,7 @@ public class PostService {
         System.out.println(unpublishedPosts.size());
         if (unpublishedPosts.isEmpty()) {
             log.error("The list of unpublished posts is null.");
-            throw new IllegalStateException("The list of unpublished posts is null.");
+            throw new EntityNotFoundException("The list of unpublished posts is null.");
         }
 
         return unpublishedPosts;
@@ -228,7 +227,7 @@ public class PostService {
     }
 
     @Retryable(value = {InterruptedException.class, IOException.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000, multiplier = 2))
-    private HttpResponse<String> getResponsesWithCorrectText(String text) throws IOException, InterruptedException {
+    HttpResponse<String> getResponsesWithCorrectText(String text) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://textgears-textgears-v1.p.rapidapi.com/correct"))
                 .header("x-rapidapi-key", "52b8fb4f25msh122fa7902a41e9bp1105cejsn54289f3bb474")
@@ -249,12 +248,12 @@ public class PostService {
         return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private String extractTextFromRequest(HttpResponse<String> response) throws IOException, InterruptedException {
+    String extractTextFromRequest(HttpResponse<String> response) throws IOException, InterruptedException {
         JsonObject jsonResponse = JsonParser.parseString(response.body()).getAsJsonObject();
         return jsonResponse.getAsJsonObject("response").get("corrected").getAsString();
     }
 
-    private boolean extractBooleanSafely(HttpResponse<String> response) {
+    boolean extractBooleanSafely(HttpResponse<String> response) {
         JsonObject jsonResponse = JsonParser.parseString(response.body()).getAsJsonObject();
         try {
             if (jsonResponse.has("status")) {

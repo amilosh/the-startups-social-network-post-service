@@ -15,7 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +41,7 @@ public class PostServiceTest {
 
     @InjectMocks
     private PostService postService;
+
     private final PostDto postDtoForUser = new PostDto("Test", 1L, null);
 
     @Test
@@ -358,5 +362,70 @@ public class PostServiceTest {
 
         assertTrue(exception.getMessage().contains("User id:"));
         verify(userServiceClient).getUser(anyLong());
+    }
+
+
+    @Test
+    void testCheckGrammarPostContentAndChangeIfNeedSuccessTest() throws IOException, InterruptedException {
+        Long postId = 1L;
+        Post post = new Post();
+        post.setId(postId);
+        post.setPublished(false);
+        post.setDeleted(false);
+        post.setContent("Original content");
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+        List<Post> mockPosts = List.of(post);
+        when(postRepository.findAll()).thenReturn(mockPosts);
+
+        PostService spyPostService = spy(postService);
+        doReturn(mockResponse).when(spyPostService).getResponsesWithCorrectText("Original content");
+        doReturn(true).when(spyPostService).extractBooleanSafely(mockResponse);
+        doReturn("Corrected content").when(spyPostService).extractTextFromRequest(mockResponse);
+
+        spyPostService.checkGrammarPostContentAndChangeIfNeed();
+
+        verify(postRepository).save(post);
+        assertEquals("Corrected content", post.getContent());
+    }
+
+    @Test
+    void testCheckGrammarPostContentAndChangeIfNeedResponseStatusFalseFailTest() throws IOException, InterruptedException {
+        Long postId = 1L;
+        Post post = new Post();
+        post.setId(postId);
+        post.setPublished(false);
+        post.setDeleted(false);
+        post.setContent("Original content");
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
+
+        when(mockResponse.body()).thenReturn("{\n" +
+                "  \"response\": {\n" +
+                "    \"corrected\": \"My mother is a doctor, but my father is an engineer.\"\n" +
+                "  },\n" +
+                "  \"status\": false\n" +
+                "}");
+
+        List<Post> mockPosts = List.of(post);
+        when(postRepository.findAll()).thenReturn(mockPosts);
+
+        PostService spyPostService = spy(postService);
+        doReturn(mockResponse).when(spyPostService).getResponsesWithCorrectText("Original content");
+        doReturn(false).when(spyPostService).extractBooleanSafely(mockResponse);
+
+        spyPostService.checkGrammarPostContentAndChangeIfNeed();
+
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void testCheckGrammarPostContentAndChangeIfNeedExceptionNotFoundPublishedPostsFailTest() {
+        when(postRepository.findAll()).thenReturn(Collections.emptyList());
+        RuntimeException exception = assertThrows(EntityNotFoundException.class, postService::checkGrammarPostContentAndChangeIfNeed);
+        assertEquals("The list of unpublished posts is null.", exception.getMessage());
+
+        verify(postRepository).findAll();
     }
 }
