@@ -147,6 +147,7 @@ public class PostCacheServiceImpl implements PostCacheService {
         PostCache postCache = postCacheRedisRepository.findById(event.getPostId())
                 .orElseThrow(() -> new NoSuchElementException("Can't find post in redis with id: " + event.getPostId()));
 
+        log.info("Starting processing of PostEventKafka for Post ID: {}", event.getPostId());
         String lockKey = "lock:" + event.getPostId();
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock();
@@ -167,6 +168,7 @@ public class PostCacheServiceImpl implements PostCacheService {
             postCacheRedisRepository.save(postCache);
         } finally {
             lock.unlock();
+            log.info("Successfully processed PostEventKafka for Post ID: {}", event.getPostId());
         }
     }
 
