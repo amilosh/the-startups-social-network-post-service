@@ -3,7 +3,6 @@ package faang.school.postservice.service.impl;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
-import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.dto.PostDto;
 import faang.school.postservice.model.dto.ProjectDto;
@@ -132,7 +131,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Override
     public PostDto getPost(Long id) {
-        Post post = getPostById(id);
+        Post post = incrementViewCountAndGetPost(id);
         applicationEventPublisher.publishEvent(new PostViewCommittedEvent(id, post.getAuthorId(), userContext.getUserId()));
         return postMapper.toPostDto(post);
     }
@@ -165,10 +164,13 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
 
         if (!dtos.isEmpty()) {
-            dtos.forEach(postDto -> applicationEventPublisher.publishEvent(
-                    new PostViewCommittedEvent(postDto.getId(), authorId, userContext.getUserId())));
+            dtos.forEach(postDto -> {
+                        incrementPostViewCount(postDto.getId());
+                        applicationEventPublisher.publishEvent(
+                                new PostViewCommittedEvent(postDto.getId(), authorId, userContext.getUserId()));
+                    }
+            );
         }
-
         return dtos;
     }
 
@@ -182,10 +184,13 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
 
         if (!dtos.isEmpty()) {
-            dtos.forEach(postDto -> applicationEventPublisher.publishEvent(
-                    new PostViewCommittedEvent(postDto.getId(), postDto.getAuthorId(), userContext.getUserId())));
+            dtos.forEach(postDto -> {
+                        incrementPostViewCount(postDto.getId());
+                        applicationEventPublisher.publishEvent(
+                                new PostViewCommittedEvent(postDto.getId(), postDto.getAuthorId(), userContext.getUserId()));
+                    }
+            );
         }
-
         return dtos;
     }
 
@@ -199,8 +204,12 @@ public class PostServiceImpl implements PostService {
     public Page<PostDto> getAllPostsByHashtagId(String content, Pageable pageable) {
         Page<PostDto> pagesDtos = postRepository.findByHashtagsContent(content, pageable).map(postMapper::toPostDto);
         if (pagesDtos.getSize() > 0) {
-            pagesDtos.getContent().forEach(postDto -> applicationEventPublisher.publishEvent(
-                    new PostViewCommittedEvent(postDto.getId(), postDto.getAuthorId(), userContext.getUserId())));
+            pagesDtos.getContent().forEach(postDto -> {
+                        incrementPostViewCount(postDto.getId());
+                        applicationEventPublisher.publishEvent(
+                                new PostViewCommittedEvent(postDto.getId(), postDto.getAuthorId(), userContext.getUserId()));
+                    }
+            );
         }
         return pagesDtos;
     }
@@ -208,8 +217,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public Post getPostByIdInternal(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new DataValidationException("'Post not in database' error occurred while fetching post"));
+        Post post = incrementViewCountAndGetPost(id);
         applicationEventPublisher.publishEvent(
                 new PostViewCommittedEvent(id, post.getAuthorId(), userContext.getUserId()));
         return post;
@@ -286,9 +294,7 @@ public class PostServiceImpl implements PostService {
         });
     }
 
-    @Override
-    @Transactional
-    public void incrementPostViewCount(long postId) {
+    private void incrementPostViewCount(long postId) {
         try {
             int updatedRows = postRepository.incrementViewCount(postId);
             if (updatedRows == 0) {
@@ -302,5 +308,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public int getViewCount(Long postId) {
         return postRepository.getViewCountByPostId(postId);
+    }
+
+    private Post incrementViewCountAndGetPost(long postId) {
+        Post post = getPostById(postId);
+        try {
+            int incremented = postRepository.incrementViewCount(postId);
+            if (incremented == 0) {
+                throw new EntityNotFoundException("Post not found with id " + postId);
+            }
+            return post;
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("Failed to increment view count due to concurrent modification", e);
+        }
     }
 }

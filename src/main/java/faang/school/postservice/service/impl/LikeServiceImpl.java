@@ -1,18 +1,12 @@
 package faang.school.postservice.service.impl;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.kafka.producer.KafkaLikeProducer;
 import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.model.dto.KafkaLikeDto;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.model.event.application.LikeCommitedEvent;
-import faang.school.postservice.model.event.application.PostsPublishCommittedEvent;
-import faang.school.postservice.model.event.kafka.KafkaLikeEvent;
-import faang.school.postservice.model.enums.LikePostEvent;
-import faang.school.postservice.redis.publisher.LikeEventPublisher;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.LikeService;
@@ -44,8 +38,6 @@ public class LikeServiceImpl implements LikeService {
     private final ExceptionThrowingValidator validator;
     private final LikeValidator likeValidator;
     private final LikeMapper likeMapper;
-    private final LikeEventPublisher likeEventPublisher;
-    private final KafkaLikeProducer kafkaLikeProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
@@ -116,11 +108,10 @@ public class LikeServiceImpl implements LikeService {
         Like like = likeMapper.toEntity(likeDto);
         like.setCreatedAt(LocalDateTime.now());
         like.setComment(null); // иначе TransientPropertyValueException
-        likeRepository.save(like);
+        Like savedLike = likeRepository.save(like);
         Long postAuthorId = getPostById(postId).getAuthorId(); // иначе like.getPost().getAuthorId() == null
-        //likeEventPublisher.publish(new LikePostEvent(like.getUserId(), like.getPost().getId(), postAuthorId));
-        //sendLikeEventToKafka(like); ----этот метод не нужен? =/
-        applicationEventPublisher.publishEvent(new LikeCommitedEvent(likeMapper.toDto(like)));
+        applicationEventPublisher.publishEvent(
+                new LikeCommitedEvent(savedLike.getId(), savedLike.getUserId(), postId, postAuthorId));
         return likeMapper.toDto(like);
     }
 
@@ -195,17 +186,5 @@ public class LikeServiceImpl implements LikeService {
     private Post getPostById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found with id: " + id));
-    }
-
-    private void sendLikeEventToKafka(Like like) {
-        KafkaLikeDto kafkaLikeDto = new KafkaLikeDto();
-        kafkaLikeDto.setAuthorId(like.getUserId());
-        if (like.getPost() != null) {
-            kafkaLikeDto.setPostId(like.getPost().getId());
-        } else {
-        kafkaLikeDto.setPostId(null);
-    }
-        KafkaLikeEvent kafkaLikeEvent = new KafkaLikeEvent(kafkaLikeDto);
-        kafkaLikeProducer.sendEvent(kafkaLikeEvent);
     }
 }

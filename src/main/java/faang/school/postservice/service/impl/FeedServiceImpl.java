@@ -3,6 +3,8 @@ package faang.school.postservice.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.model.dto.redis.cache.PostFields;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
 import faang.school.postservice.model.event.kafka.PostPublishedKafkaEvent;
@@ -13,6 +15,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,12 +39,15 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final UserContext userContext;
 
     public FeedServiceImpl(
             @Qualifier("cacheRedisTemplate") RedisTemplate<String, Object> redisTemplate,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            UserContext userContext) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+        this.userContext = userContext;
     }
 
     @Override
@@ -70,6 +77,11 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
 
     @Override
     public List<RedisPostDto> getNewsFeed(Long userId, int page, int pageSize) {
+        if (!userId.equals(userContext.getUserId())) {
+            throw new DataValidationException(
+                    String.format("User with id = %d tried to feed of user with id = %d",
+                            userContext.getUserId(), userId));
+        }
         String key = createKey(userId);
 
         int start = page * pageSize;
@@ -102,7 +114,7 @@ public class FeedServiceImpl implements FeedService, RedisTransactional {
         postDto.setCommentCount(Integer.parseInt(postData.get(PostFields.COMMENT_COUNT).toString()));
         postDto.setLikeCount(Integer.parseInt(postData.get(PostFields.LIKE_COUNT).toString()));
         postDto.setRecentComments(getComments(postData));
-        postDto.setLikeCount(Integer.parseInt(postData.get(PostFields.VIEW_COUNT).toString()));
+        postDto.setViewCount(Integer.parseInt(postData.get(PostFields.VIEW_COUNT).toString()));
         return postDto;
     }
 

@@ -1,7 +1,6 @@
 package faang.school.postservice.controller;
 
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
-import faang.school.postservice.model.event.kafka.PostPublishedEvent;
 import faang.school.postservice.service.FeedService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +15,9 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FeedControllerTest {
@@ -41,17 +42,6 @@ class FeedControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(expectedPosts.size(), response.getBody().size());
-    }
-
-    @Test
-    void testAddPost() {
-        PostPublishedEvent event = new PostPublishedEvent();
-
-        ResponseEntity<Void> response = feedController.addPost(event);
-
-        verify(feedService, times(1)).addPost(event);
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     private void assertEquals(Object expected, Object actual) {

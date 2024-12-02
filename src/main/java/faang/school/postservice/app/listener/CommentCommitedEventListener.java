@@ -36,17 +36,17 @@ public class CommentCommitedEventListener {
         commentKafkaProducer.sendEvent(commentSentKafkaEvent);
     }
 
-    private CommentEvent createCommentEvent(CommentDto savedComment) {
-        Long postId = savedComment.getPostId();
+    private CommentEvent createCommentEvent(CommentDto comment) {
+        Long postId = comment.getPostId();
         Optional<Post> optionalPost = postRepository.findById(postId);
         if (optionalPost.isEmpty()) {
             throw new IllegalArgumentException("Post not found");
         }
         Post post = optionalPost.get();
         Long postAuthorId = post.getAuthorId();
-        Long authorId = savedComment.getAuthorId();
-        String postText = savedComment.getContent();
-        Long commentId = savedComment.getId();
+        Long authorId = comment.getAuthorId();
+        String postText = comment.getContent();
+        Long commentId = comment.getId();
         return new CommentEvent(authorId, postAuthorId, postId, postText, commentId);
     }
 }

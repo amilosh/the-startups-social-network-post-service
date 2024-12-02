@@ -7,12 +7,9 @@ import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.mapper.RedisPostDtoMapper;
 import faang.school.postservice.model.dto.PostDto;
-import faang.school.postservice.model.dto.UserWithoutFollowersDto;
 import faang.school.postservice.model.dto.redis.cache.PostFields;
 import faang.school.postservice.model.dto.redis.cache.RedisPostDto;
-import faang.school.postservice.model.dto.redis.cache.RedisUserDto;
 import faang.school.postservice.model.entity.Post;
-import faang.school.postservice.model.event.kafka.CommentSentKafkaEvent;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.RedisPostService;
 import faang.school.postservice.service.RedisTransactional;
@@ -45,7 +42,7 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
     private static final String COMMENT_KEY_PREFIX = "comment:";
     private static final String VIEW_DATE_TIME = "viewDateTime:";
     private static final int REFRESH_TIME_IN_HOURS = 3;
-    private static final DateTimeFormatter formatter =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Value("${redis.feed.ttl.comment:86400}")
     private long commentTtlInSeconds;
@@ -55,6 +52,9 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
 
     @Value("${redis.feed.ttl.post-view:86400}")
     private long postViewTtlInSeconds;
+
+    @Value("${redis.feed.ttl.like:86400}")
+    private long likeTtlInSeconds;
 
     @Value("${redis.feed.comment.max-size:3}")
     private int maxRecentComments;
@@ -107,24 +107,6 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
     }
 
     @Override
-    public void addComment(CommentSentKafkaEvent event) {
-        RedisUserDto user = redisUserService.getUser(event.getCommentAuthorId());
-        if (user == null || user.getUpdatedAt().isBefore(LocalDateTime.now().minusHours(REFRESH_TIME_IN_HOURS))) {
-            UserWithoutFollowersDto commentAuthor = userServiceClient.getUserWithoutFollowers(event.getCommentAuthorId());
-            user = new RedisUserDto(
-                    commentAuthor.getUserId(),
-                    commentAuthor.getUsername(),
-                    commentAuthor.getFileId(),
-                    commentAuthor.getSmallFileId(),
-                    null,
-                    LocalDateTime.now());
-            redisUserService.saveUser(user);
-        }
-
-        addComment(event.getPostId(), event.getCommentId(), event.getCommentContent());
-    }
-
-    @Override
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public void incrementLikesWithTransaction(Long postId, Long likeId) {
         String likeKey = createLikeKey(likeId);
@@ -133,7 +115,7 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
             boolean isAlreadyProcessed = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(
                     likeKey,
                     "processed",
-                    Duration.ofSeconds(postViewTtlInSeconds)));
+                    Duration.ofSeconds(likeTtlInSeconds)));
 
             if (!isAlreadyProcessed) {
                 log.debug("Like event for post {} is already processed", postId);
@@ -176,7 +158,8 @@ public class RedisPostServiceImpl implements RedisPostService, RedisTransactiona
     }
 
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    protected void addComment(Long postId, Long commentId, String commentContent) {
+    @Override
+    public void addComment(Long postId, Long commentId, String commentContent) {
         String commentKey = createCommentKey(commentId);
         String postKey = createPostKey(postId);
         executeRedisTransaction(() -> {

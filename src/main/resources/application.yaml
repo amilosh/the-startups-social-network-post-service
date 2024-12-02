@@ -134,6 +134,7 @@ redis:
       user: 86400
       comment: 86400
       post-view: 86400
+      like: 86400
     size: 500
 
 kafka:

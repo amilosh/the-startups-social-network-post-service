@@ -1,16 +1,14 @@
 package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
-import faang.school.postservice.kafka.producer.KafkaLikeProducer;
+import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.dto.LikeDto;
 import faang.school.postservice.model.dto.UserDto;
-import faang.school.postservice.mapper.LikeMapper;
 import faang.school.postservice.model.entity.Comment;
 import faang.school.postservice.model.entity.Like;
 import faang.school.postservice.model.entity.Post;
 import faang.school.postservice.repository.LikeRepository;
 import faang.school.postservice.repository.PostRepository;
-import faang.school.postservice.redis.publisher.LikeEventPublisher;
 import faang.school.postservice.service.impl.LikeServiceImpl;
 import faang.school.postservice.util.ExceptionThrowingValidator;
 import faang.school.postservice.validator.LikeValidator;
@@ -23,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
@@ -56,8 +55,6 @@ class LikeServiceTest {
     @Mock
     private PostRepository postRepository;
     @Mock
-    private LikeEventPublisher likeEventPublisher;
-    @Mock
     private UserServiceClient userServiceClient;
     @Mock
     private ExceptionThrowingValidator validator;
@@ -66,7 +63,7 @@ class LikeServiceTest {
     @Mock
     private LikeMapper likeMapper;
     @Mock
-    private  KafkaLikeProducer kafkaLikeProducer;
+    private ApplicationEventPublisher applicationEventPublisher;
     @InjectMocks
     private LikeServiceImpl likeService;
 

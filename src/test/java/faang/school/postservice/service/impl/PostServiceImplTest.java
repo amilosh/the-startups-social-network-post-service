@@ -9,6 +9,7 @@ import faang.school.postservice.redis.publisher.PostViewPublisher;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.BatchProcessService;
 import faang.school.postservice.util.moderation.ModerationDictionary;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -93,6 +95,7 @@ class PostServiceImplTest {
         Pageable pageable = mock(Pageable.class);
         Page<Post> postPage = new PageImpl<>(List.of(post));
 
+        when(postRepository.incrementViewCount(post.getId())).thenReturn(1);
         when(postRepository.findByHashtagsContent(anyString(), any(Pageable.class))).thenReturn(postPage);
         when(postMapper.toPostDto(any(Post.class))).thenReturn(postDto);
 
@@ -107,6 +110,7 @@ class PostServiceImplTest {
     @Test
     void testGetPostByIdInternal_PostExists() {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(postRepository.incrementViewCount(1L)).thenReturn(1);
 
         Post result = postService.getPostByIdInternal(1L);
 
@@ -119,11 +123,10 @@ class PostServiceImplTest {
     void testGetPostByIdInternal_PostNotFound() {
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
 
-        DataValidationException exception = assertThrows(DataValidationException.class, () -> {
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             postService.getPostByIdInternal(1L);
         });
 
-        assertEquals("'Post not in database' error occurred while fetching post", exception.getMessage());
         verify(postRepository, times(1)).findById(1L);
         verify(postViewPublisher,times(0)).publish(any());
     }
@@ -146,6 +149,7 @@ class PostServiceImplTest {
         post.setPublished(true);
         post.setDeleted(false);
 
+        when(postRepository.incrementViewCount(post.getId())).thenReturn(1);
         when(postRepository.findByAuthorId(authorId)).thenReturn(List.of(post));
         when(postMapper.toPostDto(any(Post.class))).thenReturn(postDto);
 
@@ -165,6 +169,7 @@ class PostServiceImplTest {
         post.setPublished(true);
         post.setDeleted(false);
 
+        when(postRepository.incrementViewCount(post.getId())).thenReturn(1);
         when(postRepository.findByProjectId(projectId)).thenReturn(List.of(post));
         when(postMapper.toPostDto(any(Post.class))).thenReturn(postDto);
 
