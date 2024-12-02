@@ -1,15 +1,18 @@
 package faang.school.postservice.service.comment;
 
 import faang.school.postservice.client.UserServiceClient;
+import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentEventDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentEventMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.KafkaCommentProducer;
 import faang.school.postservice.publis.publisher.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.repository.UserRedisRepository;
 import faang.school.postservice.test_data.TestDataComment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +51,12 @@ class CommentServiceTest {
     private CommentEventMapper commentEventMapper;
     @InjectMocks
     private CommentService commentService;
-
+    @Mock
+    private UserContext userContext;
+    @Mock
+    private UserRedisRepository userRedisRepository;
+    @Mock
+    private KafkaCommentProducer kafkaCommentProducer;
     private Post post;
     private UserDto userDto;
     private Comment comment;

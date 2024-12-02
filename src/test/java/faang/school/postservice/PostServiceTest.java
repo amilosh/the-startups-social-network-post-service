@@ -8,6 +8,7 @@ import faang.school.postservice.exception.PostRequirementsException;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.PostService;
+import faang.school.postservice.service.tools.ViewBuffer;
 import faang.school.postservice.service.tools.YandexSpeller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,8 @@ public class PostServiceTest {
     @Mock
     private UserServiceClient userServiceClient;
 
+    @Mock
+    private ViewBuffer viewBuffer;
     @Mock
     private ProjectServiceClient projectServiceClient;
 

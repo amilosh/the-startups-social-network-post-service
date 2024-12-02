@@ -22,48 +22,37 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
-    implementation("org.springframework.boot:spring-boot-starter-quartz")
-    implementation("org.springframework.retry:spring-retry:2.0.3")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-    implementation("org.springframework.boot:spring-boot-starter-quartz")
+    implementation("org.springframework.kafka:spring-kafka")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    implementation("org.springframework.retry:spring-retry:2.0.9")
+    implementation("org.springframework.retry:spring-retry:2.0.3")
 
     /**
      * Database
      */
+
     implementation("org.liquibase:liquibase-core")
     implementation("redis.clients:jedis:4.3.2")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
-    implementation("org.springframework.kafka:spring-kafka")
 
     /**
-     * AWS S3
+     * MinIO
      */
-    implementation("com.amazonaws:aws-java-sdk-s3:1.12.772")
+    implementation("com.amazonaws:aws-java-sdk-s3:1.12.481")
 
-
-    /**
-     * AOP
-     */
-    implementation("org.aspectj:aspectjweaver:1.9.19")
 
     /**
      * Utils & Logging
      */
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.slf4j:slf4j-api:2.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.6")
     implementation("org.projectlombok:lombok:1.18.26")
     annotationProcessor("org.projectlombok:lombok:1.18.26")
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
-    implementation("org.springframework.retry:spring-retry:2.0.3")
-    implementation("org.apache.commons:commons-collections4:4.4")
+    implementation("org.imgscalr:imgscalr-lib:4.2")
 
     /**
      * Test containers
@@ -86,14 +75,12 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
 }
-
 val jacocoInclude = listOf(
     "**/postservice/service/**",
     "**/postservice/validator/**",
     "**/postservice/filter/**",
     "**/postservice/controller/**"
 )
-
 jacoco {
     toolVersion = "0.8.12"
     reportsDirectory.set(layout.buildDirectory.dir("$buildDir/reports/jacoco"))
