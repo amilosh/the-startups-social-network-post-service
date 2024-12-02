@@ -4,6 +4,7 @@ import faang.school.postservice.model.ad.Ad;
 import faang.school.postservice.repository.ad.AdRepository;
 import faang.school.postservice.spliterator.Partitioner;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdService {
     private static final String ASYNC_CFG_EXECUTOR_BEAN_NAME = "taskExecutor";
 
@@ -33,6 +35,8 @@ public class AdService {
     }
 
     private void processBatch(List<Ad> batch) {
+        log.debug("Deletion of expired Ads in batch started");
         transactionService.deleteExpiredAdsInBatch(batch);
+        log.debug("Deletion of expired Ads in batch finished");
     }
 }
