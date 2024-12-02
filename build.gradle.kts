@@ -22,36 +22,48 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2")
-
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.retry:spring-retry:2.0.3")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.retry:spring-retry:2.0.9")
 
     /**
      * Database
      */
-
     implementation("org.liquibase:liquibase-core")
     implementation("redis.clients:jedis:4.3.2")
     runtimeOnly("org.postgresql:postgresql")
+    implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
+    implementation("org.springframework.kafka:spring-kafka")
 
     /**
-     * MinIO
+     * AWS S3
      */
-    implementation("com.amazonaws:aws-java-sdk-s3:1.12.481")
+    implementation("com.amazonaws:aws-java-sdk-s3:1.12.772")
 
+
+    /**
+     * AOP
+     */
+    implementation("org.aspectj:aspectjweaver:1.9.19")
 
     /**
      * Utils & Logging
      */
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.slf4j:slf4j-api:2.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.6")
     implementation("org.projectlombok:lombok:1.18.26")
     annotationProcessor("org.projectlombok:lombok:1.18.26")
     implementation("org.mapstruct:mapstruct:1.5.3.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
-    implementation("org.imgscalr:imgscalr-lib:4.2")
+    implementation("org.springframework.retry:spring-retry:2.0.3")
+    implementation("org.apache.commons:commons-collections4:4.4")
 
     /**
      * Test containers
@@ -75,32 +87,107 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
 }
 
+val jacocoInclude = listOf(
+    "**/postservice/service/**",
+    "**/postservice/validator/**",
+    "**/postservice/filter/**",
+    "**/postservice/controller/**"
+)
+
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.12"
+    reportsDirectory.set(layout.buildDirectory.dir("$buildDir/reports/jacoco"))
 }
 
-tasks.test {
+tasks.test { //      java/faang/school/postservice/integration
+    exclude("**/faang/school/postservice/integration/**")
+    useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.register<Test>("integrationTest") {
+    group = "verification"
+    include("**/faang/school/postservice/integration/**")
 }
 
 tasks.jacocoTestReport {
     reports {
-        xml.required.set(true)
+        xml.required.set(false)
         csv.required.set(false)
-        html.outputLocation.set(file("${buildDir}/jacocoHtml"))
+        html.required.set(true)
     }
+
     classDirectories.setFrom(
         fileTree(project.buildDir) {
-            include("**/post_service/service/**",
-                "**/post_service/validator/**",
-                "**/post_service/filter/**",
-                "**/post_service/controller/**")
+            include(jacocoInclude)
         }
     )
 }
 
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    violationRules {
+        rule {
+            element = "BUNDLE"
+            enabled = true
+            includes = jacocoInclude
+
+            limit {
+                counter = "INSTRUCTION"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.register("checkTotalCoverage") {
+    dependsOn(tasks.jacocoTestReport)
+    doLast {
+        val reportFile = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+        val rule = tasks.jacocoTestCoverageVerification.get()
+            .violationRules
+            .rules.first()
+            .limits.first()
+
+        if (reportFile.exists()) {
+            val minCoverage = rule.minimum?.toFloat()!!
+            val counter = rule.counter
+
+            val reportContent = reportFile.readText()
+            val regex = Regex("""<counter type="$counter" missed="(\d+)" covered="(\d+)"""")
+            val matches = regex.findAll(reportContent)
+
+            var totalCovered = 0
+            var totalMissed = 0
+
+            for (match in matches) {
+                val missed = match.groups[1]?.value?.toIntOrNull() ?: 0
+                val covered = match.groups[2]?.value?.toIntOrNull() ?: 0
+
+                totalMissed += missed
+                totalCovered += covered
+            }
+
+            val total = totalCovered + totalMissed
+            val coveragePercentage = (totalCovered.toFloat() / total.toFloat())
+
+            println("Total test coverage: ${coveragePercentage * 100}%")
+            if (coveragePercentage < minCoverage) {
+                logger.warn("Warning: Total test coverage is below ${minCoverage * 100}%.")
+            }
+        } else {
+            logger.error("Coverage report not found.")
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
 tasks.test {
-    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.withType<Test> {
