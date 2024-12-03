@@ -33,7 +33,6 @@ spring:
     swagger-ui:
       path=/swagger-ui.html
 
-
 server:
   port: 8081
   servlet:
@@ -57,9 +56,19 @@ post:
 user-service:
   host: localhost
   port: 8080
+
 project-service:
   host: localhost
   port: 8082
+
 payment-service:
   host: localhost
   port: 9080
+
+schedule:
+  cron:
+    deleteExpiredAds: "0 0 0 * * *"
+
+ad:
+  batch:
+    size: 100
