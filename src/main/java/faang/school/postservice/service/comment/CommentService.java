@@ -6,10 +6,12 @@ import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.comment.CreateCommentRequest;
 import faang.school.postservice.dto.comment.UpdateCommentRequest;
 import faang.school.postservice.dto.user.UserDto;
+import faang.school.postservice.event.kafka.comment.CommentCreatedEvent;
 import faang.school.postservice.exception.DataValidationException;
 import faang.school.postservice.mapper.comment.CommentMapper;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
+import faang.school.postservice.producer.comment.KafkaCommentProducer;
 import faang.school.postservice.publisher.comment.CommentEventPublisher;
 import faang.school.postservice.repository.CommentRepository;
 import faang.school.postservice.repository.PostRepository;
@@ -36,6 +38,7 @@ public class CommentService {
     private final UserServiceClient userServiceClient;
     private final CommentEventPublisher commentEventPublisher;
     private final AuthorCacheRepository authorCacheRepository;
+    private final KafkaCommentProducer kafkaCommentProducer;
 
     public List<Comment> getUnverifiedComments() {
         return commentRepository.findByVerifiedAtIsNull();
@@ -73,6 +76,7 @@ public class CommentService {
         log.info("[{}] Comment successfully saved to DB with ID: {}", "createComment", comment.getId());
 
         commentEventPublisher.publish(commentMapper.toCommentEventDto(comment));
+        sendCommentEvent(comment, userDto);
         return commentMapper.toCommentDto(comment);
     }
 
@@ -117,5 +121,18 @@ public class CommentService {
     public void deleteComment(long commentId) {
         commentRepository.deleteById(commentId);
         log.info("[{}] the comment with id: {} was successfully deleted", "deleteComment", commentId);
+    }
+
+    private void sendCommentEvent(Comment comment, UserDto author) {
+        CommentCreatedEvent commentCreatedEvent = CommentCreatedEvent.builder()
+                .commentId(comment.getId())
+                .authorId(author.getId())
+                .subscribers(author.getFollowers())
+                .build();
+        try {
+            kafkaCommentProducer.sendEvent(commentCreatedEvent);
+        } catch (Exception ex) {
+            log.error("Failed to send postCreateEvent: {}", commentCreatedEvent.toString(), ex);
+        }
     }
 }
