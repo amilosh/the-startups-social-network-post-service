@@ -9,12 +9,12 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
+@EnableAsync
+@EnableRetry
 @EnableScheduling
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = "faang.school.postservice.client")
-@EnableRetry
-@EnableAsync
+@SpringBootApplication
 public class PostServiceApp {
     public static void main(String[] args) {
         new SpringApplicationBuilder(PostServiceApp.class)
