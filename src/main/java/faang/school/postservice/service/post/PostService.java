@@ -12,7 +12,6 @@ import faang.school.postservice.dto.post.PostDraftWithFilesCreateDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.post.PostUpdateDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.json.student.DtoBanShema;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.redis.MessageSenderForUserBanImpl;
