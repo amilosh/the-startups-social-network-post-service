@@ -222,8 +222,8 @@ public class PostService {
             log.info("Users' posts are in good shape");
             return;
         }
-        DtoBanShema dtoBanShema = new DtoBanShema();
-        dtoBanShema.setIds(userIds);
+        DtoBanSсhema dtoBanSсhema = new DtoBanSсhema();
+        dtoBanSсhema.setIds(userIds);
         messageSenderForUserBan.send(objectMapper.writeValueAsString(dtoBanShema));
         log.info("users sent to block");
     }
