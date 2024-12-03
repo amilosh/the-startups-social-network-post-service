@@ -53,7 +53,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public MessageSenderForUserBanImpl messageSenderForUserBan(RedisTemplate<String, List<Long>> redisTemplate, ChannelTopic channelTopicForUserBan) {
+    public MessageSender messageSenderForUserBan(RedisTemplate<String, List<Long>> redisTemplate, ChannelTopic channelTopicForUserBan) {
         return new MessageSenderForUserBanImpl(redisTemplate, channelTopicForUserBan);
     }
 }
