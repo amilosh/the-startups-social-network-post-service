@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,6 +78,31 @@ public class PostServiceTest {
         postService.checkAndBanAuthors();
 
         verify(redisMessagePublisher, times(1)).publish(authorId);
+    }
+
+    @Test
+    void testCheckAndBanAuthors_WithLessThanFiveUnverifiedPost() {
+        long authorId = 1;
+        List<Post> unverifiedPosts = List.of(
+                createPost(authorId, false),
+                createPost(authorId, false),
+                createPost(authorId, false)
+        );
+
+        when(postRepository.findByVerifiedFalse()).thenReturn(unverifiedPosts);
+
+        postService.checkAndBanAuthors();
+
+        verify(redisMessagePublisher, times(0)).publish(authorId);
+    }
+
+    @Test
+    void testCheckAndBanAuthors_WithoutUnverifiedPosts() {
+        when(postRepository.findByVerifiedFalse()).thenReturn(Collections.emptyList());
+
+        postService.checkAndBanAuthors();
+
+        verify(redisMessagePublisher, times(0)).publish(anyLong());
     }
 
     private Post createPost(Long authorId, boolean verified) {
