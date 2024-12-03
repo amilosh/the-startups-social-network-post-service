@@ -85,6 +85,12 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
 }
 
+tasks.processResources {
+    filesMatching("application.yaml") {
+        expand("version" to project.version)
+    }
+}
+
 val jacocoInclude = listOf(
     "**/postservice/service/**",
     "**/postservice/validator/**",
