@@ -24,7 +24,7 @@ public class UserValidator {
                 throw new EntityNotFoundException(String.format(USER_NOT_FOUND_BY_ID, userId, httpStatus.getReasonPhrase()));
             }
             if (httpStatus.is5xxServerError()) {
-                throw new EntityNotFoundException(String.format(INTERNAL_SERVER_ERROR,  userId, httpStatus.getReasonPhrase()));
+                throw new RuntimeException(String.format(INTERNAL_SERVER_ERROR, userId, httpStatus.getReasonPhrase()));
             }
         }
     }

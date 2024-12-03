@@ -35,7 +35,6 @@ public class UserValidatorTest {
         EntityNotFoundException entityNotFoundException =
                 assertThrows(EntityNotFoundException.class,
                         () -> userValidator.validateUserId(userId)
-
                 );
         verify(userServiceClient, times(1)).getUser(userId);
         assertTrue(entityNotFoundException.getMessage().contains(String.format(UserValidator.USER_NOT_FOUND_BY_ID, userId, "")));
@@ -48,13 +47,13 @@ public class UserValidatorTest {
         });
 
 
-        EntityNotFoundException entityNotFoundException =
-                assertThrows(EntityNotFoundException.class,
+        RuntimeException runtimeException =
+                assertThrows(RuntimeException.class,
                         () -> userValidator.validateUserId(userId)
 
                 );
         verify(userServiceClient, times(1)).getUser(userId);
-        assertTrue(entityNotFoundException.getMessage().contains(String.format(UserValidator.INTERNAL_SERVER_ERROR, userId, "")));
+        assertTrue(runtimeException.getMessage().contains(String.format(UserValidator.INTERNAL_SERVER_ERROR, userId, "")));
     }
 
     @Test

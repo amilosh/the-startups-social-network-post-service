@@ -1,6 +1,7 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ public class PostValidator {
     public void validatePostExist(Long postId) {
         if (!postRepository.existsById(postId)) {
             String error = String.format(POST_NOT_EXIST_BY_ID, postId);
-            throw new IllegalArgumentException(error);
+            throw new EntityNotFoundException(error);
         }
     }
 }

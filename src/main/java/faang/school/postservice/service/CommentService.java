@@ -48,7 +48,6 @@ public class CommentService {
         long userId = userContext.getUserId();
         userValidator.validateUserId(userId);
         postValidator.validatePostExist(commentDto.getPostId());
-        commentValidator.validateCommentExist(commentDto.getId());
         Comment commentDB = commentRepository.findById(commentDto.getId())
                 .orElseThrow(() ->
                         new EntityNotFoundException(String.format(CommentValidator.COMMENT_NOT_FOUND, commentDto.getId())));

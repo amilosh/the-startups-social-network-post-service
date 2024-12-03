@@ -1,6 +1,7 @@
 package faang.school.postservice.validator;
 
 import faang.school.postservice.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,9 +36,9 @@ public class PostValidatorTest {
         Long postId = 1L;
         when(postRepository.existsById(postId)).thenReturn(false);
 
-        assertThrows(IllegalArgumentException.class,
-                        () -> postValidator.validatePostExist(postId)
-                );
+        assertThrows(EntityNotFoundException.class,
+                () -> postValidator.validatePostExist(postId)
+        );
 
         verify(postRepository, times(1)).existsById(postId);
     }

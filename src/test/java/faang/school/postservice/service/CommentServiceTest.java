@@ -114,7 +114,6 @@ public class CommentServiceTest {
         CommentDto commentDto = getCommentDto(now);
 
         when(userContext.getUserId()).thenReturn(commentId);
-        doNothing().when(commentValidator).validateCommentExist(anyLong());
         when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
         when(commentRepository.save(any())).thenReturn(comment);
         when(commentMapper.toDto(any())).thenReturn(commentDto);
@@ -125,7 +124,6 @@ public class CommentServiceTest {
         verify(commentRepository, times(1)).findById(any());
         verify(commentRepository, times(1)).save(any());
         verify(commentMapper, times(1)).toDto(any());
-        verify(commentValidator, times(1)).validateCommentExist(any());
         assertThat(commentDto.getId()).isEqualTo(actualResult.getId());
         assertThat(commentDto.getAuthorId()).isEqualTo(actualResult.getAuthorId());
         assertThat(commentDto.getPostId()).isEqualTo(actualResult.getPostId());
@@ -140,7 +138,6 @@ public class CommentServiceTest {
         CommentDto commentDto = getCommentDto(now);
         when(userContext.getUserId()).thenReturn(commentId);
         doNothing().when(postValidator).validatePostExist(anyLong());
-        doNothing().when(commentValidator).validateCommentExist(anyLong());
         when(commentRepository.findById(any())).thenReturn(Optional.empty());
 
         EntityNotFoundException entityNotFoundException =
@@ -150,7 +147,6 @@ public class CommentServiceTest {
         verify(userContext, times(1)).getUserId();
         verify(commentRepository, times(1)).findById(any());
         verify(commentRepository, never()).save(any());
-        verify(commentValidator, times(1)).validateCommentExist(any());
         assertEquals(String.format(CommentValidator.COMMENT_NOT_FOUND, commentDto.getId()), entityNotFoundException.getMessage());
     }
 
