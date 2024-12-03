@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -127,7 +128,9 @@ public class CommentService {
         CommentCreatedEvent commentCreatedEvent = CommentCreatedEvent.builder()
                 .commentId(comment.getId())
                 .authorId(author.getId())
-                .subscribers(author.getFollowers())
+                .content(comment.getContent())
+                .createdAt(comment.getCreatedAt())
+                .postId(comment.getPost().getId())
                 .build();
         try {
             kafkaCommentProducer.sendEvent(commentCreatedEvent);
