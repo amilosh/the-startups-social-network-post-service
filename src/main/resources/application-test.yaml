@@ -1,17 +1,39 @@
 spring:
   data:
+    redis:
+      port:
+      host:
+      maxPostCountInFeed: 500
+      postTtl: 1 # in days
+      defaultTtl: 1 # in days
+      authorTtl: 1 # in days
+      commentTtl: 1 # in days
+
     kafka:
+      consumerConfig:
+        bootstrapServersConfig: localhost:9092
+        groupId: 1
+        autoOffsetReset: "earliest"
+        enableAutoCommit: false
+        interval: 1000
+        maxPollRecords: 100
+        sessionTimeout: 15000
+        trustedPackages: "*"
       producerConfig:
         bootstrapServersConfig: localhost:9092
         acks: "all"
         retries: 5
         idempotence: true
       topics:
-        PostLikeTopic:
+        commentLikeTopic:
           name: comment_likes
           numPartitions: 5
           replicationFactor: 1
-        CommentLikeTopic:
+        postLikeTopic:
           name: post_likes
+          numPartitions: 5
+          replicationFactor: 1
+        postCreatedTopic:
+          name: postsTopic
           numPartitions: 5
           replicationFactor: 1

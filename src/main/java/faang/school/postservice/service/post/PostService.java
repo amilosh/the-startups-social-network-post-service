@@ -2,17 +2,19 @@ package faang.school.postservice.service.post;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
+import faang.school.postservice.dto.cache.author.EventAuthorDto;
 import faang.school.postservice.dto.user.UserDto;
-import faang.school.postservice.event.like.PostViewEvent;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.event.kafka.post.PostCreateEvent;
+import faang.school.postservice.event.kafka.post.PostCreatedEvent;
 import faang.school.postservice.dto.post.PostResponseDto;
+import faang.school.postservice.event.post.PostViewEvent;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.moderation.ModerationDictionary;
 import faang.school.postservice.producer.post.KafkaPostProducer;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.publisher.post.PostViewEventPublisher;
+import faang.school.postservice.repository.cache.author.AuthorCacheRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +44,7 @@ public class PostService {
     private final KafkaPostProducer kafkaPostProducer;
     private final ModerationDictionary moderationDictionary;
     private final PostViewEventPublisher postViewEventPublisher;
+    private final AuthorCacheRepository authorCacheRepository;
 
     public PostResponseDto getPost(long postId) {
         Post post = findById(postId);
@@ -91,6 +94,10 @@ public class PostService {
         log.info("save post in DB: {}", post);
 
         sendPostEvent(post, author);
+        authorCacheRepository.save(EventAuthorDto.builder()
+                .authorId(author.getId())
+                .followerIds(author.getFollowers())
+                .build());
 
         return postMapper.toDto(post);
     }
@@ -131,15 +138,15 @@ public class PostService {
     }
 
     private void sendPostEvent(Post post, UserDto author) {
-        PostCreateEvent postCreateEvent = PostCreateEvent.builder()
+        PostCreatedEvent postCreatedEvent = PostCreatedEvent.builder()
                 .postId(post.getId())
                 .authorId(post.getAuthorId())
                 .subscribers(author.getFollowers())
                 .build();
         try {
-            kafkaPostProducer.sendEvent(postCreateEvent);
+            kafkaPostProducer.sendEvent(postCreatedEvent);
         } catch (Exception ex) {
-            log.error("Failed to send postCreateEvent: {}", postCreateEvent.toString(), ex);
+            log.error("Failed to send postCreateEvent: {}", postCreatedEvent.toString(), ex);
         }
     }
 }

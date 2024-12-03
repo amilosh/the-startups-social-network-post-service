@@ -1,7 +1,7 @@
 package faang.school.postservice.producer.post;
 
 import faang.school.postservice.config.properties.kafka.KafkaProperties;
-import faang.school.postservice.event.kafka.post.PostCreateEvent;
+import faang.school.postservice.event.kafka.post.PostCreatedEvent;
 import faang.school.postservice.util.BaseContextTest;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -23,10 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
-class KafkaPostProducerIT extends BaseContextTest {
+class KafkaPostProducerIntegrationTest extends BaseContextTest {
 
     @Autowired
     private KafkaPostProducer kafkaPostProducer;
@@ -38,11 +36,11 @@ class KafkaPostProducerIT extends BaseContextTest {
     private KafkaProperties kafkaProperties;
 
     private static final Long ID = 1L;
-    private PostCreateEvent event;
+    private PostCreatedEvent event;
 
     @BeforeEach
     public void init() {
-        event = PostCreateEvent.builder()
+        event = PostCreatedEvent.builder()
                 .postId(ID)
                 .authorId(ID)
                 .subscribers(List.of(ID))
@@ -63,17 +61,17 @@ class KafkaPostProducerIT extends BaseContextTest {
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         consumerProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
-        DefaultKafkaConsumerFactory<String, PostCreateEvent> consumerFactory =
+        DefaultKafkaConsumerFactory<String, PostCreatedEvent> consumerFactory =
                 new DefaultKafkaConsumerFactory<>(consumerProps);
 
-        Consumer<String, PostCreateEvent> consumer = consumerFactory.createConsumer();
+        Consumer<String, PostCreatedEvent> consumer = consumerFactory.createConsumer();
         consumer.subscribe(Collections.singletonList(kafkaProperties.getTopics().getPostCreatedTopic().getName()));
 
-        ConsumerRecords<String, PostCreateEvent> records = consumer.poll(Duration.ofSeconds(3));
+        ConsumerRecords<String, PostCreatedEvent> records = consumer.poll(Duration.ofSeconds(3));
         consumer.close();
 
         assertEquals(1, records.count(), "It must be one incoming message");
-        ConsumerRecord<String, PostCreateEvent> record = records.iterator().next();
+        ConsumerRecord<String, PostCreatedEvent> record = records.iterator().next();
         assertEquals(event.getPostId(), record.value().getPostId());
         assertEquals(event.getAuthorId(), record.value().getAuthorId());
         assertEquals(event.getSubscribers().size(), record.value().getSubscribers().size());

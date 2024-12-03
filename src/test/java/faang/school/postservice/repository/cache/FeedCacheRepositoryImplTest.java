@@ -50,6 +50,7 @@ class FeedCacheRepositoryImplTest {
     private FeedCacheDto feedCacheDto;
     private TreeSet<Long> postsIds;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void init() {
         valueOperations = mock(ValueOperations.class);

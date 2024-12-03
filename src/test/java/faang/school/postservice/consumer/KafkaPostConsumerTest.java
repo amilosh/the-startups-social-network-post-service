@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -40,10 +40,11 @@ class KafkaPostConsumerTest {
     private static final Long ID_TWO = 2L;
     private static final Long ID_THREE = 3L;
     private boolean allProcessedSuccessfully;
-    private PostCreatedEvent postCreatedEvent;
+    private PostCreatedEvent postCreatedEventtt;
     private FeedCacheDto feedCacheDto;
     private List<Long> subscribersIds;
     private TreeSet<Long> postsIds;
+    private PostCreatedEvent event;
 
     @BeforeEach
     public void init() {
@@ -54,7 +55,7 @@ class KafkaPostConsumerTest {
                 .subscriberId(ID_TWO)
                 .postsIds(postsIds)
                 .build();
-        postCreatedEvent = PostCreatedEvent.builder()
+        postCreatedEventtt = PostCreatedEvent.builder()
                 .postId(ID_THREE)
                 .authorId(ID_TWO)
                 .subscribers(subscribersIds)
@@ -69,9 +70,9 @@ class KafkaPostConsumerTest {
         doNothing().when(feedCacheRepository).addPostId(feedCacheDto, ID_THREE);
         doNothing().when(feedCacheRepository).save(any(FeedCacheDto.class));
 
-        kafkaPostConsumer.listenPostEvent(postCreatedEvent, acknowledgment);
+        kafkaPostConsumer.listenPostEvent(postCreatedEventtt, acknowledgment);
 
-        assertEquals(ID_TWO, postCreatedEvent.getSubscribers().get(0));
+        assertEquals(ID_TWO, postCreatedEventtt.getSubscribers().get(0));
         verify(feedCacheRepository).findBySubscriberId(ID_TWO);
         verify(feedCacheRepository).addPostId(feedCacheDto, ID_THREE);
         verify(feedCacheRepository).save(any(FeedCacheDto.class));
@@ -80,7 +81,7 @@ class KafkaPostConsumerTest {
     @Test
     @DisplayName("Success when listenPostEvent with FeedCacheDto does not exist")
     public void whenListenPostEventWithDoesNotExistFeedCacheDtoThenUpdateFeedCacheDto() {
-        PostCreatedEvent event = PostCreatedEvent.builder()
+        event = PostCreatedEvent.builder()
                 .postId(ID_THREE)
                 .subscribers(Arrays.asList(ID_ONE))
                 .build();

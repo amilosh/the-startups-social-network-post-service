@@ -14,8 +14,14 @@ public class RedisProperties {
     private Channels channels;
     private String host;
     private int port;
-    private int postTtl;
     private int maxPostCountInFeed;
+    private int postTtl;
+    private int defaultTtl;
+    private int authorTtl;
+    private int commentTtl;
+    private String postPrefix;
+    private String commentPrefix;
+    private String redissonAddress;
 
     @Getter
     @Setter
