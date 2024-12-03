@@ -50,7 +50,6 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
     implementation("net.coobird:thumbnailator:0.4.14")
 
-
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.13.0")
 
     /**
@@ -71,8 +70,8 @@ dependencies {
 
 jsonSchema2Pojo {
     setSource(files("src/main/resources/json"))
-    targetDirectory = file("${project.buildDir}/generated-source/js2p")
     targetPackage = "com.json.dto"
+    targetDirectory = file("${project.buildDir}/generated-sources/js2p")
     useLongIntegers = true
     setSourceType("jsonschema")
 }

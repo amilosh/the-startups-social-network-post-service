@@ -7,11 +7,8 @@ import com.json.dto.DtoBanSchema;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.redis.MessageSender;
-import faang.school.postservice.dto.post.PostDraftCreateDto;
-import faang.school.postservice.dto.post.PostDraftResponseDto;
-import faang.school.postservice.dto.post.PostDraftWithFilesCreateDto;
-import faang.school.postservice.dto.post.PostResponseDto;
-import faang.school.postservice.dto.post.PostUpdateDto;
+import faang.school.postservice.config.redis.MessageSenderForUserBanImpl;
+import faang.school.postservice.dto.post.*;
 import faang.school.postservice.dto.project.ProjectDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.mapper.post.PostMapperImpl;
@@ -103,6 +100,10 @@ class PostServiceTest {
     private KeyKeeper keyKeeper;
     @Mock
     private GingerCorrector gingerCorrector;
+    @Mock
+    private MessageSenderForUserBanImpl messageSenderForUserBan;
+    @Mock
+    private ObjectMapper objectMapper;
 
     private Validator validator;
     @Mock
@@ -957,5 +958,50 @@ class PostServiceTest {
 
         verify(postRepository, times(1)).findByNotPublished();
         verify(postRepository, times(3)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("Test positive method checkPostsForVerification")
+    void testPositiveCheckPostsForVerification() throws IOException {
+        List<Post> posts = List.of(
+                Post.builder().id(1L).authorId(1L).verified(false).build(),
+                Post.builder().id(7L).authorId(1L).verified(false).build(),
+                Post.builder().id(8L).authorId(1L).verified(false).build(),
+                Post.builder().id(7L).authorId(1L).verified(false).build(),
+                Post.builder().id(25L).authorId(2L).verified(false).build(),
+                Post.builder().id(8L).authorId(2L).verified(false).build(),
+                Post.builder().id(98L).authorId(2L).verified(false).build(),
+                Post.builder().id(567L).authorId(2L).verified(false).build(),
+                Post.builder().id(245L).authorId(2L).verified(false).build()
+        );
+        List<Long> userIds = List.of(1L, 2L);
+        DtoBanShema dtoBanShema = new DtoBanShema();
+        dtoBanShema.setIds(userIds);
+        String prefix = "[1,2]";
+
+        when(postRepository.findByNotVerified()).thenReturn(posts);
+        when(objectMapper.writeValueAsString(dtoBanShema)).thenReturn(prefix);
+        postService.checkPostsForVerification();
+        verify(messageSenderForUserBan, times((1))).send(objectMapper.writeValueAsString(dtoBanShema));
+    }
+
+    @Test
+    @DisplayName("Test negative method checkPostsForVerification")
+    void testNegativeCheckPostsForVerification() throws IOException {
+        List<Post> posts = List.of(
+                Post.builder().id(1L).authorId(1L).verified(false).build(),
+                Post.builder().id(7L).authorId(1L).verified(false).build(),
+                Post.builder().id(25L).authorId(2L).verified(false).build(),
+                Post.builder().id(8L).authorId(2L).verified(false).build(),
+                Post.builder().id(10L).authorId(2L).verified(false).build()
+        );
+        List<Long> userIds = List.of(1L, 2L);
+        DtoBanShema dtoBanShema = new DtoBanShema();
+        dtoBanShema.setIds(userIds);
+        postService.setSizeNotVerifiedPostsForUsers(5);
+
+        when(postRepository.findByNotVerified()).thenReturn(posts);
+        postService.checkPostsForVerification();
+        verify(messageSenderForUserBan, times((0))).send(objectMapper.writeValueAsString(dtoBanShema));
     }
 }
