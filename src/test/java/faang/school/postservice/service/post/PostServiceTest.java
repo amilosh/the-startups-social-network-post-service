@@ -113,8 +113,7 @@ class PostServiceTest {
     private Validator validator;
     @Mock
     private CommentRepository commentRepository;
-    @Mock
-    private ObjectMapper objectMapper;
+    
     @Mock
     private MessageSender messageSender;
 
