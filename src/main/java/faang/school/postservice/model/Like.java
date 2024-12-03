@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name="likes")
+@Getter
+@Setter
 public class Like {
 
     @Id
@@ -37,16 +41,5 @@ public class Like {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public Like(Long userId, Long postId) {
-        this.userId = userId;
-        this.post = new Post();
-        this.post.setId(postId);
-    }
-
-    public Like(Long userId, Long commentId, boolean isComment) {
-        this.userId = userId;
-        this.comment = new Comment();
-        this.comment.setId(commentId);
-    }
 }
 

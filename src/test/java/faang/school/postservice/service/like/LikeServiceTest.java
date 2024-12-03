@@ -163,10 +163,15 @@ public class LikeServiceTest {
         assertThrows(DataValidationException.class,
                 () -> likeService.deleteLikeFromComment(acceptanceLikeDto, 10L));
     }
-
     @Test
     void testGetUsersByPostId_Success() {
-        List<Like> likes = List.of(new Like(1L, 1L), new Like(2L, 2L));
+        Post post = new Post();
+        post.setId(5L);
+
+        List<Like> likes = List.of(
+                Like.builder().userId(1L).post(post).build(),
+                Like.builder().userId(2L).post(post).build()
+        );
         List<Long> userIds = List.of(1L, 2L);
         List<UserDto> userDtos = List.of(
                 new UserDto(1L, "User1", "user1@example.com", "Address1", 25),
@@ -202,9 +207,14 @@ public class LikeServiceTest {
 
     @Test
     void testGetUsersByPostId_UserServiceError() {
-        List<Like> likes = List.of(new Like(1L, 1L), new Like(2L, 2L));
-        List<Long> userIds = List.of(1L, 2L);
+        Post post = new Post();
+        post.setId(5L);
 
+        List<Like> likes = List.of(
+                Like.builder().userId(1L).post(post).build(),
+                Like.builder().userId(2L).post(post).build()
+        );
+        List<Long> userIds = List.of(1L, 2L);
         when(likeRepository.findByPostId(5L)).thenReturn(likes);
         when(validator.validatePostHasLikes(5L, userIds)).thenReturn(true);
         when(userServiceClient.getUsersByIds(anyList())).thenThrow(new RuntimeException("Service unavailable"));
