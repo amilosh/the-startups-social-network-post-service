@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -18,10 +18,15 @@ import java.util.List;
 @AllArgsConstructor
 public class CommentCreatedEvent {
 
+
     @JsonProperty("comment_id")
     private Long commentId;
     @JsonProperty("author_id")
     private Long authorId;
-    @JsonProperty("subscribers")
-    private List<Long> subscribers;
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
+    @JsonProperty("content")
+    private String content;
+    @JsonProperty("post_id")
+    private Long postId;
 }
