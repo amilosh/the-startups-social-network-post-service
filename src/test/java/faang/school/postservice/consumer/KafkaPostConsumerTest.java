@@ -40,7 +40,7 @@ class KafkaPostConsumerTest {
     private static final Long ID_TWO = 2L;
     private static final Long ID_THREE = 3L;
     private boolean allProcessedSuccessfully;
-    private PostCreatedEvent postCreatedEvent;
+    private PostCreatedEvent postCreatedEventtt;
     private FeedCacheDto feedCacheDto;
     private List<Long> subscribersIds;
     private TreeSet<Long> postsIds;
@@ -55,7 +55,7 @@ class KafkaPostConsumerTest {
                 .subscriberId(ID_TWO)
                 .postsIds(postsIds)
                 .build();
-        postCreatedEvent = PostCreatedEvent.builder()
+        postCreatedEventtt = PostCreatedEvent.builder()
                 .postId(ID_THREE)
                 .authorId(ID_TWO)
                 .subscribers(subscribersIds)
@@ -70,9 +70,9 @@ class KafkaPostConsumerTest {
         doNothing().when(feedCacheRepository).addPostId(feedCacheDto, ID_THREE);
         doNothing().when(feedCacheRepository).save(any(FeedCacheDto.class));
 
-        kafkaPostConsumer.listenPostEvent(postCreatedEvent, acknowledgment);
+        kafkaPostConsumer.listenPostEvent(postCreatedEventtt, acknowledgment);
 
-        assertEquals(ID_TWO, postCreatedEvent.getSubscribers().get(0));
+        assertEquals(ID_TWO, postCreatedEventtt.getSubscribers().get(0));
         verify(feedCacheRepository).findBySubscriberId(ID_TWO);
         verify(feedCacheRepository).addPostId(feedCacheDto, ID_THREE);
         verify(feedCacheRepository).save(any(FeedCacheDto.class));
