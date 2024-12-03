@@ -1,7 +1,6 @@
 package faang.school.postservice.service.post;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.json.dto.DtoBanSchema;
 import faang.school.postservice.client.ProjectServiceClient;
 import faang.school.postservice.client.UserServiceClient;
@@ -77,7 +76,6 @@ public class PostService {
     private final ObjectMapper objectMapper;
     private final GingerCorrector gingerCorrector;
     private final MessageSenderForUserBanImpl messageSenderForUserBan;
-    private final ObjectMapper objectMapper;
 
     @Value("${size.not-verified-posts-for-users}")
     private int sizeNotVerifiedPostsForUsers;
