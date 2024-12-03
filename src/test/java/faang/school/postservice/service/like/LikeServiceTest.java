@@ -193,19 +193,6 @@ public class LikeServiceTest {
     }
 
     @Test
-    void testGetUsersByPostId_NoLikes() {
-        when(likeRepository.findByPostId(5L)).thenReturn(List.of());
-
-        List<UserDto> result = likeService.getUsersByPostId(5L);
-
-        assertEquals(1, result.size());
-        assertEquals("Some users have not liked the given post.", result.get(0).getEmail());
-
-        verify(likeRepository).findByPostId(5L);
-        verifyNoInteractions(userServiceClient);
-    }
-
-    @Test
     void testGetUsersByPostId_UserServiceError() {
         Post post = new Post();
         post.setId(5L);

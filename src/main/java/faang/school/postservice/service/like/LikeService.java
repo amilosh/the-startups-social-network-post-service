@@ -128,7 +128,6 @@ public class LikeService {
     }
 
     public List<UserDto> getUsersByPostId(long postId) {
-
         List<Long> userIds = Optional.ofNullable(likeRepository.findByPostId(postId))
                 .orElse(Collections.emptyList())
                 .stream()
