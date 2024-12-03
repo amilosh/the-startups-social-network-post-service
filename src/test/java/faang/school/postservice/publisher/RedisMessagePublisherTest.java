@@ -3,6 +3,7 @@ package faang.school.postservice.publisher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.dto.UserIdDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,14 @@ public class RedisMessagePublisherTest {
     private static final Long AUTHOR_ID = 1L;
     private static final String TOPIC = "name";
 
+    private UserIdDto user;
+
+    @BeforeEach
+    void setUp() {
+        user = new UserIdDto();
+        user.setId(1L);
+    }
+
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -33,8 +42,6 @@ public class RedisMessagePublisherTest {
 
     @Test
     void testPublish() throws JsonProcessingException {
-        UserIdDto user = new UserIdDto();
-        user.setId(AUTHOR_ID);
         String json = "{\"authorId\":1}";
 
         when(channelTopic.getTopic()).thenReturn(TOPIC);
@@ -47,9 +54,6 @@ public class RedisMessagePublisherTest {
 
     @Test
     void testPublishWithJsonProcessingException() throws JsonProcessingException{
-        UserIdDto user = new UserIdDto();
-        user.setId(AUTHOR_ID);
-
         when(objectMapper.writeValueAsString(user)).thenThrow(RuntimeException.class);
 
         assertThrows(RuntimeException.class , () -> redisMessagePublisher.publish(AUTHOR_ID));
