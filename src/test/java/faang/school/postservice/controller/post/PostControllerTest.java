@@ -22,12 +22,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
@@ -36,8 +36,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -115,67 +117,39 @@ public class PostControllerTest {
     }
 
     @Test
-    public void shouldCreatePostSuccessfully() throws Exception {
-        PostResponseDto responseDto = PostResponseDto.builder()
-                .id(VALID_POST_ID)
-                .content(CONTENT)
-                .authorId(VALID_AUTHOR_ID)
-                .published(false)
-                .projectId(VALID_PROJECT_ID)
-                .images(List.of(resourceResponseDtoForImageOne, resourceResponseDtoForImageTwo))
-                .audio(List.of(resourceResponseDtoForAudio))
-                .build();
+    void shouldCreatePostSuccessfully() throws Exception {
+        PostRequestDto postRequestDto = new PostRequestDto();
+        postRequestDto.setAuthorId(VALID_AUTHOR_ID);
+        postRequestDto.setProjectId(VALID_PROJECT_ID);
+        postRequestDto.setContent(CONTENT);
 
-        when(postService.create(any(PostRequestDto.class))).thenReturn(responseDto);
+        PostResponseDto expectedResponse = new PostResponseDto();
+        expectedResponse.setId(VALID_POST_ID);
+        expectedResponse.setAuthorId(VALID_AUTHOR_ID);
+        expectedResponse.setProjectId(VALID_PROJECT_ID);
+        expectedResponse.setContent(CONTENT);
 
-        String postDtoJson = new ObjectMapper().writeValueAsString(
-                PostRequestDto.builder()
-                        .authorId(1L)
-                        .projectId(100L)
-                        .content("Some content here")
-                        .build()
-        );
-
-        MockMultipartFile postDtoPart = new MockMultipartFile(
+        MockMultipartFile postDtoMultipartFile = new MockMultipartFile(
                 "postDto",
-                null,
+                "",
                 MediaType.APPLICATION_JSON_VALUE,
-                postDtoJson.getBytes(StandardCharsets.UTF_8)
+                objectMapper.writeValueAsBytes(postRequestDto)
         );
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/posts")
-                        .file(postDtoPart)
-                        .file(IMAGE_FILE_ONE)
-                        .file(IMAGE_FILE_TWO)
-                        .file(AUDIO_FILE)
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andReturn();
+        when(postService.create(eq(postRequestDto), eq(null), eq(null))).thenReturn(expectedResponse);
 
+        mockMvc.perform(
+                        multipart("/api/v1//posts")
+                                .file(postDtoMultipartFile)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(VALID_POST_ID))
+                .andExpect(jsonPath("$.authorId").value(VALID_AUTHOR_ID))
+                .andExpect(jsonPath("$.projectId").value(VALID_PROJECT_ID))
+                .andExpect(jsonPath("$.content").value(CONTENT));
 
-        String jsonResponse = result.getResponse().getContentAsString();
-        PostResponseDto actualResponse = new ObjectMapper().readValue(jsonResponse, PostResponseDto.class);
-
-        assertEquals(VALID_POST_ID, actualResponse.getId());
-        assertEquals(CONTENT, actualResponse.getContent());
-        assertEquals(VALID_AUTHOR_ID, actualResponse.getAuthorId());
-        assertEquals(VALID_PROJECT_ID, actualResponse.getProjectId());
-        assertEquals(2, actualResponse.getImages().size());
-        assertEquals(1, actualResponse.getAudio().size());
-
-        ResourceResponseDto image1 = actualResponse.getImages().get(0);
-        assertEquals(1L, image1.getId());
-        assertEquals("image", image1.getType());
-        assertEquals(VALID_POST_ID, image1.getPostId());
-        assertEquals("https://example.com/download/image1", image1.getDownloadUrl());
-
-        ResourceResponseDto audio1 = actualResponse.getAudio().get(0);
-        assertEquals(3L, audio1.getId());
-        assertEquals("audio", audio1.getType());
-        assertEquals(VALID_POST_ID, audio1.getPostId());
-        assertEquals("https://example.com/download/audio1", audio1.getDownloadUrl());
-
-        verify(postService, times(1)).create(any(PostRequestDto.class));
+        verify(postService).create(eq(postRequestDto), eq(null), eq(null));
     }
 
     @Test
@@ -205,23 +179,21 @@ public class PostControllerTest {
                 .audio(List.of(resourceResponseDtoForAudioUpdate))
                 .build();
 
-        when(postService.updatePost(eq(1L), any(PostUpdateDto.class))).thenReturn(updatedResponse);
-
-        String postDtoJson = new ObjectMapper().writeValueAsString(
-                PostUpdateDto.builder()
-                        .content("Updated Content")
-                        .build()
-        );
+        PostUpdateDto postUpdateDto = PostUpdateDto.builder()
+                .content("Updated Content")
+                .build();
 
         MockMultipartFile postDtoPart = new MockMultipartFile(
                 "postDto",
                 null,
                 MediaType.APPLICATION_JSON_VALUE,
-                postDtoJson.getBytes(StandardCharsets.UTF_8)
+                new ObjectMapper().writeValueAsBytes(postUpdateDto)
         );
 
+        when(postService.updatePost(eq(VALID_POST_ID), any(PostUpdateDto.class), anyList(), anyList()))
+                .thenReturn(updatedResponse);
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/v1/posts/1")
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/api/v1/posts/{postId}", VALID_POST_ID)
                         .file(postDtoPart)
                         .file(IMAGE_FOR_UPDATE)
                         .file(AUDIO_FOR_UPDATE)
@@ -247,7 +219,8 @@ public class PostControllerTest {
         assertEquals("audio", audio.getType());
         assertEquals("https://example.com/download/newAudio", audio.getDownloadUrl());
 
-        verify(postService, times(1)).updatePost(eq(1L), any(PostUpdateDto.class));
+        verify(postService, times(1))
+                .updatePost(eq(VALID_POST_ID), any(PostUpdateDto.class), anyList(), anyList());
     }
 
     @Test

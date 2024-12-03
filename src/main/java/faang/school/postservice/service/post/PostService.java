@@ -40,7 +40,7 @@ public class PostService {
     private final PostValidator postValidator;
     private final List<PostFilters> postFilters;
 
-    public PostResponseDto create(PostRequestDto requestDto) {
+    public PostResponseDto create(PostRequestDto requestDto, List<MultipartFile> images, List<MultipartFile> audio) {
         postValidator.validateCreate(requestDto);
         Post post = postMapper.toEntity(requestDto);
 
@@ -52,8 +52,8 @@ public class PostService {
 
         post = postRepository.save(post);
 
-        uploadResourcesToPost(requestDto.getImages(), "image", post);
-        uploadResourcesToPost(requestDto.getAudio(), "audio", post);
+        uploadResourcesToPost(images, "image", post);
+        uploadResourcesToPost(audio, "audio", post);
 
         log.info("Post with id {} created", post.getId());
         post = postRepository.save(post);
@@ -63,7 +63,7 @@ public class PostService {
         return responseDto;
     }
 
-    public PostResponseDto updatePost(Long postId, PostUpdateDto updateDto) {
+    public PostResponseDto updatePost(Long postId, PostUpdateDto updateDto, List<MultipartFile> images, List<MultipartFile> audio) {
         Post post = postRepository.getPostById(postId);
 
         if (updateDto.getContent() != null) {
@@ -73,8 +73,8 @@ public class PostService {
         deleteResourcesFromPost(updateDto.getImageFilesIdsToDelete());
         deleteResourcesFromPost(updateDto.getAudioFilesIdsToDelete());
 
-        uploadResourcesToPost(updateDto.getImages(), "image", post);
-        uploadResourcesToPost(updateDto.getAudio(), "audio", post);
+        uploadResourcesToPost(images, "image", post);
+        uploadResourcesToPost(audio, "audio", post);
 
         resourceValidator.validateResourceCounts(post);
 

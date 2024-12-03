@@ -60,13 +60,8 @@ public class PostController {
             @Size(max = 10, message = "You can only have 5 audio in your post")
             @ValidResourceFileSize(resourceType = "audio", maxSizeInBytes = 10 * 1024 * 1024)
             @ValidResourceFileType(resourceType = "audio")
-            @RequestPart(name = "audio", required = false) List<MultipartFile> audio) {
-        if (images != null) {
-            postDto.setImages(images);
-        }
-        if (audio != null) {
-            postDto.setAudio(audio);
-        }
+            @RequestPart(name = "audio", required = false)
+            List<MultipartFile> audio) {
 
         log.info("Received request to create post. AuthorId is {}, ProjectId is {}, Images: {}, Audio: {}",
                 postDto.getAuthorId(),
@@ -74,7 +69,7 @@ public class PostController {
                 images != null ? images.size() : 0,
                 audio != null ? audio.size() : 0);
 
-        return postService.create(postDto);
+        return postService.create(postDto, images, audio);
     }
 
     @PutMapping("{id}/publish")
@@ -98,19 +93,14 @@ public class PostController {
             @ValidResourceFileSize(resourceType = "audio", maxSizeInBytes = 10 * 1024 * 1024)
             @ValidResourceFileType(resourceType = "audio")
             @RequestPart(name = "audio", required = false) List<MultipartFile> audio) {
-        if (images != null) {
-            postDto.setImages(images);
-        }
-        if (audio != null) {
-            postDto.setAudio(audio);
-        }
+
         log.info("Received request to update post with ID {}. Content: {}, Images: {}, Audio: {}",
                 postId,
                 postDto.getContent(),
-                postDto.getImages() != null ? postDto.getImages().size() : 0,
-                postDto.getAudio() != null ? postDto.getAudio().size() : 0);
+                images != null ? images.size() : 0,
+                images != null ? images.size() : 0);
 
-        return postService.updatePost(postId, postDto);
+        return postService.updatePost(postId, postDto, images, audio);
     }
 
     @GetMapping("/{postId}")
@@ -121,10 +111,9 @@ public class PostController {
 
     @DeleteMapping("/{postId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+    public void deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
         log.info("Deleted post with ID {}", postId);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping()

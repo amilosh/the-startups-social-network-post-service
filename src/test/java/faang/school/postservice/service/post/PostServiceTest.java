@@ -58,9 +58,10 @@ public class PostServiceTest {
                 .authorId(1L)
                 .projectId(2L)
                 .content("Sample Content")
-                .images(List.of(mock(MultipartFile.class)))
-                .audio(List.of(mock(MultipartFile.class)))
                 .build();
+
+        List<MultipartFile> images = List.of(mock(MultipartFile.class));
+        List<MultipartFile> audio = List.of(mock(MultipartFile.class));
 
         Post post = new Post();
         post.setId(1L);
@@ -84,10 +85,11 @@ public class PostServiceTest {
         when(postRepository.save(any(Post.class))).thenReturn(post);
         when(postMapper.toDto(any(Post.class))).thenReturn(responseDto);
 
-        PostResponseDto actualResponse = postService.create(requestDto);
+        PostResponseDto actualResponse = postService.create(requestDto, images, audio);
 
         assertEquals(1L, actualResponse.getId());
         assertEquals("Sample Content", actualResponse.getContent());
+
         verify(postValidator, times(1)).validateCreate(requestDto);
         verify(resourceService, times(2)).uploadResources(anyList(), anyString(), eq(post));
         verify(postRepository, times(2)).save(any(Post.class));
@@ -124,13 +126,15 @@ public class PostServiceTest {
     @Test
     void shouldUpdatePostSuccessfully() {
         Long postId = 1L;
+
         PostUpdateDto updateDto = PostUpdateDto.builder()
                 .content("Updated Content")
-                .images(List.of(mock(MultipartFile.class)))
-                .audio(List.of(mock(MultipartFile.class)))
                 .imageFilesIdsToDelete(List.of(1L))
                 .audioFilesIdsToDelete(List.of(2L))
                 .build();
+
+        List<MultipartFile> images = List.of(mock(MultipartFile.class));
+        List<MultipartFile> audio = List.of(mock(MultipartFile.class));
 
         Post post = new Post();
         post.setId(postId);
@@ -142,16 +146,19 @@ public class PostServiceTest {
                 .build();
 
         when(postRepository.getPostById(postId)).thenReturn(post);
-        when(postRepository.save(post)).thenReturn(post);
+        when(postRepository.save(any(Post.class))).thenReturn(post);
         when(postMapper.toDto(post)).thenReturn(responseDto);
 
-        PostResponseDto actualResponse = postService.updatePost(postId, updateDto);
+        PostResponseDto actualResponse = postService.updatePost(postId, updateDto, images, audio);
 
         assertEquals(postId, actualResponse.getId());
         assertEquals("Updated Content", actualResponse.getContent());
+
         verify(postRepository, times(1)).getPostById(postId);
-        verify(resourceService, times(2)).deleteResources(anyList());
-        verify(resourceService, times(2)).uploadResources(anyList(), anyString(), eq(post));
+        verify(resourceService, times(1)).deleteResources(eq(List.of(1L)));
+        verify(resourceService, times(1)).deleteResources(eq(List.of(2L)));
+        verify(resourceService, times(1)).uploadResources(eq(images), eq("image"), eq(post));
+        verify(resourceService, times(1)).uploadResources(eq(audio), eq("audio"), eq(post));
         verify(resourceValidator, times(1)).validateResourceCounts(post);
         verify(postRepository, times(1)).save(post);
     }
