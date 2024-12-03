@@ -72,7 +72,7 @@ public class PostService {
     private final FileValidator fileValidator;
     private final KeyKeeper keyKeeper;
     private final CommentRepository commentRepository;
-    private final MessageSender messageSender;
+    private final MessageSender redisSender;
     private final ObjectMapper objectMapper;
     private final GingerCorrector gingerCorrector;
     private final MessageSenderForUserBanImpl messageSenderForUserBan;
@@ -192,7 +192,7 @@ public class PostService {
     public void allAuthorIdWithNotVerifyComments() {
         List<Long> idsForBan = commentRepository.findAllWereVerifiedFalse();
         try {
-            messageSender.send(objectMapper.writeValueAsString(getDtoBanSchema(idsForBan)));
+            redisSender.send(objectMapper.writeValueAsString(getDtoBanSchema(idsForBan)));
             log.info("Ids was sending");
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize DtoBanSchema to JSON", e);
