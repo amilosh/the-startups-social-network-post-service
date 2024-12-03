@@ -66,3 +66,7 @@ resilience4j:
         max-attempts: 10
         wait-duration: 200ms
         exponential-backoff-multiplier: 2.0
+
+daily:
+  cron:
+   comment-moderation: 0 0 10 * * *

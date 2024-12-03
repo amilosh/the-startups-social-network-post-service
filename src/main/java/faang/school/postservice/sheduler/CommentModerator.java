@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 public class CommentModerator {
     private final CommentService commentService;
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(cron = "${daily.cron.comment-moderation}")
     public void startModeration() {
-
+        commentService.moderationOfComments();
     }
 }
