@@ -25,6 +25,15 @@ spring:
         calculations_channel:
           name: calculations_channel
 
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+  redis:
+    host: localhost
+    port: 6379
+
 server:
   port: 8081
 
@@ -70,3 +79,8 @@ resilience4j:
 daily:
   cron:
    comment-moderation: 0 0 10 * * *
+   user-ban: 0 0 0 * * ?
+
+redis:
+  topics:
+    users-ban-topic: users-ban-topic

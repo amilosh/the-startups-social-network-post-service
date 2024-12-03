@@ -2,8 +2,10 @@ package faang.school.postservice.service;
 
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.dto.comment.CommentDto;
+import faang.school.postservice.event.UsersBanEvent;
 import faang.school.postservice.dto.sightengine.textAnalysis.TextAnalysisResponse;
 import faang.school.postservice.mapper.comment.CommentMapper;
+import faang.school.postservice.messaging.UsersBanPublisher;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.CommentRepository;
@@ -20,7 +22,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -30,6 +35,7 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final PostService postService;
     private final UserServiceClient userServiceClient;
+    private final UsersBanPublisher usersBanPublisher;
     private final TextAnalysisService textAnalysisService;
 
     @Transactional
@@ -68,24 +74,21 @@ public class CommentService {
         commentRepository.deleteById(commentId);
     }
 
+    public void publishUsersToBanEvent() {
+        log.info("Trying to get all available comments");
+        List<Comment> comments = new ArrayList<>(commentRepository.findAll());
 
-    public Comment getCommentById(long commentId) {
-        log.debug("start searching comment by ID {}", commentId);
-        return commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("Comment is not found"));
-    }
+        log.debug("Trying to convert all available comments to list of user id's to ban");
+        Map<Long, Long> authorsUnverifiedCommentsAmount = comments.stream()
+                .filter(Comment::isNotVerified)
+                .collect(Collectors.groupingBy(Comment::getAuthorId, Collectors.counting()));
 
-    public boolean isCommentNotExist(long commentId) {
-        log.debug("start searching for existence comment with id {}", commentId);
-        return !commentRepository.existsById(commentId);
-    }
+        List<Long> userIdsToBan = authorsUnverifiedCommentsAmount.entrySet().stream()
+                .filter(entry -> entry.getValue() > 5)
+                .map(Map.Entry::getKey)
+                .toList();
 
-    private void validateUserExists(long userId) {
-        try {
-            userServiceClient.getUser(userId);
-        } catch (FeignException ex) {
-            throw new EntityNotFoundException("User does not exist");
-        }
+        usersBanPublisher.publish(new UsersBanEvent(userIdsToBan));
     }
 
     @Async("customTaskExecutor")
@@ -109,6 +112,25 @@ public class CommentService {
                 .doOnComplete(() -> log.info("The comment moderation process has been completed"))
                 .doOnError(e -> log.error("Error during overall comment processing: {}", e.getMessage()))
                 .subscribe();
+    }
+
+    public Comment getCommentById(long commentId) {
+        log.debug("start searching comment by ID {}", commentId);
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Comment is not found"));
+    }
+
+    public boolean isCommentNotExist(long commentId) {
+        log.debug("start searching for existence comment with id {}", commentId);
+        return !commentRepository.existsById(commentId);
+    }
+
+    private void validateUserExists(long userId) {
+        try {
+            userServiceClient.getUser(userId);
+        } catch (FeignException ex) {
+            throw new EntityNotFoundException("User does not exist");
+        }
     }
 
     private boolean textAnalysisProcessing(TextAnalysisResponse response) {
