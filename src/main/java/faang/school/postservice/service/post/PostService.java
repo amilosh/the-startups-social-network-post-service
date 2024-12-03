@@ -5,7 +5,7 @@ import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.cache.author.EventAuthorDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.dto.post.PostRequestDto;
-import faang.school.postservice.event.kafka.post.PostCreateEvent;
+import faang.school.postservice.event.kafka.post.PostCreatedEvent;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.event.post.PostViewEvent;
 import faang.school.postservice.mapper.post.PostMapper;
@@ -138,15 +138,15 @@ public class PostService {
     }
 
     private void sendPostEvent(Post post, UserDto author) {
-        PostCreateEvent postCreateEvent = PostCreateEvent.builder()
+        PostCreatedEvent postCreatedEvent = PostCreatedEvent.builder()
                 .postId(post.getId())
                 .authorId(post.getAuthorId())
                 .subscribers(author.getFollowers())
                 .build();
         try {
-            kafkaPostProducer.sendEvent(postCreateEvent);
+            kafkaPostProducer.sendEvent(postCreatedEvent);
         } catch (Exception ex) {
-            log.error("Failed to send postCreateEvent: {}", postCreateEvent.toString(), ex);
+            log.error("Failed to send postCreateEvent: {}", postCreatedEvent.toString(), ex);
         }
     }
 }
