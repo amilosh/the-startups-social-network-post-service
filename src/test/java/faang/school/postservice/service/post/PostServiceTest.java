@@ -979,8 +979,8 @@ class PostServiceTest {
                 Post.builder().id(245L).authorId(2L).verified(false).build()
         );
         List<Long> userIds = List.of(1L, 2L);
-        DtoBanShema dtoBanShema = new DtoBanShema();
-        dtoBanShema.setIds(userIds);
+        DtoBanSchema dtoBanSсhema = new DtoBanSchema();
+        dtoBanSсhema.setIds(userIds);
         String prefix = "[1,2]";
 
         when(postRepository.findByNotVerified()).thenReturn(posts);
@@ -1000,8 +1000,8 @@ class PostServiceTest {
                 Post.builder().id(10L).authorId(2L).verified(false).build()
         );
         List<Long> userIds = List.of(1L, 2L);
-        DtoBanShema dtoBanShema = new DtoBanShema();
-        dtoBanShema.setIds(userIds);
+        DtoBanSchema dtoBanSсhema = new DtoBanSchema();
+        dtoBanSсhema.setIds(userIds);
         postService.setSizeNotVerifiedPostsForUsers(5);
 
         when(postRepository.findByNotVerified()).thenReturn(posts);
