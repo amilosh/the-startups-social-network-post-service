@@ -3,6 +3,8 @@ package faang.school.postservice.service.s3;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import faang.school.postservice.exception.FileException;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +17,17 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,16 +59,9 @@ class S3ServiceTest {
 
     @Test
     void testAddResource() {
-        Resource resource = s3Service.addResource(multipartFile, key, post);
+       s3Service.uploadResource(multipartFile, key);
 
         verify(amazonS3).putObject(any(PutObjectRequest.class));
-
-        assertNotNull(resource);
-        assertEquals(key, resource.getKey());
-        assertEquals(multipartFile.getOriginalFilename(), resource.getName());
-        assertEquals(multipartFile.getSize(), resource.getSize());
-        assertEquals(post, resource.getPost());
-        assertNotNull(resource.getCreatedAt());
     }
 
     @Test
@@ -77,6 +77,21 @@ class S3ServiceTest {
         s3Service.completeRemoval(key);
 
         verify(amazonS3).deleteObject(bucket, key);
+    }
+
+    @Test
+    void testDownloadResourceException() {
+        assertThrows(FileException.class,
+                () ->  s3Service.downloadResource(key));
+    }
+
+    @Test
+    void testDownloadResource() throws IOException {
+        when(amazonS3.getObject(any(String.class), any(String.class))).thenReturn(new S3Object());
+
+        s3Service.downloadResource(key);
+
+        verify(amazonS3, times(1)).getObject(bucket, key);
     }
 
     @Test

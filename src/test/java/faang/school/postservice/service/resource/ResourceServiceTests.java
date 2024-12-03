@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -77,7 +78,6 @@ public class ResourceServiceTests {
         prepareResource();
         List<MultipartFile> files = prepareMultipartFiles(9);
         when(postRepository.findById(anyLong())).thenReturn(Optional.ofNullable(post));
-        when(s3Service.addResource(files.get(0), key, post)).thenReturn(resource);
 
         List<ResourceDto> result = resourceService.addFilesToPost(1L, files);
 
@@ -87,12 +87,13 @@ public class ResourceServiceTests {
 
     @Test
     void testaddFileToPostIllegalArgumentException() {
+        MultipartFile file = prepareMultipartFiles(1).get(0);
         assertThrows(IllegalArgumentException.class,
-                () -> resourceService.addFileToPost(1L, null));
+                () -> resourceService.addFileToPost(1L, file));
     }
 
     @Test
-    void testaddFileToPost() {
+    void testAddFileToPost() {
         preparePost();
         prepareResource();
         MultipartFile file = prepareMultipartFiles(1).get(0);
@@ -100,13 +101,11 @@ public class ResourceServiceTests {
         when(resourceRepository.findByPostId(anyLong())).thenReturn(List.of(resource));
         when(resourceRepository.save(any(Resource.class))).thenReturn(resource);
         when(resourceMapper.toDto(any(Resource.class))).thenReturn(resourceDto);
-        when(s3Service.addResource(any(MultipartFile.class), any(String.class), any(Post.class))).thenReturn(resource);
 
         ResourceDto result = resourceService.addFileToPost(1L, file);
 
         verify(postRepository, times(1)).findById(anyLong());
         verify(resourceRepository, times(1)).findByPostId(anyLong());
-        verify(resourceRepository, times(1)).save(resource);
         assertEquals(result, resourceDto);
     }
 
@@ -115,6 +114,17 @@ public class ResourceServiceTests {
         resourceService.removeFileFromPost(resourceDto);
 
         verify(resourceRepository, times(1)).deleteById(anyLong());
+    }
+
+    @Test
+    void testGetFilesForPost() {
+        preparePost();
+        prepareResource();
+        when(resourceRepository.findByPostId(anyLong())).thenReturn(List.of(resource));
+
+        List<InputStream> inputStreams = resourceService.getFilesForPost(1L);
+
+        verify(resourceRepository, times(1)).findByPostId(anyLong());
     }
 
 

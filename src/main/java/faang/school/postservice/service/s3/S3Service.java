@@ -2,9 +2,11 @@ package faang.school.postservice.service.s3;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import faang.school.postservice.exception.FileException;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.model.Resource;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,22 +31,6 @@ public class S3Service {
     private final AmazonS3 amazonS3;
     @Value("${services.s3.bucketName}")
     private String bucketName;
-
-
-    public Resource addResource(MultipartFile multipartFile, String key, Post post) {
-        uploadResource(multipartFile, key);
-
-        log.info("generate new resource");
-        Resource resource = new Resource();
-        resource.setKey(key);
-        resource.setName(multipartFile.getOriginalFilename());
-        resource.setSize(multipartFile.getSize());
-        resource.setCreatedAt(LocalDateTime.now());
-        resource.setType(multipartFile.getContentType());
-        resource.setPost(post);
-
-        return resource;
-    }
 
     public void updateResource(MultipartFile multipartFile, String key) {
         completeRemoval(key);
@@ -67,7 +54,18 @@ public class S3Service {
         return url.toString();
     }
 
-    private void uploadResource(MultipartFile multipartFile, String key) {
+    public InputStream downloadResource(String key) {
+        log.info("download resource request");
+        try {
+            S3Object object = amazonS3.getObject(bucketName, key);
+            return object.getObjectContent();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new FileException(e.getMessage(), e);
+        }
+    }
+
+    public void uploadResource(MultipartFile multipartFile, String key) {
         log.info("generating objectMetaData");
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentLength(multipartFile.getSize());

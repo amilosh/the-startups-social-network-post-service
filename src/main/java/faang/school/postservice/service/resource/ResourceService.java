@@ -9,6 +9,7 @@ import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.repository.ResourceRepository;
 import faang.school.postservice.service.s3.S3Service;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,11 +20,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ResourceService {
     private final PostRepository postRepository;
     private final ResourceRepository resourceRepository;
@@ -31,7 +34,9 @@ public class ResourceService {
     private final ResourceMapper resourceMapper;
 
     public List<ResourceDto> addFilesToPost(long postId, List<MultipartFile> files) {
+        log.info("вызван addFilesToPost,  postId ={}, files.size() => {}", postId, files.size());
         if (files.size() > 9 || files.isEmpty()) {
+            log.error("Можно загрузить не более 10 изображений и не менее 1 изображения");
             throw new IllegalStateException("Можно загрузить не более 10 изображений и не менее 1 изображения");
         }
 
@@ -45,10 +50,12 @@ public class ResourceService {
     }
 
     public ResourceDto addFileToPost(long postId, MultipartFile file) {
+        log.info("вызван addFileToPost,  postId ={}, files.getName => {}", postId, file.getName());
         Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Post не найден"));
 
         int filesCount = resourceRepository.findByPostId(postId).size();
         if (filesCount > 10) {
+            log.error("Можно загрузить не более 10 изображений.");
             throw new IllegalStateException("Можно загрузить не более 10 изображений.");
         }
 
@@ -57,16 +64,32 @@ public class ResourceService {
     }
 
     public void removeFileFromPost(ResourceDto resourceDto) {
-        try  {
+        log.info("вызван removeFileFromPost,  resourceDto ={}", resourceDto);
+        try {
             s3Service.completeRemoval(resourceDto.getKey());
         } catch (Exception e) {
+            log.error("вызван removeFileFromPost, Error = {}", e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
         }
         resourceRepository.deleteById(resourceDto.getId());
     }
 
+    public List<InputStream> getFilesForPost(long postId) {
+        log.info("вызван getFilesForPost, postId ={}", postId);
+        List<Resource> resources = resourceRepository.findByPostId(postId);
+
+        return resources.stream()
+                .map(resource -> CompletableFuture.supplyAsync(() -> downloadFiles(resource.getKey())))
+                .map(CompletableFuture::join)
+                .toList();
+    }
+
     private void completeRemoval(String key) {
         s3Service.completeRemoval(key);
+    }
+
+    private InputStream downloadFiles(String key) {
+        return s3Service.downloadResource(key);
     }
 
     private Resource fileUploadResult(MultipartFile file, Post post) {
@@ -81,17 +104,41 @@ public class ResourceService {
                     int width = image.getWidth();
                     int height = image.getHeight();
 
-                    if ((width > 1080 && height > 566) || (width > 1080 && height > 1080)) {
+                    if ((width != height && width > 1080 && height > 566) || (width == height && width > 1080)) {
                         image = resizeImage(image, 1080, 566);
                         file = convertBufferedImageToMultipartFile(image, file.getOriginalFilename(), file.getContentType());
                     }
                 }
             } catch (IOException e) {
+                log.error("Проблемы конвертации изображения ={}", e.getMessage());
                 throw new FileException("Проблемы конвертации изображения", e);
             }
         }
-        Resource result = s3Service.addResource(file, key, post);
-        return resourceRepository.save(result);
+
+        Resource resource = generateResource(file, key, post);
+        Resource result = resourceRepository.save(resource);
+
+        try {
+            s3Service.uploadResource(file, key);
+        } catch (Exception e) {
+            resourceRepository.deleteById(resource.getId());
+            log.error("Проблемы загрузки изображения в ремоут хранилище ={}", e.getMessage());
+            throw new FileException("Проблемы загрузки изображения в ремоут хранилище ", e);
+        }
+        return result;
+    }
+
+    private Resource generateResource(MultipartFile multipartFile, String key, Post post) {
+        log.info("generate new resource");
+        Resource resource = new Resource();
+        resource.setKey(key);
+        resource.setName(multipartFile.getOriginalFilename());
+        resource.setSize(multipartFile.getSize());
+        resource.setCreatedAt(LocalDateTime.now());
+        resource.setType(multipartFile.getContentType());
+        resource.setPost(post);
+
+        return resource;
     }
 
     private BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
