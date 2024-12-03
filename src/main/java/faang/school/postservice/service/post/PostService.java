@@ -224,7 +224,7 @@ public class PostService {
         }
         DtoBanSсhema dtoBanSсhema = new DtoBanSсhema();
         dtoBanSсhema.setIds(userIds);
-        messageSenderForUserBan.send(objectMapper.writeValueAsString(dtoBanShema));
+        messageSenderForUserBan.send(objectMapper.writeValueAsString(dtoBanSсhema));
         log.info("users sent to block");
     }
 
