@@ -47,7 +47,7 @@ public class RedisConfig {
 
     @Bean
     public ChannelTopic channelTopicForUserBan() {
-        String topic = redisProperties.userBanTopic();
+        String topic = redisProperties.usersBanTopic();
         log.info("Creating ChannelTopic for User Ban with topic: {}", topic);
         return new ChannelTopic(topic);    
     }
