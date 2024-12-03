@@ -12,10 +12,10 @@ import java.util.List;
 public class MessageSenderForUserBanImpl implements MessageSender {
 
     private final RedisTemplate<String, List<Long>> redisTemplate;
-    private final ChannelTopic channelTopic;
+    private final ChannelTopic channelTopicForUserBan;
 
     @Override
     public void send(String message) {
-        redisTemplate.convertAndSend(channelTopic.getTopic(), message);
+        redisTemplate.convertAndSend(channelTopicForUserBan.getTopic(), message);
     }
 }
