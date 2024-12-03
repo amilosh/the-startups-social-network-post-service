@@ -8,16 +8,21 @@ import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
 import faang.school.postservice.service.post.filter.PostFilters;
+import faang.school.postservice.util.ModerationDictionary;
 import faang.school.postservice.validator.post.PostValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class PostService {
@@ -26,9 +31,10 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostValidator postValidator;
     private final List<PostFilters> postFilters;
+    private final ModerationDictionary moderationDictionary;
 
     public PostResponseDto create(PostRequestDto postRequestDto) {
-      //  postValidator.validateCreate(postRequestDto);
+        postValidator.validateCreate(postRequestDto);
 
         Post post = postMapper.toEntity(postRequestDto);
 
@@ -36,7 +42,7 @@ public class PostService {
         post.setDeleted(false);
         Post savePost = postRepository.save(post);
 
-        return  postMapper.toDto(savePost);
+        return postMapper.toDto(savePost);
     }
 
     public PostResponseDto publishPost(Long id) {
@@ -81,5 +87,16 @@ public class PostService {
                 .forEach(filter -> filter.apply(posts, filterDto));
 
         return postMapper.toDtoList(posts.toList());
+    }
+
+    @Async("moderationPool")
+    public void verifyPostsForModeration(List<Post> posts) {
+        posts.forEach(post -> {
+            post.setVerifiedDate(LocalDateTime.now());
+            boolean isVerified = moderationDictionary.isVerified(post.getContent());
+            post.setVerified(isVerified);
+            log.info("Post with id {} has been verified and has status {}", post.getId(), isVerified);
+            postRepository.save(post);
+        });
     }
 }
