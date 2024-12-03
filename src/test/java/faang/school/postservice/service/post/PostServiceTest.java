@@ -984,9 +984,9 @@ class PostServiceTest {
         String prefix = "[1,2]";
 
         when(postRepository.findByNotVerified()).thenReturn(posts);
-        when(objectMapper.writeValueAsString(dtoBanShema)).thenReturn(prefix);
+        when(objectMapper.writeValueAsString(dtoBanSсhema)).thenReturn(prefix);
         postService.checkPostsForVerification();
-        verify(messageSenderForUserBan, times((1))).send(objectMapper.writeValueAsString(dtoBanShema));
+        verify(messageSenderForUserBan, times((1))).send(objectMapper.writeValueAsString(dtoBanSсhema));
     }
 
     @Test
@@ -1006,6 +1006,6 @@ class PostServiceTest {
 
         when(postRepository.findByNotVerified()).thenReturn(posts);
         postService.checkPostsForVerification();
-        verify(messageSenderForUserBan, times((0))).send(objectMapper.writeValueAsString(dtoBanShema));
+        verify(messageSenderForUserBan, times((0))).send(objectMapper.writeValueAsString(dtoBanSсhema));
     }
 }
