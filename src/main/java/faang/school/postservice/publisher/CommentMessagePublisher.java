@@ -1,0 +1,21 @@
+package faang.school.postservice.publisher;
+
+import faang.school.postservice.dto.comment.CommentEventDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class CommentMessagePublisher {
+
+    @Value("${event-topic.comment}")
+    private String commentEventTopic;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public void publish(CommentEventDto commentEventDto) {
+        redisTemplate.convertAndSend(commentEventTopic, commentEventDto);
+    }
+}

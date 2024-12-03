@@ -48,3 +48,6 @@ project-service:
 payment-service:
   host: localhost
   port: 9080
+
+event-topic:
+  comment: "comment-topic"
