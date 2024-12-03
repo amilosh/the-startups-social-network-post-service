@@ -43,6 +43,7 @@ spring:
         max-size: 10
         queue-capacity: 500
       thread-name-prefix: async-worker-thread- # префикс для имен потоков
+      
   scheduler:
     comment:
       moderator:
@@ -52,7 +53,7 @@ spring:
         treads-count: 10
     post:
       publisher:
-        cron: 1/5 * * * * *
+        cron: 1/3 * * * * *
         partition-size: 1000
         threads-count: 10
     commentBanner:
