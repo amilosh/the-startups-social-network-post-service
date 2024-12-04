@@ -33,9 +33,9 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-@RestController
 @RequiredArgsConstructor
 @RequestMapping("/posts")
+@RestController
 public class PostController {
     private final PostService postService;
     private final PostMapper mapper;

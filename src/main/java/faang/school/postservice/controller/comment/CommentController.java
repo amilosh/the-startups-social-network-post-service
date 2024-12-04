@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 
-@RestController
 @RequiredArgsConstructor
 @RequestMapping("/comments")
+@RestController
 public class CommentController implements CommentControllerApi {
     private final UserContext userContext;
     private final CommentService commentService;
