@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 @ControllerAdvice
 public class RedisExceptionHandler {
-
     @ExceptionHandler(RedisTransactionInterrupted.class)
     public ResponseEntity<ErrorResponse> handleRedisTransactionInterrupted(RedisTransactionInterrupted exception) {
         log.error(exception.getMessage());
