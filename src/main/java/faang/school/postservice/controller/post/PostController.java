@@ -1,10 +1,10 @@
 package faang.school.postservice.controller.post;
 
-import faang.school.postservice.dto.post.CreatePostRequestDto;
+import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.DeleteImagesFromPostDto;
-import faang.school.postservice.dto.post.FilterPostRequestDto;
+import faang.school.postservice.dto.post.FilterPostDto;
 import faang.school.postservice.dto.post.PostResponseDto;
-import faang.school.postservice.dto.post.UpdatePostRequestDto;
+import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.mapper.post.PostMapper;
 import faang.school.postservice.model.Post;
@@ -42,14 +42,14 @@ public class PostController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public PostResponseDto createPost(@Valid @RequestBody CreatePostRequestDto requestDto) {
+    public PostResponseDto createPost(@Valid @RequestBody CreatePostDto requestDto) {
         Post post = mapper.toEntity(requestDto);
         Post createdPost = postService.create(post);
         return mapper.toDto(createdPost);
     }
 
     @PatchMapping
-    public PostResponseDto updatePost(@Valid @RequestBody UpdatePostRequestDto requestDto) {
+    public PostResponseDto updatePost(@Valid @RequestBody UpdatePostDto requestDto) {
         Post post = mapper.toEntity(requestDto);
         Post result = postService.update(post);
         return mapper.toDto(result);
@@ -74,7 +74,7 @@ public class PostController {
     }
 
     @GetMapping("/search/{authorId}/author")
-    public List<PostResponseDto> searchPostsByAuthor(@PathVariable Long authorId, FilterPostRequestDto requestDto) {
+    public List<PostResponseDto> searchPostsByAuthor(@PathVariable Long authorId, FilterPostDto requestDto) {
         Post post = mapper.toEntity(requestDto);
         post.setAuthorId(authorId);
         List<Post> posts = postService.searchByAuthor(post);
@@ -82,7 +82,7 @@ public class PostController {
     }
 
     @GetMapping("/search/{projectId}/project")
-    public List<PostResponseDto> searchPostsByProject(@PathVariable Long projectId, FilterPostRequestDto requestDto) {
+    public List<PostResponseDto> searchPostsByProject(@PathVariable Long projectId, FilterPostDto requestDto) {
         Post post = mapper.toEntity(requestDto);
         post.setProjectId(projectId);
         List<Post> posts = postService.searchByProject(post);

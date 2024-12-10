@@ -1,9 +1,9 @@
 package faang.school.postservice.mapper.post;
 
-import faang.school.postservice.dto.post.CreatePostRequestDto;
-import faang.school.postservice.dto.post.FilterPostRequestDto;
+import faang.school.postservice.dto.post.CreatePostDto;
+import faang.school.postservice.dto.post.FilterPostDto;
 import faang.school.postservice.dto.post.PostResponseDto;
-import faang.school.postservice.dto.post.UpdatePostRequestDto;
+import faang.school.postservice.dto.post.UpdatePostDto;
 import faang.school.postservice.dto.post.serializable.PostCacheDto;
 import faang.school.postservice.model.Comment;
 import faang.school.postservice.model.Like;
@@ -26,11 +26,11 @@ public interface PostMapper {
 
     List<PostResponseDto> toDtos(List<Post> post);
 
-    Post toEntity(CreatePostRequestDto dto);
+    Post toEntity(CreatePostDto dto);
 
-    Post toEntity(UpdatePostRequestDto dto);
+    Post toEntity(UpdatePostDto dto);
 
-    Post toEntity(FilterPostRequestDto dto);
+    Post toEntity(FilterPostDto dto);
 
     @Named("mapResourcesToResourceIds")
     default List<Long> mapResourcesToResourceIds(List<Resource> resources) {

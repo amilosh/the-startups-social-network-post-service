@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatePostRequestDto {
+public class CreatePostDto {
     @NotBlank(message = "Content can't be blank or empty")
     @Length(max = 4096, message = "Maximum number of characters 4096 symbols")
     private String content;

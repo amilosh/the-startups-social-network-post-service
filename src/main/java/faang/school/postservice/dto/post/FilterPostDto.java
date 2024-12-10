@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class FilterPostRequestDto {
+public class FilterPostDto {
     private boolean published;
 }

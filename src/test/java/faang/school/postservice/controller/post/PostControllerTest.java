@@ -3,7 +3,7 @@ package faang.school.postservice.controller.post;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.TestContainersConfig;
-import faang.school.postservice.dto.post.CreatePostRequestDto;
+import faang.school.postservice.dto.post.CreatePostDto;
 import faang.school.postservice.dto.post.PostResponseDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.ErrorResponse;
@@ -43,7 +43,7 @@ public class PostControllerTest extends TestContainersConfig {
         String userHeader = "x-user-id";
         Long userId = 1L;
         UserDto userDto = new UserDto(userId, "name", "email");
-        CreatePostRequestDto request = new CreatePostRequestDto();
+        CreatePostDto request = new CreatePostDto();
         request.setContent("content");
         request.setAuthorId(userId);
         request.setProjectId(1L);
@@ -69,7 +69,7 @@ public class PostControllerTest extends TestContainersConfig {
 
     @Test
     public void testCreatePostShouldThrowsExceptionOnNullRequestDtoField() throws Exception {
-        CreatePostRequestDto request = new CreatePostRequestDto();
+        CreatePostDto request = new CreatePostDto();
         request.setContent("content");
 
         Map<String, String> errorFields = new HashMap<>();

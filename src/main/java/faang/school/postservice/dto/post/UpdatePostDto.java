@@ -12,7 +12,7 @@ import org.hibernate.validator.constraints.Length;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdatePostRequestDto {
+public class UpdatePostDto {
     @NotNull(message = "Id can't be empty")
     private Long id;
     @NotBlank(message = "Message can't be blank or empty")
